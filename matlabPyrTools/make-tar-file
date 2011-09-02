@@ -1,0 +1,55 @@
+#!/bin/csh -f
+
+setenv BASENAME "/lcv/matlab/lib/"
+
+setenv DIRNAME "matlabPyrTools"
+setenv TARFILE "matlabPyrTools.tar"
+
+# For MAC:
+# Put Macintosh-MEX.sit.hqx (contains projects, C code, mex files) inside of 
+#    MEX directory.
+# Put matlabPyrTools.sit.hqx (entire distribution, filetype corrected, no
+#    MEX subdirectory) inside of main directory.
+
+####################################################################
+## Make a compressed tar file of the EPS_matlab directory:
+
+echo "Before making the tar file:" 
+echo "1) If C code is modified, re-make the mex files..."
+echo "2) Put correct date and version number in Contents.m. Execute 'ver' to test"
+echo "3) add a ChangeLog entry stating that new tarfile was generated" 
+sleep 5
+
+pushd ${BASENAME}
+
+#echo "Removing old tarfile..."
+#/bin/rm  "${DIRNAME}/${TARFILE}"
+#/bin/rm  "${DIRNAME}/${TARFILE}.gz"
+
+#echo "Removing ${DIRNAME}/MEX/*.o files..."
+#/bin/rm ${DIRNAME}/MEX/*.o
+
+echo "Creating ${DIRNAME}/${TARFILE} ..."
+
+tar -cvf ${DIRNAME}/${TARFILE} \
+	${DIRNAME}/README ${DIRNAME}/ChangeLog ${DIRNAME}/*.m \
+        ${DIRNAME}/MEX \
+	${DIRNAME}/TUTORIALS/README ${DIRNAME}/TUTORIALS/*.m \
+	${DIRNAME}/*.pgm
+
+echo "G'zipping ${DIRNAME}/${TARFILE} ..."
+
+gzip ${DIRNAME}/$TARFILE
+gls -l "${DIRNAME}/$TARFILE.gz"
+
+popd
+
+echo "Done.  Now:"
+echo "  cd ${BASENAME}/${DIRNAME}"
+echo "  scp ${TARFILE}.gz  hopf:/Library/WebServer/Documents-www/ftp/eero/"
+echo "  cp README  /users/eero/html_public/matlabPyrTools.README"
+echo "  cp ChangeLog  /users/eero/html_public/matlabPyrTools.ChangeLog"
+echo "  cp Contents.m  /users/eero/html_public/matlabPyrTools-Contents.m"
+echo ""
+echo "  Finally, mark as updated in ~lcv/html_public/software.html"
+echo ""

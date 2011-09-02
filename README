@@ -1,0 +1,21 @@
+This is a repository of useful matlab functions and scripts. Typically these
+are utility functions that are not stand alone applications. Sometimes they are
+even just useful one-liners wrapped into appropriately named functions.
+
+The functions have been organized into folders based on their primary
+application:
+  dithering/
+  geometry/
+  imageprocessing/
+  images/
+  matlabPyrTools/
+  matrix/
+  mesh/
+  meshplot/
+  old/
+  paths/
+  plot/
+  utility/
+
+For more documentation (a concatenation of help documentation for each file in
+each folder see Documentation.txt)

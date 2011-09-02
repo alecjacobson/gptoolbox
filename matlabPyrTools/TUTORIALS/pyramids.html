@@ -1,0 +1,1701 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN">
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>pyramids</title>
+      <meta name="generator" content="MATLAB 7.6">
+      <meta name="date" content="2008-08-18">
+      <meta name="m-file" content="pyramids">
+<link rel="stylesheet" href="HTML/lcv.css" type="text/css">
+<style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+img {
+  padding: 0em;
+  margin: 0em;
+  border: 0em;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+  padding: 0em;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 5px;
+  margin: 0px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 5px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+</style>
+</head>
+<body>
+<h1>IMAGE PYRAMID TUTORIAL<a name="2"></a></h1>
+      <div class="content">
+            <ul>
+               <li><a href="#2">IMAGE PYRAMID TUTORIAL</a></li>
+               <li><a href="#9">LAPLACIAN PYRAMIDS:</a></li>
+               <li><a href="#78">FUNCTIONS for CONSTRUCTING/MANIPULATING LAPLACIAN PYRAMIDS</a></li>
+               <li><a href="#103">ALIASING in the Gaussian and Laplacian pyramids:</a></li>
+               <li><a href="#122">PROJECTION and BASIS functions:</a></li>
+               <li><a href="#166">QMF/WAVELET PYRAMIDS.</a></li>
+               <li><a href="#264">FUNCTIONS for CONSTRUCTING/MANIPULATING QMF/Wavelet PYRAMIDS</a></li>
+               <li><a href="#290">PERFECT RECONSTRUCTION: HAAR AND DEBAUCHIES WAVELETS</a></li>
+               <li><a href="#322">ALIASING IN WAVELET TRANSFORMS</a></li>
+               <li><a href="#354">The "STEERABLE PYRAMID"</a></li>
+            </ul>
+A brief introduction to multi-scale pyramid decompositions for image processing.  You should go through this, reading the comments, and
+executing the corresponding MatLab instructions.  This file assumes a basic familiarity with matrix algebra, with linear systems and Fourier
+theory, and with MatLab.  If you don't understand a particular function call, execute "help &lt;functionName&gt;" to see documentation.
+<br>EPS, 6/96. 
+<br>Based on the original OBVIUS tutorial.<p>
+Determine a subsampling factor for images, based on machine speed:<pre class="codeinput">oim = pgmRead(<span class="string">'einstein.pgm'</span>);
+tic; corrDn(oim,[1 1; 1 1]/4,<span class="string">'reflect1'</span>,[2 2]); time = toc;
+imSubSample = min(max(floor(log2(time)/2+3),0),2);
+im = blurDn(oim, imSubSample,<span class="string">'qmf9'</span>);
+clear <span class="string">oim</span>;
+clf; showIm(im, <span class="string">'auto2'</span>, <span class="string">'auto'</span>, <span class="string">'im'</span>);
+
+</pre>
+<img src="HTML/pyramids_01.png">
+<h1>LAPLACIAN PYRAMIDS:<a name="9"></a></h1>
+Images may be decomposed into information at different scales. Blurring eliminates the fine scales (detail):<pre class="codeinput">binom5 = binomialFilter(5);
+lo_filt = binom5*binom5';
+blurred = rconv2(im,lo_filt);
+subplot(1,2,1); showIm(im, <span class="string">'auto2'</span>, <span class="string">'auto'</span>, <span class="string">'im'</span>);
+subplot(1,2,2); showIm(blurred, <span class="string">'auto2'</span>, <span class="string">'auto'</span>, <span class="string">'blurred'</span>);
+</pre><img src="HTML/pyramids_02.png"><br>
+Subtracting the blurred image from the original leaves ONLY the fine scale detail:<pre class="codeinput">fine0 = im - blurred;
+subplot(1,2,1); showIm(fine0, <span class="string">'auto2'</span>, <span class="string">'auto'</span>, <span class="string">'fine0'</span>);
+</pre><img src="HTML/pyramids_03.png"><br>
+The blurred and fine images contain all the information found in
+the original image.  Trivially, adding the blurred image to the
+fine scale detail will reconstruct the original.  We can compare
+the original image to the sum of blurred and fine using the<a name="17"></a>
+"imStats" function, which reports on the statistics of the<a name="18"></a>
+difference between it's arguments:<a name="19"></a>
+<pre class="codeinput">imStats(im, blurred+fine0);
+</pre><pre class="codeoutput">Difference statistics:
+  Range: [-7.105427e-15, 3.552714e-15]
+  Mean: -0.000000,  Stdev (rmse): 0.000000,  SNR (dB): 353.641098
+</pre>
+Since the filter is a lowpass filter, we might want to subsample<a name="20"></a>
+         the blurred image.  This may cause some aliasing (depends on the<a name="21"></a>
+         filter), but the decomposition structure given above will still be<a name="22"></a>
+         possible.  The corrDn function correlates (same as convolution, but<a name="23"></a>
+         flipped filter) and downsamples in a single operation (for<a name="24"></a>
+         efficiency).  The string 'reflect1' tells the function to handle<a name="25"></a>
+         boundaries by reflecting the image about the edge pixels.  Notice<a name="26"></a>
+         that the blurred1 image is half the size (in each dimension) of the<a name="27"></a>
+         original image.<a name="28"></a>
+<pre class="codeinput">lo_filt = 2*binom5*binom5';  <span class="comment">%construct a separable 2D filter</span>
+blurred1 = corrDn(im,lo_filt,<span class="string">'reflect1'</span>,[2 2]);
+subplot(1,2,2); showIm(blurred1,<span class="string">'auto2'</span>,<span class="string">'auto'</span>,<span class="string">'blurred1'</span>);
+</pre><img src="HTML/pyramids_04.png"><br>
+Now, to extract fine scale detail, we must interpolate the image<a name="29"></a>
+         back up to full size before subtracting it from the original.  The<a name="30"></a>
+         upConv function does upsampling (padding with zeros between<a name="31"></a>
+         samples) followed by convolution.  This can be done using the<a name="32"></a>
+         lowpass filter that was applied before subsampling or it can be<a name="33"></a>
+         done with a different filter.<a name="34"></a>
+<pre class="codeinput">fine1 = im - upConv(blurred1,lo_filt,<span class="string">'reflect1'</span>,[2 2],[1 1],size(im));
+subplot(1,2,1); showIm(fine1,<span class="string">'auto2'</span>,<span class="string">'auto'</span>,<span class="string">'fine1'</span>);
+</pre><img src="HTML/pyramids_05.png"><br>
+We now have a technique that takes an image, computes two new<a name="35"></a>
+         images (blurred1 and fine1) containing the coarse scale information<a name="36"></a>
+         and the fine scale information.  We can also (trivially)<a name="37"></a>
+         reconstruct the original from these two (even if the subsampling of<a name="38"></a>
+         the blurred1 image caused aliasing):<a name="39"></a><pre class="codeinput">recon = fine1 + upConv(blurred1,lo_filt,<span class="string">'reflect1'</span>,[2 2],[1 1],size(im));
+imStats(im, recon);
+</pre><pre class="codeoutput">Difference statistics:
+  Range: [-7.105427e-15, 7.105427e-15]
+  Mean: -0.000000,  Stdev (rmse): 0.000000,  SNR (dB): 345.757412
+</pre>
+Thus, we have described an INVERTIBLE linear transform that maps an<a name="40"></a>
+         input image to the two images blurred1 and fine1.  The inverse<a name="41"></a>
+         transformation maps blurred1 and fine1 to the result.  This is<a name="42"></a>
+         depicted graphically with a system diagram:<a name="43"></a>
+         <pre>IM --&gt; blur/down2 ---------&gt; BLURRED1 --&gt; up2/blur --&gt; add --&gt; RECON
+|                    |                                  ^
+|	             |                                  |
+|	             V                                  |
+|	          up2/blur                              |
+|	             |                                  |
+|	             |                                  |
+|	             V                                  |
+ --------------&gt; subtract --&gt; FINE1 -------------------</pre>
+Note that the number of samples in the representation (i.e., total<a name="55"></a>
+         samples in BLURRED1 and FINE1) is 1.5 times the number of samples<a name="56"></a>
+         in the original IM.  Thus, this representation is OVERCOMPLETE.<a name="57"></a>
+         Often, we will want further subdivisions of scale.  We can<a name="58"></a>
+         decompose the (coarse-scale) BLURRED1 image into medium coarse and<a name="59"></a>
+         very coarse images by applying the same splitting technique:<a name="60"></a>
+<pre class="codeinput">blurred2 = corrDn(blurred1,lo_filt,<span class="string">'reflect1'</span>,[2 2]);
+showIm(blurred2)
+</pre>
+<pre class="codeoutput">
+ans =
+
+  152.6425  710.8401
+</pre>
+<img src="HTML/pyramids_5.5.png">
+<pre class="codeinput">
+fine2 = blurred1 - upConv(blurred2,lo_filt,<span class="string">'reflect1'</span>,[2 2],[1 1],size(blurred1));
+showIm(fine2)
+</pre>
+<pre class="codeoutput">
+ans =
+
+ -107.9813  151.5816
+
+</pre>
+<img src="HTML/pyramids_06.png"><br>
+Since blurred2 and fine2 can be used to reconstruct blurred1, and<a name="61"></a>
+         blurred1 and fine1 can be used to reconstruct the original image,<a name="62"></a>
+         the set of THREE images (also known as "subbands") {blurred2,<a name="63"></a>
+         fine2, fine1} constitute a complete representation of the original<a name="64"></a>
+         image.  Note that the three subbands are displayed at the same size,<a name="65"></a>
+         but they are actually three different sizes.<a name="66"></a>
+<pre class="codeinput">subplot(1,3,1); showIm(fine1,<span class="string">'auto2'</span>,2^(imSubSample-1),<span class="string">'fine1'</span>);
+subplot(1,3,2); showIm(fine2,<span class="string">'auto2'</span>,2^(imSubSample),<span class="string">'fine2'</span>);
+subplot(1,3,3); showIm(blurred2,<span class="string">'auto2'</span>,2^(imSubSample+1),<span class="string">'blurred2'</span>);
+</pre><img src="HTML/pyramids_07.png"><br>
+It is useful to consider exactly what information is stored in each<a name="67"></a>
+         of the pyramid subbands.  The reconstruction process involves<a name="68"></a>
+         recursively interpolating these images and then adding them to the<a name="69"></a>
+         image at the next finer scale.  To see the contribution of ONE of<a name="70"></a>
+         the representation images (say blurred2) to the reconstruction, we<a name="71"></a>
+         imagine filling all the other subbands with zeros and then<a name="72"></a>
+         following our reconstruction procedure.  For the blurred2 subband,<a name="73"></a>
+         this is equivalent to simply calling upConv twice:<a name="74"></a>
+<pre class="codeinput">blurred2_full = upConv(upConv(blurred2,lo_filt,<span class="string">'reflect1'</span>,[2 2],[1 1],size(blurred1)),<span class="keyword">...</span>
+    lo_filt,<span class="string">'reflect1'</span>,[2 2],[1 1],size(im));
+subplot(1,3,3); showIm(blurred2_full,<span class="string">'auto2'</span>,2^(imSubSample-1),<span class="string">'blurred2-full'</span>);
+</pre><img src="HTML/pyramids_08.png"><br>For the fine2 subband, this is equivalent to calling upConv once:<a name="75"></a></p><pre class="codeinput">fine2_full = upConv(fine2,lo_filt,<span class="string">'reflect1'</span>,[2 2],[1 1],size(im));
+subplot(1,3,2); showIm(fine2_full,<span class="string">'auto2'</span>,2^(imSubSample-1),<span class="string">'fine2-full'</span>);
+</pre><img src="HTML/pyramids_09.png"><br>If we did everything correctly, we should be able to add together<a name="76"></a> these three full-size images to reconstruct the original image:<a name="77"></a></p><pre class="codeinput">recon = blurred2_full + fine2_full + fine1;
+imStats(im, recon)
+
+</pre>
+<pre class="codeoutput">Difference statistics:
+  Range: [-8.526513e-14, 5.684342e-14]
+  Mean: -0.000000,  Stdev (rmse): 0.000000,  SNR (dB): 307.603254
+</pre>
+<a name="78"></a>
+<h1>FUNCTIONS for CONSTRUCTING/MANIPULATING LAPLACIAN PYRAMIDS</h1>
+We can continue this process, recursively splitting off finer and<a name="79"></a> finer details from the blurred image (like peeling off the outer<a name="80"></a> layers of an onion).  The resulting data structure is known as a<a name="81"></a> "Laplacian Pyramid".  To make things easier, we have written a<a name="82"></a> MatLab function called buildLpyr to construct this object.  The<a name="83"></a> function returns two items: a long vector containing the subbands<a name="84"></a> of the pyramid, and an index matrix that is used to access these<a name="85"></a> subbands.  The display routine showLpyr shows all the subbands of the<a name="86"></a> pyramid, at the their correct relative sizes.  It should now be<a name="87"></a> clearer why these data structures are called "pyramids".<a name="88"></a></p><pre class="codeinput">[pyr,pind] = buildLpyr(im,5-imSubSample);
+showLpyr(pyr,pind);
+</pre><img src="HTML/pyramids_10.png"><br>There are also "accessor" functions for pulling out a single subband:<a name="89"></a></p><pre class="codeinput">showIm(pyrBand(pyr,pind,2));
+</pre>
+<img src="HTML/pyramids_11.png"><br>
+The reconLpyr function allows you to reconstruct from a laplacian pyramid.<a name="90"></a> The third (optional) arg allows you to select any subset of pyramid bands<a name="91"></a> (default is to use ALL of them).<a name="92"></a></p><pre class="codeinput">clf; showIm(reconLpyr(pyr,pind,[1 3]),<span class="string">'auto2'</span>,<span class="string">'auto'</span>,<span class="string">'bands 1 and 3 only'</span>);
+</pre>
+<img src="HTML/pyramids_11.5.png">
+<pre class="codeinput">
+fullres = reconLpyr(pyr,pind);
+showIm(fullres,<span class="string">'auto2'</span>,<span class="string">'auto'</span>,<span class="string">'Full reconstruction'</span>);
+imStats(im,fullres);
+</pre><pre class="codeoutput">Difference statistics:
+  Range: [-7.105427e-15, 7.105427e-15]
+  Mean: 0.000000,  Stdev (rmse): 0.000000,  SNR (dB): 345.757510
+</pre>
+<img src="HTML/pyramids_12.png"><br>buildLpyr uses 5-tap filters by default for building Laplacian<a name="93"></a> pyramids.  You can specify other filters:<a name="94"></a></p><pre class="codeinput">namedFilter(<span class="string">'binom3'</span>)
+[pyr3,pind3] = buildLpyr(im,5-imSubSample,<span class="string">'binom3'</span>);
+showLpyr(pyr3,pind3);
+fullres3 = reconLpyr(pyr3,pind3,<span class="string">'all'</span>,<span class="string">'binom3'</span>);
+imStats(im,fullres3);
+</pre><pre class="codeoutput">
+ans =
+
+    0.3536
+    0.7071
+    0.3536
+
+Difference statistics:
+  Range: [, 7.105427e-15]
+  Mean: 0.000000,  Stdev (rmse): 0.000000,  SNR (dB): 350.953606
+</pre><img src="HTML/pyramids_13.png">
+<br>Here we build a "Laplacian" pyramid using random filters.  filt1 is<a name="95"></a> used with the downsampling operations and filt2 is used with the<a name="96"></a> upsampling operations.  We normalize the filters for display<a name="97"></a> purposes.  Of course, these filters are (almost certainly) not very<a name="98"></a> "Gaussian", and the subbands of such a pyramid will be garbage!<a name="99"></a> Nevertheless, it is a simple property of the Laplacian pyramid that<a name="100"></a> we can use ANY filters and we will still be able to reconstruct<a name="101"></a> perfectly.<a name="102"></a></p><pre class="codeinput">filt1 = rand(1,5); filt1 = sqrt(2)*filt1/sum(filt1)
+filt2 = rand(1,3); filt2 = sqrt(2)*filt2/sum(filt2)
+[pyrr,pindr] = buildLpyr(im,5-imSubSample,filt1,filt2);
+showLpyr(pyrr,pindr);
+fullresr = reconLpyr(pyrr,pindr,<span class="string">'all'</span>,filt2);
+imStats(im,fullresr);
+
+</pre>
+<pre class="codeoutput">
+filt1 =
+
+    0.3708    0.2612    0.2453    0.4093    0.1276
+
+
+filt2 =
+
+    0.5662    0.5636    0.2845
+
+Difference statistics:
+  Range: [-1.421085e-14, 2.842171e-14]
+  Mean: -0.000000,  Stdev (rmse): 0.000000,  SNR (dB): 336.260358
+</pre><img src="HTML/pyramids_14.png">
+<h1>ALIASING in the Gaussian and Laplacian pyramids:<a name="103"></a></h1>
+Unless one is careful, the subsampling operations will introduce aliasing<a name="104"></a> artifacts in these pyramid transforms.  This is true even though the<a name="105"></a> Laplacian pyramid can be used to reconstruct the original image perfectly.<a name="106"></a> When reconstructing, the pyramid is designed in such a way that these<a name="107"></a> aliasing artifacts cancel out.  So it's not a problem if the only thing we<a name="108"></a> want to do is reconstruct.  However, it can be a serious problem if we<a name="109"></a> intend to process each of the subbands independently.<a name="110"></a> One way to see the consequences of the aliasing artifacts is by<a name="111"></a>examining variations that occur when the input is shifted.  We<a name="112"></a> choose an image and shift it by some number of pixels.  Then blur<a name="113"></a>
+(filter-downsample-upsample-filter) the original image and blur the<a name="114"></a> shifted image.  If there's no aliasing, then the blur and shift<a name="115"></a> operations should commute (i.e.,<a name="116"></a> shift-filter-downsample-upsample-filter is the same as<a name="117"></a> filter-downsample-upsample-filter-shift).  Try this for 2 different<a name="118"></a> filters (by replacing 'binom3' with 'binom5' or 'binom7' below),<a name="119"></a> and you'll see that the aliasing is much worse for the 3 tap<a name="120"></a> filter.<a name="121"></a></p><pre class="codeinput">sig = 100*randn([1 16]);
+sh = [0 7];  <span class="comment">%shift amount</span>
+lev = 2; <span class="comment">% level of pyramid to look at</span>
+flt = <span class="string">'binom3'</span>;  <span class="comment">%filter to use:</span>
+
+shiftIm = shift(sig,sh);
+[pyr,pind] = buildLpyr(shiftIm, lev, flt, flt, <span class="string">'circular'</span>);
+shiftBlur = reconLpyr(pyr, pind, lev, flt, <span class="string">'circular'</span>);
+
+[pyr,pind] = buildLpyr(sig, lev, flt, flt, <span class="string">'circular'</span>);
+res = reconLpyr(pyr, pind, lev, flt, <span class="string">'circular'</span>);
+blurShift = shift(res,sh);
+
+subplot(2,1,1); r = showIm(shiftBlur,<span class="string">'auto2'</span>,<span class="string">'auto'</span>,<span class="string">'shiftBlur'</span>);
+subplot(2,1,2); showIm(blurShift,r,<span class="string">'auto'</span>,<span class="string">'blurShift'</span>);
+imStats(blurShift,shiftBlur);
+
+</pre>
+<pre class="codeoutput">Difference statistics:
+  Range: [-9.191223e+01, 8.063398e+01]
+  Mean: 0.000000,  Stdev (rmse): 46.487369,  SNR (dB): -0.344851
+</pre><img src="HTML/pyramids_15.png">
+<h1>PROJECTION and BASIS functions:<a name="122"></a></h1>
+An invertible, linear transform can be characterized in terms<a name="123"></a> of a set of PROJECTION and BASIS functions.  In matlab matrix<a name="124"></a> notation:<a name="125"></a><br>
+c = P' * x<a name="126"></a><br>
+x = B * c<a name="127"></a><br>
+where x is an input, c are the transform coefficients, P and B are matrices.  The columns of P are the projection functions (the<a name="129"></a> input is projected onto the the columns of P to get each successive<a name="130"></a> transform coefficient).  The columns of B are the basis<a name="131"></a> functions (x is a linear combination of the columns of B).<a name="132"></a> Since the Laplacian pyramid is a linear transform, we can ask: what<a name="133"></a> are its BASIS functions?  We consider these in one dimension for<a name="134"></a> simplicity.  The BASIS function corresponding to a given<a name="135"></a> coefficient tells us how much that coefficient contributes to each<a name="136"></a> pixel in the reconstructed image.  We can construct a single basis<a name="137"></a>
+function by setting one sample of one subband equal to 1.0 (and all<a name="138"></a> others to zero) and reconstructing. To build the entire matrix, we<a name="139"></a> have to do this for every sample of every subband:<a name="140"></a></p><pre class="codeinput">sz = min(round(48/(sqrt(2)^imSubSample)),36);
+sig = zeros(sz,1);
+[pyr,pind] = buildLpyr(sig);
+basis = zeros(sz,size(pyr,1));
+<span class="keyword">for</span> n=1:size(pyr,1)
+  pyr = zeros(size(pyr));
+  pyr(n) = 1;
+  basis(:,n) = reconLpyr(pyr,pind);
+<span class="keyword">end</span>
+clf; showIm(basis)
+</pre><pre class="codeoutput">
+ans =
+
+     0     1
+
+</pre><img src="HTML/pyramids_16.png"><br>The columns of the basis matrix are the basis functions.  The<a name="141"></a> matrix is short and fat, corresponding to the fact that the<a name="142"></a> representation is OVERCOMPLETE.  Below, we plot the middle one from<a name="143"></a> each subband, starting with the finest scale.  Note that all of<a name="144"></a> these basis functions are lowpass (Gaussian-like) functions.<a name="145"></a></p><pre class="codeinput">locations = round(sz * (2 - 3./2.^[1:max(4,size(pind,1))]))+1;
+<span class="keyword">for</span> lev=1:size(locations,2)
+  subplot(2,2,lev);
+  showIm(basis(:,locations(lev)));
+  axis([0 sz 0 1.1]);
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_17.png"><br>Now, we'd also like see the inverse (we'll call them PROJECTION)<a name="146"></a> functions. We need to ask how much of each sample of the input<a name="147"></a> image contributes to a given pyramid coefficient.  Thus, the matrix<a name="148"></a> is constructed by building pyramids on the set of images with<a name="149"></a> impulses at each possible location.  The rows of this matrix are<a name="150"></a> the projection functions.<a name="151"></a></p><pre class="codeinput">projection = zeros(size(pyr,1),sz);
+<span class="keyword">for</span> pos=1:sz
+  [pyr,pind] = buildLpyr(mkImpulse([1 sz], [1 pos]));
+  projection(:,pos) = pyr;
+<span class="keyword">end</span>
+clf; showIm(projection);
+</pre><img src="HTML/pyramids_18.png"><br>Building a pyramid corresponds to multiplication by the projection<a name="152"></a> matrix.  Reconstructing from this pyramid corresponds to<a name="153"></a> multiplication by the basis matrix.  Thus, the product of the two<a name="154"></a> matrices (in this order) should be the identity matrix:<a name="155"></a></p><pre class="codeinput">showIm(basis*projection);
+</pre><img src="HTML/pyramids_19.png"><br>We can plot a few example projection functions at different scales.<a name="156"></a> Note that all of the projection functions are bandpass functions,<a name="157"></a> except for the coarsest subband which is lowpass.<a name="158"></a></p><pre class="codeinput"><span class="keyword">for</span> lev=1:size(locations,2)
+  subplot(2,2,lev);
+  showIm(projection(locations(lev),:));
+  axis([0 sz -0.3 0.8]);
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_20.png"><br>Now consider the frequency response of these functions, plotted over the<a name="159"></a> range [-pi,pi]:<a name="160"></a></p><pre class="codeinput"><span class="keyword">for</span> lev=1:size(locations,2)
+  subplot(2,2,lev);
+  proj = projection(locations(lev),:);
+  plot(pi*[-32:31]/32,fftshift(abs(fft(proj',64))));
+  axis([-pi pi -0.1 3]);
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_21.png"><br>The first projection function is highpass, and the second is bandpass.  Both<a name="161"></a> of these look something like the Laplacian (2nd derivative) of a Gaussian.<a name="162"></a>
+The last is lowpass, as are the basis functions.  Thus, the basic operation<a name="163"></a> used to create each level of the pyramid involves a simple highpass/lowpass<a name="164"></a> split.</p>
+<h1>QMF/WAVELET PYRAMIDS.<a name="166"></a></h1>
+Two things about Laplacian pyramids are a bit unsatisfactory.<a name="167"></a>First, there are more pixels (coefficients) in the representation<a name="168"></a> than in the original image. Specifically, the 1-dimensional<a name="169"></a> transform is overcomplete by a factor of 4/3, and the 2-dimensional<a name="170"></a> transform is overcomplete by a factor of 2.  Secondly, the<a name="171"></a>"bandpass" images (fineN) do not segregate information according to<a name="172"></a>orientation.<a name="173"></a><br>There are other varieties of pyramid.  One type that arose in the<a name="174"></a> speech coding community is based on a particular pairs of filters<a name="175"></a> known as a "Quadrature Mirror Filters" or QMFs.  These are closely<a name="176"></a> related to Wavelets (essentially, they are approximate wavelet<a name="177"></a>
+filters).<a name="178"></a><br>Recall that the Laplacian pyramid is formed by simple hi/low<a name="179"></a> splitting at each level.  The lowpass band is subsampled by a<a name="180"></a> factor of 2, but the highpass band is NOT subsampled.  In the QMF<a name="181"></a> pyramid, we apply two filters (hi- and lo- pass) and subsample BOTH<a name="182"></a> by a factor of 2, thus eliminating the excess coefficients of the<a name="183"></a> Laplacian pyramid.<a name="184"></a> <br>The two filters must have a specific relationship to each<a name="185"></a> other. In particular, let n be an index for the filter samples.<a name="186"></a>
+The highpass filter may be constructed from the lowpass filter by<a name="187"></a> (1) modulating (multiplying) by (-1)^n (equivalent to shifting by<a name="188"></a> pi in the Fourier domain), (2) flipping (i.e., reversing the order<a name="189"></a> of the taps), (3) spatially shifting by one sample.  Try to<a name="190"></a> convince yourself that the resulting filters will always be<a name="191"></a> orthogonal to each other (i.e., their inner products will be zero)<a name="192"></a> when shifted by any multiple of two.<a name="193"></a><br>The function modulateFlip performs the first two of these operations.  The<a name="194"></a> third (spatial shifting) step is built into the convolution code.<a name="195"></a></p><pre class="codeinput">flo = namedFilter(<span class="string">'qmf9'</span>)';
+fhi = modulateFlip(flo)';
+subplot(2,1,1); lplot(flo); axis([0 10 -0.5 1.0]); title(<span class="string">'lowpass'</span>);
+subplot(2,1,2); lplot(fhi); axis([0 10 -0.5 1.0]); title(<span class="string">'highpass'</span>);
+</pre><img src="HTML/pyramids_22.png"><br>In the Fourier domain, these filters are (approximately)<a name="196"></a> "power-complementary": the sum of their squared power spectra is<a name="197"></a> (approximately) a constant.  But note that neither is a perfect<a name="198"></a> bandlimiter (i.e., a sinc function), and thus subsampling by a<a name="199"></a> factor of 2 will cause aliasing in each of the subbands.  See below<a name="200"></a> for a discussion of the effect of this aliasing.<a name="201"></a> Plot the two frequency responses:<a name="202"></a></p><pre class="codeinput">freq = pi*[-32:31]/32;
+subplot(2,1,1);
+plot(freq,fftshift(abs(fft(flo,64))),<span class="string">'--'</span>,freq,fftshift(abs(fft(fhi,64))),<span class="string">'-'</span>);
+axis([-pi pi 0 1.5]); title(<span class="string">'FFT magnitudes'</span>);
+subplot(2,1,2);
+plot(freq,fftshift(abs(fft(flo,64)).^2)+fftshift(abs(fft(fhi,64)).^2));
+axis([-pi pi 0 2.2]); title(<span class="string">'Sum of squared magnitudes'</span>);
+</pre><img src="HTML/pyramids_23.png"><br>We can split an input signal into two bands as follows:<a name="203"></a></p><pre class="codeinput">sig = mkFract([1,64],1.6);
+subplot(2,1,1); showIm(sig,<span class="string">'auto1'</span>,<span class="string">'auto'</span>,<span class="string">'sig'</span>);
+lo1 = corrDn(sig,flo,<span class="string">'reflect1'</span>,[1 2],[1 1]);
+hi1 = corrDn(sig,fhi,<span class="string">'reflect1'</span>,[1 2],[1 2]);
+subplot(2,1,2);
+showIm(lo1,<span class="string">'auto1'</span>,<span class="string">'auto'</span>,<span class="string">'low and high bands'</span>); hold <span class="string">on</span>; plot(hi1,<span class="string">'--r'</span>); hold <span class="string">off</span>;
+</pre><img src="HTML/pyramids_24.png"><br>Notice that the two subbands are half the size of the original<a name="204"></a> image, due to the subsampling by a factor of 2.  One subtle point:<a name="205"></a> the highpass and lowpass bands are subsampled on different<a name="206"></a> lattices: the lowpass band retains the odd-numbered samples and the<a name="207"></a> highpass band retains the even-numbered samples.  This was the<a name="208"></a> 1-sample shift relating the high and lowpass kernels (mentioned<a name="209"></a> above).  We've used the 'reflect1' to handle boundaries, which<a name="210"></a> works properly for symmetric odd-length QMFs.<a name="211"></a><br>We can reconstruct the original image by interpolating these two subbands<a name="212"></a> USING THE SAME FILTERS:<a name="213"></a></p><pre class="codeinput">reconlo = upConv(lo1,flo,<span class="string">'reflect1'</span>,[1 2]);
+reconhi = upConv(hi1,fhi,<span class="string">'reflect1'</span>,[1 2],[1 2]);
+subplot(2,1,2); showIm(reconlo+reconhi,<span class="string">'auto1'</span>,<span class="string">'auto'</span>,<span class="string">'reconstructed'</span>);
+imStats(sig,reconlo+reconhi);
+</pre><pre class="codeoutput">Difference statistics:
+  Range: [-1.832183e-03, 1.369161e-03]
+  Mean: -0.000062,  Stdev (rmse): 0.000727,  SNR (dB): 62.766134
+</pre><img src="HTML/pyramids_25.png"><br>We have described an INVERTIBLE linear transform that maps an input<a name="214"></a> image to the two images lo1 and hi1.  The inverse transformation<a name="215"></a> maps these two images to the result.  This is depicted graphically<a name="216"></a> with a system diagram:<a name="217"></a><br>
+<pre>IM ---&gt; flo/down2 --&gt; LO1 --&gt; up2/flo --&gt; add --&gt; RECON
+    |                                      ^
+    |	                                   |
+    |	                                   |
+     -&gt; fhi/down2 --&gt; HI1 --&gt; up2/fhi -----</pre><br>
+Note that the number of samples in the representation (i.e., total samples in LO1 and HI1) is equal to the number of samples in the<a name="226"></a> original IM.  Thus, this representation is exactly COMPLETE, or<a name="227"></a> "critically sampled".<br>So we've fixed one of the problems that we had with Laplacian<a name="229"></a> pyramid.  But the system diagram above places strong constraints on<a name="230"></a> the filters.  In particular, for these filters the reconstruction<a name="231"></a> is no longer perfect.  Turns out there are NO<a name="232"></a> perfect-reconstruction symmetric filters that are<a name="233"></a> power-complementary, except for the trivial case [1] and the<a name="234"></a> nearly-trivial case [1 1]/sqrt(2).<br>Let's consider the projection functions of this 2-band splitting<a name="236"></a> operation.  We can construct these by applying the transform to<a name="237"></a> impulse input signals, for all possible impulse locations.  The<a name="238"></a> rows of the following matrix are the projection functions for each<a name="239"></a> coefficient in the transform.<a name="240"></a></p><pre class="codeinput">M = [corrDn(eye(32),flo',<span class="string">'circular'</span>,[1 2]), <span class="keyword">...</span>
+     corrDn(eye(32),fhi',<span class="string">'circular'</span>,[1 2],[1 2])]';
+clf; showIm(M,<span class="string">'auto1'</span>,<span class="string">'auto'</span>,<span class="string">'M'</span>);
+</pre><img src="HTML/pyramids_26.png"><br>The transform matrix is composed of two sub-matrices.  The top half<a name="241"></a> contains the lowpass kernel, shifted by increments of 2 samples.<a name="242"></a> The bottom half contains the highpass.  Now we compute the inverse<a name="243"></a> of this matrix:<a name="244"></a></p><pre class="codeinput">M_inv = inv(M);
+showIm(M_inv,<span class="string">'auto1'</span>,<span class="string">'auto'</span>,<span class="string">'M_inv'</span>);
+</pre><img src="HTML/pyramids_27.png"><br>The inverse is (very close to) the transpose of the original<a name="245"></a> matrix!  In other words, the transform is orthonormal.<a name="246"></a></p><pre class="codeinput">imStats(M_inv',M);
+</pre><pre class="codeoutput">Difference statistics:
+  Range: [-6.479123e-04, 3.974265e-04]
+  Mean: -0.000004,  Stdev (rmse): 0.000263,  SNR (dB): 56.495757
+</pre><br>This also points out a nice relationship between the corrDn and<a name="247"></a> upConv functions, and the matrix representation.  corrDn is<a name="248"></a> equivalent to multiplication by a matrix with copies of the filter<a name="249"></a> on the ROWS, translated in multiples of the downsampling factor.<a name="250"></a> upConv is equivalent to multiplication by a matrix with copies of<a name="251"></a> the filter on the COLUMNS, translated by the upsampling factor.<a name="252"></a> As in the Laplacian pyramid, we can recursively apply this QMF<a name="253"></a> band-splitting operation to the lowpass band:<a name="254"></a></p><pre class="codeinput">lo2 = corrDn(lo1,flo,<span class="string">'reflect1'</span>,[1 2]);
+hi2 = corrDn(lo1,fhi,<span class="string">'reflect1'</span>,[1 2],[1 2]);
+</pre><br>The representation of the original signal is now comprised of the<a name="255"></a> three subbands {hi1, hi2, lo2} (we don't hold onto lo1, because it<a name="256"></a> can be reconstructed from lo2 and hi2).  Note that hi1 is at 1/2<a name="257"></a> resolution, and hi2 and lo2 are at 1/4 resolution: The total number<a name="258"></a> of samples in these three subbands is thus equal to the number of<a name="259"></a> samples in the original signal.<a name="260"></a></p><pre class="codeinput">imnames=[<span class="string">'hi1'</span>; <span class="string">'hi2'</span>; <span class="string">'lo2'</span>];
+<span class="keyword">for</span> bnum=1:3
+  band = eval(imnames(bnum,:));
+  subplot(3,1,bnum); showIm(band); ylabel(imnames(bnum,:));
+  axis([1 size(band,2) 1.1*min(lo2) 1.1*max(lo2)]);
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_28.png"><br>Reconstruction proceeds as with the Laplacian pyramid: combine lo2 and hi2<a name="261"></a> to reconstruct lo1, which is then combined with hi1 to reconstruct the<a name="262"></a> original signal:<a name="263"></a></p>
+<pre class="codeinput">recon_lo1 = upConv(hi2,fhi,<span class="string">'reflect1'</span>,[1 2],[1 2]) + <span class="keyword">...</span>
+            upConv(lo2,flo,<span class="string">'reflect1'</span>,[1 2],[1 1]);
+reconstructed = upConv(hi1,fhi,<span class="string">'reflect1'</span>,[1 2],[1 2]) + <span class="keyword">...</span>
+                upConv(recon_lo1,flo,<span class="string">'reflect1'</span>,[1 2],[1 1]);
+imStats(sig,reconstructed);
+
+</pre>
+<pre class="codeoutput">Difference statistics:
+  Range: [-2.857375e-03, 1.844433e-03]
+  Mean: -0.000097,  Stdev (rmse): 0.001304,  SNR (dB): 57.694286
+</pre>
+<a name="264"></a>
+<h1>FUNCTIONS for CONSTRUCTING/MANIPULATING QMF/Wavelet PYRAMIDS</h1>
+To make things easier, we have bundled these qmf operations and<a name="265"></a> data structures into an object in MATLAB.<a name="266"></a></p>
+<pre class="codeinput">sig = mkFract([1 64], 1.5);
+[pyr,pind] = buildWpyr(sig);
+showWpyr(pyr,pind);
+</pre>
+<img src="HTML/pyramids_28.5.png">
+<pre class="codeinput">
+nbands = size(pind,1);
+<span class="keyword">for</span> b = 1:nbands
+  subplot(nbands,1,b); lplot(pyrBand(pyr,pind,b));
+<span class="keyword">end</span>
+
+res = reconWpyr(pyr,pind);
+imStats(sig,res);
+</pre><pre class="codeoutput">Difference statistics:
+  Range: [-4.206845e-03, 3.766628e-03]
+  Mean: -0.000445,  Stdev (rmse): 0.001764,  SNR (dB): 55.072026
+</pre><img src="HTML/pyramids_29.png"><br>Now for 2D, we use separable filters.  There are 4 ways to apply the two<a name="267"></a> filters to the input image (followed by the relavent subsampling operation):<a name="268"></a><br>
+(1) lowpass in both x and y<a name="269"></a><br>
+(2) lowpass in x and highpass in y<a name="270"></a><br>
+(3) lowpass in y and highpass in x<a name="271"></a><br>
+(4) highpass in both x and y.<a name="272"></a><br>
+The pyramid is built by recursively subdividing the first of these bands<a name="273"></a> into four new subbands.<a name="274"></a><br>
+First, we'll take a look at some of the basis functions.<a name="275"></a></p><pre class="codeinput">sz = 40;
+zim = zeros(sz);
+flo = <span class="string">'qmf9'</span>; edges = <span class="string">'reflect1'</span>;
+[pyr,pind] = buildWpyr(zim);
+
+<span class="comment">% Put an  impulse into the middle of each band:</span>
+<span class="keyword">for</span> lev=1:size(pind,1)
+  mid = sum(prod(pind(1:lev-1,:)'));
+  mid = mid + floor(pind(lev,2)/2)*pind(lev,1) + floor(pind(lev,1)/2) + 1;
+  pyr(mid,1) = 1;
+<span class="keyword">end</span>
+
+<span class="comment">% And take a look at the reconstruction of each band:</span>
+<span class="keyword">for</span> lnum=1:wpyrHt(pind)+1
+  <span class="keyword">for</span> bnum=1:3
+    subplot(wpyrHt(pind)+1,3,(wpyrHt(pind)+1-lnum)*3+bnum);
+    showIm(reconWpyr(pyr, pind, flo, edges, lnum, bnum),<span class="string">'auto1'</span>,2,0);
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_30.png"><br>Note that the first column contains horizontally oriented basis functions at<a name="276"></a> different scales.  The second contains vertically oriented basis functions.<a name="277"></a>
+The third contains both diagonals (a checkerboard pattern).  The bottom row<a name="278"></a> shows (3 identical images of) a lowpass basis function.<a name="279"></a> Now look at the corresponding Fourier transform magnitudes (these<a name="280"></a> are plotted over the frequency range [-pi, pi] ):<a name="281"></a></p><pre class="codeinput">nextFig(2,1);
+freq = 2 * pi * [-sz/2:(sz/2-1)]/sz;
+<span class="keyword">for</span> lnum=1:wpyrHt(pind)+1
+  <span class="keyword">for</span> bnum=1:3
+    subplot(wpyrHt(pind)+1,3,(wpyrHt(pind)+1-lnum)*3+bnum);
+    basisFn = reconWpyr(pyr, pind, flo, edges, lnum, bnum);
+    basisFmag = fftshift(abs(fft2(basisFn,sz,sz)));
+    imagesc(freq,freq,basisFmag);
+    axis(<span class="string">'square'</span>); axis(<span class="string">'xy'</span>); colormap(<span class="string">'gray'</span>);
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+nextFig(2,-1);
+</pre><img src="HTML/pyramids_31.png"><br>The filters at a given scale sum to a squarish annular region:<a name="282"></a></p><pre class="codeinput">sumSpectra = zeros(sz);
+lnum = 2;
+<span class="keyword">for</span> bnum=1:3
+  basisFn = reconWpyr(pyr, pind, flo, edges, lnum, bnum);
+  basisFmag = fftshift(abs(fft2(basisFn,sz,sz)));
+  sumSpectra = basisFmag.^2 + sumSpectra;
+<span class="keyword">end</span>
+clf; imagesc(freq,freq,sumSpectra); axis(<span class="string">'square'</span>); axis(<span class="string">'xy'</span>); title(<span class="string">'one scale'</span>);
+</pre><img src="HTML/pyramids_32.png"><br>Now decompose an image:<a name="283"></a></p>
+<pre class="codeinput">[pyr,pind] = buildWpyr(im);
+</pre><br>View all of the subbands (except lowpass), scaled to be the same size<a name="284"></a> (requires a big figure window):<a name="285"></a></p><pre class="codeinput">scrsz = get(0,<span class="string">'ScreenSize'</span>);
+figure(<span class="string">'Position'</span>,[1 scrsz(4)/2 scrsz(3)/2 scrsz(4)/2])
+
+nlevs = wpyrHt(pind);
+<span class="keyword">for</span> lnum=1:nlevs
+  <span class="keyword">for</span> bnum=1:3
+    subplot(nlevs,3,(lnum-1)*3+bnum);
+    showIm(wpyrBand(pyr,pind,lnum,bnum), <span class="string">'auto2'</span>, 2^(lnum+imSubSample-2));
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_34.png"><br>In addition to the bands shown above, there's a lowpass residual:<a name="286"></a></p>
+<pre class="codeinput">nextFig(2,1);
+clf; showIm(pyrLow(pyr,pind));
+nextFig(2,-1);
+</pre>
+<img src="HTML/pyramids_35.png"> 
+<pre class="codeinput">
+<span class="comment">% Alternatively, display the pyramid with the subbands shown at their</span>
+<span class="comment">% correct relative sizes:</span>
+clf; showWpyr(pyr, pind);
+</pre>
+<img src="HTML/pyramids_36.png"><br>The reconWpyr function can be used to reconstruct the entire pyramid:<a name="287"></a></p><pre class="codeinput">reconstructed = reconWpyr(pyr,pind);
+imStats(im,reconstructed);
+</pre><pre class="codeoutput">Difference statistics:
+  Range: [-4.394200e-01, 3.481599e-01]
+  Mean: -0.144226,  Stdev (rmse): 0.071076,  SNR (dB): 53.924849
+</pre><br>As with Laplacian pyramids, you can specify sub-levels and subbands<a name="288"></a> to be included in the reconstruction.  For example:<a name="289"></a></p><pre class="codeinput">clf
+showIm(reconWpyr(pyr,pind,<span class="string">'qmf9'</span>,<span class="string">'reflect1'</span>,[1:wpyrHt(pind)],[1]));  <span class="comment">%Horizontal only</span>
+</pre>
+<img src="HTML/pyramids_36.5.png">
+<pre class="codeinput">
+showIm(reconWpyr(pyr,pind,<span class="string">'qmf9'</span>,<span class="string">'reflect1'</span>,[2,3])); <span class="comment">%two middle scales</span>
+</pre>
+<img src="HTML/pyramids_37.png">
+<h1>PERFECT RECONSTRUCTION: HAAR AND DEBAUCHIES WAVELETS<a name="290"></a></h1>
+The symmetric QMF filters used above are not perfectly orthogonal.<a name="291"></a> In fact, it's impossible to construct a symmetric filter of size<a name="292"></a> greater than 2 that is perfectly orthogonal to shifted copies<a name="293"></a> (shifted by multiples of 2) of itself.  For example, consider a<a name="294"></a> symmetric kernel of length 3.  Shift by two and the right end of<a name="295"></a> the original kernel is aligned with the left end of the shifted<a name="296"></a> one.  Thus, the inner product of these two will be the square of<a name="297"></a> the end tap, which will be non-zero.<a name="298"></a><br>However, one can easily create wavelet filters of length 2 that<a name="299"></a> will do the job.  This is the oldest known wavelet, known as the<a name="300"></a> "Haar".  The two kernels are [1,1]/sqrt(2) and [1,-1]/sqrt(2).<a name="301"></a> These are trivially seen to be orthogonal to each other, and shifts<a name="302"></a> by multiples of two are also trivially orthogonal.  The projection<a name="303"></a> functions of the Haar transform are in the rows of the following<a name="304"></a> matrix, constructed by applying the transform to impulse input<a name="305"></a> signals, for all possible impulse locations:<a name="306"></a></p><pre class="codeinput">haarLo = namedFilter(<span class="string">'haar'</span>)
+haarHi = modulateFlip(haarLo)
+subplot(2,1,1); lplot(haarLo); axis([0 3 -1 1]); title(<span class="string">'lowpass'</span>);
+subplot(2,1,2); lplot(haarHi); axis([0 3 -1 1]); title(<span class="string">'highpass'</span>);
+</pre>
+<img src="HTML/pyramids_37.3.png">
+<pre class="codeoutput">
+haarLo =
+
+    0.7071
+    0.7071
+
+
+haarHi =
+
+   -0.7071
+    0.7071
+
+
+</pre>
+<pre class="codeinput">
+M = [corrDn(eye(32), haarLo, <span class="string">'reflect1'</span>, [2 1], [2 1]); <span class="keyword">...</span>
+    corrDn(eye(32), haarHi, <span class="string">'reflect1'</span>, [2 1], [2 1])];
+clf; showIm(M)
+</pre>
+<pre class="codeoutput">
+ans =
+
+   -0.7071    0.7071
+
+
+</pre>
+<img src="HTML/pyramids_37.6.png">
+<pre class="codeinput">
+showIm(M*M') <span class="comment">%identity!</span>
+</pre><pre class="codeoutput">
+ans =
+
+         0    1.0000
+
+</pre>
+<img src="HTML/pyramids_38.png">
+<br>As before, the filters are power-complementary (although the<a name="307"></a> frequency isolation is rather poor, and thus the subbands will be<a name="308"></a> heavily aliased):<a name="309"></a></p>
+<pre class="codeinput">plot(pi*[-32:31]/32,abs(fft(haarLo,64)).^2,<span class="string">'--'</span>,<span class="keyword">...</span>
+     pi*[-32:31]/32,abs(fft(haarHi,64)).^2,<span class="string">'-'</span>);
+</pre>
+<img src="HTML/pyramids_38.5.png">
+<pre class="codeinput">
+sig = mkFract([1,64],0.5);
+[pyr,pind] = buildWpyr(sig,4,<span class="string">'haar'</span>,<span class="string">'reflect1'</span>);
+showWpyr(pyr,pind);
+</pre><img src="HTML/pyramids_39.png"><br>check perfect reconstruction:<a name="310"></a></p><pre class="codeinput">res = reconWpyr(pyr,pind, <span class="string">'haar'</span>, <span class="string">'reflect1'</span>);
+imStats(sig,res)
+</pre><pre class="codeoutput">Difference statistics:
+  Range: [-2.775558e-16, 3.552714e-15]
+  Mean: 0.000000,  Stdev (rmse): 0.000000,  SNR (dB): 300.614315
+</pre><br>If you want perfect reconstruction, but don't like the Haar<a name="311"></a> transform, there's another option: drop the symmetry requirement.<a name="312"></a> Ingrid Daubechies developed one of the earliest sets of such<a name="313"></a> perfect-reconstruction wavelets.  The simplest of these is of<a name="314"></a> length 4:<a name="315"></a></p><pre class="codeinput">daub_lo = namedFilter(<span class="string">'daub2'</span>);
+daub_hi = modulateFlip(daub_lo);
+</pre><br>The daub_lo filter is constructed to be orthogonal to 2shifted<a name="316"></a> copy of itself.  For example:<a name="317"></a></p>
+<pre class="codeinput">[daub_lo;0;0]'*[0;0;daub_lo]
+</pre>
+<pre class="codeoutput">
+ans =
+
+   2.9092e-13
+
+
+</pre>
+<pre class="codeinput">
+M = [corrDn(eye(32), daub_lo, <span class="string">'circular'</span>, [2 1], [2 1]); <span class="keyword">...</span>
+    corrDn(eye(32), daub_hi, <span class="string">'circular'</span>, [2 1], [2 1])];
+clf; showIm(M)
+</pre>
+<pre class="codeoutput">
+ans =
+
+   -0.4830    0.8365
+
+
+</pre>
+<img src="HTML/pyramids_39.5.png">
+<pre class="codeinput">
+showIm(M*M') <span class="comment">% identity!</span>
+</pre><pre class="codeoutput">
+ans =
+
+         0    1.0000
+
+</pre>
+<img src="HTML/pyramids_40.png">
+<br>Again, they're power complementary:<a name="318"></a></p><pre class="codeinput">plot(pi*[-32:31]/32,abs(fft(daub_lo,64)).^2,<span class="string">'--'</span>,<span class="keyword">...</span>
+     pi*[-32:31]/32,abs(fft(daub_hi,64)).^2,<span class="string">'-'</span>);
+</pre><img src="HTML/pyramids_41.png"><br>The sum of the power spectra is again flat<a name="319"></a></p><pre class="codeinput">plot(pi*[-32:31]/32,<span class="keyword">...</span>
+    fftshift(abs(fft(daub_lo,64)).^2)+fftshift(abs(fft(daub_hi,64)).^2));
+</pre><img src="HTML/pyramids_42.png"><br>Make a pyramid using the same code as before (except that we can't<a name="320"></a> use reflected boundaries with asymmetric filters):<a name="321"></a></p><pre class="codeinput">[pyr,pind] = buildWpyr(sig, maxPyrHt(size(sig),size(daub_lo)), daub_lo, <span class="string">'circular'</span>);
+showWpyr(pyr,pind,<span class="string">'indep1'</span>);
+
+res = reconWpyr(pyr,pind, daub_lo,<span class="string">'circular'</span>);
+imStats(sig,res);
+
+</pre>
+<pre class="codeoutput">Difference statistics:
+  Range: [-1.573097e-11, -2.440159e-12]
+  Mean: -0.000000,  Stdev (rmse): 0.000000,  SNR (dB): 228.416414
+</pre><img src="HTML/pyramids_43.png">
+<h1>ALIASING IN WAVELET TRANSFORMS<a name="322"></a></h1>
+All of these orthonormal pyramid/wavelet transforms have a lot<a name="323"></a> of aliasing in the subbands.  You can see that in the frequency<a name="324"></a> response plots since the frequency response of each filter<a name="325"></a> covers well more than half the frequency domain.  The aliasing<a name="326"></a> can have serious consequences...<a name="327"></a><br>
+Get one of the basis functions of the 2D Daubechies wavelet transform:<a name="328"></a></p><pre class="codeinput">[pyr,pind] = buildWpyr(zeros(1,64),4,daub_lo,<span class="string">'circular'</span>);
+lev = 3;
+pyr(1+sum(pind(1:lev-1,2))+pind(lev,2)/2,1) = 1;
+sig = reconWpyr(pyr,pind, daub_lo,<span class="string">'circular'</span>);
+clf; lplot(sig)
+</pre><img src="HTML/pyramids_44.png"><br>Since the basis functions are orthonormal, building a pyramid using this<a name="329"></a> input will yield a single non-zero coefficient.<a name="330"></a></p><pre class="codeinput">[pyr,pind] = buildWpyr(sig, 4, daub_lo, <span class="string">'circular'</span>);
+figure(1);
+nbands = size(pind,1)
+<span class="keyword">for</span> b=1:nbands
+  subplot(nbands,1,b); lplot(pyrBand(pyr,pind,b));
+  axis([1 size(pyrBand(pyr,pind,b),2) -0.3 1.3]);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">
+nbands =
+
+     5
+
+</pre><img src="HTML/pyramids_45.png"><br>Now shift the input by one sample and re-build the pyramid.<a name="331"></a></p><pre class="codeinput">shifted_sig = [0,sig(1:size(sig,2)-1)];
+[spyr,spind] = buildWpyr(shifted_sig, 4, daub_lo, <span class="string">'circular'</span>);
+</pre><br>Plot each band of the unshifted and shifted decomposition<a name="332"></a></p><pre class="codeinput">nextFig(2);
+nbands = size(spind,1)
+<span class="keyword">for</span> b=1:nbands
+  subplot(nbands,1,b); lplot(pyrBand(spyr,spind,b));
+  axis([1 size(pyrBand(spyr,spind,b),2) -0.3 1.3]);
+<span class="keyword">end</span>
+nextFig(2,-1);
+</pre><pre class="codeoutput">
+nbands =
+
+     5
+
+</pre><img src="HTML/pyramids_46.png">
+<br>In the third band, we expected the coefficients to move around<a name="333"></a> because the signal was shifted.  But notice that in the original<a name="334"></a> signal decomposition, the other bands were filled with zeros.<a name="335"></a> After the shift, they have significant content.  Although these<a name="336"></a> subbands are supposed to represent information at different scales,<a name="337"></a> their content also depends on the relative POSITION of the input<a name="338"></a> signal.<br>This problem is not unique to the Daubechies transform.  The same<a name="340"></a> is true for the QMF transform.  Try it...  In fact, the same kind<a name="341"></a> of problem occurs for almost any orthogonal pyramid transform (the<a name="342"></a> only exception is the limiting case in which the filter is a sinc<a name="343"></a> function).<br>Orthogonal pyramid transforms are not shift-invariant.  Although<a name="345"></a> orthogonality may be an important property for some applications<a name="346"></a> (e.g., data compression), orthogonal pyramid transforms are<a name="347"></a> generally not so good for image analysis.<br>The overcompleteness of the Laplacian pyramid turns out to be a<a name="349"></a> good thing in the end.  By using an overcomplete representation<a name="350"></a> (and by choosing the filters properly to avoid aliasing as much as<a name="351"></a> possible), you end up with a representation that is useful for<a name="352"></a> image analysis.<a name="353"></a></p>
+<h1>The "STEERABLE PYRAMID"<a name="354"></a></h1>
+The steerable pyramid is a multi-scale representation that is<a name="355"></a>translation-invariant, but that also includes representation of<a name="356"></a> orientation.  Furthermore, the representation of orientation is designed to be rotation-invariant. The basis/projection functions are oriented (steerable) filters, localized in space and frequency. It is overcomplete to avoid aliasing.  And it is "self-inverting" (like the QMF/Wavelet transform): the projection functions and basis functions are identical.  The mathematical phrase for a transform obeying this property is "tight frame".<br>
+The system diagram for the steerable pyramid (described in the reference given below) is as follows:<br>
+         <pre>IM ---&gt; fhi0 -----------------&gt; H0 ---------------- fhi0 ---&gt; RESULT
+     |                                                     |
+     |                                                     |
+     |<tt>-&gt; flo0 ---&gt; fl1/down2 --&gt; L1 --&gt; up2/fl1 ---&gt; flo0 -</tt>|
+               |                                 |
+               |<tt>----&gt; fb0 -----&gt; B0 ----&gt; fb0 ---</tt>|
+               |                                 |
+               |<tt>----&gt; fb1 -----&gt; B1 ----&gt; fb1 ---</tt>|
+               .                                 .
+               .                                 .
+               |<tt>----&gt; fbK -----&gt; BK ----&gt; fbK ---</tt>|</pre>
+<br>The filters {fhi0,flo0} are used to initially split the image into a highpass residual band H0 and a lowpass subband.  This lowpass band is then split into a low(er)pass band L1 and K+1 oriented subbands {B0,B1,...,BK}.  The representatation is substantially overcomplete.  The pyramid is built by recursively splitting the lowpass band (L1) using the inner portion of the diagram (i.e., using the filters {fl1,fb0,fb1,...,fbK}).  The resulting transform is overcomplete by a factor of 4k/3.<br>
+The scale tuning of the filters is constrained by the recursive system diagram.  The orientation tuning is constrained by requiring the property of steerability.  A set of filters form a steerable basis if they 1) are rotated copies of each other, and 2) a copy of the filter at any orientation may be computed as a linear combination of the basis filters.  The simplest examples of steerable filters is a set of N+1 Nth-order directional derivatives.<br>
+Choose a filter set (options are 'sp0Filters', 'sp1Filters', 'sp3Filters', 'sp5Filters'):<a name="383"></a></p><pre class="codeinput">filts = <span class="string">'sp3Filters'</span>;
+[lo0filt,hi0filt,lofilt,bfilts,steermtx,harmonics] = eval(filts);
+fsz = round(sqrt(size(bfilts,1))); fsz =  [fsz fsz];
+nfilts = size(bfilts,2);
+nrows = floor(sqrt(nfilts));
+</pre><br>Look at the oriented bandpass filters:<a name="384"></a></p><pre class="codeinput">figure
+<span class="keyword">for</span> f = 1:nfilts
+  subplot(nrows,ceil(nfilts/nrows),f);
+  showIm(conv2(reshape(bfilts(:,f),fsz),lo0filt));
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_47.png"><br>Try "steering" to a new orientation (new_ori in degrees):<a name="385"></a></p><pre class="codeinput">new_ori = 360*rand(1)
+clf; showIm(conv2(reshape(steer(bfilts, new_ori*pi/180 ), fsz), lo0filt));
+</pre><pre class="codeoutput">
+new_ori =
+
+  204.4158
+
+</pre><img src="HTML/pyramids_48.png"><br>Look at Fourier transform magnitudes:<a name="386"></a></p><pre class="codeinput">lo0 = fftshift(abs(fft2(lo0filt,64,64)));
+fsum = zeros(size(lo0));
+figure
+<span class="keyword">for</span> f = 1:size(bfilts,2)
+  subplot(nrows,ceil(nfilts/nrows),f);
+  flt = reshape(bfilts(:,f),fsz);
+  freq = lo0 .* fftshift(abs(fft2(flt,64,64)));
+  fsum = fsum + freq.^2;
+  showIm(freq);
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_49.png"><br>The filters sum to a smooth annular ring:<a name="387"></a></p><pre class="codeinput">clf; showIm(fsum);
+</pre><img src="HTML/pyramids_50.png"><br>build a Steerable pyramid:<a name="388"></a></p><pre class="codeinput">[pyr,pind] = buildSpyr(im, 4-imSubSample, filts);
+</pre><br>Look at first (vertical) bands, different scales:<a name="389"></a></p><pre class="codeinput"><span class="keyword">for</span> s = 1:min(4,spyrHt(pind))
+  band = spyrBand(pyr,pind,s,1);
+  subplot(2,2,s); showIm(band);
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_51.png"><br>look at all orientation bands at one level (scale):<a name="390"></a></p><pre class="codeinput"><span class="keyword">for</span> b = 1:spyrNumBands(pind)
+  band = spyrBand(pyr,pind,1,b);
+  subplot(nrows,ceil(nfilts/nrows),b);
+  showIm(band);
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_52.png"><br>
+<br>To access the high-pass and low-pass bands:<a name="391"></a></p>
+<pre class="codeinput">low = pyrLow(pyr,pind);
+showIm(low);
+</pre>
+<img src="HTML/pyramids_52.5.png"><br>
+<pre class="codeinput">
+high = spyrHigh(pyr,pind);
+showIm(high);
+</pre>
+<img src="HTML/pyramids_53.png">
+<br>Display the whole pyramid (except for the highpass residual band), with images shown at proper relative sizes:<a name="393"></a></p><pre class="codeinput">showSpyr(pyr,pind);
+</pre><img src="HTML/pyramids_54.png"><br>Spin a level of the pyramid, interpolating (steering to) intermediate orienations:<a name="395"></a></p>
+<pre class="codeinput">[lev,lind] = spyrLev(pyr,pind,2);
+lev2 = reshape(lev,prod(lind(1,:)),size(bfilts,2));
+figure(1); subplot(1,1,1); showIm(spyrBand(pyr,pind,2,1));
+M = moviein(16);
+<span class="keyword">for</span> frame = 1:16
+  steered_im = steer(lev2, 2*pi*(frame-1)/16, harmonics, steermtx);
+  showIm(reshape(steered_im, lind(1,:)),<span class="string">'auto2'</span>);
+  M(:,frame) = getframe;
+<span class="keyword">end</span>
+</pre><img src="HTML/pyramids_55.png"> <img src="HTML/pyramids_56.png"> <img src="HTML/pyramids_57.png"> <img src="HTML/pyramids_58.png"> <img src="HTML/pyramids_59.png"> <img src="HTML/pyramids_60.png"> <img src="HTML/pyramids_61.png"> <img src="HTML/pyramids_62.png"> <img src="HTML/pyramids_63.png"> <img src="HTML/pyramids_64.png"> <img src="HTML/pyramids_65.png"> <img src="HTML/pyramids_66.png"> <img src="HTML/pyramids_67.png"> <img src="HTML/pyramids_68.png"> <img src="HTML/pyramids_69.png"> <img src="HTML/pyramids_70.png"> <img src="HTML/pyramids_71.png"> 
+</pre>
+<br>Reconstruct.  Note that the filters are not perfect, although they are good enough for most applications.<a name="398"></a></p><pre class="codeinput">res = reconSpyr(pyr, pind, filts);
+showIm(im + i * res);
+imStats(im,res);
+</pre>
+<pre class="codeoutput">
+Difference statistics:
+  Range: [-8.829810e+01, 1.084642e+02]
+  Mean: -0.611088,  Stdev (rmse): 13.451002,  SNR (dB): 8.384218
+</pre>
+<img src="HTML/pyramids_72.png">
+<br>As with previous pyramids, you can select subsets of the levels and orientation bands to be included in the reconstruction.<br>For example: All levels (including highpass and lowpass residuals), one orientation:<a name="401"></a></p>
+<pre class="codeinput">clf; showIm(reconSpyr(pyr,pind,filts,<span class="string">'reflect1'</span>,<span class="string">'all'</span>, [1]));
+</pre>
+<img src="HTML/pyramids_73.png">
+<br>Without the highpass and lowpass:<a name="402"></a></p>
+<pre class="codeinput">clf; showIm(reconSpyr(pyr,pind,filts,<span class="string">'reflect1'</span>,[1:spyrHt(pind)], [1]));
+</pre>
+<img src="HTML/pyramids_74.png">
+<br>We also provide an implementation of the Steerable pyramid in the Frequency domain.  The advantages are perfect-reconstruction (within floating-point error), and any number of orientation bands.  The disadvantages are that it is typically slower, and the boundary handling is always circular.<a name="407"></a></p><pre class="codeinput">[pyr,pind] = buildSFpyr(im,4,4); <span class="comment">% 4 levels, 5 orientation bands</span>
+showSpyr(pyr,pind);
+res = reconSFpyr(pyr,pind);
+imStats(im,res);  <span class="comment">% nearly perfect</span>
+</pre>
+<pre class="codeoutput">
+Difference statistics:
+  Range: [-9.705222e-04, 1.297531e-03]
+  Mean: -0.000000,  Stdev (rmse): 0.000256,  SNR (dB): 102.810403
+</pre>
+<img src="HTML/pyramids_75.png"><br>
+<hr><br>
+The steerable pyramid transform given above is described in:<br>
+E P Simoncelli and W T Freeman.<br>
+The Steerable Pyramid: A Flexible Architecture for Multi-Scale
+Derivative Computation.<br>
+IEEE Second Int'l Conf on Image Processing.
+Washington DC,  October 1995.<br>
+Online access:<br>
+<a href=http://www.cns.nyu.edu/~lcv/pubs/makeAbs.php?loc=Simoncelli95b>Abstract</a><br>
+<a href=http://www.cns.nyu.edu/pub/eero/simoncelli95b.pdf>Full (PDF)</a><br>
+
+         <p class="footer"><br>
+            Published with MATLAB&reg; 7.6<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% IMAGE PYRAMID TUTORIAL 
+%%%
+%%% A brief introduction to multi-scale pyramid decompositions for image 
+%%% processing.  You should go through this, reading the comments, and
+%%% executing the corresponding MatLab instructions.  This file assumes 
+%%% a basic familiarity with matrix algebra, with linear systems and Fourier
+%%% theory, and with MatLab.  If you don't understand a particular
+%%% function call, execute "help <functionName>" to see documentation.
+%%%
+%%% EPS, 6/96.  
+%%% Based on the original OBVIUS tutorial.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Determine a subsampling factor for images, based on machine speed:
+oim = pgmRead('einstein.pgm');
+tic; corrDn(oim,[1 1; 1 1]/4,'reflect1',[2 2]); time = toc;
+%imSubSample = min(max(floor(log2(time)/2+3),0),2);
+imSubSample = 1;
+im = blurDn(oim, imSubSample,'qmf9');
+clear oim;
+clf; showIm(im, 'auto2', 'auto', 'im');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% LAPLACIAN PYRAMIDS: 
+
+%% Images may be decomposed into information at different scales.  
+%% Blurring eliminates the fine scales (detail):
+
+binom5 = binomialFilter(5);
+lo_filt = binom5*binom5';
+blurred = rconv2(im,lo_filt);
+subplot(1,2,1); showIm(im, 'auto2', 'auto', 'im');
+subplot(1,2,2); showIm(blurred, 'auto2', 'auto', 'blurred');
+
+%% Subtracting the blurred image from the original leaves ONLY the
+%% fine scale detail:
+fine0 = im - blurred;
+subplot(1,2,1); showIm(fine0, 'auto2', 'auto', 'fine0');
+
+%% The blurred and fine images contain all the information found in
+%% the original image.  Trivially, adding the blurred image to the
+%% fine scale detail will reconstruct the original.  We can compare
+%% the original image to the sum of blurred and fine using the
+%% "imStats" function, which reports on the statistics of the
+%% difference between it's arguments:
+imStats(im, blurred+fine0);
+
+%% Since the filter is a lowpass filter, we might want to subsample
+%% the blurred image.  This may cause some aliasing (depends on the
+%% filter), but the decomposition structure given above will still be
+%% possible.  The corrDn function correlates (same as convolution, but
+%% flipped filter) and downsamples in a single operation (for
+%% efficiency).  The string 'reflect1' tells the function to handle
+%% boundaries by reflecting the image about the edge pixels.  Notice
+%% that the blurred1 image is half the size (in each dimension) of the
+%% original image.
+lo_filt = 2*binom5*binom5';  %construct a separable 2D filter
+blurred1 = corrDn(im,lo_filt,'reflect1',[2 2]);
+subplot(1,2,2); showIm(blurred1,'auto2','auto','blurred1');
+
+%% Now, to extract fine scale detail, we must interpolate the image
+%% back up to full size before subtracting it from the original.  The
+%% upConv function does upsampling (padding with zeros between
+%% samples) followed by convolution.  This can be done using the
+%% lowpass filter that was applied before subsampling or it can be
+%% done with a different filter.
+fine1 = im - upConv(blurred1,lo_filt,'reflect1',[2 2],[1 1],size(im));
+subplot(1,2,1); showIm(fine1,'auto2','auto','fine1');
+
+%% We now have a technique that takes an image, computes two new
+%% images (blurred1 and fine1) containing the coarse scale information
+%% and the fine scale information.  We can also (trivially)
+%% reconstruct the original from these two (even if the subsampling of
+%% the blurred1 image caused aliasing):
+
+recon = fine1 + upConv(blurred1,lo_filt,'reflect1',[2 2],[1 1],size(im));
+imStats(im, recon);
+
+%% Thus, we have described an INVERTIBLE linear transform that maps an
+%% input image to the two images blurred1 and fine1.  The inverse
+%% transformation maps blurred1 and fine1 to the result.  This is
+%% depicted graphically with a system diagram:
+%%
+%% IM REPLACE_WITH_DASH_DASH> blur/down2 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-> BLURRED1 REPLACE_WITH_DASH_DASH> up2/blur REPLACE_WITH_DASH_DASH> add REPLACE_WITH_DASH_DASH> RECON
+%%  |                   |                                  ^
+%%  |	                |                                  |
+%%  |	                V                                  |
+%%  |	             up2/blur                              |
+%%  |	                |                                  |
+%%  |	                |                                  |
+%%  |	                V                                  |
+%%   REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> subtract REPLACE_WITH_DASH_DASH> FINE1 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+%% 
+%% Note that the number of samples in the representation (i.e., total
+%% samples in BLURRED1 and FINE1) is 1.5 times the number of samples
+%% in the original IM.  Thus, this representation is OVERCOMPLETE.
+
+%% Often, we will want further subdivisions of scale.  We can
+%% decompose the (coarse-scale) BLURRED1 image into medium coarse and
+%% very coarse images by applying the same splitting technique:
+blurred2 = corrDn(blurred1,lo_filt,'reflect1',[2 2]);
+showIm(blurred2)
+
+fine2 = blurred1 - upConv(blurred2,lo_filt,'reflect1',[2 2],[1 1],size(blurred1));
+showIm(fine2)
+
+%% Since blurred2 and fine2 can be used to reconstruct blurred1, and
+%% blurred1 and fine1 can be used to reconstruct the original image,
+%% the set of THREE images (also known as "subbands") {blurred2,
+%% fine2, fine1} constitute a complete representation of the original
+%% image.  Note that the three subbands are displayed at the same size,
+%% but they are actually three different sizes.
+
+subplot(1,3,1); showIm(fine1,'auto2',2^(imSubSample-1),'fine1');
+subplot(1,3,2); showIm(fine2,'auto2',2^(imSubSample),'fine2');
+subplot(1,3,3); showIm(blurred2,'auto2',2^(imSubSample+1),'blurred2');
+
+%% It is useful to consider exactly what information is stored in each
+%% of the pyramid subbands.  The reconstruction process involves
+%% recursively interpolating these images and then adding them to the
+%% image at the next finer scale.  To see the contribution of ONE of
+%% the representation images (say blurred2) to the reconstruction, we
+%% imagine filling all the other subbands with zeros and then
+%% following our reconstruction procedure.  For the blurred2 subband,
+%% this is equivalent to simply calling upConv twice:
+blurred2_full = upConv(upConv(blurred2,lo_filt,'reflect1',[2 2],[1 1],size(blurred1)),...
+    lo_filt,'reflect1',[2 2],[1 1],size(im));
+subplot(1,3,3); showIm(blurred2_full,'auto2',2^(imSubSample-1),'blurred2-full');
+
+%% For the fine2 subband, this is equivalent to calling upConv once:
+fine2_full = upConv(fine2,lo_filt,'reflect1',[2 2],[1 1],size(im));
+subplot(1,3,2); showIm(fine2_full,'auto2',2^(imSubSample-1),'fine2-full');
+
+%% If we did everything correctly, we should be able to add together
+%% these three full-size images to reconstruct the original image:
+recon = blurred2_full + fine2_full + fine1;
+imStats(im, recon)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% FUNCTIONS for CONSTRUCTING/MANIPULATING LAPLACIAN PYRAMIDS
+
+%% We can continue this process, recursively splitting off finer and
+%% finer details from the blurred image (like peeling off the outer
+%% layers of an onion).  The resulting data structure is known as a
+%% "Laplacian Pyramid".  To make things easier, we have written a
+%% MatLab function called buildLpyr to construct this object.  The
+%% function returns two items: a long vector containing the subbands
+%% of the pyramid, and an index matrix that is used to access these
+%% subbands.  The display routine showLpyr shows all the subbands of the
+%% pyramid, at the their correct relative sizes.  It should now be
+%% clearer why these data structures are called "pyramids".
+[pyr,pind] = buildLpyr(im,5-imSubSample); 
+showLpyr(pyr,pind);
+
+%% There are also "accessor" functions for pulling out a single subband:
+showIm(pyrBand(pyr,pind,2));
+
+%% The reconLpyr function allows you to reconstruct from a laplacian pyramid.
+%% The third (optional) arg allows you to select any subset of pyramid bands
+%% (default is to use ALL of them).
+clf; showIm(reconLpyr(pyr,pind,[1 3]),'auto2','auto','bands 1 and 3 only');
+
+fullres = reconLpyr(pyr,pind);
+showIm(fullres,'auto2','auto','Full reconstruction');
+imStats(im,fullres);
+
+%% buildLpyr uses 5-tap filters by default for building Laplacian
+%% pyramids.  You can specify other filters:
+namedFilter('binom3')
+[pyr3,pind3] = buildLpyr(im,5-imSubSample,'binom3');
+showLpyr(pyr3,pind3);
+fullres3 = reconLpyr(pyr3,pind3,'all','binom3');
+imStats(im,fullres3);
+
+%% Here we build a "Laplacian" pyramid using random filters.  filt1 is
+%% used with the downsampling operations and filt2 is used with the
+%% upsampling operations.  We normalize the filters for display
+%% purposes.  Of course, these filters are (almost certainly) not very
+%% "Gaussian", and the subbands of such a pyramid will be garbage!
+%% Nevertheless, it is a simple property of the Laplacian pyramid that
+%% we can use ANY filters and we will still be able to reconstruct
+%% perfectly.
+
+filt1 = rand(1,5); filt1 = sqrt(2)*filt1/sum(filt1)
+filt2 = rand(1,3); filt2 = sqrt(2)*filt2/sum(filt2)
+[pyrr,pindr] = buildLpyr(im,5-imSubSample,filt1,filt2);
+showLpyr(pyrr,pindr);
+fullresr = reconLpyr(pyrr,pindr,'all',filt2);
+imStats(im,fullresr);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% ALIASING in the Gaussian and Laplacian pyramids:
+
+%% Unless one is careful, the subsampling operations will introduce aliasing
+%% artifacts in these pyramid transforms.  This is true even though the
+%% Laplacian pyramid can be used to reconstruct the original image perfectly.
+%% When reconstructing, the pyramid is designed in such a way that these
+%% aliasing artifacts cancel out.  So it's not a problem if the only thing we
+%% want to do is reconstruct.  However, it can be a serious problem if we
+%% intend to process each of the subbands independently.
+
+%% One way to see the consequences of the aliasing artifacts is by
+%% examining variations that occur when the input is shifted.  We
+%% choose an image and shift it by some number of pixels.  Then blur
+%% (filter-downsample-upsample-filter) the original image and blur the
+%% shifted image.  If there's no aliasing, then the blur and shift
+%% operations should commute (i.e.,
+%% shift-filter-downsample-upsample-filter is the same as
+%% filter-downsample-upsample-filter-shift).  Try this for 2 different
+%% filters (by replacing 'binom3' with 'binom5' or 'binom7' below),
+%% and you'll see that the aliasing is much worse for the 3 tap
+%% filter.
+
+sig = 100*randn([1 16]);
+sh = [0 7];  %shift amount
+lev = 2; % level of pyramid to look at
+flt = 'binom3';  %filter to use: 
+
+shiftIm = shift(sig,sh);
+[pyr,pind] = buildLpyr(shiftIm, lev, flt, flt, 'circular');
+shiftBlur = reconLpyr(pyr, pind, lev, flt, 'circular');
+
+[pyr,pind] = buildLpyr(sig, lev, flt, flt, 'circular');
+res = reconLpyr(pyr, pind, lev, flt, 'circular');
+blurShift = shift(res,sh);
+
+subplot(2,1,1); r = showIm(shiftBlur,'auto2','auto','shiftBlur');
+subplot(2,1,2); showIm(blurShift,r,'auto','blurShift');
+imStats(blurShift,shiftBlur);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% PROJECTION and BASIS functions:
+
+%% An invertible, linear transform can be characterized in terms
+%% of a set of PROJECTION and BASIS functions.  In matlab matrix
+%% notation:
+%
+%%     c = P' * x
+%%     x = B * c
+%
+%% where x is an input, c are the transform coefficients, P and B
+%% are matrices.  The columns of P are the projection functions (the
+%% input is projected onto the the columns of P to get each successive
+%% transform coefficient).  The columns of B are the basis
+%% functions (x is a linear combination of the columns of B).
+
+%% Since the Laplacian pyramid is a linear transform, we can ask: what
+%% are its BASIS functions?  We consider these in one dimension for
+%% simplicity.  The BASIS function corresponding to a given
+%% coefficient tells us how much that coefficient contributes to each
+%% pixel in the reconstructed image.  We can construct a single basis
+%% function by setting one sample of one subband equal to 1.0 (and all
+%% others to zero) and reconstructing. To build the entire matrix, we
+%% have to do this for every sample of every subband:
+sz = min(round(48/(sqrt(2)^imSubSample)),36);
+sig = zeros(sz,1);
+[pyr,pind] = buildLpyr(sig);
+basis = zeros(sz,size(pyr,1));
+for n=1:size(pyr,1)
+  pyr = zeros(size(pyr));
+  pyr(n) = 1;
+  basis(:,n) = reconLpyr(pyr,pind);
+end
+clf; showIm(basis)
+
+%% The columns of the basis matrix are the basis functions.  The
+%% matrix is short and fat, corresponding to the fact that the
+%% representation is OVERCOMPLETE.  Below, we plot the middle one from
+%% each subband, starting with the finest scale.  Note that all of
+%% these basis functions are lowpass (Gaussian-like) functions.
+locations = round(sz * (2 - 3./2.^[1:max(4,size(pind,1))]))+1;
+for lev=1:size(locations,2)
+  subplot(2,2,lev);
+  showIm(basis(:,locations(lev)));
+  axis([0 sz 0 1.1]);
+end
+
+%% Now, we'd also like see the inverse (we'll them PROJECTION)
+%% functions. We need to ask how much of each sample of the input
+%% image contributes to a given pyramid coefficient.  Thus, the matrix
+%% is constructed by building pyramids on the set of images with
+%% impulses at each possible location.  The rows of this matrix are
+%% the projection functions.
+projection = zeros(size(pyr,1),sz);
+for pos=1:sz
+  [pyr,pind] = buildLpyr(mkImpulse([1 sz], [1 pos]));
+  projection(:,pos) = pyr;
+end
+clf; showIm(projection);
+
+%% Building a pyramid corresponds to multiplication by the projection
+%% matrix.  Reconstructing from this pyramid corresponds to
+%% multiplication by the basis matrix.  Thus, the product of the two
+%% matrices (in this order) should be the identity matrix:
+showIm(basis*projection);
+
+%% We can plot a few example projection functions at different scales.
+%% Note that all of the projection functions are bandpass functions,
+%% except for the coarsest subband which is lowpass.
+for lev=1:size(locations,2)
+  subplot(2,2,lev);
+  showIm(projection(locations(lev),:));
+  axis([0 sz -0.3 0.8]);
+end
+  
+%% Now consider the frequency response of these functions, plotted over the
+%% range [-pi,pi]:
+for lev=1:size(locations,2)
+  subplot(2,2,lev);
+  proj = projection(locations(lev),:);
+  plot(pi*[-32:31]/32,fftshift(abs(fft(proj',64))));
+  axis([-pi pi -0.1 3]);
+end
+
+%% The first projection function is highpass, and the second is bandpass.  Both
+%% of these look something like the Laplacian (2nd derivative) of a Gaussian.
+%% The last is lowpass, as are the basis functions.  Thus, the basic operation
+%% used to create each level of the pyramid involves a simple highpass/lowpass
+%% split.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% QMF/WAVELET PYRAMIDS.
+
+%% Two things about Laplacian pyramids are a bit unsatisfactory.
+%% First, there are more pixels (coefficients) in the representation
+%% than in the original image. Specifically, the 1-dimensional
+%% transform is overcomplete by a factor of 4/3, and the 2-dimensional
+%% transform is overcomplete by a factor of 2.  Secondly, the
+%% "bandpass" images (fineN) do not segregate information according to
+%% orientation.
+
+%% There are other varieties of pyramid.  One type that arose in the
+%% speech coding community is based on a particular pairs of filters
+%% known as a "Quadrature Mirror Filters" or QMFs.  These are closely
+%% related to Wavelets (essentially, they are approximate wavelet
+%% filters).
+
+%% Recall that the Laplacian pyramid is formed by simple hi/low
+%% splitting at each level.  The lowpass band is subsampled by a
+%% factor of 2, but the highpass band is NOT subsampled.  In the QMF
+%% pyramid, we apply two filters (hi- and lo- pass) and subsample BOTH
+%% by a factor of 2, thus eliminating the excess coefficients of the
+%% Laplacian pyramid.
+
+%% The two filters must have a specific relationship to each
+%% other. In particular, let n be an index for the filter samples.
+%% The highpass filter may be constructed from the lowpass filter by
+%% (1) modulating (multiplying) by (-1)^n (equivalent to shifting by
+%% pi in the Fourier domain), (2) flipping (i.e., reversing the order
+%% of the taps), (3) spatially shifting by one sample.  Try to
+%% convince yourself that the resulting filters will always be
+%% orthogonal to each other (i.e., their inner products will be zero)
+%% when shifted by any multiple of two.
+
+%% The function modulateFlip performs the first two of these operations.  The
+%% third (spatial shifting) step is built into the convolution code.
+flo = namedFilter('qmf9')';
+fhi = modulateFlip(flo)';
+subplot(2,1,1); lplot(flo); axis([0 10 -0.5 1.0]); title('lowpass');
+subplot(2,1,2); lplot(fhi); axis([0 10 -0.5 1.0]); title('highpass');
+
+%% In the Fourier domain, these filters are (approximately)
+%% "power-complementary": the sum of their squared power spectra is
+%% (approximately) a constant.  But note that neither is a perfect
+%% bandlimiter (i.e., a sinc function), and thus subsampling by a
+%% factor of 2 will cause aliasing in each of the subbands.  See below
+%% for a discussion of the effect of this aliasing.
+
+%% Plot the two frequency responses:
+freq = pi*[-32:31]/32;
+subplot(2,1,1);
+plot(freq,fftshift(abs(fft(flo,64))),'REPLACE_WITH_DASH_DASH',freq,fftshift(abs(fft(fhi,64))),'-');
+axis([-pi pi 0 1.5]); title('FFT magnitudes');
+subplot(2,1,2);
+plot(freq,fftshift(abs(fft(flo,64)).^2)+fftshift(abs(fft(fhi,64)).^2));
+axis([-pi pi 0 2.2]); title('Sum of squared magnitudes');
+
+%% We can split an input signal into two bands as follows:
+sig = mkFract([1,64],1.6);
+subplot(2,1,1); showIm(sig,'auto1','auto','sig');
+lo1 = corrDn(sig,flo,'reflect1',[1 2],[1 1]);
+hi1 = corrDn(sig,fhi,'reflect1',[1 2],[1 2]);
+subplot(2,1,2); 
+showIm(lo1,'auto1','auto','low and high bands'); hold on; plot(hi1,'REPLACE_WITH_DASH_DASHr'); hold off; 
+
+%% Notice that the two subbands are half the size of the original
+%% image, due to the subsampling by a factor of 2.  One subtle point:
+%% the highpass and lowpass bands are subsampled on different
+%% lattices: the lowpass band retains the odd-numbered samples and the
+%% highpass band retains the even-numbered samples.  This was the
+%% 1-sample shift relating the high and lowpass kernels (mentioned
+%% above).  We've used the 'reflect1' to handle boundaries, which
+%% works properly for symmetric odd-length QMFs.
+
+%% We can reconstruct the original image by interpolating these two subbands
+%% USING THE SAME FILTERS:
+reconlo = upConv(lo1,flo,'reflect1',[1 2]);
+reconhi = upConv(hi1,fhi,'reflect1',[1 2],[1 2]);
+subplot(2,1,2); showIm(reconlo+reconhi,'auto1','auto','reconstructed');
+imStats(sig,reconlo+reconhi);
+
+%% We have described an INVERTIBLE linear transform that maps an input
+%% image to the two images lo1 and hi1.  The inverse transformation
+%% maps these two images to the result.  This is depicted graphically
+%% with a system diagram:
+%%
+%% IM REPLACE_WITH_DASH_DASH-> flo/down2 REPLACE_WITH_DASH_DASH> LO1 REPLACE_WITH_DASH_DASH> up2/flo REPLACE_WITH_DASH_DASH> add REPLACE_WITH_DASH_DASH> RECON
+%%     |                                      ^
+%%     |	                              |
+%%     |	                              |
+%%      -> fhi/down2 REPLACE_WITH_DASH_DASH> HI1 REPLACE_WITH_DASH_DASH> up2/fhi REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- 
+%% 
+%% Note that the number of samples in the representation (i.e., total
+%% samples in LO1 and HI1) is equal to the number of samples in the
+%% original IM.  Thus, this representation is exactly COMPLETE, or
+%% "critically sampled".
+
+%% So we've fixed one of the problems that we had with Laplacian
+%% pyramid.  But the system diagram above places strong constraints on
+%% the filters.  In particular, for these filters the reconstruction
+%% is no longer perfect.  Turns out there are NO
+%% perfect-reconstruction symmetric filters that are
+%% power-complementary, except for the trivial case [1] and the
+%% nearly-trivial case [1 1]/sqrt(2).
+
+%% Let's consider the projection functions of this 2-band splitting
+%% operation.  We can construct these by applying the transform to
+%% impulse input signals, for all possible impulse locations.  The
+%% rows of the following matrix are the projection functions for each
+%% coefficient in the transform.
+M = [corrDn(eye(32),flo','circular',[1 2]), ...
+     corrDn(eye(32),fhi','circular',[1 2],[1 2])]';
+clf; showIm(M,'auto1','auto','M');
+
+%% The transform matrix is composed of two sub-matrices.  The top half
+%% contains the lowpass kernel, shifted by increments of 2 samples.
+%% The bottom half contains the highpass.  Now we compute the inverse
+%% of this matrix: 
+M_inv = inv(M);
+showIm(M_inv,'auto1','auto','M_inv');
+
+%% The inverse is (very close to) the transpose of the original
+%% matrix!  In other words, the transform is orthonormal.
+imStats(M_inv',M);
+
+%% This also points out a nice relationship between the corrDn and
+%% upConv functions, and the matrix representation.  corrDn is
+%% equivalent to multiplication by a matrix with copies of the filter
+%% on the ROWS, translated in multiples of the downsampling factor.
+%% upConv is equivalent to multiplication by a matrix with copies of
+%% the filter on the COLUMNS, translated by the upsampling factor.
+
+%% As in the Laplacian pyramid, we can recursively apply this QMF 
+%% band-splitting operation to the lowpass band:
+lo2 = corrDn(lo1,flo,'reflect1',[1 2]);
+hi2 = corrDn(lo1,fhi,'reflect1',[1 2],[1 2]);
+
+%% The representation of the original signal is now comprised of the
+%% three subbands {hi1, hi2, lo2} (we don't hold onto lo1, because it
+%% can be reconstructed from lo2 and hi2).  Note that hi1 is at 1/2
+%% resolution, and hi2 and lo2 are at 1/4 resolution: The total number
+%% of samples in these three subbands is thus equal to the number of
+%% samples in the original signal.
+imnames=['hi1'; 'hi2'; 'lo2'];
+for bnum=1:3
+  band = eval(imnames(bnum,:));
+  subplot(3,1,bnum); showIm(band); ylabel(imnames(bnum,:));
+  axis([1 size(band,2) 1.1*min(lo2) 1.1*max(lo2)]);
+end
+
+%% Reconstruction proceeds as with the Laplacian pyramid: combine lo2 and hi2
+%% to reconstruct lo1, which is then combined with hi1 to reconstruct the
+%% original signal:
+recon_lo1 = upConv(hi2,fhi,'reflect1',[1 2],[1 2]) + ...
+            upConv(lo2,flo,'reflect1',[1 2],[1 1]);
+reconstructed = upConv(hi1,fhi,'reflect1',[1 2],[1 2]) + ...
+                upConv(recon_lo1,flo,'reflect1',[1 2],[1 1]);
+imStats(sig,reconstructed);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% FUNCTIONS for CONSTRUCTING/MANIPULATING QMF/Wavelet PYRAMIDS
+
+%% To make things easier, we have bundled these qmf operations and
+%% data structures into an object in MATLAB.
+
+sig = mkFract([1 64], 1.5);
+[pyr,pind] = buildWpyr(sig);
+showWpyr(pyr,pind);
+
+nbands = size(pind,1);
+for b = 1:nbands
+  subplot(nbands,1,b); lplot(pyrBand(pyr,pind,b));
+end
+	
+res = reconWpyr(pyr,pind);
+imStats(sig,res);
+
+%% Now for 2D, we use separable filters.  There are 4 ways to apply the two 
+%% filters to the input image (followed by the relavent subsampling operation):
+%%   (1) lowpass in both x and y
+%%   (2) lowpass in x and highpass in y 
+%%   (3) lowpass in y and highpass in x
+%%   (4) highpass in both x and y.  
+%% The pyramid is built by recursively subdividing the first of these bands
+%% into four new subbands.
+
+%% First, we'll take a look at some of the basis functions.
+sz = 40;
+zim = zeros(sz);
+flo = 'qmf9'; edges = 'reflect1';
+[pyr,pind] = buildWpyr(zim);
+
+% Put an  impulse into the middle of each band:
+for lev=1:size(pind,1)
+  mid = sum(prod(pind(1:lev-1,:)'));
+  mid = mid + floor(pind(lev,2)/2)*pind(lev,1) + floor(pind(lev,1)/2) + 1;
+  pyr(mid,1) = 1;
+end
+
+% And take a look at the reconstruction of each band:
+for lnum=1:wpyrHt(pind)+1
+  for bnum=1:3
+    subplot(wpyrHt(pind)+1,3,(wpyrHt(pind)+1-lnum)*3+bnum);
+    showIm(reconWpyr(pyr, pind, flo, edges, lnum, bnum),'auto1',2,0);
+  end
+end
+
+%% Note that the first column contains horizontally oriented basis functions at
+%% different scales.  The second contains vertically oriented basis functions.
+%% The third contains both diagonals (a checkerboard pattern).  The bottom row
+%% shows (3 identical images of) a lowpass basis function.
+
+%% Now look at the corresponding Fourier transform magnitudes (these
+%% are plotted over the frequency range [-pi, pi] ):
+nextFig(2,1);
+freq = 2 * pi * [-sz/2:(sz/2-1)]/sz;
+for lnum=1:wpyrHt(pind)+1
+  for bnum=1:3
+    subplot(wpyrHt(pind)+1,3,(wpyrHt(pind)+1-lnum)*3+bnum);
+    basisFn = reconWpyr(pyr, pind, flo, edges, lnum, bnum);
+    basisFmag = fftshift(abs(fft2(basisFn,sz,sz)));
+    imagesc(freq,freq,basisFmag);
+    axis('square'); axis('xy'); colormap('gray');
+  end
+end
+nextFig(2,-1);
+
+%% The filters at a given scale sum to a squarish annular region:
+sumSpectra = zeros(sz);
+lnum = 2;
+for bnum=1:3
+  basisFn = reconWpyr(pyr, pind, flo, edges, lnum, bnum);
+  basisFmag = fftshift(abs(fft2(basisFn,sz,sz)));
+  sumSpectra = basisFmag.^2 + sumSpectra;
+end
+clf; imagesc(freq,freq,sumSpectra); axis('square'); axis('xy'); title('one scale');
+
+%% Now decompose an image:
+[pyr,pind] = buildWpyr(im);
+figure('Position',[1 scrsz(4)/2 scrsz(3)/2 scrsz(4)/2])
+%% View all of the subbands (except lowpass), scaled to be the same size
+%% (requires a big figure window):
+scrsz = get(0,'ScreenSize');
+
+nlevs = wpyrHt(pind);
+for lnum=1:nlevs
+  for bnum=1:3
+    subplot(nlevs,3,(lnum-1)*3+bnum); 
+    showIm(wpyrBand(pyr,pind,lnum,bnum), 'auto2', 2^(lnum+imSubSample-2));
+  end
+end
+
+%% In addition to the bands shown above, there's a lowpass residual:
+nextFig(2,1);
+clf; showIm(pyrLow(pyr,pind));
+nextFig(2,-1);
+
+% Alternatively, display the pyramid with the subbands shown at their
+% correct relative sizes:
+clf; showWpyr(pyr, pind);
+
+%% The reconWpyr function can be used to reconstruct the entire pyramid:
+reconstructed = reconWpyr(pyr,pind);
+imStats(im,reconstructed);
+
+%% As with Laplacian pyramids, you can specify sub-levels and subbands
+%% to be included in the reconstruction.  For example:
+clf
+showIm(reconWpyr(pyr,pind,'qmf9','reflect1',[1:wpyrHt(pind)],[1]));  %Horizontal only
+showIm(reconWpyr(pyr,pind,'qmf9','reflect1',[2,3])); %two middle scales
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% PERFECT RECONSTRUCTION: HAAR AND DEBAUCHIES WAVELETS
+
+%% The symmetric QMF filters used above are not perfectly orthogonal.
+%% In fact, it's impossible to construct a symmetric filter of size
+%% greater than 2 that is perfectly orthogonal to shifted copies
+%% (shifted by multiples of 2) of itself.  For example, consider a
+%% symmetric kernel of length 3.  Shift by two and the right end of
+%% the original kernel is aligned with the left end of the shifted
+%% one.  Thus, the inner product of these two will be the square of
+%% the end tap, which will be non-zero.
+
+%% However, one can easily create wavelet filters of length 2 that
+%% will do the job.  This is the oldest known wavelet, known as the
+%% "Haar".  The two kernels are [1,1]/sqrt(2) and [1,-1]/sqrt(2).
+%% These are trivially seen to be orthogonal to each other, and shifts
+%% by multiples of two are also trivially orthogonal.  The projection
+%% functions of the Haar transform are in the rows of the following
+%% matrix, constructed by applying the transform to impulse input
+%% signals, for all possible impulse locations:
+
+haarLo = namedFilter('haar')
+haarHi = modulateFlip(haarLo)
+subplot(2,1,1); lplot(haarLo); axis([0 3 -1 1]); title('lowpass');
+subplot(2,1,2); lplot(haarHi); axis([0 3 -1 1]); title('highpass');
+
+M = [corrDn(eye(32), haarLo, 'reflect1', [2 1], [2 1]); ...
+    corrDn(eye(32), haarHi, 'reflect1', [2 1], [2 1])];
+clf; showIm(M)
+showIm(M*M') %identity!
+
+%% As before, the filters are power-complementary (although the
+%% frequency isolation is rather poor, and thus the subbands will be
+%% heavily aliased):
+plot(pi*[-32:31]/32,abs(fft(haarLo,64)).^2,'REPLACE_WITH_DASH_DASH',...
+     pi*[-32:31]/32,abs(fft(haarHi,64)).^2,'-');
+
+sig = mkFract([1,64],0.5);
+[pyr,pind] = buildWpyr(sig,4,'haar','reflect1');
+showWpyr(pyr,pind);
+
+%% check perfect reconstruction:
+res = reconWpyr(pyr,pind, 'haar', 'reflect1');
+imStats(sig,res)
+
+%% If you want perfect reconstruction, but don't like the Haar
+%% transform, there's another option: drop the symmetry requirement.
+%% Ingrid Daubechies developed one of the earliest sets of such
+%% perfect-reconstruction wavelets.  The simplest of these is of
+%% length 4:
+
+daub_lo = namedFilter('daub2');
+daub_hi = modulateFlip(daub_lo);
+
+%% The daub_lo filter is constructed to be orthogonal to 2shifted
+%% copy of itself.  For example:
+[daub_lo;0;0]'*[0;0;daub_lo]
+
+M = [corrDn(eye(32), daub_lo, 'circular', [2 1], [2 1]); ...
+    corrDn(eye(32), daub_hi, 'circular', [2 1], [2 1])];
+clf; showIm(M)
+showIm(M*M') % identity!
+
+%% Again, they're power complementary:
+plot(pi*[-32:31]/32,abs(fft(daub_lo,64)).^2,'REPLACE_WITH_DASH_DASH',...
+     pi*[-32:31]/32,abs(fft(daub_hi,64)).^2,'-');
+ 
+%% The sum of the power spectra is again flat
+plot(pi*[-32:31]/32,...
+    fftshift(abs(fft(daub_lo,64)).^2)+fftshift(abs(fft(daub_hi,64)).^2));
+
+%% Make a pyramid using the same code as before (except that we can't
+%% use reflected boundaries with asymmetric filters):
+[pyr,pind] = buildWpyr(sig, maxPyrHt(size(sig),size(daub_lo)), daub_lo, 'circular');
+showWpyr(pyr,pind,'indep1');
+
+res = reconWpyr(pyr,pind, daub_lo,'circular');
+imStats(sig,res);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% ALIASING IN WAVELET TRANSFORMS
+
+%% All of these orthonormal pyramid/wavelet transforms have a lot
+%% of aliasing in the subbands.  You can see that in the frequency
+%% response plots since the frequency response of each filter
+%% covers well more than half the frequency domain.  The aliasing
+%% can have serious consequences...
+
+%% Get one of the basis functions of the 2D Daubechies wavelet transform:
+[pyr,pind] = buildWpyr(zeros(1,64),4,daub_lo,'circular');
+lev = 3;
+pyr(1+sum(pind(1:lev-1,2))+pind(lev,2)/2,1) = 1;
+sig = reconWpyr(pyr,pind, daub_lo,'circular');
+clf; lplot(sig)
+
+%% Since the basis functions are orthonormal, building a pyramid using this
+%% input will yield a single non-zero coefficient.
+[pyr,pind] = buildWpyr(sig, 4, daub_lo, 'circular');
+figure(1);
+nbands = size(pind,1)
+for b=1:nbands
+  subplot(nbands,1,b); lplot(pyrBand(pyr,pind,b));
+  axis([1 size(pyrBand(pyr,pind,b),2) -0.3 1.3]);
+end
+
+%% Now shift the input by one sample and re-build the pyramid.
+shifted_sig = [0,sig(1:size(sig,2)-1)];
+[spyr,spind] = buildWpyr(shifted_sig, 4, daub_lo, 'circular');
+
+%% Plot each band of the unshifted and shifted decomposition
+nextFig(2);
+nbands = size(spind,1)
+for b=1:nbands
+  subplot(nbands,1,b); lplot(pyrBand(spyr,spind,b));
+  axis([1 size(pyrBand(spyr,spind,b),2) -0.3 1.3]);
+end
+nextFig(2,-1);
+
+%% In the third band, we expected the coefficients to move around
+%% because the signal was shifted.  But notice that in the original
+%% signal decomposition, the other bands were filled with zeros.
+%% After the shift, they have significant content.  Although these
+%% subbands are supposed to represent information at different scales,
+%% their content also depends on the relative POSITION of the input
+%% signal.
+
+%% This problem is not unique to the Daubechies transform.  The same
+%% is true for the QMF transform.  Try it...  In fact, the same kind
+%% of problem occurs for almost any orthogonal pyramid transform (the
+%% only exception is the limiting case in which the filter is a sinc
+%% function).
+
+%% Orthogonal pyramid transforms are not shift-invariant.  Although
+%% orthogonality may be an important property for some applications
+%% (e.g., data compression), orthogonal pyramid transforms are
+%% generally not so good for image analysis.
+
+%% The overcompleteness of the Laplacian pyramid turns out to be a
+%% good thing in the end.  By using an overcomplete representation
+%% (and by choosing the filters properly to avoid aliasing as much as
+%% possible), you end up with a representation that is useful for
+%% image analysis.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% The "STEERABLE PYRAMID" 
+
+%% The steerable pyramid is a multi-scale representation that is
+%% translation-invariant, but that also includes representation of
+%% orientation.  Furthermore, the representation of orientation is
+%% designed to be rotation-invariant. The basis/projection functions
+%% are oriented (steerable) filters, localized in space and frequency.
+%% It is overcomplete to avoid aliasing.  And it is "self-inverting"
+%% (like the QMF/Wavelet transform): the projection functions and 
+%% basis functions are identical.  The mathematical phrase for a 
+%% transform obeying this property is "tight frame".
+
+%% The system diagram for the steerable pyramid (described in the
+%% reference given below) is as follows:
+%
+% IM REPLACE_WITH_DASH_DASH-> fhi0 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-> H0 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH fhi0 REPLACE_WITH_DASH_DASH-> RESULT
+%     |                                                     |
+%     |                                                     |
+%     |-> flo0 REPLACE_WITH_DASH_DASH-> fl1/down2 REPLACE_WITH_DASH_DASH> L1 REPLACE_WITH_DASH_DASH> up2/fl1 REPLACE_WITH_DASH_DASH-> flo0 -|
+%               |                                 |
+%               |REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> fb0 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-> B0 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> fb0 REPLACE_WITH_DASH_DASH-|
+%               |                                 |
+%               |REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> fb1 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-> B1 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> fb1 REPLACE_WITH_DASH_DASH-|
+%               .                                 .
+%               .                                 .
+%               |REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> fbK REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-> BK REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> fbK REPLACE_WITH_DASH_DASH-|
+%
+%% The filters {fhi0,flo0} are used to initially split the image into
+%% a highpass residual band H0 and a lowpass subband.  This lowpass
+%% band is then split into a low(er)pass band L1 and K+1 oriented
+%% subbands {B0,B1,...,BK}.  The representatation is substantially
+%% overcomplete.  The pyramid is built by recursively splitting the
+%% lowpass band (L1) using the inner portion of the diagram (i.e.,
+%% using the filters {fl1,fb0,fb1,...,fbK}).  The resulting transform is
+%% overcomplete by a factor of 4k/3.
+
+%% The scale tuning of the filters is constrained by the recursive
+%% system diagram.  The orientation tuning is constrained by requiring
+%% the property of steerability.  A set of filters form a steerable
+%% basis if they 1) are rotated copies of each other, and 2) a copy of
+%% the filter at any orientation may be computed as a linear
+%% combination of the basis filters.  The simplest examples of
+%% steerable filters is a set of N+1 Nth-order directional
+%% derivatives.
+
+%% Choose a filter set (options are 'sp0Filters', 'sp1Filters',
+%% 'sp3Filters', 'sp5Filters'):
+filts = 'sp3Filters';
+[lo0filt,hi0filt,lofilt,bfilts,steermtx,harmonics] = eval(filts);
+fsz = round(sqrt(size(bfilts,1))); fsz =  [fsz fsz];
+nfilts = size(bfilts,2);
+nrows = floor(sqrt(nfilts));
+
+%% Look at the oriented bandpass filters:
+figure
+for f = 1:nfilts
+  subplot(nrows,ceil(nfilts/nrows),f);
+  showIm(conv2(reshape(bfilts(:,f),fsz),lo0filt));
+end
+
+%% Try "steering" to a new orientation (new_ori in degrees):
+new_ori = 360*rand(1)
+clf; showIm(conv2(reshape(steer(bfilts, new_ori*pi/180 ), fsz), lo0filt));
+
+%% Look at Fourier transform magnitudes:
+lo0 = fftshift(abs(fft2(lo0filt,64,64)));
+fsum = zeros(size(lo0));
+figure
+for f = 1:size(bfilts,2)
+  subplot(nrows,ceil(nfilts/nrows),f);
+  flt = reshape(bfilts(:,f),fsz);
+  freq = lo0 .* fftshift(abs(fft2(flt,64,64)));
+  fsum = fsum + freq.^2;
+  showIm(freq);
+end
+
+%% The filters sum to a smooth annular ring:
+clf; showIm(fsum);
+
+%% build a Steerable pyramid:
+[pyr,pind] = buildSpyr(im, 4-imSubSample, filts);
+ 
+%% Look at first (vertical) bands, different scales:
+for s = 1:min(4,spyrHt(pind))
+  band = spyrBand(pyr,pind,s,1);
+  subplot(2,2,s); showIm(band);
+end
+
+%% look at all orientation bands at one level (scale):
+for b = 1:spyrNumBands(pind)
+  band = spyrBand(pyr,pind,1,b);
+  subplot(nrows,ceil(nfilts/nrows),b);
+  showIm(band);
+end
+
+%% To access the high-pass and low-pass bands:
+low = pyrLow(pyr,pind);
+showIm(low);
+high = spyrHigh(pyr,pind);
+showIm(high);
+
+%% Display the whole pyramid (except for the highpass residual band),
+%% with images shown at proper relative sizes:
+showSpyr(pyr,pind);
+
+%% Spin a level of the pyramid, interpolating (steering to)
+%% intermediate orienations:
+
+[lev,lind] = spyrLev(pyr,pind,2);
+lev2 = reshape(lev,prod(lind(1,:)),size(bfilts,2));
+figure(1); subplot(1,1,1); showIm(spyrBand(pyr,pind,2,1));
+M = moviein(16);
+for frame = 1:16
+  steered_im = steer(lev2, 2*pi*(frame-1)/16, harmonics, steermtx);
+  figure
+  showIm(reshape(steered_im, lind(1,:)),'auto2');
+  M(:,frame) = getframe;
+end
+
+%% Show the movie 3 times:
+%movie(M,3);
+
+%% Reconstruct.  Note that the filters are not perfect, although they are good
+%% enough for most applications.
+res = reconSpyr(pyr, pind, filts); 
+showIm(im + i * res);
+imStats(im,res);
+
+%% As with previous pyramids, you can select subsets of the levels
+%% and orientation bands to be included in the reconstruction.  For example:
+
+%% All levels (including highpass and lowpass residuals), one orientation:
+clf; showIm(reconSpyr(pyr,pind,filts,'reflect1','all', [1]));
+
+%% Without the highpass and lowpass:
+clf; showIm(reconSpyr(pyr,pind,filts,'reflect1',[1:spyrHt(pind)], [1]));
+
+%% We also provide an implementation of the Steerable pyramid in the
+%% Frequency domain.  The advantages are perfect-reconstruction
+%% (within floating-point error), and any number of orientation
+%% bands.  The disadvantages are that it is typically slower, and the
+%% boundary handling is always circular.
+
+[pyr,pind] = buildSFpyr(im,4,4); % 4 levels, 5 orientation bands
+showSpyr(pyr,pind);
+res = reconSFpyr(pyr,pind);
+imStats(im,res);  % nearly perfect
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The steerable pyramid transform given above is described in:
+%
+%   E P Simoncelli and W T Freeman. 
+%   The Steerable Pyramid: A Flexible Architecture for Multi-Scale 
+%   Derivative Computation.  IEEE Second Int'l Conf on Image Processing. 
+%   Washington DC,  October 1995.
+%
+% Online access:
+% Abstract:  http://www.cis.upenn.edu/~eero/ABSTRACTS/simoncelli95b-abstract.html
+% Full (PostScript):  ftp://ftp.cis.upenn.edu/pub/eero/simoncelli95b.ps.Z
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Local Variables:
+%% buffer-read-only: t 
+%% End:
+
+##### SOURCE END #####
+-->
+   </body>
+</html>
