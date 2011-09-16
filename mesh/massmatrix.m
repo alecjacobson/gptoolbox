@@ -78,7 +78,7 @@ function M = massmatrix(V,F, type)
     end
     
     % warn if any rows are all zero (probably unreferenced vertices)
-    if(~all(sum(abs(M),2)~=0))
+    if(any(sum(M,2) == 0))
       warning('Some rows have all zeros... probably unreferenced vertices..');
     end
 end
