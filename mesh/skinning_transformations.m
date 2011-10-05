@@ -2,13 +2,13 @@ function [varargout] = skinning_transformations(C,P,BE,new_C,RP)
   % SKINNING_TRANSFORMATIONS compute transformations for each handle of a
   % skinning deformation setup.
   %
-  % [TR] = lbs_transformations(C,P,BE,new_C,RP)  
-  % [T,R,S] = lbs_transformations(C,P,BE,new_C,RP) Same as above except
-  %   rotations, scales and translations are separated, so that
-  %   TR(:,1:dim,i) = R(:,:,i)*S(:,:,i) and TR(:,dim+1,:) = TR(:,3,:)= permute(T,[2,3,1])
-  % [T,AX,AN,S,O] = lbs_transformations(C,P,BE,new_C,RP) Same as above except
-  %   instead of representing rotations by a dim by dim matrix representing
-  %   them as axes, AX, and angles, AN. For 2D control points C,
+  % [TR] = skinning_transformations(C,P,BE,new_C,RP)  
+  % [T,R,S] = skinning_transformations(C,P,BE,new_C,RP) Same as above except
+  %   rotations, scales and translations are separated, so that TR(:,1:dim,i) =
+  %   R(:,:,i)*S(:,:,i) and TR(:,dim+1,:) = TR(:,3,:)= permute(T,[2,3,1])
+  % [T,AX,AN,S,O] = skinning_transformations(C,P,BE,new_C,RP) Same as above
+  %   except instead of representing rotations by a dim by dim matrix
+  %   representing them as axes, AX, and angles, AN. For 2D control points C,
   %   AX(i,:) = [0 0 1]
   %
   % Inputs:
