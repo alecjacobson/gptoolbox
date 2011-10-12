@@ -11,7 +11,7 @@ function [D,G] = exactgeodesic(V,F,id)
   %
   % Outputs:
   %  D distances from id, # vertices by 1 matrix
-  %  G exact gradients of D(in 3d)
+  %  G exact gradients of D(in 3d), # vertices by 3 matrix
 
 global geodesic_library;                
 
