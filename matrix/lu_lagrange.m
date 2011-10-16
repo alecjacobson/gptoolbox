@@ -25,6 +25,14 @@ function [L,U,p] = lu_lagrange(ATA,C,J)
   % See also: chol, lu, min_quad_with_fixed
   % 
 
+  % number of unknowns
+  n = size(ATA,1);
+  % number of lagrange multipliers
+  m = size(C,2);
+
+  assert(size(ATA,2) == n);
+  assert(size(C,1) == n);
+
   L = [];
   U = [];
   p = 0;
@@ -51,7 +59,14 @@ function [L,U,p] = lu_lagrange(ATA,C,J)
   end
 
   % assembly lower triangular of cholesky factorization of Q
-  Z = zeros(size(ATA,1),size(C,2));
-  L = [J Z;M' K];
+  if(issparse(ATA))
+    Z = sparse(n,m);
+  else
+    Z = zeros(n,m);
+  end
   U = [J' M;Z' -K'];
+  %L = [J Z;M' K];
+  % this is slightly faster
+  L = U';
+  L(n+(1:m),n+(1:m)) = -L(n+(1:m),n+(1:m));
 end
