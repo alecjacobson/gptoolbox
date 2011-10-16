@@ -80,14 +80,16 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method)
   if nargout >= 2
     Uall = [];
   end 
+
+  % recompute laplacian
+  if strcmp(L_method,'cotan')
+    % other 3D meshes should use cotangent laplacian
+    L = cotmatrix(V,F);
+    %error
+  end
+
   while( iter < max_iter && (iter == 0 || max(abs(U(:)-U_prev(:)))>tol*h))
     U_prev = U;
-    % recompute laplacian
-    if strcmp(L_method,'cotan')
-      % other 3D meshes should use cotangent laplacian
-      L = cotmatrix(V,F);
-      error
-    end
 
     switch method
     case 'implicit'
@@ -97,7 +99,6 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method)
         [U(:,d),P,sym] = min_quad_with_fixed(Q*0.5,-U(:,d),b,V(b,d),[],[],P,sym);
       end
     case 'explicit'
-      
       Q = (I+lambda*L);
       U = Q * U;
       % enforce boundary
@@ -112,7 +113,7 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method)
     iter = iter + 1;
   end
 
-  [iter max_iter]
-  [max(abs(U(:)-U_prev(:))) tol*h]
+  %[iter max_iter]
+  %[max(abs(U(:)-U_prev(:))) tol*h]
 
 end
