@@ -96,7 +96,7 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method)
       Q = (I-lambda*L);
       % could prefactor Q for 'uniform' case
       for d = 1:size(V,2)
-        [U(:,d),P,sym] = min_quad_with_fixed(Q*0.5,-U(:,d),b,V(b,d),[],[],P,sym);
+        [U(:,d),P] = min_quad_with_fixed(Q*0.5,-U(:,d),b,V(b,d),[],[],P);
       end
     case 'explicit'
       Q = (I+lambda*L);
