@@ -1,4 +1,4 @@
-function [U,Uall] = smooth(V,F,L_method,b,lambda,method)
+function [U,Uall] = smooth(V,F,L_method,b,lambda,method,S)
   % SMOOTH smooth a mesh using implicit/explicit laplacian smoothing
   %
   % [U] = smooth(V,F)
@@ -61,6 +61,9 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method)
     max_iter = 1000;
   end
 
+  if(~exist('S','var'))
+    S = V;
+  end
 
 
   % only compute uniform laplacain once
@@ -75,8 +78,8 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method)
   sym = [];
 
   iter = 0;
-  U = V;
-  U_prev = V;
+  U = S;
+  U_prev = S;
   if nargout >= 2
     Uall = [];
   end 
@@ -95,14 +98,14 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method)
     case 'implicit'
       Q = (I-lambda*L);
       % could prefactor Q for 'uniform' case
-      for d = 1:size(V,2)
-        [U(:,d),P] = min_quad_with_fixed(Q*0.5,-U(:,d),b,V(b,d),[],[],P);
+      for d = 1:size(S,2)
+        [U(:,d),P] = min_quad_with_fixed(Q*0.5,-U(:,d),b,S(b,d),[],[],P);
       end
     case 'explicit'
       Q = (I+lambda*L);
       U = Q * U;
       % enforce boundary
-      U(b,:) = V(b,:);
+      U(b,:) = S(b,:);
     otherwise
       error(['' method ' is not a supported smoothing method']);
     end
