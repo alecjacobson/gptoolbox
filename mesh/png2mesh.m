@@ -39,7 +39,7 @@ function [V,F] = png2mesh( ...
     max_points_on_boundary);
   % get average squared edge length as a guess at the maximum area constraint
   % for the triangulation
-  avg_sqr_edge_length = mean(sum((V(E(:,1))-V(E(:,2))).^2,2));
+  avg_sqr_edge_length = mean(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2));
   % triangulate the polygon
   [V,F] = triangle(V,E,H,'MaxArea',avg_sqr_edge_length/2.0,'Quality',30);
 end

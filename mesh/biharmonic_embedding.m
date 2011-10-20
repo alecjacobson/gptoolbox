@@ -1,5 +1,5 @@
-function [B,V,D] = biharmonic_embedding(V,F,dim);
-  % [B,V,D] = biharmonic_embedding(V,F);
+function [B,EV,ED] = biharmonic_embedding(V,F,dim,p);
+  % [B,EV,ED] = biharmonic_embedding(V,F);
   %
   % Takes a mesh (V,F) and returns an embedding using the spectrum of the
   % biharmonic operator. Then the biharmonic distance between two points i and
@@ -11,10 +11,16 @@ function [B,V,D] = biharmonic_embedding(V,F,dim);
   %   V  vertex list
   %   F  face list
   %   dim requested dimension of the embedding
+  %   Optional:
+  %     p  exponent above eigen values
+  %       0.5  "semi-harmonic" embedding
+  %       1  commute time embedding, "harmonic"
+  %       2  biharmonic {default}
+  %       3  "triharmonic" embedding
   % Output:
   %   B  biharmonic embedding
-  %   V  eigenvectors used in embedding
-  %   D  eigenvalues used in embedding
+  %   EV  eigenvectors used in embedding
+  %   ED  eigenvalues used in embedding
   % 
 
   % if dimension is not specfied use 4
@@ -22,21 +28,28 @@ function [B,V,D] = biharmonic_embedding(V,F,dim);
     dim = 4;
   end
 
+  if(~exist('p','var'))
+    p = 2;
+  end
+
   % get cotangent matrix
   L = cotmatrix(V,F);
   % get mass matrix
-  M = massmatrix(V,F,'voronoi');
+  %M = massmatrix(V,F,'voronoi');
+  M = massmatrix(V,F,'barycentric');
   % get dim+1 smallest magnitude eigenvalues and corresponding vectors
-  %[V,D] = eigs(L,M,dim+1,'sm');
-  %V = V(:, 2:end);
-  %D = D(2:end, 2:end);
+  [EV,ED] = eigs(L,M,dim+1,'sm');
+  EV = EV(:, 2:end);
+  ED = ED(2:end, 2:end);
 
-  % This also works, because of the sign change in the eigenvalues matlab
-  % reverses the output order so 0.0 is the last eigenvalue
-  [V,D] = eigs(-2*L,M./sum(M(:)),dim+1,'sm');
-  V = V(:, 1:end-1);
-  D = D(1:end-1, 1:end-1);
+  % This is not exactly the same, essentially it removes the mass matrix and
+  % multiplies everything by a factos of -2
+  % % This also works, because of the sign change in the eigenvalues matlab
+  % % reverses the output order so 0.0 is the last eigenvalue
+  % [EV,ED] = eigs(-2*L,M./sum(M(:)),dim+1,'sm');
+  % EV = EV(:, 1:end-1);
+  % ED = ED(1:end-1, 1:end-1);
 
   %  divide each eigenvector by corresponding eigenvalue squared
-  B = V * (inv(D) * inv(D));
+  B = EV * (inv(ED)^p);
 end

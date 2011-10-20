@@ -23,7 +23,7 @@ function [D] = biharmonic_distance(V,F,i,dim)
     dim = 4;
   end
 
-  B = biharmonic_embedding(V,F,dim);
+  B = biharmonic_embedding(V,F,dim,2);
   D = sqrt(sum((repmat(B(i,:),size(B,1),1)-B(:,:)).^2,2));
 
   tsurf(F,[V(:,1) V(:,2) D]);
