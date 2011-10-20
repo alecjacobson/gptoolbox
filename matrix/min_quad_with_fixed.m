@@ -59,6 +59,8 @@ function [Z,F] = min_quad_with_fixed(varargin)
 
     % number of rows
     n = size(A,1);
+    % cache problem size
+    F.n = n;
 
     if isempty(Aeq)
       Aeq = zeros(0,n);
@@ -156,7 +158,7 @@ function [Z,F] = min_quad_with_fixed(varargin)
 
     NB = F.preY * Y + repmat(B([F.unknown F.lagrange]),1,cols);
 
-    Z = zeros(size(NB));
+    Z = zeros(F.n,cols);
     Z(F.known,:) = Y;
 
     Z([F.unknown F.lagrange],:) = -0.5 * (F.U \ (F.L \ NB)) ;

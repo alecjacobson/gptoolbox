@@ -6,7 +6,8 @@ function [L,U,p] = lu_lagrange(ATA,C,J)
   % where A'*A, or ATA, is given as a symmetric positive definite matrix and C
   % has full column-rank(?)
   %
-  % [J] = lu_lagrange(ATA,C)
+  % [L,U] = lu_lagrange(ATA,C)
+  % [L,U] = lu_lagrange(ATA,C,J)
   %
   % Inputs:
   %   ATA   n by n square, symmetric, positive-definite system matrix, usually
@@ -58,7 +59,7 @@ function [L,U,p] = lu_lagrange(ATA,C,J)
     return;
   end
 
-  % assembly lower triangular of cholesky factorization of Q
+  % assemble LU decomposition of Q
   if(issparse(ATA))
     Z = sparse(n,m);
   else
