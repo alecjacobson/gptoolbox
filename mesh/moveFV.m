@@ -9,15 +9,15 @@ function [ SV ] = moveFV(V,F,S)
 % Output:
 % SV: scalar field defined on vertices
 
-SV = zeros(size(V,1),1);
+SV = zeros(size(V,1),size(S,2));
 COUNT = zeros(size(V,1),1);
 
 for i=1:size(F,1)
-    SV(F(i,:)') = SV(F(i,:)') + S(i);
+    SV(F(i,:)',:) = SV(F(i,:)',:) + repmat(S(i,:),size(F,2),1);
     COUNT(F(i,:)') = COUNT(F(i,:)') + 1;
 end
 
-SV = SV ./ COUNT;
+SV = SV ./ repmat(COUNT, 1, size(S,2));
 
 end
 
