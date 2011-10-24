@@ -2,8 +2,8 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method,S)
   % SMOOTH smooth a mesh using implicit/explicit laplacian smoothing
   %
   % [U] = smooth(V,F)
-  % [U] = smooth(V,F,L_method,b,lambda)
-  % [U,Uall] = smooth(V,F,L_method,b,lambda)
+  % [U] = smooth(V,F,L_method,b,lambda,method,S)
+  % [U,Uall] = smooth(V,F,L_method,b,lambda,method,S)
   % 
   % Inputs:
   %   V  #V x 3 matrix of vertex coordinates
@@ -16,6 +16,7 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method,S)
   %   method  method to use:
   %     'implicit' (default)
   %     'explicit'
+  %   S  scalar fields to smooth (default V)
   % Outputs:
   %   U  #V x 3 list of new vertex positions
   %   Uall  #V x 3 x iters list of new vertex positions for each iteration
