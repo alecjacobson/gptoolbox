@@ -21,6 +21,25 @@ function [Z,F] = min_quad_with_fixed(varargin)
   %     F  struct containing all information necessary to solve a prefactored
   %     system touching only B, Y, and optionally Beq
 
+  % Implementation details:
+  % minimize x'Ax + x'B
+  % subject to Aeq x = Beq
+  %
+  % This is the same as:
+  % find the saddle point of x'Ax + x'B + lambda' * (Aeq * x  - Beq)
+  % where lambda is a vector of lagrange multipliers, one for each of the
+  % constraints (rows in Aeq)
+  %
+  % Then we rewrite this, combining x and lambda:
+  % [x; lambda]' * [A Aeq';Aeq Z] * [x; lambda] + [x; lambda]' * [B; -2*Beq]
+  %
+  % Notice the -2 because lamba' * Aeq * x shows up twice in the quadratic part.
+  % Then I can differentiate with respect to [x; lambda] and we get:
+  % 2*[A Aeq';Aeq Z] * [x; lambda] + [B; -2*Beq]
+  
+  % Setting that to zero and moving the knowns to the right hand side we get:
+  % [A Aeq';Aeq Z] * [x; lambda] = -0.5 * [B; -2*Beq]
+  
   % Process input
   A = varargin{1};
   B = varargin{2};
