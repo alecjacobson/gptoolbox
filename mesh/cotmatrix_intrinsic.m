@@ -10,6 +10,14 @@ function L = cotmatrix_intrinsic(l,F,nvert)
   % Outputs:
   %   L  sparse nvert x nvert matrix of cot weights 
   %
+  % Example:
+  %   % Reproduce regular cotmatrix using cotmatrix_intrinsic
+  %   % edges numbered same as opposite vertices
+  %   FT = F';
+  %   l = [ ...
+  %     sqrt(sum((V(FT(:,2),:)-V(FT(:,3),:)).^2,2)) ...
+  %     sqrt(sum((V(FT(:,3),:)-V(FT(:,1),:)).^2,2)) ...
+  %
   % See also: cotmatrix
 
   % should change code below, so we don't need this transpose

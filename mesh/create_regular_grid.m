@@ -16,6 +16,14 @@ function [UV,F, res, edge_norms] = ...
 %   F : mesh connectivity (triangles)
 %   UV: UV coordinates in interval [0,1]x[0,1]
 %   res: mesh resolution
+%
+% Example:
+%  % Create and m by n cylinder
+%  m = 10; n = 20;
+%  [V,F] = create_regular_grid(m,n,1,0);
+%  V = [sin(2*pi*V(:,1)) cos(2*pi*V(:,1)) (n-1)*2*pi/(m-1)*V(:,2)];
+%  tsurf(F,V); axis equal;
+%
 
 if (nargin<3) wrapX=0; end
 if (nargin<4) wrapY=0; end
