@@ -15,6 +15,9 @@ p = p-DF.MIN;
 p = p./DF.S;
 p = round(p)+1;
 
+p(p<1) = 1;
+p(p>DF.C') = DF.C(p>DF.C');
+
 id = DF.N(p(1),p(2),p(3));
 d  = DF.D(p(1),p(2),p(3));
 
