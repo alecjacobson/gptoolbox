@@ -4,7 +4,9 @@
     % Convert region mask to region of interest (ROI) polygon
     % !!! I'm not shure that this algorithm works in every case
 
+    assert(~isempty(mask))
     maskRef = mask;
+    
     mask = zeros(size(mask, 1)+2, size(mask, 2)+2);
     mask(2:end-1,2:end-1) = maskRef;
 

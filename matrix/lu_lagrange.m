@@ -30,6 +30,8 @@ function [L,U,p] = lu_lagrange(ATA,C,J)
   n = size(ATA,1);
   % number of lagrange multipliers
   m = size(C,2);
+  % constraints should not have null columns
+  assert(~any(all(C==0)));
 
   assert(size(ATA,2) == n);
   assert(size(C,1) == n);

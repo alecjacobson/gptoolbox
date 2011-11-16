@@ -3,6 +3,12 @@ function [V EG DD] = biharmonic_embedding_yaron(coord,triang)
 %is the biharmonic distance.
 %IMPORTANT: we use eigenvector approximation, make sure to use enough (eigno param).
 
+%Alec:
+  % NOTE: This is *not* scale independent. The tolerance parameter used to
+  % determine whether enough eigen pairs have been computed depends on the scale
+  % of the mesh. For best results scale the mesh to fit in the unit sphere/cube.
+%end Alec
+
 %PARAMETER: this how many eigenvectors to use
 eigno = 40; %%
 
@@ -92,7 +98,18 @@ while devam
     DD = -diag(D); %%eigens are made positive
     ratio = DD(eigno).^2;%/(t*DD(2));
     if ratio<logtol
+%Alec:
+% means we just tried most possible, exit loop with warning
+        if eigno == size(A,1)
+          warning('Tried n-1 eigs and was not happy with tol');
+          break;
+        end
+%end Alec
         eigno = ceil(eigno*logtol/ratio);
+%Alec:
+% eigno should not be greater than or equal to problem size
+        eigno = min(size(A,1)-1,eigno);
+%end Alec
         devam = 1;
     else
         devam = 0;

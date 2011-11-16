@@ -50,6 +50,8 @@ function [B,EV,ED] = biharmonic_embedding(V,F,dim,p);
   % EV = EV(:, 1:end-1);
   % ED = ED(1:end-1, 1:end-1);
 
-  %  divide each eigenvector by corresponding eigenvalue squared
-  B = EV * (inv(ED)^p);
+  %  divide each eigenvector by corresponding eigenvalue 
+  %  divide the power by 2 first because it will appear in the denominator of
+  %  distance computation *outside* the squared difference see (4) and (11)
+  B = EV * (inv(abs(ED))^(p/2));
 end

@@ -23,6 +23,7 @@ function writeDMAT(filename,W)
   % See also: readDMAT
   %
   
+  disp(['writing: ',filename]);
   % open file
   fp = fopen(filename,'w');
   % write header

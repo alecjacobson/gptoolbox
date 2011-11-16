@@ -1,19 +1,22 @@
-function tsurf(F,V,vertex_indices,face_indices)
+function t = tsurf(F,V,vertex_indices,face_indices)
   % TSURF trisurf wrapper, easily plot triangle meshes with(out) face or vertex
   % indices
   %
   % tsurf(F,V,vertex_indices,face_indices)
   %
-  % F: list of faces #F x 3
-  % V: vertex positiosn #V x 3 or #V x 2
-  % vertex_indices: show vertex indices on plot
-  %                 0 -> off
-  %                 1 -> text and grey background
-  %                >1 -> text
-  % face_indices: show face indices on plot
-  %                 0 -> off
-  %                 1 -> text and grey background
-  %                >1 -> text
+  % Inputs:
+  %   F  list of faces #F x 3
+  %   V  vertex positiosn #V x 3 or #V x 2
+  %   vertex_indices  show vertex indices on plot
+  %                   0 -> off
+  %                   1 -> text and grey background
+  %                  >1 -> text
+  %   face_indices  show face indices on plot
+  %                   0 -> off
+  %                   1 -> text and grey background
+  %                  >1 -> text
+  % Outputs:
+  %  t  handle to trisurf object
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
   %
@@ -44,7 +47,7 @@ function tsurf(F,V,vertex_indices,face_indices)
     return;
   end
 
-  trisurf(F,V(:,1),V(:,2),V(:,3));
+  t = trisurf(F,V(:,1),V(:,2),V(:,3));
 
   % if 2d then set to view (x,y) plane
   if( dim == 2)

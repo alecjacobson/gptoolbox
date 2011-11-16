@@ -1,14 +1,21 @@
-function [D] = biharmonic_distance(V,F,i,dim)
-  % [D] = biharmonic_distance(V,F,i,dim)
+function [D] = biharmonic_distance(V,F,i,dim,p)
+  % BIHARMONIC_DISTANCE Takes a mesh (V,F) and returns a distance field D from
+  % all points in V to the ith vertex, according to the biharmonic embedding
   %
-  % Takes a mesh (V,F) and returns a distance field D from all points in V to
-  % the ith vertex, according to the biharmonic embedding
+  % [D] = biharmonic_distance(V,F,i,dim)
+  % [D] = biharmonic_distance(V,F,i,dim,p)
   %
   % Input:
   %   V  vertex list
   %   F  face list
   %   i  index of vertex from which to calculate distances
   %   dim  requested dimension of the embedding
+  %   Optional:
+  %     p  exponent above eigen values
+  %       0.5  "semi-harmonic" embedding
+  %       1  commute time embedding, "harmonic"
+  %       2  biharmonic {default}
+  %       3  "triharmonic" embedding
   % Output:
   %   D  biharmonic distance field 
   % 
@@ -23,9 +30,15 @@ function [D] = biharmonic_distance(V,F,i,dim)
     dim = 4;
   end
 
-  B = biharmonic_embedding(V,F,dim,2);
+  % if power is not specfied use 2
+  if(~exist('p','var'))
+    p = 2;
+  end
+
+  B = biharmonic_embedding(V,F,dim,p);
+  %B = biharmonic_embedding_yaron(V,F);
   D = sqrt(sum((repmat(B(i,:),size(B,1),1)-B(:,:)).^2,2));
 
-  tsurf(F,[V(:,1) V(:,2) D]);
+  %tsurf(F,[V(:,1) V(:,2) D]);
   
 end
