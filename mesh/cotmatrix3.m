@@ -17,7 +17,7 @@ function K = cotmatrix3(V,T)
   % See also cotmatrix
   %
 
-  if(size(T,1) == 4)
+  if(size(T,1) == 4 && size(T,2) ~=4)
     warning('T seems to be 4 by #T, it should be #T by 4');
   end
   T = T';

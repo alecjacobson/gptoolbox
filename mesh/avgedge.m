@@ -5,7 +5,7 @@ function [ b ] = avgedge(V,F)
   %
   % Inputs:
   %  V  #V x 3 matrix of vertex coordinates
-  %  F  #F x 3  matrix of indices of triangle corners
+  %  F  #F x #simplex size  list of simplex indices
   % Outputs:
   %  b average edge length
   %
@@ -15,15 +15,9 @@ function [ b ] = avgedge(V,F)
   %
 
   
-  i1 = F(:,1);
-  i2 = F(:,2);
-  i3 = F(:,3);
-  
-  B = (                                ...
-          normrow(V(i1,:) - V(i2,:)) + ...
-          normrow(V(i2,:) - V(i3,:)) + ...
-          normrow(V(i1,:) - V(i3,:))   ...
-      ) / 3.0;
+  % works on anything edges.m can handle
+  E = edges(F);
+  B = normrow(V(E(:,1),:)-V(E(:,2),:));
   
   b = mean(B);
 
