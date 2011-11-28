@@ -93,9 +93,6 @@ function K = cotmatrix3(V,T)
   j = j(:);
   Kimperfect = sparse(i,j,K,size(V,1),size(V,1));
 
-  % perhaps K should be multiplied by 2 to match finite difference stencil and
-  % the output of cotmatrix (2D)
-
   % K should be square symmetric, up to double precision
   assert(normest(Kimperfect-Kimperfect') < 1e-14);
   % force K to be perfectly symmetric, add upper triangle to transpose of
@@ -104,5 +101,14 @@ function K = cotmatrix3(V,T)
   assert(normest(Kimperfect-K)<1e-14);
   % K should be square (perfectly) symmetric
   assert(isequal(K,K'));
+
+  % perhaps K should be multiplied by 2 to match finite difference stencil and
+  % the output of cotmatrix (2D)
+
+  % flip sign to match cotmatix.m
+  if(all(diag(K)>0))
+    warning('Flipping sign of cotmatrix3, so that diag is negative');
+    K = -K;
+  end
 
 end

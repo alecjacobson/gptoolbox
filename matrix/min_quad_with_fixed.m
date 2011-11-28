@@ -122,6 +122,8 @@ function [Z,F] = min_quad_with_fixed(varargin)
       [F.L,p] = chol(Auu,'lower');
       F.Auu_pd = p==0;
     end
+    F.Auu_sym
+    F.Auu_pd
 
     % keep track of whether original A was sparse
     A_sparse = issparse(A);

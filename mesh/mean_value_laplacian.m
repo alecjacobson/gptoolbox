@@ -1,16 +1,16 @@
 function L = mean_value_laplacian(V,F)
-  % MEAN_VALUE_LAPLACIAN
+  % MEAN_VALUE_LAPLACIAN Discrete laplacian using mean value weights. Notice
+  % that this laplacian will not be symmetric or positive semi-definite.
   %
   % L = mean_value_laplacian(V,F)
   %
   % Inputs:
   %  V: #V x dim matrix of vertex coordinates
   %  F: #F by 3, list of indices of triangle corners
-  %  nvert: number of vertices, only needed to set size
   % Outputs:
   %   L  sparse nvert x nvert matrix of mean value weights
   %
-  % See also: cotmatrix
+  % See also: cotmatrix, wachspress_laplacian
 
   % number of vertices
   n = size(V,1);
@@ -69,11 +69,18 @@ function L = mean_value_laplacian(V,F)
     ];
   % divide by edge lengths
   Lv = [ ...
-    halftan23./(l3.^2);halftan23./(l2.^2);...
-    halftan31./(l1.^2);halftan31./(l3.^2);...
-    halftan12./(l2.^2);halftan12./(l1.^2);...
+    halftan23./(l3);halftan23./(l2);...
+    halftan31./(l1);halftan31./(l3);...
+    halftan12./(l2);halftan12./(l1);...
     ];
+  %Lv = [ ...
+  %  halftan23;halftan23;...
+  %  halftan31;halftan31;...
+  %  halftan12;halftan12;...
+  %  ];
   L = sparse(Li,Lj,Lv,n,n);
+  %% normalize weights
+  %L = bsxfun(@rdivide,L,sum(L,2));
   % set diagonal entries
   L = L - diag(sum(L,2));
 end
