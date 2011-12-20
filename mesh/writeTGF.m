@@ -20,7 +20,6 @@ function writeTGF(filename,V,E)
   fp = fopen(filename,'w');
   % print vertices
   fprintf(fp,'%d %g %g %g\n',[1:size(V,1); V']);
-  fprintf('%d %g %g %g\n',[1:size(V,1); V']);
   % print separator
   fprintf(fp,'#\n');
   % print edges, .tgf is 1-indexed
