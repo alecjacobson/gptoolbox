@@ -1,4 +1,4 @@
-function [D,G] = exactgeodesic(V,F,id)
+function [D,G] = exactgeodesic(V,F,id,w)
   % exactgeodesic - Exact Geodesic on Triangular Meshes 
   % (depends on igl_external/exactgeodesic)
   %
@@ -15,6 +15,18 @@ function [D,G] = exactgeodesic(V,F,id)
 
 global geodesic_library;                
 
+if (~exist('w','var') || isempty(w))
+    assert(all(size(id) ==1));
+    type = 'vertex';
+    point = V(id,:);
+    index = id;
+else
+    assert(size(id,2) == size(V,2) && size(id,1) == 1);
+    assert(size(w,2) == size(V,2) && size(w,1) == 1);
+    type == 'face';
+    index = find(all(F == repmat(id,size(F,1)),2));
+    point = w*V(F(index,:),:);
+end
 % "release" is faster and "debug" does additional checks
 geodesic_library = 'geodesic_release';      
 
@@ -23,7 +35,8 @@ mesh = geodesic_new_mesh(V,F);
 
 % initialize new geodesic algorithm
 algorithm = geodesic_new_algorithm(mesh, 'exact');
-source_points = {geodesic_create_surface_point('vertex',id,V(id,:))};
+
+source_points = {geodesic_create_surface_point(type,index,point)};
 
 % propagation stage of the algorithm (the most time-consuming)
 geodesic_propagate(algorithm, source_points);   
@@ -48,7 +61,9 @@ if nargout > 1
     G = repmat(D,1,3) .* G;
     
     % get rid of the nans on id
-    G(id, :) = 0;
+    if(strcmp(type,'vertex'))
+        G(id, :) = 0;
+    end
 end
 
 % delete all meshes and algorithms
