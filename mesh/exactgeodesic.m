@@ -21,10 +21,10 @@ if (~exist('w','var') || isempty(w))
     point = V(id,:);
     index = id;
 else
-    assert(size(id,2) == size(V,2) && size(id,1) == 1);
+    assert(all(size(id) ==1));
     assert(size(w,2) == size(V,2) && size(w,1) == 1);
-    type == 'face';
-    index = find(all(F == repmat(id,size(F,1)),2));
+    type = 'face';
+    index = id;
     point = w*V(F(index,:),:);
 end
 % "release" is faster and "debug" does additional checks
