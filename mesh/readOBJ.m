@@ -1,4 +1,4 @@
-function [V,F,UV] = readOBJ( filename )
+function [V,F,UV,TF] = readOBJ( filename )
   % READOBJ reads an OBJ file with vertex/face information
   %
   % [V,F,UV] = readOBJ( filename )
@@ -22,6 +22,7 @@ function [V,F,UV] = readOBJ( filename )
 V = [];
 UV = [];
 F = [];
+TF = [];
 fp = fopen( filename, 'r' );
 type = fscanf( fp, '%s', 1 );
 while strcmp( type, '' ) == 0
@@ -34,18 +35,21 @@ while strcmp( type, '' ) == 0
     elseif strcmp( type, 'f' ) == 1
         line = fgets(fp);
         [t, count] = sscanf(line, '%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d');
-
+        tf = zeros(0,3);
         if (count>2)
+            tf = t(2:3:end);
             t = t(1:3:end);
         else
             [t, count] = sscanf(line, '%d/%d %d/%d %d/%d %d/%d %d/%d');
             if (count>2)
+                tf = t(2:2:end);
                 t = t(1:2:end);
             else
                 [t, count] = sscanf( line, '%d %d %d %d %d %d %d %d %d %d %d\n' );
             end
         end
         F = [F; t'];
+        TF = [TF; tf'];
     elseif strcmp( type, '#' ) == 1
         fscanf( fp, '%s\n', 1 );
     end
