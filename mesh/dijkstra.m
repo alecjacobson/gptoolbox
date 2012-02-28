@@ -1,4 +1,4 @@
-function D = dijkstra( G , S )
+function [D,P] = dijkstra( G , S )
 % --------------------------------------------------------------------
 %      Mark Steyvers, Stanford University, 12/19/00
 % --------------------------------------------------------------------
@@ -28,5 +28,4 @@ function D = dijkstra( G , S )
 %	code is several orders of magnitude slower than the C based mex file.
 
 N = size( G , 1 );
-D = dijk( G , S , 1:N );
-
+[D,P] = dijk( G , S , 1:N );

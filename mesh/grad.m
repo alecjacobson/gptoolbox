@@ -1,4 +1,4 @@
-function G = grad(V,F,X)
+function [G,G1] = grad(V,F,X)
   % GRAD
   % G = grad(V,F,X)
   %
@@ -11,6 +11,11 @@ function G = grad(V,F,X)
   % Outputs:
   %   G  #faces by 3 list of gradient values
   %
+
+  % append with 0s for convenience
+  if size(V,2) == 2
+    V = [V zeros(size(V,1),1)];
+  end
 
   % Gradient of a scalar function defined on piecewise linear elements (mesh)
   % is constant on each triangle i,j,k:
@@ -45,4 +50,11 @@ function G = grad(V,F,X)
       repmat(X(F(:,3)) - X(F(:,1)),1,3).*eperp21   ...
     )                                              ...
     ./repmat(dblA,1,3);
+
+  % Should be the same as:
+  % G = ... 
+  %   bsxfun(@times,X(F(:,1)),cross(u,v32)) + ...
+  %   bsxfun(@times,X(F(:,2)),cross(u,v13)) + ...
+  %   bsxfun(@times,X(F(:,3)),cross(u,v21));
+  % G = bsxfun(@rdivide,G,dblA);
 end

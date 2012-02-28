@@ -47,7 +47,7 @@ function t = tsurf(F,V,vertex_indices,face_indices)
     return;
   end
 
-  t = trisurf(F,V(:,1),V(:,2),V(:,3));
+  t_copy = trisurf(F,V(:,1),V(:,2),V(:,3));
 
   % if 2d then set to view (x,y) plane
   if( dim == 2)
@@ -70,5 +70,11 @@ function t = tsurf(F,V,vertex_indices,face_indices)
   % uncomment these to switch to a better 3d surface viewing mode
   %axis equal; axis vis3d;
   axis(reshape([min(V(:,1:dim));max(V(:,1:dim))],1,dim*2));
+
+  % Only output if called with output variable, prevents ans = ... output on
+  % terminal
+  if nargout>=1
+    t = t_copy;
+  end
 
 end

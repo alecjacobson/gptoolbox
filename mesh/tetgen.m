@@ -36,13 +36,13 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
 
   path_to_tetgen = '/usr/local/bin/tetgen';
   % graded: -q100, very-fine:-q1
-  flags = '-Cp -q100';
+  flags = '-Cp -q100 ';
   if(internal_constraints)
     flags = [flags ' -i'];
   end
-  if(~exist('allow_resampling') || ~allow_resampling)
-    flags = [flags ' -Y' '-V'];
-  end
+  %if(~exist('allow_resampling') || ~allow_resampling)
+  %  flags = [flags ' -Y' '-V'];
+  %end
   % call tetgen
   command = [path_to_tetgen ' ' flags ' ' off_filename];
   fprintf(command);
@@ -59,6 +59,8 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   node_filename = [prefix '.1.node'];
 
   F = readFACE(face_filename);
+  % reverse faces because tetgen uses backwards order
+  F = fliplr(F);
   T = readELE(ele_filename);
   V = readNODE(node_filename);
 

@@ -47,5 +47,12 @@ function h = explode_tetramesh(T,V)
     VV(:,:,ii) = Vii;
   end
   h = animated_tetramesh(T,VV);
+  axis equal;
+  A = reshape(axis,2,[]);
+  % grow by factor about center
+  dA = [A(1,:)-A(2,:);A(2,:)-A(1,:)];
+  axis(reshape(A+dA,1,prod(size(A))));
+  % don't resize mesh
+  axis manual;
   
 end

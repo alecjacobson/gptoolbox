@@ -37,6 +37,9 @@ function [V,F] = png2mesh( ...
     filename,...
     laplacian_smoothness_iterations, ...
     max_points_on_boundary);
+  if ~isempty(H)
+    warning('Holes non-empty, but I know the holes are coming out broken');
+  end
   % get average squared edge length as a guess at the maximum area constraint
   % for the triangulation
   avg_sqr_edge_length = mean(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2));

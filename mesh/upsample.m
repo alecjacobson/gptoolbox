@@ -1,4 +1,4 @@
-function [VV,FF] = upsample(V,F)
+function [VV,FF,i] = upsample(V,F)
   % UPSAMPLE Upsample a mesh by adding vertices on existing edges/faces
   %
   % [VV,FF] = upsample(V,F)
@@ -9,6 +9,7 @@ function [VV,FF] = upsample(V,F)
   % Outpus:
   %  VV new vertex positions
   %  FF new list of face indices
+  %  i  maps new vertices to faces they came from, 12;23;31
   %
   % This is Loop subdivision without moving the points
   %
@@ -33,7 +34,6 @@ function [VV,FF] = upsample(V,F)
     (V(F(:,1),:) + V(F(:,2),:))/2; ...
     (V(F(:,2),:) + V(F(:,3),:))/2; ...
     (V(F(:,3),:) + V(F(:,1),:))/2];
-
   % indices of midpoints
   i3 = size(V,1) + (1:(size(m,1)/3))';
   i1 = (size(V,1)+(size(m,1)/3)) + (1:(size(m,1)/3))';

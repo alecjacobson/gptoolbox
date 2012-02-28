@@ -22,6 +22,7 @@ function [V,E,H,h] = poly2VEH(poly)
   V = []; 
   E = [];
   H = [];
+  H
   components = size(poly,2);
   % loop over components collecting vertices, edges, and holes
   for component_index = 1:components
