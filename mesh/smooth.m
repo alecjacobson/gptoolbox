@@ -1,4 +1,4 @@
-function [U,Uall] = smooth(V,F,L_method,b,lambda,method,S)
+function [U,Uall] = smooth(V,F,L_method,b,lambda,method,S,max_iter)
   % SMOOTH smooth a mesh using implicit/explicit laplacian smoothing
   %
   % [U] = smooth(V,F)

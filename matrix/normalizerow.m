@@ -1,4 +1,4 @@
-function [ A ] = normalizerow( A )
+function [ A ] = normalizerow( A ) %#codegen
   % NORMALIZEROW 
   %
   % Normalize each row

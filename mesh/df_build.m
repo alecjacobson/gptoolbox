@@ -19,6 +19,7 @@ MIN = min(V,[],1);
 MAX = max(V,[],1);
 
 S = (MAX-MIN)./C';
+S(S==0) = 0.0000001;
 
 D = zeros(C'+1);
 N = zeros(C'+1);
