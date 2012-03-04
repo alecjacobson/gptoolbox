@@ -13,24 +13,34 @@ function B = repdiag(A,d)
   %   B  m*d by n*d matrix with A repeated d times along the diagonal,
   %     will be dense or sparse to match A
   %
-  m = size(A,1);
-  n = size(A,2);
-  if(issparse(A))
-    [I,J,V] = find(A);
-    BI = I;
-    BJ = J;
-    BV = V;
-    for k = 2:d
-      BI = [BI (k-1)*m+I];
-      BJ = [BJ (k-1)*n+J];
-      BV = [BV V];
-    end
-    B = sparse(BI,BJ,BV,m*d,n*d);
-  else
-    B = zeros(m*d,n*d);
-    for k = 0:(d-1)
-      B( (k*m+1):(k*m+1+m-1), (k*n+1):(k*n+1+n-1)) = A;
-    end
-  end
+
+  %m = size(A,1);
+  %n = size(A,2);
+  %if(issparse(A))
+  %  [I,J,V] = find(A);
+  %  BI = I;
+  %  BJ = J;
+  %  BV = V;
+  %  for k = 2:d
+  %    BI = [BI (k-1)*m+I];
+  %    BJ = [BJ (k-1)*n+J];
+  %    BV = [BV V];
+  %  end
+  %  B = sparse(BI,BJ,BV,m*d,n*d);
+  %else
+  %  B = zeros(m*d,n*d);
+  %  for k = 0:(d-1)
+  %    B( (k*m+1):(k*m+1+m-1), (k*n+1):(k*n+1+n-1)) = A;
+  %  end
+  %end
+
+  % http://www.physicsforums.com/showthread.php?t=77645
+  % Also slow:
+  % B = kron(speye(d),A);
+  % 10x faster than for loop IJV
+  C = cell(d,1);
+  [C{:}] = deal(A);
+  B = blkdiag(C{:});
+
 
 end

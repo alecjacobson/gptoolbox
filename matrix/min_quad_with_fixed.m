@@ -1,4 +1,4 @@
-function [Z,F] = min_quad_with_fixed(varargin)
+function [Z,F,Lambda] = min_quad_with_fixed(varargin)
   % MIN_QUAD_WITH_FIXED Minimize quadratic energy Z'*A*Z + Z'*B + C with
   % constraints that Z(known) = Y, optionally also subject to the constraints
   % Aeq*Z = Beq
@@ -9,17 +9,19 @@ function [Z,F] = min_quad_with_fixed(varargin)
   %
   % Inputs:
   %   A  n by n matrix of quadratic coefficients
-  %   B  n by 1 column of linear coefficients
+  %   B  n by 1 column of linear coefficients, if empty then assumed B = 0
   %   known  #known list of indices to known rows in Z
   %   Y  #known by cols list of fixed values corresponding to known rows in Z
   %   Optional:
   %     Aeq  m by n list of linear equality constraint coefficients
-  %     Beq  m by 1 list of linear equality constraint constant values
+  %     Beq  m by 1 list of linear equality constraint constant values, if
+  %       empty then assumed Beq = 0
   % Outputs:
   %   Z  n by cols solution
   %   Optional:
   %     F  struct containing all information necessary to solve a prefactored
   %     system touching only B, Y, and optionally Beq
+  %     Lambda  m list of values of lagrange multipliers
 
   % Implementation details:
   % minimize x'Ax + x'B
@@ -43,6 +45,10 @@ function [Z,F] = min_quad_with_fixed(varargin)
   % Process input
   A = varargin{1};
   B = varargin{2};
+  % treat empty B as column of zeros to match A
+  if isempty(B)
+    B = zeros(size(A,1),1);
+  end
   known = varargin{3};
   Y = varargin{4};
   Aeq = [];
@@ -50,6 +56,10 @@ function [Z,F] = min_quad_with_fixed(varargin)
   if nargin >= 6
     Aeq = varargin{5};
     Beq = varargin{6};
+  end
+  % treat empty Beq as column of zeros to match Aeq
+  if isempty(Beq)
+    Beq = zeros(size(Aeq,1),1);
   end
   F = [];
   if nargin >= 7
@@ -59,7 +69,7 @@ function [Z,F] = min_quad_with_fixed(varargin)
   if isempty(F)
     F = precompute(A,known,Aeq);
   end
-  Z = solve(F,B,Y,Beq);
+  [Z,Lambda] = solve(F,B,Y,Beq);
 
   function F = precompute(A,known,Aeq)
     % PRECOMPUTE perform any necessary precomputation of system including
@@ -85,12 +95,18 @@ function [Z,F] = min_quad_with_fixed(varargin)
       Aeq = zeros(0,n);
     end
 
-    assert(size(A,1) == n);
-    assert(size(A,2) == n);
-    assert(prod(size(known)) == numel(known));
-    assert(  isempty(known) || min(known) >= 1);
-    assert(  isempty(known) || max(known) <= n);
-    assert(n == size(Aeq,2));
+    assert(size(A,1) == n, ...
+      'Rows of system matrix (%d) != problem size (%d)',size(A,1),n);
+    assert(size(A,2) == n, ...
+      'Columns of system matrix (%d) != problem size (%d)',size(A,2),n);
+    assert(isempty(known) || min(size(known))==1, ...
+      'known indices (size: %d %d) not a 1D list',size(known));
+    assert(isempty(known) || min(known) >= 1, ...
+      'known indices (%d) < 1',min(known));
+    assert(isempty(known) || max(known) <= n, ...
+      'known indices (%d) > problem size (%d)',max(known),n);
+    assert(n == size(Aeq,2), ...
+      'Columns of linear constraints (%d) != problem size (%d)',size(Aeq,2),n);
 
     % cache known
     F.known = known;
@@ -136,14 +152,22 @@ function [Z,F] = min_quad_with_fixed(varargin)
     end
     % number of linear equality constraints
     neq = size(Aeq,1);
-    assert(neq <= n);
+    assert(neq <= n,'Number of constraints (%d) > problem size (%d)',neq,n);
     % get list of lagrange multiplier indices
     F.lagrange = n+(1:neq);
 
-    Z = zeros(neq,neq);
-    % append lagrange multiplier quadratic terms
-    A = [A Aeq';Aeq Z];
-    assert(A_sparse == issparse(A));
+    if neq > 0
+      if issparse(A) && ~issparse(Aeq)
+        warning('System is sparse but constraints are not, solve will be dense');
+      end
+      if issparse(Aeq) && ~issparse(A)
+        warning('Constraints are sparse but system is not, solve will be dense');
+      end
+      Z = zeros(neq,neq);
+      % append lagrange multiplier quadratic terms
+      A = [A Aeq';Aeq Z];
+      %assert(~issparse(Aeq) || A_sparse == issparse(A));
+    end
     % precompute RHS builders
     F.preY = A([F.unknown F.lagrange],known) + ...
       A(known,[F.unknown F.lagrange])';
@@ -157,8 +181,12 @@ function [Z,F] = min_quad_with_fixed(varargin)
         % check that Auu is not ill-conditioned, if it is then don't us
         % lu_lagrange trick, rather use straight LU decomposition
         if log10(condest(Auu)) < 16
+          % p will only be 0 if this works
           [F.L,F.U,p] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L);
         else
+          p = -1;
+        end
+        if p ~= 0
           NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
           [F.L,F.U] = lu(NA);
         end
@@ -170,7 +198,7 @@ function [Z,F] = min_quad_with_fixed(varargin)
     end
   end
 
-  function Z = solve(F,B,Y,Beq)
+  function [Z,Lambda] = solve(F,B,Y,Beq)
     % SOLVE  perform solve using precomputation and parameters for building
     % right-hand side that are allowed to change without changing precomputation
     %
@@ -185,16 +213,18 @@ function [Z,F] = min_quad_with_fixed(varargin)
     %     Beq  m by 1 list of linear equality constraint constant values
     % Outputs:
     %   Z  n by cols solution
+    %   Lambda  m by cols list of lagrange multiplier *values*
     %
 
     % number of known rows
     kr = numel(F.known);
     if kr == 0
-      assert(isempty(Y));
+      assert(isempty(Y),'Known values should not be empty');
       % force Y to have 1 column even if empty
       Y = zeros(0,1);
     end
-    assert(kr == size(Y,1));
+    assert(kr == size(Y,1), ...
+      'Number of knowns (%d) != rows in known values (%d)',kr, size(Y,1));
     cols = size(Y,2);
 
     if any(F.blank_eq)
@@ -205,21 +235,32 @@ function [Z,F] = min_quad_with_fixed(varargin)
     neq = numel(F.lagrange);
 
     if neq == 0
-      assert(isempty(Beq));
+      assert(isempty(Beq),'Constraint right-hand sides should not be empty');
       Beq = zeros(0,1);
+    end
+
+    if cols ~= size(B,2)
+      B = repmat(B,1,cols);
+    end
+    if cols ~= size(Beq,2)
+      Beq = repmat(Beq,1,cols);
     end
 
     % append lagrange multiplier rhs's
     B = [B; -2*Beq];
 
-    NB = F.preY * Y + repmat(B([F.unknown F.lagrange]),1,cols);
+    assert(size(Y,2) == size(B,2));
+    NB = F.preY * Y + B([F.unknown F.lagrange],:);
 
     Z = zeros(F.n,cols);
     Z(F.known,:) = Y;
 
     Z([F.unknown F.lagrange],:) = -0.5 * (F.U \ (F.L \ NB)) ;
 
+    Lambda = [];
     if neq ~= 0
+      % save lagrange multipliers
+      Lambda = Z(F.lagrange,:);
       % throw away lagrange multipliers
       Z = Z(1:(end-neq),:);
     end
