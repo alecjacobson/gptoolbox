@@ -110,9 +110,10 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
 
     % cache known
     F.known = known;
-    indices = 1:n;
     % get list of unknown variables including lagrange multipliers
-    F.unknown = indices(~ismember(indices,known));
+    %indices = 1:n;
+    %F.unknown = indices(~ismember(indices,known));
+    F.unknown = find(~sparse(1,known,true,1,n));
 
     Auu = A(F.unknown,F.unknown);
 
@@ -135,7 +136,8 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
     % is as a side effect)
     F.Auu_pd = false;
     if F.Auu_sym
-      [F.L,p] = chol(Auu,'lower');
+      % F.S'*Auu*F.S = F.L*F.L'
+      [F.L,p,F.S] = chol(Auu,'lower');
       F.Auu_pd = p==0;
     end
 
@@ -163,7 +165,7 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
       if issparse(Aeq) && ~issparse(A)
         warning('Constraints are sparse but system is not, solve will be dense');
       end
-      Z = zeros(neq,neq);
+      Z = sparse(neq,neq);
       % append lagrange multiplier quadratic terms
       A = [A Aeq';Aeq Z];
       %assert(~issparse(Aeq) || A_sparse == issparse(A));
@@ -177,24 +179,35 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
       if neq == 0
         % we already have F.L
         F.U = F.L';
+        F.P = F.S';
+        F.Q = F.S;
       else
         % check that Auu is not ill-conditioned, if it is then don't us
         % lu_lagrange trick, rather use straight LU decomposition
         if log10(condest(Auu)) < 16
-          % p will only be 0 if this works
-          [F.L,F.U,p] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L);
+          %% p will only be 0 if this works
+          %[F.L,F.U,p] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L);
+          %F.Q = 1;
+          %F.P = F.Q';
+          % 4 times faster
+          [F.L,F.U,p,F.Q] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L,F.S);
+          F.P = F.Q';
         else
           p = -1;
         end
         if p ~= 0
           NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
-          [F.L,F.U] = lu(NA);
+          [F.L,F.U,F.P,F.Q] = lu(NA);
         end
       end
     else
       NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
       % LU factorization of NA
-      [F.L,F.U] = lu(NA);
+      %[F.L,F.U] = lu(NA);
+      %F.P = 1;
+      %F.Q = 1;
+      % 10 times faster
+      [F.L,F.U,F.P,F.Q] = lu(NA);
     end
   end
 
@@ -239,23 +252,22 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
       Beq = zeros(0,1);
     end
 
-    if cols ~= size(B,2)
-      B = repmat(B,1,cols);
-    end
-    if cols ~= size(Beq,2)
-      Beq = repmat(Beq,1,cols);
-    end
-
-    % append lagrange multiplier rhs's
-    B = [B; -2*Beq];
-
-    assert(size(Y,2) == size(B,2));
-    NB = F.preY * Y + B([F.unknown F.lagrange],:);
+    %if cols ~= size(B,2)
+    %  B = repmat(B,1,cols);
+    %end
+    %if cols ~= size(Beq,2)
+    %  Beq = repmat(Beq,1,cols);
+    %end
+    %% append lagrange multiplier rhs's
+    %B = [B; -2*Beq];
+    %assert(size(Y,2) == size(B,2));
+    %NB = F.preY * Y + B([F.unknown F.lagrange],:);
+    NB = bsxfun(@plus, F.preY * Y, [B(F.unknown,:); -2*Beq(F.lagrange-F.n,:)]);
 
     Z = zeros(F.n,cols);
     Z(F.known,:) = Y;
 
-    Z([F.unknown F.lagrange],:) = -0.5 * (F.U \ (F.L \ NB)) ;
+    Z([F.unknown F.lagrange],:) = -0.5 * F.Q * (F.U \ (F.L \ ( F.P * NB)));
 
     Lambda = [];
     if neq ~= 0
