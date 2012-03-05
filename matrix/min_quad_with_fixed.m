@@ -1,7 +1,9 @@
-function [Z,F,Lambda] = min_quad_with_fixed(varargin)
+function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
   % MIN_QUAD_WITH_FIXED Minimize quadratic energy Z'*A*Z + Z'*B + C with
   % constraints that Z(known) = Y, optionally also subject to the constraints
   % Aeq*Z = Beq
+  % http://www.alecjacobson.com/weblog/?p=1913
+  % http://www.alecjacobson.com/weblog/?p=2491
   %
   % [Z,F] = min_quad_with_fixed(A,B,known,Y)
   % [Z,F] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq)
@@ -21,7 +23,10 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
   %   Optional:
   %     F  struct containing all information necessary to solve a prefactored
   %     system touching only B, Y, and optionally Beq
-  %     Lambda  m list of values of lagrange multipliers
+  %     Lambda  m list of values of lagrange multipliers corresponding to each
+  %       row in Aeq
+  %     Lambda_known  m list of values of lagrange multipliers corresponding to each
+  %       known value
 
   % Implementation details:
   % minimize x'Ax + x'B
@@ -69,7 +74,7 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
   if isempty(F)
     F = precompute(A,known,Aeq);
   end
-  [Z,Lambda] = solve(F,B,Y,Beq);
+  [Z,Lambda,Lambda_known] = solve(F,B,Y,Beq);
 
   function F = precompute(A,known,Aeq)
     % PRECOMPUTE perform any necessary precomputation of system including
@@ -116,6 +121,8 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
     F.unknown = find(~sparse(1,known,true,1,n));
 
     Auu = A(F.unknown,F.unknown);
+    % note that columns are in *original* order
+    F.Ak = A(F.known,:);
 
     % determine if A(unknown,unknown) is symmetric and/or postive definite
     %F.Auu_sym = ~any(any(Auu - Auu'));
@@ -211,7 +218,7 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
     end
   end
 
-  function [Z,Lambda] = solve(F,B,Y,Beq)
+  function [Z,Lambda,Lambda_known] = solve(F,B,Y,Beq)
     % SOLVE  perform solve using precomputation and parameters for building
     % right-hand side that are allowed to change without changing precomputation
     %
@@ -227,6 +234,8 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
     % Outputs:
     %   Z  n by cols solution
     %   Lambda  m by cols list of lagrange multiplier *values*
+    %   Lambda_known  #known by cols list of lagrange multiplier *values* for
+    %     known variables
     %
 
     % number of known rows
@@ -262,7 +271,13 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
     %B = [B; -2*Beq];
     %assert(size(Y,2) == size(B,2));
     %NB = F.preY * Y + B([F.unknown F.lagrange],:);
-    NB = bsxfun(@plus, F.preY * Y, [B(F.unknown,:); -2*Beq(F.lagrange-F.n,:)]);
+    %NBold = bsxfun(@plus, F.preY * Y, [B(F.unknown,:); -2*Beq(F.lagrange-F.n,:)]);
+    NB = ...
+      bsxfun(@plus, ...
+        bsxfun(@plus,  ...
+          F.preY * Y,  ...
+          [B(F.unknown,:); zeros(numel(F.lagrange),size(B,2))]), ...
+        [zeros(numel(F.unknown),size(Beq,2)); -2*Beq(F.lagrange-F.n,:)]);
 
     Z = zeros(F.n,cols);
     Z(F.known,:) = Y;
@@ -276,6 +291,8 @@ function [Z,F,Lambda] = min_quad_with_fixed(varargin)
       % throw away lagrange multipliers
       Z = Z(1:(end-neq),:);
     end
+
+    Lambda_known = -bsxfun(@plus,F.Ak * Z,0.5*B(F.known,:));
     
   end
 end
