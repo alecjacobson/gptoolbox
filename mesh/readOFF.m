@@ -62,8 +62,9 @@ function [V,F,UV,C,N] = readOFF( filename )
   
   if (nF ~= 0)
     disp(sprintf('  - Reading %d faces', nF));
-    F = cell2mat( textscan( fp, '%d %d %d %d %d %d', nF ) );
-    F =  double(F(:, 2:(F(1,1)+1) ) + 1 );
+    temp = textscan( fp, '%d %d %d %d %d %d', nF );
+    size = temp{1}(1);
+    F = double (cell2mat( temp(2:size+1 ))) +1;
   else
     F = [];
   end
