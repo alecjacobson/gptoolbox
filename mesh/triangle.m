@@ -13,6 +13,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   %   E  #E by 2 list of constraint edge indices
   %   H  #H by 2 hole points
   %   options
+  %     'Quiet' Don't display command/output {false}
   %     'Quality'  Quality mesh generation with no angles smaller than 20
   %       degrees. An alternate minimum angle may be specified after the `q'.
   %     'MaxArea'  Imposes a maximum triangle area constraint. A fixed area 
@@ -52,6 +53,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   no_boundary_steiners = false;
   no_edge_steiners = false;
   max_steiners = -1;
+  quiet = false;
   % possible actions are:
   %   'TriangulatePoly'
   %   'RefineMesh'
@@ -93,7 +95,10 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
 
   % parse options
   while(ii <= nargin)
-    if( strcmp(varargin{ii},'Quality') == 1)
+    switch varargin{ii}
+    case 'Quiet'
+      quiet = true;
+    case 'Quality'
       if( (ii+1)<=nargin && ~ischar(varargin{ii+1}))
         ii = ii + 1;
         assert(ii <= nargin);
@@ -101,19 +106,19 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
       else
         quality = 20;
       end
-    elseif( strcmp(varargin{ii},'MaxArea') == 1)
+    case 'MaxArea'
       ii = ii + 1;
       assert(ii <= nargin);
       max_area = varargin{ii};
-    elseif( strcmp(varargin{ii},'NoBoundarySteiners') == 1)
+    case 'NoBoundarySteiners'
       no_boundary_steiners = true;
-    elseif( strcmp(varargin{ii},'NoEdgeSteiners') == 1)
+    case 'NoEdgeSteiners'
       no_edge_steiners = true;
-    elseif( strcmp(varargin{ii},'MaxSteiners') == 1)
+    case 'MaxSteiners'
       ii = ii + 1;
       assert(ii <= nargin);
       max_steiners = varargin{ii};
-    elseif( strcmp(varargin{ii},'ConstrainRefine') == 1)
+    case 'ConstrainRefine'
       if(refine_mesh)
         triangulate_poly = true;
         % Don't think holes are supported here, if they are then
@@ -129,7 +134,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
       else
         warning('Ignoring ''ConstrainRefine'' option');
       end
-    else
+    otherwise
       error([varargin{ii} ' is not a valid option']);
     end
     ii = ii + 1;
@@ -139,7 +144,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   % warnings
   if(quality > 34)
     warning( ...
-      ['Quality: ' num2str(quality) ' > 34, triangle might not terminate']);
+      ['Quality: ' num2str(quality,'%0.15f') ' > 34, triangle might not terminate']);
   end
 
   % command line version
@@ -170,7 +175,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   end
 
   if(quality >= 0)
-    params = [params 'q' num2str(quality)];
+    params = [params 'q' num2str(quality,'%0.15f')];
   end
   if(max(size(max_area)) > 1)
     params = [params 'a'];
@@ -178,7 +183,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   if(max(size(max_area)) > 1)
     error('Area constraints specified per triangle not yet supported...');
   elseif(max_area >= 0)
-    params = [params 'a' num2str(max_area)];
+    params = [params 'a' num2str(max_area,'%0.15f')];
   end
   if(max_steiners >= 0)
     params = [params 'S' num2str(max_steiners)];
@@ -198,7 +203,9 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
 
   path_to_triangle = '/opt/local/bin/triangle';
   command = [path_to_triangle ' ' params ' ' prefix];
-  command
+  if ~quiet
+    fprintf('%s\n',command);
+  end
   [status, result] = system( command );
   if(status ~= 0)
      error(result);
@@ -210,6 +217,10 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   % Triangle likes to use 1-indexed though .ele reader is 0-indexed
   if(( min(TF(:)) > 1) && (max(TF(:)) > size(TV,1)))
     TF = TF-1;
+  end
+
+  if isempty(TF) && ~quiet
+    warning(['No faces produced: ' result]);
   end
 
   if(nargout > 2)

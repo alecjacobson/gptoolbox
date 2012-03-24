@@ -97,9 +97,5 @@ function [M,C] = heat_map(varargin)
   assert(size(M,1) == s);
 
   C = [neg too_pos];
-    
-
-
-
 
 end

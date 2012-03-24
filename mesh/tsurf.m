@@ -1,6 +1,7 @@
 function t = tsurf(F,V,vertex_indices,face_indices)
   % TSURF trisurf wrapper, easily plot triangle meshes with(out) face or vertex
-  % indices
+  % indices. Attaches callbacks so that click-and-holding on the mesh and then
+  % pressing 'm' launches meshplot (if available)
   %
   % tsurf(F,V,vertex_indices,face_indices)
   %
@@ -19,6 +20,15 @@ function t = tsurf(F,V,vertex_indices,face_indices)
   %  t  handle to trisurf object
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
+  %
+  % Example:
+  %   % Compose with set function to set trisurf parameters to achieve
+  %   % sharp isointervals
+  %   set(tsurf(F,V), ...
+  %     'FaceColor','interp', ...
+  %     'FaceLighting','phong', ...
+  %     'EdgeColor',[0.2 0.2 0.2]); 
+  %   colormap(flag(8))
   %
   % See also: trisurf
   %
@@ -75,6 +85,37 @@ function t = tsurf(F,V,vertex_indices,face_indices)
   % terminal
   if nargout>=1
     t = t_copy;
+  end
+
+  % subversively set up the callbacks so that if the user clicks and holds on
+  % the mesh then hits m, meshplot will open with this mesh
+  set(t_copy,'buttondownfcn',@onmeshdown);
+
+  function onmeshdown(src,ev)
+    set(gcf,'windowbuttonupfcn',        @onmeshup);
+    set(gcf,'keypressfcn',        @onkeypress);
+  end
+
+  function onkeypress(src,ev)
+    switch ev.Character
+    case 'm'
+      V3 = V;
+      if size(V3,2) == 2
+        V3(:,3) = 0*V(:,1);
+      end
+      fprintf('Opening mesh in meshplot...\n');
+      meshplot(V3,F);
+    otherwise
+      warning(['Unknown key: ' ev.Character]);
+    end
+  end
+
+  function append_current_point()
+  end
+
+  function onmeshup(src,ev)
+    set(gcf,'windowbuttonupfcn','');
+    set(gcf,'keypressfcn',      '');
   end
 
 end
