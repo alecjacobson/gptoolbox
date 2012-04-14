@@ -27,6 +27,19 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
   %       row in Aeq
   %     Lambda_known  m list of values of lagrange multipliers corresponding to each
   %       known value
+  %
+  % Troubleshooting:
+  %   'Warning: Matrix is singular to working precision' A number of things can
+  %   cause this to happen:
+  %     (1) Your system matrix A after removing knowns is not full rank, check
+  %     condest of A and rank of A
+  %     (2) Some constraints in Aeq are linearly dependent (after removing
+  %     known values), check SVD of Aeq
+  %   "My should be symmetric, positive definite but I see that lu is being
+  %   used". Check (1) and (2) above, and:
+  %     (3) be sure you giving A and not accidentally -A, which would be
+  %     negative definite.
+  %
 
   % Implementation details:
   % minimize x'Ax + x'B
@@ -161,7 +174,8 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
     end
     % number of linear equality constraints
     neq = size(Aeq,1);
-    assert(neq <= n,'Number of constraints (%d) > problem size (%d)',neq,n);
+    %assert(neq <= n,'Number of constraints (%d) > problem size (%d)',neq,n);
+
     % get list of lagrange multiplier indices
     F.lagrange = n+(1:neq);
 

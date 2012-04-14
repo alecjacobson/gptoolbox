@@ -88,7 +88,7 @@ function [U,Uall] = smooth(V,F,L_method,b,lambda,method,S,max_iter)
   % recompute laplacian
   if strcmp(L_method,'cotan')
     % other 3D meshes should use cotangent laplacian
-    L = cotmatrix(V,F);
+    L = cotmatrix_embedded(V,F);
     %error
   end
 

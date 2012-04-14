@@ -79,7 +79,8 @@ function t = tsurf(F,V,vertex_indices,face_indices)
   end
   % uncomment these to switch to a better 3d surface viewing mode
   %axis equal; axis vis3d;
-  axis(reshape([min(V(:,1:dim));max(V(:,1:dim))],1,dim*2));
+  %axis(reshape([min(V(:,1:dim));max(V(:,1:dim))],1,dim*2));
+  axis tight;
 
   % Only output if called with output variable, prevents ans = ... output on
   % terminal

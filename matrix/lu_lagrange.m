@@ -86,7 +86,12 @@ function [L,U,p,PT] = lu_lagrange(ATA,C,J,S)
 
   % compute cholesky factorization of M'*M
   if nargout >= 4
-    [K,p,T] = chol(M'*M,'lower');
+    if issparse(M)
+      [K,p,T] = chol(M'*M,'lower');
+    else
+      [K,p] = chol(M'*M,'lower');
+      T = eye(size(K));
+    end
   else
     [K,p] = chol(M'*M,'lower');
   end

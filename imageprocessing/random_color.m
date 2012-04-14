@@ -14,7 +14,7 @@ function R = random_color(n,preset)
 
   
   if(~exist('n','var'))
-    N = 1;
+    n = 1;
   end
   if(~exist('preset','var'))
     preset = '';
