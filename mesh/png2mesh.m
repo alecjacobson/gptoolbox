@@ -40,9 +40,20 @@ function [V,F] = png2mesh( ...
   if ~isempty(H)
     warning('Holes non-empty, but I know the holes are coming out broken');
   end
+
+  unr = setdiff(1:size(V,1),E(:));
+  if(~isempty(unr))
+    warning('Unreferenced vertices in outline...\n');
+  end
   % get average squared edge length as a guess at the maximum area constraint
   % for the triangulation
   avg_sqr_edge_length = mean(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2));
   % triangulate the polygon
   [V,F] = triangle(V,E,H,'MaxArea',avg_sqr_edge_length/2.0,'Quality',30);
+
+  unr = setdiff(1:size(V,1),F(:));
+  if(~isempty(unr))
+    warning('Unreferenced vertices in mesh...\n');
+  end
+
 end
