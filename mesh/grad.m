@@ -1,18 +1,24 @@
-function [G,G1] = grad(V,F,X)
+function [G] = grad(V,F)
   % GRAD
-  % G = grad(V,F,X)
+  % g = grad(V,F)
   %
-  % Compute the numerical gradient at every face of a triangle mesh.
+  % Compute the numerical gradient operator
   %
   % Inputs:
   %   V  #vertices by 3 list of mesh vertex positions
   %   F  #faces by 3 list of mesh face indices
-  %   X  # vertices list of scalar function values
   % Outputs:
-  %   G  #faces by 3 list of gradient values
+  %   G  #faces*3 by #V Gradient operator
+  %
+  % Example:
+  %   L = cotmatrix(V,F)
+  %   G  = grad(V,F);
+  %   dblA = doublearea(V,F);
+  %   GMG = -G'*repdiag(diag(sparse(dblA)/2),3)*G;
   %
 
   % append with 0s for convenience
+  dim = size(V,2);
   if size(V,2) == 2
     V = [V zeros(size(V,1),1)];
   end
@@ -41,20 +47,34 @@ function [G,G1] = grad(V,F,X)
   u = normalizerow(n);
 
   % rotate each vector 90 degrees around normal
-  eperp21 = normalizerow(cross(u,v21)) .* repmat(normrow(v21),1,3);
-  eperp13 = normalizerow(cross(u,v13)) .* repmat(normrow(v13),1,3);
+  eperp21 = bsxfun(@times,normalizerow(cross(u,v21)),normrow(v21)./dblA);
+  eperp13 = bsxfun(@times,normalizerow(cross(u,v13)),normrow(v13)./dblA);
 
-  G =                                              ...
-    (                                              ...
-      repmat(X(F(:,2)) - X(F(:,1)),1,3).*eperp13 + ...
-      repmat(X(F(:,3)) - X(F(:,1)),1,3).*eperp21   ...
-    )                                              ...
-    ./repmat(dblA,1,3);
+  %g =                                              ...
+  %  (                                              ...
+  %    repmat(X(F(:,2)) - X(F(:,1)),1,3).*eperp13 + ...
+  %    repmat(X(F(:,3)) - X(F(:,1)),1,3).*eperp21   ...
+  %  );
+
+  G = sparse( ...
+    [0*size(F,1)+repmat(1:size(F,1),1,4) ...
+    1*size(F,1)+repmat(1:size(F,1),1,4) ...
+    2*size(F,1)+repmat(1:size(F,1),1,4)]', ...
+    repmat([F(:,2);F(:,1);F(:,3);F(:,1)],3,1), ...
+    [eperp13(:,1);-eperp13(:,1);eperp21(:,1);-eperp21(:,1); ...
+     eperp13(:,2);-eperp13(:,2);eperp21(:,2);-eperp21(:,2); ...
+     eperp13(:,3);-eperp13(:,3);eperp21(:,3);-eperp21(:,3)], ...
+    3*size(F,1), size(V,1));
+
+  if dim == 2
+    G = G(1:(size(F,1)*dim),:);
+  end
+
 
   % Should be the same as:
-  % G = ... 
+  % g = ... 
   %   bsxfun(@times,X(F(:,1)),cross(u,v32)) + ...
   %   bsxfun(@times,X(F(:,2)),cross(u,v13)) + ...
   %   bsxfun(@times,X(F(:,3)),cross(u,v21));
-  % G = bsxfun(@rdivide,G,dblA);
+  % g = bsxfun(@rdivide,g,dblA);
 end

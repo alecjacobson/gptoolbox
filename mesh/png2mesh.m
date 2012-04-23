@@ -38,7 +38,7 @@ function [V,F] = png2mesh( ...
     laplacian_smoothness_iterations, ...
     max_points_on_boundary);
   if ~isempty(H)
-    warning('Holes non-empty, but I know the holes are coming out broken');
+    warning('Holes non-empty, but I know holes sometimes come out broken');
   end
 
   unr = setdiff(1:size(V,1),E(:));
@@ -53,7 +53,9 @@ function [V,F] = png2mesh( ...
 
   unr = setdiff(1:size(V,1),F(:));
   if(~isempty(unr))
-    warning('Unreferenced vertices in mesh...\n');
+    warning('Removing unreferenced vertices in mesh...');
+    [V,~,F] = faces_first(V,[],F);
+    V=V(1:max(F(:)),:);
   end
 
 end

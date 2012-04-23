@@ -43,6 +43,8 @@ function W = harmonic(V,F,b,bc,k)
     L = cotmatrix_embedded(V,F);
     M = massmatrix_embedded(V,F,'voronoi');
   end
+  % NORMALIZE MASSMATRIX (THIS IS IMPORTANT!!)
+  M = M./max(abs(diag(M)));
 
   % build k-laplacian, quadratic coefficients
   Q = -L;

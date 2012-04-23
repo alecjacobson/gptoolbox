@@ -6,6 +6,8 @@ function G = gradmatrix(V,F,N)
 % returns  #E x #V matrix of grad equations
 % where #E is the number of edges in region of N
 
+  % Note: this is obsolete see grad.m
+
   FT = limit_faces(F',N,1);
   E = ...
     unique( ...
