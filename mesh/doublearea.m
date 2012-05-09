@@ -13,18 +13,17 @@ function [ dblA ] = doublearea( V, F )
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch), and Daniele Panozzo
   %
   
-  i1 = F(:,1);
-  i2 = F(:,2);
-  i3 = F(:,3);
-  
-  % append zeros so cross product will work correctly for 2D vertices
-  if(size(V,2) == 2)
-    V = [V zeros(size(V,1),1)];
-  end
+  % triangles
+  % edge lengths numbered same as opposite vertices
+  l = [ ...
+    sqrt(sum((V(F(:,2),:)-V(F(:,3),:)).^2,2)) ...
+    sqrt(sum((V(F(:,3),:)-V(F(:,1),:)).^2,2)) ...
+    sqrt(sum((V(F(:,1),:)-V(F(:,2),:)).^2,2)) ...
+    ];
+  l1 = l(:,1); l2 = l(:,2); l3 = l(:,3);
+  % semiperimeters
+  s = (l1 + l2 + l3)*0.5;
+  % Heron's formula for area
+  dblA = 2*sqrt( s.*(s-l1).*(s-l2).*(s-l3));
 
-  T = cross(V(i2,:)-V(i1,:),V(i3,:)-V(i1,:),2);
-  
-  dblA = sqrt(sum(T.^2,2)); % Face areas
-  
 end
-

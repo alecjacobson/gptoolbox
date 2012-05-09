@@ -21,6 +21,8 @@ function S = select_region(t)
 
   % get view of axis of handle t
   [az,el] = view(get(t,'Parent'));
+  % get figure of t
+  of = get(get(t,'Parent'),'Parent');
 
   % get vertices
   V = get(t,'Vertices');
@@ -43,6 +45,7 @@ function S = select_region(t)
 
   % make a new figure
   f = figure;
+  set(f,'Position',get(of,'Position'));
 
   trisurf(F,view_V(:,1),view_V(:,2),view_V(:,3));
   axis equal;
