@@ -1,4 +1,4 @@
-function writeDMAT(filename,W)
+function writeDMAT(filename,W,ascii)
   % WRITEDMAT  writes a matrix from a dmat file.
   %   first line is <# columns> <# rows>, then values with columns running
   %   faster
@@ -8,6 +8,7 @@ function writeDMAT(filename,W)
   % Input:
   %   filename  name of .dmat file
   %   W  matrix read from file
+  %   ascii  write ascii file {true}
   %
   % Example:
   %   % weights for bones (C,BE), size #V by #BE
@@ -24,12 +25,23 @@ function writeDMAT(filename,W)
   %
   
   disp(['writing: ',filename]);
-  % open file
-  fp = fopen(filename,'w');
-  % write header
-  fprintf(fp,'%d %d\n',fliplr(size(W)));
-  % write data
-  fprintf(fp,'%.16g\n',W);
+    % open file
+    fp = fopen(filename,'w');
+  if ~exist('ascii','var') || ascii
+    % write header
+    fprintf(fp,'%d %d\n',fliplr(size(W)));
+    % write data
+    fprintf(fp,'%.16g\n',W);
+  else
+    % write header for ascii
+    fprintf(fp,'0 0\n');
+    % write header for binary
+    fprintf(fp,'%d %d\n',fliplr(size(W)));
+    if ~isa(W,'double')
+      warning('Input will be cast from %s to double',class(W));
+    end
+    fwrite(fp,double(W),'double');
+  end
   % close file
   fclose(fp);
 

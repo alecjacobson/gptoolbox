@@ -9,7 +9,7 @@ function [LF,in] = limit_faces(F,L,exclusive)
   %   F  #F by 3 list of face indices
   %   L  #L by 1 list of allowed indices
   %    or
-  %   L  #L by 1 list of bools specifying if each index in L is allowed
+  %   L  #V by 1 list of bools specifying if each index in L is allowed
   %   exclusive  flag specifying whether a face is included only if all its
   %     indices are in L, default is false
   % Outputs:

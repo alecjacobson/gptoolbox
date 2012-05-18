@@ -18,6 +18,21 @@ function [W] = readDMAT(filename)
   size_W = fliplr(fscanf(fp,'%d %d',[1 2]));
   % read data
   W = fscanf(fp,'%g',size_W);
+
+  if ~feof(fp)
+    [size_B,c_B] = fscanf(fp,'%d %d\n',[1 2]);
+    size_B = fliplr(size_B);
+    if c_B==2
+      assert(~any(size_W));
+      assert(isempty(W));
+      % We're reading binary then
+      size_W = size_B;
+      [W,cW] = fread(fp,prod(size_W),'*double');
+      assert(cW == prod(size_W));
+      W = reshape(W,size_W);
+    end
+  end
+
   % close file
   fclose(fp);
 

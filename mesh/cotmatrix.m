@@ -15,6 +15,13 @@ function L = cotmatrix(V,F)
   % See also: cotmatrix3
   %
 
+  %% Could just replace everything with:
+  %C = cotangent(V,F);
+  %L = sparse(F(:,[2 3 1]), F(:,[3 1 2]), C,size(V,1),size(V,1));
+  %L = L+L';
+  %L = L-diag(sum(L,2));
+    
+
   % should change code below, so we don't need this transpose
   if(size(F,1) == 3)
     warning('F seems to be 3 by #F, it should be #F by 3');
