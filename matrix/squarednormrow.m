@@ -1,5 +1,5 @@
 function [ B ] = squarednormrow( A )
-  % NORMROW 
+  % SQUAREDNORMROW 
   %
   % B = squarednormrow( A )
   %
