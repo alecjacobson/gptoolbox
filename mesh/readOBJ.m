@@ -1,7 +1,7 @@
 function [V,F,UV,TF] = readOBJ( filename )
   % READOBJ reads an OBJ file with vertex/face information
   %
-  % [V,F,UV] = readOBJ( filename )
+  % [V,F,UV,TF] = readOBJ( filename )
   %
   % Input:
   %  filename  path to .obj file
@@ -9,6 +9,7 @@ function [V,F,UV,TF] = readOBJ( filename )
   %  V  #V by 3 list of vertices
   %  F  #F by 3 list of triangle indices
   %  UV  #V by 2 list of texture coordinates
+  %  TF  #F by 3 list of triangle texture coordinates
   %
   %
   % WARNING: This is at least 40 times slower than readOFF but probably much much
