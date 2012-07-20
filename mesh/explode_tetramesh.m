@@ -1,4 +1,4 @@
-function h = explode_tetramesh(T,V)
+function h = explode_tetramesh(T,V,steps)
   % EXPLODE_TETRAMESH animated, interactive tetramesh plot of tets of a tet
   % mesh being pulled away from each 
   %
@@ -7,6 +7,7 @@ function h = explode_tetramesh(T,V)
   % Inputs:
   %   T  #T by 4 list of tetrahedra indices
   %   V  #V by dim by #{frames | 1} list of vertex positions
+  %   steps  # of explosion animation steps {100}
   % Outputs:
   %   h  handle to plot
   %
@@ -27,7 +28,9 @@ function h = explode_tetramesh(T,V)
     3*size(T,1) + (1:size(T,1)); ...
     ]';
   factor = 4;
-  steps = 100;
+  if ~exist('steps','var')
+    steps = 100;
+  end
   s = linspace(1,factor,steps);
   % centroid
   c = mean(V);

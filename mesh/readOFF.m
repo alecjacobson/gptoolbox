@@ -68,6 +68,8 @@ function [V,F,UV,C,N] = readOFF( filename )
   else
     F = [];
   end
+
+  fclose(fp);
   
   disp('  - done.');
 end
