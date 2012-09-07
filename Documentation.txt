@@ -1,4 +1,4 @@
-LIST OF FILES
+LIST OF FILES 
   ./dithering/average.m
   ./dithering/comparison.m
   ./dithering/dither.m
