@@ -30,6 +30,8 @@ function [L,U,p,PT] = lu_lagrange(ATA,C,J,S)
   %   PT  permutation matrix, such that PT'*Q*PT = L*U, requires that S is given
   %     if J is given
   %
+  % Notes: This only seems worthwhile when m << n
+  %
   % See also: chol, lu, min_quad_with_fixed
   % 
 
@@ -90,7 +92,7 @@ function [L,U,p,PT] = lu_lagrange(ATA,C,J,S)
       [K,p,T] = chol(M'*M,'lower');
     else
       [K,p] = chol(M'*M,'lower');
-      T = eye(size(K));
+      T = speye(size(K));
     end
   else
     [K,p] = chol(M'*M,'lower');

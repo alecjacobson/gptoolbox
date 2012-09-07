@@ -152,20 +152,10 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
       % Perfectly symmetric
       F.Auu_sym = true;
     end
-    % Determine if positive definite (also compute cholesky decomposition if it
-    % is as a side effect)
-    F.Auu_pd = false;
-    if F.Auu_sym
-      % F.S'*Auu*F.S = F.L*F.L'
-      [F.L,p,F.S] = chol(Auu,'lower');
-      F.Auu_pd = p==0;
-    end
-
-    % keep track of whether original A was sparse
-    A_sparse = issparse(A);
+    F.Auu_sym = false;
 
     % check if there are blank constraints
-    F.blank_eq = all(Aeq(:,F.unknown)==0,2);
+    F.blank_eq = ~any(Aeq(:,F.unknown),2);
     if any(F.blank_eq)
       warning('min_quad_with_fixed:blank_eq', [ ...
         'Removing blank constraints. ' ...
@@ -175,6 +165,18 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
     % number of linear equality constraints
     neq = size(Aeq,1);
     %assert(neq <= n,'Number of constraints (%d) > problem size (%d)',neq,n);
+
+    % Determine if positive definite (also compute cholesky decomposition if it
+    % is as a side effect)
+    F.Auu_pd = false;
+    if F.Auu_sym && neq == 0
+      % F.S'*Auu*F.S = F.L*F.L'
+      [F.L,p,F.S] = chol(Auu,'lower');
+      F.Auu_pd = p==0;
+    end
+
+    % keep track of whether original A was sparse
+    A_sparse = issparse(A);
 
     % get list of lagrange multiplier indices
     F.lagrange = n+(1:neq);
@@ -197,31 +199,38 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
     F.preY = A([F.unknown F.lagrange],known) + ...
       A(known,[F.unknown F.lagrange])';
 
+    % LDL has a different solve prototype
+    F.ldl = false;
     % create factorization
-    if F.Auu_sym && F.Auu_pd
-      if neq == 0
+    if F.Auu_sym
+      if neq == 0 && F.Auu_pd
         % we already have F.L
         F.U = F.L';
         F.P = F.S';
         F.Q = F.S;
       else
-        % check that Auu is not ill-conditioned, if it is then don't us
-        % lu_lagrange trick, rather use straight LU decomposition
-        if log10(condest(Auu)) < 16
-          %% p will only be 0 if this works
-          %[F.L,F.U,p] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L);
-          %F.Q = 1;
-          %F.P = F.Q';
-          % 4 times faster
-          [F.L,F.U,p,F.Q] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L,F.S);
-          F.P = F.Q';
-        else
-          p = -1;
-        end
-        if p ~= 0
-          NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
-          [F.L,F.U,F.P,F.Q] = lu(NA);
-        end
+      %    % check that Auu is not ill-conditioned, if it is then don't us
+      %    % lu_lagrange trick, rather use straight LU decomposition
+      %    if log10(condest(Auu)) < 16
+      %      %% p will only be 0 if this works
+      %      %[F.L,F.U,p] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L);
+      %      %F.Q = 1;
+      %      %F.P = F.Q';
+      %      % 4 times faster (but only for small number of constraints in Aeq)
+      %      [F.L,F.U,p,F.Q] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L,F.S);
+      %      F.P = F.Q';
+      %    else
+      %      p = -1;
+      %    end
+      %    if p ~= 0
+      %      NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
+      %      [F.L,F.U,F.P,F.Q] = lu(NA);
+      %    end
+        % LU_LAGRANGE is faster only for #constraints << #unknowns
+        % LDL is faster than LU for moderate #constraints < #unknowns
+        NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
+        [F.L,F.D,F.P,F.S] = ldl(NA);
+        F.ldl = true;
       end
     else
       NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
@@ -230,7 +239,13 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
       %F.P = 1;
       %F.Q = 1;
       % 10 times faster
-      [F.L,F.U,F.P,F.Q] = lu(NA);
+      if issparse(NA)
+        [F.L,F.U,F.P,F.Q] = lu(NA);
+      else
+        [F.L,F.U] = lu(NA);
+        F.P = 1;
+        F.Q = 1;
+      end
     end
   end
 
@@ -259,7 +274,9 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
     if kr == 0
       assert(isempty(Y),'Known values should not be empty');
       % force Y to have 1 column even if empty
-      Y = zeros(0,1);
+      if size(Y,2) == 0
+        Y = zeros(0,1);
+      end
     end
     assert(kr == size(Y,1), ...
       'Number of knowns (%d) != rows in known values (%d)',kr, size(Y,1));
@@ -298,7 +315,12 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
     Z = zeros(F.n,cols);
     Z(F.known,:) = Y;
 
-    Z([F.unknown F.lagrange],:) = -0.5 * F.Q * (F.U \ (F.L \ ( F.P * NB)));
+    if F.ldl
+      Z([F.unknown F.lagrange],:) = ...
+        -0.5 * F.S * (F.P * (F.L'\(F.D\(F.L\(F.P' * (F.S * NB))))));
+    else
+      Z([F.unknown F.lagrange],:) = -0.5 * F.Q * (F.U \ (F.L \ ( F.P * NB)));
+    end
 
     Lambda = [];
     if neq ~= 0

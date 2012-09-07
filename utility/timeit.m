@@ -4,7 +4,7 @@ function [t, measurement_overhead, measurement_details] = timeit(f, num_outputs)
 %   function handle.  TIMEIT calls F with either no output arguments or one
 %   output argument depending on nargout(F).
 %
-%   T = TIMEIT(F,N) calls F with N output arguments.  N can be 0, 1, 2, 3, or 4.
+%   T = TIMEIT(F,N) calls F with N output arguments.  N can be 0, 1, 2, 3, 4, or 5.
 %
 %   TIMEIT handles automatically the usual benchmarking procedures of "warming
 %   up" F, figuring out how many times to repeat F in a timing loop, etc.
@@ -43,9 +43,9 @@ function [t, measurement_overhead, measurement_details] = timeit(f, num_outputs)
 if nargin < 2
     num_outputs = min(numOutputs(f), 1);
 else
-    if num_outputs > 4
+    if num_outputs > 5
         warning('MATLAB:timeit:tooManyOutputs', ...
-            'Too many function output arguments specified. timeit will call your function with 4 output arguments.');
+            'Too many function output arguments specified. timeit will call your function with 5 output arguments.');
     end
 end
 
@@ -107,10 +107,17 @@ for k = 1:num_outer_iterations
             end
             times(k) = toc();
             
-        otherwise
+        case 4
             tic();
             for p = 1:num_inner_iterations
                 [output1, output2, output3, output4] = f();
+            end
+            times(k) = toc();
+            
+        otherwise
+            tic();
+            for p = 1:num_inner_iterations
+                [output1, output2, output3, output4, output5] = f();
             end
             times(k) = toc();
     end
@@ -171,9 +178,14 @@ while sum(times) < 0.001
             [output1, output2, output3] = f();
             times(end+1) = toc();
             
-        otherwise
+        case 4
             tic();
             [output1, output2, output3, output4] = f();
+            times(end+1) = toc();
+            
+        otherwise
+            tic();
+            [output1, output2, output3, output4, output5] = f();
             times(end+1) = toc();
     end
     
