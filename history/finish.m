@@ -1,6 +1,6 @@
 button = questdlg('Are you sure you want to quit?', 'Exit Dialog','Cancel','Quit','Cancel');
 
-if strcmp(button,'No')
+if strcmp(button,'Cancel')
   quit cancel;
   return
 end

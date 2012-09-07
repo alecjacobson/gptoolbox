@@ -93,4 +93,3 @@ function [LS,LD,I] = isolines(V,F,S,iso)
   I = [I12;I23;I31];
 
 end
-

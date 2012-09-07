@@ -181,10 +181,12 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
 
     if neq > 0
       if issparse(A) && ~issparse(Aeq)
-        warning('System is sparse but constraints are not, solve will be dense');
+        warning('min_quad_with_fixed:sparse_system_dense_constraints', ...
+        'System is sparse but constraints are not, solve will be dense');
       end
       if issparse(Aeq) && ~issparse(A)
-        warning('Constraints are sparse but system is not, solve will be dense');
+        warning('min_quad_with_fixed:dense_system_sparse_constraints', ...
+        'Constraints are sparse but system is not, solve will be dense');
       end
       Z = sparse(neq,neq);
       % append lagrange multiplier quadratic terms
