@@ -155,7 +155,7 @@ function [W,dist_H_V] = shepard(V,C,P,E,CE,p)
   % Handle degenrate case that a control point is on a mesh vertex
   % snap vertices close to corners
   on_sample = dist_H_V < eps;
-  W(:,any(on_sample)) = 0;
+  W(:,any(on_sample,1)) = 0;
   W(on_sample) = 1;
 
   % normalize W

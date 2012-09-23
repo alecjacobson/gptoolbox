@@ -33,6 +33,7 @@ function I = in_face(V,F,P)
     kk = mod(ii,dim+1)+1;
     ljj = all_pairs_distances(P,V(F(:,jj),:));
     lkk = all_pairs_distances(P,V(F(:,kk),:));
+    
     % semiperimeters
     s = bsxfun(@plus,l(:,ii)',ljj + lkk)*0.5;
     % Heron's formula for area

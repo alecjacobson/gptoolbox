@@ -52,6 +52,6 @@ function D = all_pairs_distances(V,U)
   else
     % Fastest
     % Elapsed time is 0.653082 seconds.
-    D = squeeze(sqrt(sum(bsxfun(@minus,V,permute(U,[3 2 1])).^2,2)));
+    D = permute(sqrt(sum(bsxfun(@minus,V,permute(U,[3 2 1])).^2,2)),[1 3 2]);
   end
 end
