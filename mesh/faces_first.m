@@ -16,7 +16,7 @@ function [RV,RT,RF,IM] = faces_first(V,T,F)
   %    some face in F, and the kth vertex is not then j comes before k
   %  RT  # tetrahedra by 4 list of tetrahedra indices, reindexed to use RV
   %  RF  # faces by 3 list of face indices, reindexed to use RV
-  %  IM  # faces by 1 list of indices such that: RF = IM(F) and RT = IM(T)
+  %  IM  # vertices by 1 list of indices such that: RF = IM(F) and RT = IM(T)
   %    and RV(IM,:) = V
   %
 

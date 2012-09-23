@@ -36,7 +36,9 @@ function [varargout] = myaa(varargin)
 %     q             Quit, i.e. close the anti-aliased figure
 %
 %   Myaa can also be called with up to 3 parameters.
-%   FIG = MYAA(K,AAMETHOD,FIGMODE)
+%   [FIG,RAW] = MYAA(K,AAMETHOD,FIGMODE)
+%   [RAW] = MYAA('raw') Alec 2012
+%
 %   Parameters and output:
 %     K         Subsampling factor. If a vector is specified, [K D], then 
 %               the second element will describe the downsampling factor. 
@@ -51,6 +53,9 @@ function [varargout] = myaa(varargin)
 %               'update': internally used for interactive sessions
 %               'publish': used internally
 %     FIG       A handle to the new anti-aliased figure
+%
+%     RAE       Raw image data (Alec 2012)
+%     
 %
 %   Example 1:
 %     spharm2;
@@ -74,6 +79,9 @@ function [varargout] = myaa(varargin)
 %        %
 %        spharm2;          % Produce some nice graphics
 %        myaa('publish');  % Render an anti-aliased version
+%   Example 4:
+%     spharm2;
+%     imwrite(myaa('raw'),'myaa.png');
 %
 %     Then run:
 %        publish test.m;
@@ -97,6 +105,10 @@ function [varargout] = myaa(varargin)
 %   Author: Anders Brun
 %           anders@cb.uu.se
 %
+
+% This was adapted to produce an output image according to:
+% http://www.alecjacobson.com/weblog/?p=2662#comment-9504
+% 
 
 %% Force drawing of graphics 
 drawnow;
@@ -140,7 +152,13 @@ elseif strcmp(varargin{1},'lazyupdate')
     self = get(gcf,'UserData');
     self.figmode = 'lazyupdate';
 elseif length(varargin) == 1
-    self.K = varargin{1};
+    if strcmp(varargin{1},'raw')
+      self.K = [4 4];
+      self.figmode = 'raw';
+    else
+      self.K = varargin{1};
+    self.figmode = 'figure';
+    end
     if length(self.K) == 1
         self.K = [self.K self.K];
     end
@@ -153,7 +171,6 @@ elseif length(varargin) == 1
     catch
         self.aamethod = 'standard';
     end
-    self.figmode = 'figure';
 elseif length(varargin) == 2
     self.K = varargin{1};
     self.aamethod = varargin{2};
@@ -276,6 +293,8 @@ elseif strcmp(self.figmode,'lazyupdate');
     set(ax,'Units','pixels');
     set(ax,'Position',[1 1 sz(2) sz(1)]);
     axis off;    
+elseif strcmp(self.figmode,'raw')
+  % don't create a new figure
 end
 
 %% Store current state
@@ -285,8 +304,15 @@ set(gcf,'KeyPressFcn',@keypress);
 set(gcf,'Interruptible','off');
 
 %% Avoid unnecessary console output
-if nargout == 1
-    varargout(1) = {fig};
+if strcmp(self.figmode,'raw')
+  varargout{1} = raw_lowres;
+else
+  if nargout == 1
+    varargout{1} = fig;
+  elseif nargout ==2
+    varargout{1} = fig;
+    varargout{2} = raw_lowres;
+  end
 end
 
 %% A simple lowpass filter kernel (Butterworth).
@@ -330,8 +356,6 @@ elseif find('123456789' == evnt.Character)
     set(gcf,'userdata',self);
     myaa('update');
 end
-
-
 
 
 

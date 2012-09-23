@@ -1,0 +1,6 @@
+# use glob syntax.
+syntax: glob
+*.o
+*.a
+*~
+.DS_Store
