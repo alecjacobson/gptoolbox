@@ -7,8 +7,8 @@ function writeMESH( filename, V,T,F)
   % Input:
   %  filename  path to .mesh file
   %  V  #V by 3 list of vertices
-  %  T  #T by 4 list of tet indices
-  %  F  #F by 3 list of triangle indices
+  %  T  #T by 4|5 list of tet indices (additional column is color index)
+  %  F  #F by 3|4 list of triangle indices (additional column is color index) 
   %
   % See also readMESH
   %
@@ -27,14 +27,24 @@ function writeMESH( filename, V,T,F)
   fprintf(fp,'Triangles\n');
   % number of triangles
   fprintf(fp,'%d\n',size(F,1));
-  % triangle indices
-  fprintf(fp,'%d %d %d 1\n',F');
+  if size(F,2) == 4
+    % triangle indices + color reference
+    fprintf(fp,'%d %d %d %d\n',F');
+  else
+    % triangle indices
+    fprintf(fp,'%d %d %d 1\n',F');
+  end
   % tetrahedra header
   fprintf(fp,'Tetrahedra\n');
   % number of tetrahedra 
   fprintf(fp,'%d\n',size(T,1));
-  % tetrahedra indices
-  fprintf(fp,'%d %d %d %d 1\n',T');
+  if size(T,2) == 5 
+    % tetrahedra indices
+    fprintf(fp,'%d %d %d %d %d\n',T');
+  else
+    % tetrahedra indices
+    fprintf(fp,'%d %d %d %d 1\n',T');
+  end
   % end
   fprintf(fp,'End');
   fclose(fp);
