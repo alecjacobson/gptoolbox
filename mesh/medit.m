@@ -1,5 +1,8 @@
-function [s,r] = medit(V,T,F,wait)
+function [s,r] = medit(varargin)
   % MEDIT wrapper to launch medit to visualize a given tetmesh
+  %
+  % [s,r] = medit(V,T,F)
+  % [s,r] = medit(V,T,F,'ParameterName',ParameterValue)
   %
   % Inputs:
   %   V  #V by 3 list of vertex positions
@@ -7,19 +10,44 @@ function [s,r] = medit(V,T,F,wait)
   %     index)
   %   F  #F by 3|4 list of face indices (additional column is color index)
   %   Optional:
-  %     wait  boolean whether to wait for completion
+  %     'Wait'  followed by boolean whether to wait for completion {true}
+  %     'Data'  followed by #V|#T+#F data values {[]}
   % Outputs:
   %   s,r  result of system call
   %
+
+  V = varargin{1};
+  T = varargin{2};
+  F = varargin{3};
+  wait = true;
+  D = [];
+
+  ii = 4;
+  while(ii<=nargin)
+    switch varargin{ii}
+    case 'Wait'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      wait = varargin{ii};
+    case 'Data'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      D = varargin{ii};
+    otherwise
+      error(['Unsupported parameter: ' varargin{ii}]);
+    end
+    ii = ii+1;
+  end
 
   if ~exist('wait','var')
     wait = true;
   end
 
   % Change these paths accordingly
-  MEDIT_PATH = '/opt/local/bin/medit';
+  MEDIT_PATH = '/usr/local/igl/igl_lib/external/medit/medit';
   TEMP_MESH_FILE  = '/var/tmp/temp.mesh';
   TEMP_MEDIT_FILE = '/var/tmp/temp.medit';
+  TEMP_BB_FILE = '/var/tmp/temp.bb';
 
   % write temporary mesh
   writeMESH(TEMP_MESH_FILE,V,T,F);
@@ -41,6 +69,22 @@ function [s,r] = medit(V,T,F,wait)
     fprintf(f,'RenderMode shading + lines\n');
   end
   fclose(f);
+
+  % write bb file
+  if isempty(D)
+    delete(TEMP_BB_FILE);
+  else
+    switch size(D,1)
+    case size(V,1)
+      type = 2;
+    case size(T,1)+size(F,1)
+      type = 1;
+    otherwise
+      error('size(Data,1) %d should be == size(V,1) (%d) or size(T,1) + size(F,1) (%d + %d = %d)',size(D,1),size(V,1),size(T,1),size(F,1),size(T,1)+size(F,1));
+  
+    end
+    writeBB(TEMP_BB_FILE,D,type);
+  end
 
   command = [MEDIT_PATH ' ' TEMP_MESH_FILE ' ' TEMP_MEDIT_FILE];
   if ~wait
