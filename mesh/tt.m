@@ -32,35 +32,40 @@ function [Fp, Fi] = tt(F)
   %    -1     1    -1
   %
             
+  if size(F,2) == 3
 
-  % get list of edges (1st edges then 2nd edges then 3rd edges)
-  E = [F(:,2) F(:,3); F(:,3) F(:,1); F(:,1) F(:,2)];
+    % get list of edges (1st edges then 2nd edges then 3rd edges)
+    E = [F(:,2) F(:,3); F(:,3) F(:,1); F(:,1) F(:,2)];
 
-  % sparse adjacency matrix where (i,j) = k, k is the index of i-->j in edge
-  % list if i-->j AND j-->i exist in edge list. This way is slightly faster
-  % than building a proper adjacency list first.
-  Ei = sparse(E(:,1),E(:,2),1:size(E,1));
-  % adjacency list of edges as if edges represent undirected graph
-  unadj = Ei>0;
-  % "non-adjacency" list, (i,j) > 0 iff i-->j exists but j-->i does not exist
-  nonadj = unadj-(unadj');
-  adj = ((unadj + nonadj)==1).*Ei;
+    % sparse adjacency matrix where (i,j) = k, k is the index of i-->j in edge
+    % list if i-->j AND j-->i exist in edge list. This way is slightly faster
+    % than building a proper adjacency list first.
+    Ei = sparse(E(:,1),E(:,2),1:size(E,1));
+    % adjacency list of edges as if edges represent undirected graph
+    unadj = Ei>0;
+    % "non-adjacency" list, (i,j) > 0 iff i-->j exists but j-->i does not exist
+    nonadj = unadj-(unadj');
+    adj = ((unadj + nonadj)==1).*Ei;
 
-  % need to get mapping from sparse ordering to original order
-  [ii jj si] = find(adj);
-  % this is slightly faster than sorting the above by ii, which is the same
-  [ii jj v] = find(adj');
-  % build map from edges to their corresponding faces
-  E2F = repmat(1:size(F,1),1,3)';
-  % initialize adjacency map to -1
-  Fp = -ones(size(E,1),1);
-  Fp(si) = E2F(v);
-  Fp = reshape(Fp,size(F));
-  % build map from edges to edge positions
-  I = reshape(repmat((1:3),size(F,1),1),1,3*size(F,1))';
-  % use corresponding edges to find positions of correponding faces
-  Fi = -ones(size(E,1),1);
-  Fi(si) = I(v);
-  Fi = reshape(Fi,size(F));
+    % need to get mapping from sparse ordering to original order
+    [ii jj si] = find(adj);
+    % this is slightly faster than sorting the above by ii, which is the same
+    [ii jj v] = find(adj');
+    % build map from edges to their corresponding faces
+    E2F = repmat(1:size(F,1),1,3)';
+    % initialize adjacency map to -1
+    Fp = -ones(size(E,1),1);
+    Fp(si) = E2F(v);
+    Fp = reshape(Fp,size(F));
+    % build map from edges to edge positions
+    I = reshape(repmat((1:3),size(F,1),1),1,3*size(F,1))';
+    % use corresponding edges to find positions of correponding faces
+    Fi = -ones(size(E,1),1);
+    Fi(si) = I(v);
+    Fi = reshape(Fi,size(F));
+  else
+    error('Not supported yet...');
+  end
+
 end
 

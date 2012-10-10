@@ -46,7 +46,13 @@ while strcmp( type, '' ) == 0
                 tf = t(2:2:end);
                 t = t(1:2:end);
             else
-                [t, count] = sscanf( line, '%d %d %d %d %d %d %d %d %d %d %d\n' );
+              [t, count] = sscanf(line, '%d//%d %d//%d %d//%d %d//%d %d//%d');
+              if (count>2)
+                  tf = t(2:2:end);
+                  t = t(1:2:end);
+              else
+                  [t, count] = sscanf( line, '%d %d %d %d %d %d %d %d %d %d %d\n' );
+              end
             end
         end
         F = [F; t'];

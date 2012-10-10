@@ -25,7 +25,11 @@ function [V,F,UV,C,N] = readOFF( filename )
   
   fp = fopen( filename, 'r' );
   OFFheader = upper(fscanf( fp, '%s\n', 1 ));
-  if (OFFheader(end-2:end) ~= 'OFF') warning('no OFF file!'); return; end
+  if OFFheader(end-2:end) ~= 'OFF'
+    warning('no OFF file!') 
+    fclose(fp);
+    return;
+  end
   OFFdim = 3;
   OFF_N = 0; OFF_C=0; OFF_ST=0;
   
@@ -47,7 +51,7 @@ function [V,F,UV,C,N] = readOFF( filename )
       case  9; OFFV = textscan( fp, '%f %f %f %f %f %f %f %f %f', nV);
       case 10; OFFV = textscan( fp, '%f %f %f %f %f %f %f %f %f %f', nV);
       case 11; OFFV = textscan( fp, '%f %f %f %f %f %f %f %f %f %f %f', nV);
-      otherwise; error('Unsupported number of vertex entries');
+      otherwise; fclose(fp); error('Unsupported number of vertex entries');
   end
   
   try

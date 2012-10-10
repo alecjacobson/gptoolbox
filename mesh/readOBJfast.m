@@ -34,6 +34,7 @@ function [V,F] = readOBJfast(filename)
     else
       line = fgets(fp);
       if(prod(size(line)) == 0)
+        fclose(fp);
         error('Bad format... Try readOBJ...');
       end
     end
@@ -48,6 +49,7 @@ function [V,F] = readOBJfast(filename)
     else
       line = fgets(fp);
       if(prod(size(line)) == 0)
+        fclose(fp);
         error('Bad format... Try readOBJ...');
       end
     end
