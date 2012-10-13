@@ -78,13 +78,16 @@ function [s,r] = medit(varargin)
     end
   else
     switch size(D,1)
+    case size(T,1)
+      warning('Appending junk for face data since medit needs it.');
+      D = [D;linspace(min(D),max(D),size(F,1))'];
+      type = 1;
     case size(V,1)
       type = 2;
     case size(T,1)+size(F,1)
       type = 1;
     otherwise
       error('size(Data,1) %d should be == size(V,1) (%d) or size(T,1) + size(F,1) (%d + %d = %d)',size(D,1),size(V,1),size(T,1),size(F,1),size(T,1)+size(F,1));
-  
     end
     writeBB(TEMP_BB_FILE,D,type);
   end
