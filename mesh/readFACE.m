@@ -21,7 +21,7 @@ function [F] = readFACE(filename)
   F = fscanf(fp,parser,num_items*sizeF);
   F = reshape(F,num_items,sizeF)';
   % get rid of indices and boundary markers and make one indexed
-  F = F(:,2:4) + 1;
+  F = F(:,2:4);
 
   fclose(fp);
 end

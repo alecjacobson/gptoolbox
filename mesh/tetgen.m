@@ -58,9 +58,13 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   face_filename = [prefix '.1.face'];
   node_filename = [prefix '.1.node'];
 
+  % Not sure why this isn't coming out 1-indexed
   F = readFACE(face_filename);
+  F = F+1;
   % reverse faces because tetgen uses backwards order
   F = fliplr(F);
+  % I guess this is 1-indexed because we're using a .off file rather than a
+  % .poly file
   T = readELE(ele_filename);
   V = readNODE(node_filename);
 

@@ -1,6 +1,12 @@
 function vectarrow(P,V)
-%   P: list of points #x3
-%   V: list of vectors #x3
+% VECTARROW plot a list of points and vectors
+%
+% vectarrow(P,V)
+% 
+% Inputs
+%   P  list of points #x3
+%   V  list of vectors #x3
+%
 %   Rentian Xiong 4-18-05
 
   for index = 1:size(P,1)

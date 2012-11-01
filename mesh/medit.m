@@ -44,8 +44,8 @@ function [s,r] = medit(varargin)
   end
 
   % Change these paths accordingly
-  %MEDIT_PATH = '/usr/local/igl/igl_lib/external/medit/medit';
-  MEDIT_PATH = '/usr/local/bin/medit';
+  MEDIT_PATH = '/usr/local/igl/igl_lib/external/medit/medit';
+  %MEDIT_PATH = '/opt/local/bin/medit';
   TEMP_MESH_FILE  = '/var/tmp/temp.mesh';
   TEMP_MEDIT_FILE = '/var/tmp/temp.medit';
   TEMP_BB_FILE = '/var/tmp/temp.bb';
