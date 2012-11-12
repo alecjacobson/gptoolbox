@@ -41,14 +41,14 @@ fprintf(f, [OFFheader,'\n']);
 fprintf(f, '%d %d 0\n', size(V,1), size(F, 1));
 
 switch size(OFFV, 2)
-    case  3; fprintf(f, '%f %f %f\n', OFFV');
-    case  5; fprintf(f, '%f %f %f %f %f\n', OFFV');
-    case  6; fprintf(f, '%f %f %f %f %f %f\n', OFFV');
-    case  7; fprintf(f, '%f %f %f %f %f %f %f\n', OFFV');
-    case  8; fprintf(f, '%f %f %f %f %f %f %f %f\n', OFFV');
-    case  9; fprintf(f, '%f %f %f %f %f %f %f %f %f\n', OFFV');
-    case 10; fprintf(f, '%f %f %f %f %f %f %f %f %f %f\n', OFFV');
-    case 11; fprintf(f, '%f %f %f %f %f %f %f %f %f %f %f\n', OFFV');
+    case  3; fprintf(f, '%0.17f %0.17f %0.17f\n', OFFV');
+    case  5; fprintf(f, '%0.17f %0.17f %0.17f %0.17f %0.17f\n', OFFV');
+    case  6; fprintf(f, '%0.17f %0.17f %0.17f %0.17f %0.17f %0.17f\n', OFFV');
+    case  7; fprintf(f, '%0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f\n', OFFV');
+    case  8; fprintf(f, '%0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f\n', OFFV');
+    case  9; fprintf(f, '%0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f\n', OFFV');
+    case 10; fprintf(f, '%0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f\n', OFFV');
+    case 11; fprintf(f, '%0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f %0.17f\n', OFFV');
     otherwise; error('Unsupported number of vertex entries');
 end
 
