@@ -4,7 +4,7 @@ function h = animated_trisurf(F,X,Y,Z)
   % h = animated_trisurf(F,X,Y,Z)
   %
   % Inputs:
-  %   F  #F by 3 list of triangle indices
+  %   F  #F by 3 by {#frames | 1} list of triangle indices
   %   V  #V by dim by #{frames | 1} list of vertex positions
   %    or
   %   X  #V by #{frames | 1} list of X positions
@@ -40,12 +40,15 @@ function h = animated_trisurf(F,X,Y,Z)
   assert(size(Y,2) == 1 || size(Y,2) == fc);
   assert(size(Z,2) == 1 || size(Z,2) == fc);
 
+  assert(size(F,3) == 1 || size(F,3) == fc);
+
   % set animating to false
   animating = false;
   fi = 1;
-  h = trisurf(F,X(:,fi),Y(:,fi),Z(:,fi), ...
+  h = trisurf(F(:,:,fi),X(:,fi),Y(:,fi),Z(:,fi), ...
     'FaceColor','interp', ...
     'ButtonDownFcn',@onmeshdown);
+
 
   % handle simple case where there's only a single frame
   if fc == 1
@@ -82,6 +85,9 @@ function h = animated_trisurf(F,X,Y,Z)
               X(:,mod(fi-1,size(X,2))+1) ...
               Y(:,mod(fi-1,size(Y,2))+1) ...
               Z(:,mod(fi-1,size(Z,2))+1)]);
+            if size(F,3) == fc
+              set(h,'Faces',F(:,:,mod(fi-1,fc)+1));
+            end
             set(h,'CData',Z(:,mod(fi-1,size(Z,2))+1));
             drawnow
           else
