@@ -11,7 +11,7 @@ function [s,r] = medit(varargin)
   %   F  #F by 3|4 list of face indices (additional column is color index)
   %   Optional:
   %     'Wait'  followed by boolean whether to wait for completion {true}
-  %     'Data'  followed by #V|#T+#F data values {[]}
+  %     'Data'  followed by #V|#F+#T data values {[]}
   % Outputs:
   %   s,r  result of system call
   %

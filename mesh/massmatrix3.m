@@ -32,13 +32,15 @@ function M = massmatrix3(V,T, type)
   if strcmp(type,'full')
     error('full not supported yet...')
   elseif strcmp(type,'barycentric')
-    a = V(T(:,1),:);
-    b = V(T(:,2),:);
-    c = V(T(:,3),:);
-    d = V(T(:,4),:);
-    % http://en.wikipedia.org/wiki/Tetrahedron#Volume
-    % volume for each tetrahedron
-    v = repmat(abs(dot((a-d),cross2(b-d,c-d),2))./6./4,1,4);
+    %a = V(T(:,1),:);
+    %b = V(T(:,2),:);
+    %c = V(T(:,3),:);
+    %d = V(T(:,4),:);
+    %% http://en.wikipedia.org/wiki/Tetrahedron#Volume
+    %% volume for each tetrahedron
+    %v = repmat(abs(dot((a-d),cross2(b-d,c-d),2))./6./4,1,4);
+    v = repmat(volume(V,T),1,4);
+
     % only diagonal elements
     i = T;
     M = sparse(T(:),T(:),v,size(V,1),size(V,1));
@@ -77,6 +79,7 @@ function M = massmatrix3(V,T, type)
   else 
     error('bad mass matrix type')
   end
+
   function r = cross2(a,b)
     % Optimizes r = cross(a,b,2), that is it computes cross products per row
     % Faster than cross if I know that I'm calling it correctly
@@ -84,4 +87,5 @@ function M = massmatrix3(V,T, type)
         a(:,3).*b(:,1)-a(:,1).*b(:,3), ...
         a(:,1).*b(:,2)-a(:,2).*b(:,1)];
   end
+
 end

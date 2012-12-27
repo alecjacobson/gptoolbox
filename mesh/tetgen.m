@@ -25,8 +25,18 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
 
   % get a temporary file name prefix
   prefix = tempname;
-  off_filename = [prefix '.off'];
-  writeOFF(off_filename,SV,SF);
+  %off_filename = [prefix '.off'];
+  %writeOFF(off_filename,SV,SF);
+  
+  % Try to mesh with all faces included directly
+  Facets = [];
+  Facets.facets = mat2cell(SF,ones(size(SF,1),1),[size(SF,2)]);
+  Facets.boundary_marker = ones(numel(Facets.facets),1);
+  Facets.holes = cell(numel(Facets.facets),1);
+
+  prefix = tempname;
+  poly_filename = [prefix '.poly'];
+  writePOLY(poly_filename,SV,Facets,[]);
 
   % if there are internal constraint vertices then print them to a .node file
   if(internal_constraints)
@@ -34,7 +44,6 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
     writeNODE(inode_filename,IV);
   end
 
-  path_to_tetgen = '/usr/local/bin/tetgen';
   % graded: -q100, very-fine:-q1
   flags = '-Cp -q100 ';
   if(internal_constraints)
@@ -44,7 +53,7 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   %  flags = [flags ' -Y' '-V'];
   %end
   % call tetgen
-  command = [path_to_tetgen ' ' flags ' ' off_filename];
+  command = [path_to_tetgen ' ' flags ' ' poly_filename];
   fprintf(command);
   [status, result] = system(command);
   status
@@ -69,7 +78,7 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   V = readNODE(node_filename);
 
 
-  delete(off_filename);
+  delete(poly_filename);
   if(internal_constraints)
     delete(inode_filename);
   end

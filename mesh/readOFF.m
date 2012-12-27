@@ -36,8 +36,11 @@ function [V,F,UV,C,N] = readOFF( filename )
   if find(OFFheader=='N') OFFdim = OFFdim+3; OFF_N=1; end
   if find(OFFheader=='C') OFFdim = OFFdim+3; OFF_C=1; end
   if find(OFFheader=='S') OFFdim = OFFdim+2; OFF_ST=1; end
+
+  % eat any comments before
+  line = eat_comments(fp,'#');
   
-  d = fscanf( fp, '%d', 3);
+  d = sscanf( line, '%d', 3);
   nV = d(1); nF = d(2); nE = d(3);
   
   disp(sprintf('  - Reading %d vertices', nV));
@@ -66,9 +69,21 @@ function [V,F,UV,C,N] = readOFF( filename )
   
   if (nF ~= 0)
     disp(sprintf('  - Reading %d faces', nF));
-    temp = textscan( fp, '%d %d %d %d %d %d', nF );
-    size = temp{1}(1);
-    F = double (cell2mat( temp(2:size+1 ))) +1;
+    temp = textscan( fp, '%d %d %d %d %d %d %d %d %d %d %d', nF );
+    sz = temp{1}(1);
+    if all(sz == cell2mat(temp(1)))
+      F = double (cell2mat( temp(2:sz+1 ))) +1;
+    else
+      warning('Trivially triangulating high degree facets');
+      F = zeros(sum(temp{1}-2),3);
+      fi = 1;
+      for f = 1:size(temp{1},1)
+        for j = 3:temp{1}(f);
+          F(fi,:) = [temp{2}(f) temp{j}(f) temp{j+1}(f)]+1;
+          fi = fi+1;
+        end
+      end
+    end
   else
     F = [];
   end

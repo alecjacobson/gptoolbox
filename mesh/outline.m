@@ -40,7 +40,7 @@ function [O] = outline(F)
   %% extract edges that only occurred once
   %O = u(counts==1,:);
 
-  % build directedd adjacency matrix
+  % build directed adjacency matrix
   A = sparse(F,F(:,[2 3 1]),1);
   % Find single occurance edges
   [OI,OJ,OV] = find(A-A');
