@@ -152,7 +152,6 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
       % Perfectly symmetric
       F.Auu_sym = true;
     end
-    F.Auu_sym = false;
 
     % check if there are blank constraints
     F.blank_eq = ~any(Aeq(:,F.unknown),2);

@@ -12,9 +12,14 @@ function [ dblA ] = doublearea_intrinsic( l)
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch), and Daniele Panozzo
   %
 
-  sort(l,2,'descend');
+  l = sort(l,2,'descend');
   l1 = l(:,1); l2 = l(:,2); l3 = l(:,3);
-  assert(all((l3-(l1-l2)) >= 0))
+  % Kahan's assertion: "Miscalculating Area and Angles of a Needle-like
+  % Triangle" Section 2.
+  % http://www.cs.berkeley.edu/~wkahan/Triangle.pdf
+  if any(l3-(l1-l2)<0)
+    warning( 'Failed Kahans assertion');
+  end
   %% semiperimeters
   %s = (l1 + l2 + l3)*0.5;
   %% Heron's formula for area

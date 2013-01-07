@@ -27,28 +27,31 @@ function [VV,FF,i] = upsample(V,F)
 %   FF = [F(:,1) F(:,2) i; F(:,2) F(:,3) i; F(:,3) F(:,1) i];
 %   
 
-  % Add a new vertex at the midpoint of each edge
   
-  % compute midpoints (actually repeats, one midpoint per edge per face)
-  m = [ ...
-    (V(F(:,1),:) + V(F(:,2),:))/2; ...
-    (V(F(:,2),:) + V(F(:,3),:))/2; ...
-    (V(F(:,3),:) + V(F(:,1),:))/2];
-  % indices of midpoints
-  i3 = size(V,1) + (1:(size(m,1)/3))';
-  i1 = (size(V,1)+(size(m,1)/3)) + (1:(size(m,1)/3))';
-  i2 = (size(V,1)+(size(m,1)/3)+(size(m,1)/3)) + (1:(size(m,1)/3))';
-  % new face indices, 4 new faces for each original face. As if we simply
-  % ignored the duplicates in m and had appended m to V
-  FF = [ F(:,1) i3 i2 ; F(:,2) i1 i3 ; F(:,3) i2 i1 ; i1 i2 i3];
-  % find unique midpoints (potentially slow, though matlab is good at
-  % these)
-  [m,i,j] = unique(m,'rows');
-  % append unique midpoints to vertex positions
-  VV = [V ; m];
-  % reindex map from duplicate midpoint indices to unique midpoint indices
-  j = [(1:size(V,1))';j+size(V,1)];
-  % reindex faces
-  FF = j(FF);
+  switch size(F,2)
+  case 3
+    % Add a new vertex at the midpoint of each edge
+    % compute midpoints (actually repeats, one midpoint per edge per face)
+    m = [ ...
+      (V(F(:,1),:) + V(F(:,2),:))/2; ...
+      (V(F(:,2),:) + V(F(:,3),:))/2; ...
+      (V(F(:,3),:) + V(F(:,1),:))/2];
+    % indices of midpoints
+    i3 = size(V,1) + (1:(size(m,1)/3))';
+    i1 = (size(V,1)+(size(m,1)/3)) + (1:(size(m,1)/3))';
+    i2 = (size(V,1)+(size(m,1)/3)+(size(m,1)/3)) + (1:(size(m,1)/3))';
+    % new face indices, 4 new faces for each original face. As if we simply
+    % ignored the duplicates in m and had appended m to V
+    FF = [ F(:,1) i3 i2 ; F(:,2) i1 i3 ; F(:,3) i2 i1 ; i1 i2 i3];
+    % find unique midpoints (potentially slow, though matlab is good at
+    % these)
+    [m,i,j] = unique(m,'rows');
+    % append unique midpoints to vertex positions
+    VV = [V ; m];
+    % reindex map from duplicate midpoint indices to unique midpoint indices
+    j = [(1:size(V,1))';j+size(V,1)];
+    % reindex faces
+    FF = j(FF);
+  end
   
 end

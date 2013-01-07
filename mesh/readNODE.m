@@ -29,10 +29,10 @@ function V = readNODE(node_file_name)
   num_items = 1;
   % next each line contains coordinates (as many as there are dimensions)
   if(dim == 2)
-    parser = [parser '%f %f '];
+    parser = [parser '%lf %lf '];
     num_items = num_items + 2;
   elseif(dim == 3)
-    parser = [parser '%f %f %f '];
+    parser = [parser '%lf %lf %lf '];
     num_items = num_items + 3;
   else
     error(['Dimension must be 2 or 3, not ' num2str(dim)]);

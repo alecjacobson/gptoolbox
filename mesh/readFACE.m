@@ -1,4 +1,4 @@
-function [F] = readFACE(filename)
+function [F,B] = readFACE(filename)
   % READFACE
   % F = readFACE(filename)
   %
@@ -7,6 +7,7 @@ function [F] = readFACE(filename)
   %  filename  name of .face file
   % Output:
   %  F  list of triangle indices
+  %  B  list of boundary markers
   fp = fopen(filename,'r');
   header = fscanf(fp,'%d %d',2);
   sizeF = header(1);
@@ -19,9 +20,13 @@ function [F] = readFACE(filename)
   end
 
   F = fscanf(fp,parser,num_items*sizeF);
+  fclose(fp);
+
   F = reshape(F,num_items,sizeF)';
+  B = [];
+  if boundary_markers
+    B = F(:,5);
+  end
   % get rid of indices and boundary markers and make one indexed
   F = F(:,2:4);
-
-  fclose(fp);
 end

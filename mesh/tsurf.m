@@ -66,7 +66,7 @@ function t = tsurf(F,V,vertex_indices,face_indices)
 
   if(face_indices==1)
     FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
-    text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.8 .8 .8]);
+    text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
   elseif(face_indices)
     FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
     text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));

@@ -21,21 +21,27 @@ function [ E ] = edges(F)
 
   % all combinations of edges
   n = size(F,2);
-  I = [];
-  J = [];
-  for ii = 1:(n-1)
-    I = [I repmat(ii,1,n-ii)];
-    J = [J (ii+1):n];
-  end
-  assert(all(size(I) == size(J)));
 
-  % 
-  EI = F(:,I);
-  EI = EI(:);
-  EJ = F(:,J);
-  EJ = EJ(:);
+  e = nchoosek(1:n,2);
+  A = sparse(F(:,e(:,1)),F(:,e(:,2)),1,max(F(:)),max(F(:)));
+  [EI,EJ] = find(tril(A+A'));
+  E = [EJ EI];
 
-  E = unique(sort([EI EJ]')','rows');
+  %I = [];
+  %J = [];
+  %for ii = 1:(n-1)
+  %  I = [I repmat(ii,1,n-ii)];
+  %  J = [J (ii+1):n];
+  %end
+  %assert(all(size(I) == size(J)));
+
+  %% 
+  %EI = F(:,I);
+  %EI = EI(:);
+  %EJ = F(:,J);
+  %EJ = EJ(:);
+
+  %E = unique(sort([EI EJ]')','rows');
 
   %if(size(F,2) == 3)
   %  E = unique(sort( ...

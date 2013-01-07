@@ -146,7 +146,7 @@ function writePOLY(varargin)
       fs = cell2mat(cellfun(@size,F.facets,'UniformOutput',false));
       fhs = cell2mat(cellfun(@size,F.holes,'UniformOutput',false));
       % Try to print all at once if facets are all the same size
-      if all(fs(:,1) == 1) && all(fs(:,2) == fs(1,2)) && all(fhs(:,1) == 0)
+      if ~isempty(fs) && all(fs(:,1) == 1) && all(fs(:,2) == fs(1,2)) && all(fhs(:,1) == 0)
         % build format
         fformat = ['1 0 %d\n ' num2str(fs(1,2))];
         for p=1:fs(1,2)
