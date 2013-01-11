@@ -1,6 +1,7 @@
 function [F,B] = readFACE(filename)
   % READFACE
-  % F = readFACE(filename)
+  %
+  %[F,B] = readFACE(filename)
   %
   % Read triangular faces from a .face file
   % Input:

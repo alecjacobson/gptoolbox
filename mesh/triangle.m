@@ -164,7 +164,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
     params = [params 'p'];
     if ~triangulate_existing
       % print poly file
-      writePOLY([prefix '.poly'],[],PE,PH);
+      writePOLY_triangle([prefix '.poly'],[],PE,PH);
     end
   end
 
