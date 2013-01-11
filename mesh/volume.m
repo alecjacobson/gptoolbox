@@ -17,7 +17,8 @@ function [v,sv] = volume(V,T)
   % http://en.wikipedia.org/wiki/Tetrahedron#Volume
   % volume for each tetrahedron
 
-  v = dot((a-d),cross2(b-d,c-d),2)./6./4;
+  % Minus sign so that typical tetgen mesh has positive volume
+  v = -dot((a-d),cross2(b-d,c-d),2)./6./4;
   function r = cross2(a,b)
     % Optimizes r = cross(a,b,2), that is it computes cross products per row
     % Faster than cross if I know that I'm calling it correctly
