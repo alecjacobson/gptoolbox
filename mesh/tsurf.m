@@ -57,19 +57,31 @@ function t = tsurf(F,V,vertex_indices,face_indices)
     return;
   end
 
-  t_copy = trisurf(F,V(:,1),V(:,2),V(:,3));
-
+  switch size(F,2)
+  case 3
+    t_copy = trisurf(F,V(:,1),V(:,2),V(:,3));
+    if(face_indices==1)
+      FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
+    elseif(face_indices)
+      FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
+    end
+  case 4
+    t_copy = tetramesh(F,V,'FaceAlpha',0.5);
+    if(face_indices==1)
+      FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:)+V(F(:,4),:))./3;
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
+    elseif(face_indices)
+      FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:)+V(F(:,4),:))./3;
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
+    end
+    set(gcf,'Renderer','OpenGL');
+  end
+  
   % if 2d then set to view (x,y) plane
   if( dim == 2)
     view(2);
-  end
-
-  if(face_indices==1)
-    FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
-    text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
-  elseif(face_indices)
-    FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
-    text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
   end
 
   if(vertex_indices==1)

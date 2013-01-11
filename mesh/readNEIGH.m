@@ -8,9 +8,11 @@ function N = readNEIGH(filename)
   %   filename  path to .neigh file
   % Outputs:
   %   N  #simplices by #size-of-simplex neighborhood information (-1) indicates
-  %     boundary. T(i,j) indicates the neighbor to the jth face of the ith tet
+  %     boundary. T(i,j) *should* indicate the neighbor to the jth face of the
+  %     ith tet. *However* tetgen does not seem consistent. Consider
+  %     post-processing with fixNEIGH.m
   %
-  % See also: tt, tetgen, readNODE, readELE
+  % See also: tt, tetgen, readNODE, readELE, fixNEIGH
   %
 
 

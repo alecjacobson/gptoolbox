@@ -130,6 +130,7 @@ function [s,r] = medit(varargin)
   writeMESH(TEMP_MESH_FILE,V,T,F);
 
   command = [MEDIT_PATH ' ' TEMP_MESH_FILE ' ' TEMP_MEDIT_FILE];
+  command
   if ~wait
     command = [command ' &'];
   end

@@ -39,7 +39,7 @@ function M = massmatrix3(V,T, type)
     %% http://en.wikipedia.org/wiki/Tetrahedron#Volume
     %% volume for each tetrahedron
     %v = repmat(abs(dot((a-d),cross2(b-d,c-d),2))./6./4,1,4);
-    v = repmat(volume(V,T),1,4);
+    v = repmat(abs(volume(V,T)),1,4);
 
     % only diagonal elements
     i = T;

@@ -8,7 +8,8 @@ function [ dblA ] = doublearea( V, F )
   %  V #V x dim matrix of vertex coordinates
   %  F #F x 3  matrix of indices of triangle corners
   % Outputs:
-  %  dblA   #F list of twice the area of each corresponding face
+  %  dblA   #F list of twice the area of each corresponding face. For dim = 2
+  %    this is a signed quantity
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch), and Daniele Panozzo
   %
