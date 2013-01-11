@@ -60,34 +60,38 @@ function writePOLY_pyramid(poly_file_name,V,E,F,H)
   fprintf(poly_file_handle,'# Part 2 - facet list\n');
   % for now, always include boundary markers
   % [num facets] [boundary markers]
-  assert(isempty(F.facets) || iscell(F.facets));
-  fprintf(poly_file_handle,'%d %d\n',numel(F.facets),1);
-  fs = cell2mat(cellfun(@size,F.facets,'UniformOutput',false));
-  % Try to print all at once if facets are all the same size
-  if ~isempty(fs) && all(fs(:,1) == 1) && all(fs(:,2) == fs(1,2))
-    % build format
-    fformat = [ ...
-      ... % index and size
-      '%d ' num2str(fs(1,2)) ...
-      ... % facet indices into segments
-      repmat(' %d',1,fs(1,2)) ...
-      ... % boundary markers
-      repmat(' %d',1,size(F.boundary_marker,2)) '\n'];
-    % print all at once
-    fprintf(poly_file_handle,fformat, ...
-      [1:size(F.facets,1);[cell2mat(F.facets) F.boundary_marker]']);
+  assert(isempty(F) || isempty(F.facets) || iscell(F.facets));
+  if isempty(F)
+    fprintf(poly_file_handle,'0\n');
   else
-    % irregular face valences
-    for f=1:numel(F.facets)
-      % 1d list
-      assert(size(F.facets{f},1)==1 || size(F.facets{f},2) == 1);
-      fprintf('%d %d',f, numel(F.facets{f}));
-      % print indices
-      for p=1:numel(F.facets{f})
-        fprintf(poly_file_handle,' %d',F.facets{f}(p));
+      fprintf(poly_file_handle,'%d %d\n',numel(F.facets),1);
+      fs = cell2mat(cellfun(@size,F.facets,'UniformOutput',false));
+      % Try to print all at once if facets are all the same size
+      if ~isempty(fs) && all(fs(:,1) == 1) && all(fs(:,2) == fs(1,2))
+          % build format
+          fformat = [ ...
+              ... % index and size
+              '%d ' num2str(fs(1,2)) ...
+              ... % facet indices into segments
+              repmat(' %d',1,fs(1,2)) ...
+              ... % boundary markers
+              repmat(' %d',1,size(F.boundary_marker,2)) '\n'];
+          % print all at once
+          fprintf(poly_file_handle,fformat, ...
+              [1:size(F.facets,1);[cell2mat(F.facets) F.boundary_marker]']);
+      else
+          % irregular face valences
+          for f=1:numel(F.facets)
+              % 1d list
+              assert(size(F.facets{f},1)==1 || size(F.facets{f},2) == 1);
+              fprintf('%d %d',f, numel(F.facets{f}));
+              % print indices
+              for p=1:numel(F.facets{f})
+                  fprintf(poly_file_handle,' %d',F.facets{f}(p));
+              end
+              fprintf(poly_file_handle,'\n');
+          end
       end
-      fprintf(poly_file_handle,'\n');
-    end
   end
 
   % [num holes]
