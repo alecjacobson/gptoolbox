@@ -29,6 +29,7 @@ function [VV,FF,i] = upsample(V,F)
 
   
   switch size(F,2)
+  % http://mathoverflow.net/questions/28615/tetrahedron-splitting-subdivision
   case 3
     % Add a new vertex at the midpoint of each edge
     % compute midpoints (actually repeats, one midpoint per edge per face)

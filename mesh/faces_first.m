@@ -20,22 +20,12 @@ function [RV,RT,RF,IM] = faces_first(V,T,F)
   %    and RV(IM,:) = V
   %
 
-  % get list of unique vertex indices that occur in faces
-  U = unique(F(:));
-  % get list of vertices that do not occur in faces
-  NU = (1:size(V,1))';
-  NU = NU(~ismember(NU,U));
-  assert((size(U,1) + size(NU,1)) == size(V,1));
-  % allocate space for an indexmap so that IM[i] gives new index of vertex i
-  IM = zeros(size(V,1),1);
-  % reindex vertices that occur in faces to be first
-  IM(U) = 1:size(U,1);
-  % reindex vertices that do not occur in faces to come after those that do
-  IM(NU) = size(U,1) + (1:size(NU,1));
+  [~,IM] = remove_unreferenced(V,F(:));
+
+  % reorder vertices
+  RV(IM,:) = V;
   % reindex faces
   RF = IM(F);
   % reindex tetrahedra
   RT = IM(T);
-  % reorder vertices
-  RV(IM,:) = V;
 end
