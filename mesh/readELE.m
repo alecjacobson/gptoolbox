@@ -8,7 +8,7 @@ function E = readELE(ele_file_name)
   %   ele_file_name  path to .ele file
   %
   % Output:
-  %   E  list of element indices (1-indexed), could be triangles or tets based
+  %   E  list of element indices, could be triangles or tets based
   %     on header of .ele file
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
@@ -45,7 +45,7 @@ function E = readELE(ele_file_name)
   E = fscanf(ele_file_handle,parser,[num_items, num_e])';
   fclose(ele_file_handle);
 
-  % get rid of row indices and make one indexed
-  E = E(:,2:end) + 1;
+  % get rid of row indices and assume already one-indexed
+  E = E(:,2:end);
 end
 

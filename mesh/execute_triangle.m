@@ -23,10 +23,12 @@ function [V,F] = execute_triangle(command_line_args, poly_file_name_prefix)
     error(result);
   end
   F = readELE([poly_file_name_prefix '.1.ele']);
-  V = readNODE([poly_file_name_prefix '.1.node']);
+  [V,I] = readNODE([poly_file_name_prefix '.1.node']);
   % Triangle likes to use 1-indexed though .ele reader is 0-indexed
   if(min(F(:)) > 1 && max(F(:)) > size(V,1))
     F = F-1;
+  elseif min(F(:)) == 0 && max(F(:)) < size(V,1)
+    F = F+1;
   end
   delete( ...
     [poly_file_name_prefix '.1.node'],...

@@ -76,6 +76,12 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   % .poly file
   T = readELE(ele_filename);
   V = readNODE(node_filename);
+  if min(T(:)) == 0 && max(T(:))<size(V,1)
+    % make 1-indexed
+    T = T + 1;
+  else if min(T(:)) >= 1
+    warning('min(T) >= 1, leaving indices as is');
+  end
 
 
   delete(poly_filename);

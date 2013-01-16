@@ -28,6 +28,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   %     'NoEdgeSteiners' prohibits insertion of Steiner points on any segment, 
   %       including internal segments.
   %     'MaxSteiners' specifies max number of allowed Steiner points.
+  %     'Flags' specifies flags string explicitly
   % Outputs:
   %   TV  #TV by 2 list of mesh vertices
   %   TF  #TF by 3 list of triangle indices
@@ -62,6 +63,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   refine_mesh = false;
   neighbors = nargout >= 3;
   voronoi = nargout >= 4;
+  flags = '';
 
   % parse inputs
   if nargin >=1 && ischar(varargin{1})
@@ -114,6 +116,10 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
       no_boundary_steiners = true;
     case 'NoEdgeSteiners'
       no_edge_steiners = true;
+    case 'Flags'
+      ii = ii + 1;
+      assert(ii <= nargin);
+      flags = varargin{ii};
     case 'MaxSteiners'
       ii = ii + 1;
       assert(ii <= nargin);
@@ -200,6 +206,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   if(neighbors)
     params = [params 'n'];
   end
+  params = [params ' ' flags];
 
   path_to_triangle = '/opt/local/bin/triangle';
   command = [path_to_triangle ' ' params ' ' prefix];
@@ -212,11 +219,13 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   end
 
   % read outputs from files
-  TV = readNODE([prefix '.1.node']);
+  [TV,I] = readNODE([prefix '.1.node']);
   TF = readELE([prefix '.1.ele']);
   % Triangle likes to use 1-indexed though .ele reader is 0-indexed
   if(( min(TF(:)) > 1) && (max(TF(:)) > size(TV,1)))
     TF = TF-1;
+  elseif min(TF(:)) == 0 && max(TF(:)) < size(TV,1)
+    TF = TF+1;
   end
 
   if isempty(TF) && ~quiet
@@ -240,7 +249,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   end
 
   if(voronoi)
-    VV = readNODE([prefix '.1.v.node']);
+    [VV] = readNODE([prefix '.1.v.node']);
     [VE,VRP,VRD] = readEDGE([prefix '.1.v.edge']);
   end
 

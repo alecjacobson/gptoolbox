@@ -93,12 +93,19 @@ function K = cotmatrix3(V,T)
   j = j(:);
   Kimperfect = sparse(i,j,K,size(V,1),size(V,1));
 
+  
   % K should be square symmetric, up to double precision
-  assert(normest(Kimperfect-Kimperfect') < 1e-14);
+  sym = normest(Kimperfect-Kimperfect');
+  if sym > 1e-14
+    warning('normest(K-K^T) = (%g) < 1e-14',sym);
+  end
   % force K to be perfectly symmetric, add upper triangle to transpose of
   % upper triangle
   K  = triu(Kimperfect) + triu(Kimperfect,1)';
-  assert(normest(Kimperfect-K)<1e-14);
+  force = Kimperfect-K;
+  if force > 1e-14
+    warning('normest(K_forced_sym-K) = (%g) < 1e-14',force);
+  end
   % K should be square (perfectly) symmetric
   assert(isequal(K,K'));
 

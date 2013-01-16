@@ -13,6 +13,9 @@ function [s,r] = medit(varargin)
   %     'Wait'  followed by boolean whether to wait for completion {true}
   %     'Data'  followed by #V|#F+#T data values {[]}
   %     'Subplot' follwed by [x y i] defining subplot window (see subplot)
+  %     'Edges' follwed by E list of edges to write along with mesh (see
+  %       writeMESH)
+  %     'Palette'  followed by list (up to 5) iso values
   % Outputs:
   %   s,r  result of system call
   %
@@ -22,7 +25,9 @@ function [s,r] = medit(varargin)
   F = varargin{3};
   wait = true;
   D = [];
+  E = [];
   subp = [];
+  palette = [];
 
   ii = 4;
   while(ii<=nargin)
@@ -35,15 +40,25 @@ function [s,r] = medit(varargin)
       ii = ii + 1;
       assert(ii<=nargin);
       D = varargin{ii};
+    case 'Edges'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      E = varargin{ii};
     case 'Subplot'
       ii = ii + 1;
       assert(ii<=nargin);
       subp = varargin{ii};
+    case 'Palette'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      palette = varargin{ii};
     otherwise
       error(['Unsupported parameter: ' varargin{ii}]);
     end
     ii = ii+1;
   end
+
+  assert(numel(palette)<=5);
 
   if ~exist('wait','var')
     wait = true;
@@ -84,6 +99,13 @@ function [s,r] = medit(varargin)
     fprintf(f,'WindowSize %d %d\n',round(w),round(h));
     fprintf(f,'WindowPosition %d %d\n',round(j),round(i));
   end
+
+  if ~isempty(palette)
+    fprintf(f,'Palette');
+    fprintf(f,' %g',palette(:));
+    fprintf(f,'\n');
+  end
+
 
   fclose(f);
 
@@ -127,7 +149,7 @@ function [s,r] = medit(varargin)
   end
 
   % write temporary mesh
-  writeMESH(TEMP_MESH_FILE,V,T,F);
+  writeMESH(TEMP_MESH_FILE,V,T,F,E);
 
   command = [MEDIT_PATH ' ' TEMP_MESH_FILE ' ' TEMP_MEDIT_FILE];
   command
