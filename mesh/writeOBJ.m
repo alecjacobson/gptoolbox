@@ -16,23 +16,26 @@ function writeOBJ(filename, V,F,UV,TF,N,NF)
 disp(['writing: ',filename]);
 f = fopen( filename, 'w' );
 
-for k=1:size(V,1)
-    fprintf( f, 'v %f %f %f\n', V(k,1), V(k,2), V(k,3) );
-end
+assert(size(V,2) == 3);
+fprintf( f, 'v %0.17g %0.17g %0.17g\n', V');
 
 hasN =  exist('N','var') && ~isempty(N);
 hasUV = exist('UV','var') && ~isempty(UV);
 
 if hasUV
-    for k=1:size(UV,1)
-        fprintf( f, 'vt %f %f\n', UV(k,1), UV(k,2) );
+    switch size(UV,2)
+    case 2
+      fprintf( f, 'vt %0.17g %0.17g\n', UV');
+    case 3
+      fprintf( f, 'vt %0.17g %0.17g %0.17g\n', UV');
     end
 end
 
 if hasN
-    for k=1:size(V,1)
-        fprintf( f, 'vn %f %f %f\n', N(k,1), N(k,2), N(k,3) );
-    end
+    %for k=1:size(N,1)
+    %    fprintf( f, 'vn %f %f %f\n', N(k,1), N(k,2), N(k,3) );
+    %end
+    fprintf( f, 'vn %0.17g %0.17g %0.17g\n', N');
 end
 
 if hasUV && (~exist('TF') || isempty(TF))

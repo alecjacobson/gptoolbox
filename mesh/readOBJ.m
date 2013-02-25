@@ -1,7 +1,7 @@
 function [V,F,UV,TF,N,NF] = readOBJ( filename )
   % READOBJ reads an OBJ file with vertex/face information
   %
-  % [V,F,UV,TF] = readOBJ( filename )
+  % [V,F,UV,TF,N,NF] = readOBJ( filename )
   %
   % Input:
   %  filename  path to .obj file
@@ -28,23 +28,23 @@ F = [];
 TF = [];
 N = [];
 NF = [];
+triangulated = false;
 fp = fopen( filename, 'r' );
 type = fscanf( fp, '%s', 1 );
+count = 0;
 while strcmp( type, '' ) == 0
+    line = fgets(fp);
     if strcmp( type, 'v' ) == 1
-        v = fscanf( fp, '%g %g %g\n' );
+        v = sscanf( line, '%lf %lf %lf' );
         V = [V; v'];
     elseif strcmp( type, 'vt')
-        v = fscanf( fp, '%g %g %g\n' );
+        v = sscanf( line, '%f %f %f' );
         UV = [UV; v'];
     elseif strcmp( type, 'vn')
-        n = fscanf( fp, '%g %g %g\n' );
+        n = sscanf( line, '%f %f %f' );
         N = [N; n'];
     elseif strcmp( type, 'f' ) == 1
-        line = fgets(fp);
         [t, count] = sscanf(line, '%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d');
-        tf = -ones(3,1);
-        nf = -ones(3,1);
         if (count>2)
             tf = t(2:3:end);
             nf = t(3:3:end);
@@ -54,21 +54,36 @@ while strcmp( type, '' ) == 0
             if (count>2)
                 tf = t(2:2:end);
                 t = t(1:2:end);
+                nf = -ones(numel(t),1);
             else
               [t, count] = sscanf(line, '%d//%d %d//%d %d//%d %d//%d %d//%d');
               if (count>2)
                   nf = t(2:2:end);
                   t = t(1:2:end);
+                  tf = -ones(numel(t),1);
               else
                   [t, count] = sscanf( line, '%d %d %d %d %d %d %d %d %d %d %d\n' );
+                  tf = -ones(numel(t),1);
+                  nf = -ones(numel(t),1);
               end
             end
         end
-        F = [F; t'];
-        TF = [TF; tf'];
-        NF = [NF; nf'];
+        assert(numel(t) == numel(tf));
+        assert(numel(t) == numel(nf));
+        if numel(t) > 3
+          if ~triangulated
+            warning('Trivially triangulating high degree facets');
+          end
+          triangulated = true;
+        end
+        for j = 2:numel(t)-1
+          F = [F; t([1 j j+1])'];
+          TF = [TF; tf([1 j j+1])'];
+          NF = [NF; nf([1 j j+1])'];
+        end
     elseif strcmp( type, '#' ) == 1
-        fscanf( fp, '%s\n', 1 );
+        %fscanf( fp, '%s\n', 1 );
+        % ignore line
     end
     type = fscanf( fp, '%s', 1 );
 end

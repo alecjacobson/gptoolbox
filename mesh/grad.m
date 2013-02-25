@@ -5,10 +5,10 @@ function [G] = grad(V,F)
   % Compute the numerical gradient operator
   %
   % Inputs:
-  %   V  #vertices by 3 list of mesh vertex positions
+  %   V  #vertices by dim list of mesh vertex positions
   %   F  #faces by 3 list of mesh face indices
   % Outputs:
-  %   G  #faces*3 by #V Gradient operator
+  %   G  #faces*dim by #V Gradient operator
   %
   % Example:
   %   L = cotmatrix(V,F)

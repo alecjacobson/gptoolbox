@@ -36,7 +36,7 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
 
   prefix = tempname;
   poly_filename = [prefix '.poly'];
-  writePOLY(poly_filename,SV,Facets,[]);
+  writePOLY_tetgen(poly_filename,SV,Facets,[]);
 
   % if there are internal constraint vertices then print them to a .node file
   if(internal_constraints)

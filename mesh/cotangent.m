@@ -3,6 +3,9 @@ function C = cotangent(V,F)
   % 
   % C = cotangent(V,F)
   %
+  % Known bugs:
+  %   This seems to return 0.5*C, also seems to be signed funny
+  %
   % Inputs:
   %   V  #V by dim list of rest domain positions
   %   F  #F by {3|4} list of {triangle|tetrahedra} indices into V
