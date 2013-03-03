@@ -77,6 +77,8 @@ function t = tsurf(F,V,vertex_indices,face_indices)
       text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
     end
     set(gcf,'Renderer','OpenGL');
+  otherwise
+    error(['Unsupported simplex size: size(F,2) = ' num2str(size(F,2))]);  
   end
   
   % if 2d then set to view (x,y) plane

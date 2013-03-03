@@ -88,10 +88,12 @@ function [V,T,F] = regular_tetrahedral_mesh(nx,ny,nz)
 
   % replace 
 
-  % convenient to have these reordered so that vertices that occur only on the
-  % surface come first
-  [V,T,F] = faces_first(V,T,F);
-  %N = sparse([IM(I(C)) IM(J(C))],[IM(J(C)) IM(I(C))],[C(C) C(C)]*0.5,size(C,1),size(C,1));
+  % This is a bad idea because then memory layout doesn't match regular grid
+  % (so finite difference won't match)
+  %% convenient to have these reordered so that vertices that occur only on the
+  %% surface come first
+  %[V,T,F] = faces_first(V,T,F);
+  %%N = sparse([IM(I(C)) IM(J(C))],[IM(J(C)) IM(I(C))],[C(C) C(C)]*0.5,size(C,1),size(C,1));
   
 end
 
