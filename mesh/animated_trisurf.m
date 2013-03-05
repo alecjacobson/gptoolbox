@@ -44,10 +44,16 @@ function h = animated_trisurf(F,X,Y,Z)
 
   % set animating to false
   animating = false;
+  % current frame
   fi = 1;
+  % current frame delta
+  fd = 1;
   h = trisurf(F(:,:,fi),X(:,fi),Y(:,fi),Z(:,fi), ...
     'FaceColor','interp', ...
     'ButtonDownFcn',@onmeshdown);
+
+  t = timer('TimerFcn',@increment_if_animating,'Period',0.03,'ExecutionMode','fixedDelay');
+  start(t);
 
 
   % handle simple case where there's only a single frame
@@ -69,46 +75,49 @@ function h = animated_trisurf(F,X,Y,Z)
     switch down_type
     case 'left'
       animating = ~animating;
-      % repeat until animation is stopped or plot is closed
-      while(animating && ishandle(h))
-        % determine if we're going up or down
-        if( fi < (fc/2+1) )
-          frames = fi:fc;
-        else
-          frames = fi:-1:1;
-        end
-        % animate from unbounded to bounded
-        for fi = frames
-          % always check that handle still exists before updating
-          if ishandle(h)
-            set(h,'Vertices',[ ...
-              X(:,mod(fi-1,size(X,2))+1) ...
-              Y(:,mod(fi-1,size(Y,2))+1) ...
-              Z(:,mod(fi-1,size(Z,2))+1)]);
-            if size(F,3) == fc
-              set(h,'Faces',F(:,:,mod(fi-1,fc)+1));
-            end
-            set(h,'CData',Z(:,mod(fi-1,size(Z,2))+1));
-            drawnow
-          else
-            break;
-          end
-          % pause a little between intervals to give matlab a chance to draw
-          pause(0.1);
-        end
+    end
+  end
 
-        % pause a little longer when reached bounded or unbounded solution this
-        % pause may be necessary to allow matlab to process second click: to
-        % stop the animation
-        pause(0.5);
+  function increment_if_animating(src,ev)
+    if animating
+      increment();
+    elseif ~ishandle(h)
+      stop(t);
+      delete(t);
+      return;
+    end
+  end
 
+  function increment()
+    % if plot is closed then delete timer
+    if ~ishandle(h)
+      stop(t);
+      delete(t);
+      return;
+    end
+
+    fi = fi+fd;
+    if fi <= 1
+      fd = 1;
+      fi = 1;
+      animating = false;
+    elseif fi >= fc
+      fd = -1;
+      fi = fc;
+      animating = false;
+    end
+
+    % always check that handle still exists before updating
+    if ishandle(h)
+      set(h,'Vertices',[ ...
+        X(:,mod(fi-1,size(X,2))+1) ...
+        Y(:,mod(fi-1,size(Y,2))+1) ...
+        Z(:,mod(fi-1,size(Z,2))+1)]);
+      if size(F,3) == fc
+        set(h,'Faces',F(:,:,mod(fi-1,fc)+1));
       end
-    case 'right'
-      %% increment current handle index
-      %ci = mod(ci,size(W,2))+1;
-      %% update plot
-      %set(h,'Vertices',[V(:,1:2) W(:,ci,ii)]);
-      %set(h,'CData',W(:,ci,ii));
+      set(h,'CData',Z(:,mod(fi-1,size(Z,2))+1));
+      drawnow
     end
   end
 
