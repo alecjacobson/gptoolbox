@@ -32,10 +32,10 @@ function L = cotmatrix(V,F)
   i1 = F(1,:); i2 = F(2,:); i3 = F(3,:); 
   % #F x 3 matrices of triangle edge vectors, named after opposite vertices
   v1 = V(i3,:) - V(i2,:);  v2 = V(i1,:) - V(i3,:); v3 = V(i2,:) - V(i1,:);
-  % computing areas 
+  % computing *unsigned* areas 
   if size(V,2) == 2
       % 2d vertex data
-      dblA = v1(:,1).*v2(:,2)-v1(:,2).*v2(:,1);
+      dblA = abs(v1(:,1).*v2(:,2)-v1(:,2).*v2(:,1));
   elseif size(V,2) == 3
       %n  = cross(v1,v2,2);  dblA  = multinorm(n,2);
 

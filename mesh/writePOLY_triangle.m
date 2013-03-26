@@ -54,6 +54,9 @@ function writePOLY_triangle(varargin)
     else
       dim = size(E,2);
     end
+    if isempty(E)
+        dim = 2;
+    end
   end
 
   if dim ~= 2

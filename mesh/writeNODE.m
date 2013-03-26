@@ -32,7 +32,7 @@ function writeNODE(filename,V,varargin)
   fp = fopen(filename,'w');
   % attributes are not supported
   % number of vertices  number of dimensions  0 0
-  fprintf(fp,'%d %d 0 0\n',size(V));
+  fprintf(fp,'%d %d 0 1\n',size(V));
   % .node is 1-indexed
   % build format string
   str = '%d';
@@ -40,7 +40,7 @@ function writeNODE(filename,V,varargin)
     % use 0.16f so that triangle reproduces input
     str = [str ' %0.16f'];
   end
-  str = [str '\n'];
+  str = [str ' 0\n'];
   indices = (1:size(V,1)) + (min_index-1);
   fprintf(fp,str,[indices' , V]');
   fclose(fp);
