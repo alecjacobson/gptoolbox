@@ -1,9 +1,21 @@
 function K = cotmatrix3(V,T)
   % COTMATRIX3 computes cotangent matrix for 3D tetmeshes, area/mass terms
-  % already cancelled out: laplacian mesh operator Following definition that
+  % already cancelled out: laplacian mesh operator 
+  %
+  % This is distinctly NOT following definition that
   % appears in the appendix of: ``Interactive Topology-aware Surface
   % Reconstruction,'' by Sharf, A. et al
   % http://www.cs.bgu.ac.il/~asharf/Projects/InSuRe/Insure_siggraph_final.pdf
+  %
+  % Instead it is a purely geometric construction. Find more details in Section
+  % 1.1 of "Algorithms and Interfaces for Real-Time Deformation of 2D and 3D
+  % shapes" [Jacobson 2013]
+  %
+  % ND derivation given in "A MONOTONE FINITE ELEMENT SCHEME FOR
+  % CONVECTION-DIFFUSION EQUATIONS" [Xu & ZIKATANOV 1999]
+  %
+  % 3D derivation given in "Aspects of unstructured grids and finite-volume
+  % solvers for the Euler and Navier-Stokes equations" [Barth 1992]
   %
   % K = cotmatrix(V,T)
   % Inputs:
@@ -20,102 +32,29 @@ function K = cotmatrix3(V,T)
   if(size(T,1) == 4 && size(T,2) ~=4)
     warning('T seems to be 4 by #T, it should be #T by 4');
   end
-  T = T';
-
-  % Jacobian 
-  % size(T,2) stacked jacobians (one per tetrahedron)
-  J = [ ...
-    V(T(1,:),1) - V(T(4,:),1), ...
-      V(T(2,:),1) - V(T(4,:),1), ...
-      V(T(3,:),1) - V(T(4,:),1), ...
-    V(T(1,:),2) - V(T(4,:),2), ...
-      V(T(2,:),2) - V(T(4,:),2), ...
-      V(T(3,:),2) - V(T(4,:),2), ...
-    V(T(1,:),3) - V(T(4,:),3), ...
-      V(T(2,:),3) - V(T(4,:),3), ...
-      V(T(3,:),3) - V(T(4,:),3), ...
-    ];
-  i = [ 
-    (3*((1:size(T,2))-1)+1)', ...
-    (3*((1:size(T,2))-1)+1)', ...
-    (3*((1:size(T,2))-1)+1)', ...
-    (3*((1:size(T,2))-1)+2)', ...
-    (3*((1:size(T,2))-1)+2)', ...
-    (3*((1:size(T,2))-1)+2)', ...
-    (3*((1:size(T,2))-1)+3)', ...
-    (3*((1:size(T,2))-1)+3)', ...
-    (3*((1:size(T,2))-1)+3)', ...
-    ];
-  j = [ 
-    (3*((1:size(T,2))-1)+1)', ...
-    (3*((1:size(T,2))-1)+2)', ...
-    (3*((1:size(T,2))-1)+3)', ...
-    (3*((1:size(T,2))-1)+1)', ...
-    (3*((1:size(T,2))-1)+2)', ...
-    (3*((1:size(T,2))-1)+3)', ...
-    (3*((1:size(T,2))-1)+1)', ...
-    (3*((1:size(T,2))-1)+2)', ...
-    (3*((1:size(T,2))-1)+3)', ...
-    ];
-  % sparse jacobian blocks along diagonal
-  Jsp = sparse(i,j,J);
-
-  % stacked right hand side
-  rhs = [1,0,0,-1;0,1,0,-1;0,0,1,-1];
-  rhs = repmat(rhs,size(T,2),1);
-
-  % stacked E matrices
-  E = Jsp'\rhs;
-  detJ = ...
-    J(:,1).*J(:,5).*J(:,9) + ...
-    J(:,2).*J(:,6).*J(:,7) + ...
-    J(:,3).*J(:,4).*J(:,8) - ...
-    J(:,1).*J(:,6).*J(:,8) - ...
-    J(:,2).*J(:,4).*J(:,9) - ...
-    J(:,3).*J(:,5).*J(:,7);
-
-  i = [(1:size(E,1))', (1:size(E,1))', (1:size(E,1))', (1:size(E,1))'];
-  j = floor((i-1)./3)*4 + [ones(size(E,1),1), 2*ones(size(E,1),1), 3*ones(size(E,1),1), 4*ones(size(E,1),1)];
-  % stacked E' * E matrices
-  ETE = sparse(i,j,E)'*E;
-
-  detJ = repmat(reshape(repmat(detJ',4,1),size(ETE,1),1),1,4);
-  % Stacked K matrices
-  K = detJ.*ETE./6;
-
-  % at this point every 4x4 block in K should be symmetric
-
-  % Sum up Ks into full size(V,1) by size(V,1) sparse matrix
-  % row indices in big K for each value in stacked K
-  i = repmat(T(:),4,1);
-  % col indices in big K for each value in stacked K
-  j = T(:,repmat(1:size(T,2),4,1))';
-  j = j(:);
-  Kimperfect = sparse(i,j,K,size(V,1),size(V,1));
-
-  
-  % K should be square symmetric, up to double precision
-  sym = normest(Kimperfect-Kimperfect');
-  if sym > 1e-14
-    warning('normest(K-K^T) = (%g) < 1e-14',sym);
-  end
-  % force K to be perfectly symmetric, add upper triangle to transpose of
-  % upper triangle
-  K  = triu(Kimperfect) + triu(Kimperfect,1)';
-  force = Kimperfect-K;
-  if force > 1e-14
-    warning('normest(K_forced_sym-K) = (%g) < 1e-14',force);
-  end
-  % K should be square (perfectly) symmetric
-  assert(isequal(K,K'));
-
-  % perhaps K should be multiplied by 2 to match finite difference stencil and
-  % the output of cotmatrix (2D)
-
+  % number of mesh vertices
+  n = size(V,1);
+  % cotangents of dihedral angles
+  C = cotangent(V,T);
+  %% TODO: fix cotangent to have better accuracy so this isn't necessary
+  %% Zero-out almost zeros to help sparsity
+  %C(abs(C)<10*eps) = 0;
+  % add to entries
+  K = sparse(T(:,[2 3 1 4 4 4]),T(:,[3 1 2 1 2 3]),C,n,n);
+  % add in other direction
+  K = K + K';
+  % diagonal is minus sum of offdiagonal entries
+  K = K - diag(sum(K,2));
+  %% divide by factor so that regular grid laplacian matches finite-difference
+  %% laplacian in interior
+  %K = K./(4+2/3*sqrt(3));
+  %% multiply by factor so that matches legacy laplacian in sign and
+  %% "off-by-factor-of-two-ness"
+  %K = K*0.5;
   % flip sign to match cotmatix.m
   if(all(diag(K)>0))
     warning('Flipping sign of cotmatrix3, so that diag is negative');
     K = -K;
   end
-
 end
+
