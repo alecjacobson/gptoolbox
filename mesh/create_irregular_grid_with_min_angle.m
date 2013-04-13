@@ -90,7 +90,7 @@ function [UV,F, res, edge_norms] = ...
   % print to .poly file
   %temp_file_name_prefix = '.temp';
   temp_file_name_prefix = tempname;
-  writePOLY([temp_file_name_prefix '.poly'],UV(:,1:2), boundary_segments,[]);
+  writePOLY_triangle([temp_file_name_prefix '.poly'],UV(:,1:2), boundary_segments,[]);
   % execute triangle on .poly file
   preserve_boundary = '';
   if(yWrap || xWrap)
