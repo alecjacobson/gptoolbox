@@ -51,6 +51,10 @@ function h = animated_trisurf(F,X,Y,Z)
   h = trisurf(F(:,:,fi),X(:,fi),Y(:,fi),Z(:,fi), ...
     'FaceColor','interp', ...
     'ButtonDownFcn',@onmeshdown);
+  hold on;
+  p = plot3([max(X(:));min(X(:))],[max(Y(:));min(Y(:))],[max(Z(:));min(Z(:))]);
+  hold off;
+  set(p,'Visible','off');
 
   t = timer('TimerFcn',@increment_if_animating,'Period',0.03,'ExecutionMode','fixedDelay');
   start(t);

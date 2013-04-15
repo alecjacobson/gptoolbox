@@ -170,7 +170,12 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
     F.Auu_pd = false;
     if F.Auu_sym && neq == 0
       % F.S'*Auu*F.S = F.L*F.L'
-      [F.L,p,F.S] = chol(Auu,'lower');
+      if issparse(Auu)
+        [F.L,p,F.S] = chol(Auu,'lower');
+      else
+        [F.L,p] = chol(Auu,'lower');
+        F.S = eye(size(F.L));
+      end
       F.Auu_pd = p==0;
     end
 

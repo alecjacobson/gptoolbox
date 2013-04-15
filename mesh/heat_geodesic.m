@@ -101,10 +101,21 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   % number of domain vertices
   n = size(V,1);
 
-  L = cotmatrix(V,F);
-  % "where 𝐴𝑖 is one third the area of all triangles incident on vertex ...
-  % where 𝐴 ∈ R|𝑉|×|𝑉| is a diagonal matrix containing the vertex areas"
-  M = massmatrix(V,F,'barycentric');
+  % simplex size
+  ss = size(F,2);
+
+  switch ss
+  case 3
+    L = cotmatrix(V,F);
+    % "where 𝐴𝑖 is one third the area of all triangles incident on vertex ...
+    % where 𝐴 ∈ R|𝑉|×|𝑉| is a diagonal matrix containing the vertex areas"
+    M = massmatrix(V,F,'barycentric');
+  case 4
+    L = cotmatrix3(V,F);
+    % "where 𝐴𝑖 is one third the area of all triangles incident on vertex ...
+    % where 𝐴 ∈ R|𝑉|×|𝑉| is a diagonal matrix containing the vertex areas"
+    M = massmatrix3(V,F,'barycentric');
+  end
 
   % "... with initial conditions u0 = δ(x)"
   % "Note that a Dirac delta appears as a literal one in this system since we
@@ -118,7 +129,13 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   if isempty(u)
     if strcmp(bc_type,'dirichlet') || strcmp(bc_type,'robin')
       % get outline ("boundary") of mesh 
-      out = unique(reshape(outline(F),[],1));
+      switch ss
+      case 3
+        out = unique(reshape(outline(F),[],1));
+      case 4
+        out = unique(boundary_faces(F));
+      end
+
       if legacy
         % remove any gamma from outline
         out = setdiff(out(:),gamma(:));
