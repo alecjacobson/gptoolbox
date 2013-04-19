@@ -1,14 +1,16 @@
-function [W] = mvc(V,C)
-  % MVC - MEAN VALUE COORDINATES
+function [lambda,W,tan_W] = mvc(V,C)
+  % MVC - MEAN VALUE COORDINATES according to "Mean Value Coordinates" Floater
+  % 2003 Equation 2.1
   %
-  % W = mvc(V,C)
+  % [lambda,W] = mvc(V,C)
   %
   % Inputs:
   %  V  list of vertex positions
   %  C  list of polygon vertex positions (in counter-clockwise order)
   %
   % Outputs:
-  %  W  weights, # vertices by # handles matrix of weights
+  %  lambda  weights, # vertices by # handles matrix of weights
+  %  W  weights before normalization, # vertices by # handles matrix of weights
   %
   %
 
@@ -90,7 +92,8 @@ function [W] = mvc(V,C)
   a_next = a_prev(next_I,:);
 
   % mean value coordinates
-  W = (tan(a_prev/2.0) + tan(a_next/2.0)) ./ dist_C_V;
+  tan_W = (tan(a_prev/2.0) + tan(a_next/2.0));
+  W = tan_W ./ dist_C_V;
 
   % handle degenerate cases
   EPSILON = 1e-10;
@@ -116,8 +119,10 @@ function [W] = mvc(V,C)
   W(on_segment(prev_I,:)) = dist_C_V(on_segment);
 
   % normalize W
-  W = W./repmat(sum(W,1),size(C,1),1);
+  lambda = W./repmat(sum(W,1),size(C,1),1);
 
   % we've made W transpose
   W = W';
+  tan_W = tan_W';
+  lambda = lambda';
 end
