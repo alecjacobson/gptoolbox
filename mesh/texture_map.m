@@ -48,7 +48,7 @@ function [im_out,alpha_out] = texture_map(V,F,TC,im_in,alpha_in)
       error(result);
   end
   % write mesh to obj file
-  writeOBJ(obj_file_name,V,F,TC);
+  writeOBJ(obj_file_name,V,F,TC,F);
 
   % convert the png image to a .tga image
   [status,result] = ...
