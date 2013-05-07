@@ -19,6 +19,14 @@ function [s,r] = medit(varargin)
   % Outputs:
   %   s,r  result of system call
   %
+  % Example:
+  %   % tet mesh in (V,T), per-tet data in D
+  %   [F,J] = boundary_faces(T);
+  %   % Display data at tets and also on boundary facets
+  %   medit(V,T,F,'Data',[D(J);D])
+  %
+  % See also: tetramesh
+  %
 
   V = varargin{1};
   T = varargin{2};

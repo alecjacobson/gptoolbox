@@ -1,4 +1,4 @@
-function F = boundary_faces(T)
+function [F,J] = boundary_faces(T)
   % BOUNDARY_FACES
   % F = boundary_faces(T)
   % Determine boundary faces of tetrahedra stored in T
@@ -8,6 +8,7 @@ function F = boundary_faces(T)
   %
   % Output:
   %  F  list of boundary faces, n by 3, where n is the number of boundary faces
+  %  J  list of indices into T, n by 1
   %
 
   % get all faces
@@ -24,6 +25,9 @@ function F = boundary_faces(T)
   counts = accumarray(n(:), 1);
   % extract faces that only occurred once
   sorted_exteriorF = u(counts == 1,:);
+  sorted_exteriorJ = m(counts == 1,:);
   % find in original faces so that ordering of indices is correct
-  F = allF(ismember(sortedF,sorted_exteriorF,'rows'),:);
+  [I,J] = ismember(sortedF,sorted_exteriorF,'rows');
+  J = mod(sorted_exteriorJ(J(I))-1,size(T,1))+1;
+  F = allF(I,:);
 end
