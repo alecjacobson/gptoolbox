@@ -20,11 +20,15 @@ function [W] = readDMAT(filename)
   W = fscanf(fp,'%g',size_W);
 
   if ~feof(fp)
-    [size_B,c_B] = fscanf(fp,'%d %d\n',[1 2]);
+    [size_B,c_B] = fscanf(fp,'%d %d',[1 2]);
     size_B = fliplr(size_B);
     if c_B==2
       assert(~any(size_W));
       assert(isempty(W));
+      % Finish reading header: read '\n' char
+      [lf,nlf] = fread(fp,1,'char*1');
+      assert(nlf==1);
+      assert(lf==int8(sprintf('\n')));
       % We're reading binary then
       size_W = size_B;
       [W,cW] = fread(fp,prod(size_W),'*double');
