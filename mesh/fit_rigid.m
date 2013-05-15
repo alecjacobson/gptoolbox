@@ -12,16 +12,16 @@ function [R,t] = fit_rigid(V,U)
   %
   % Example:
   %   [R,t] = fit_rigid(V,U);
-  %   UU = bsxfun(@plus,U,t)*R;
-
-  % translation is just difference of center of mass (assuming uniform mass
-  % distribution)
-  t = mean(V)-mean(U);
+  %   UU = bsxfun(@plus,U*R,t);
 
   % sum up outerproducts of vector from each vertex to center of mass in U and
   % V
   S = bsxfun(@minus,U,mean(U))'*bsxfun(@minus,V,mean(V));
   % Find closest rotation
   R = fit_rotation(S');
+
+  % translation is just difference of center of mass (assuming uniform mass
+  % distribution)
+  t = mean(V)-mean(U)*R;
 
 end
