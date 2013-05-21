@@ -12,8 +12,9 @@
  *    d  row vector of position of dest end point of bone
  * Output:
  *    flag  #V by 1 list of bools (true) visible, (false) obstructed
+ *
+ * mex -o bone_visible_mex bone_visible.cpp
  */
-
 
 void parse_rhs(
   int nrhs, 

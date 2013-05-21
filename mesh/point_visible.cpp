@@ -125,6 +125,8 @@ void point_visible(
 void mexFunction(int nlhs, mxArray *plhs[], 
     int nrhs, const mxArray *prhs[])
 {
+  // This point_visible.mex is deprecated: see point_visible.m
+#error
   mexErrMsgTxt(nrhs == 3, "The number of input arguments must be 3.");
   // 3D query point
   double * o;
