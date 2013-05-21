@@ -43,7 +43,7 @@ function [V,F,UV,C,N] = readOFF( filename )
   d = sscanf( line, '%d', 3);
   nV = d(1); nF = d(2); nE = d(3);
   
-  disp(sprintf('  - Reading %d vertices', nV));
+  %disp(sprintf('  - Reading %d vertices', nV));
   
   switch OFFdim
       case  3; OFFV = textscan( fp, '%f %f %f', nV);
@@ -68,7 +68,7 @@ function [V,F,UV,C,N] = readOFF( filename )
   if (OFF_ST) UV = OFFV(:,OFFdim:(OFFdim+1)); OFFdim = OFFdim + 2; end
   
   if (nF ~= 0)
-    disp(sprintf('  - Reading %d faces', nF));
+    %disp(sprintf('  - Reading %d faces', nF));
     temp = textscan( fp, '%d %d %d %d %d %d %d %d %d %d %d', nF );
     sz = temp{1}(1);
     if all(sz == cell2mat(temp(1)))
@@ -90,5 +90,5 @@ function [V,F,UV,C,N] = readOFF( filename )
 
   fclose(fp);
   
-  disp('  - done.');
+  %disp('  - done.');
 end
