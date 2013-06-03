@@ -1,7 +1,9 @@
-function [V,T,F] = regular_tetrahedral_mesh(nx,ny,nz)
+function [V,T,F] = regular_tetrahedral_mesh(varargin)
   % REGULAR_TETRAHEDRAL_MESH
   %
   % [V,T,F] = regular_tetrahedral_mesh(nx,ny,nz)
+  % [V,T,F] = regular_tetrahedral_mesh(nx)
+  % [V,T,F] = regular_tetrahedral_mesh([nx,ny,nz])
   %
   % Generates a regular tetrahedral mesh with dimensions (nx,ny,nz)
   %
@@ -22,6 +24,21 @@ function [V,T,F] = regular_tetrahedral_mesh(nx,ny,nz)
   % 
   % See also delaunayn, tetramesh
   %
+  if nargin==1
+    if numel(varargin{1})==1
+      nx = varargin{1};
+      ny = nx;
+      nz = nx;
+    else
+      nx = varargin{1}(1,1);
+      ny = varargin{1}(1,2);
+      nz = varargin{1}(1,3);
+    end
+  else
+    nx = varargin{1};
+    ny = varargin{2};
+    nz = varargin{3};
+  end
 
   % Create a grid
   [x,y,z] = meshgrid(linspace(0,1,nx),linspace(0,1,ny),linspace(0,1,nz));
@@ -58,7 +75,9 @@ function [V,T,F] = regular_tetrahedral_mesh(nx,ny,nz)
   % O(m log m) where m is size(T,1) because of sort()  ... or O(nu * nv * m)
   % because of ismember ... or even O(m*m) because of unqiue
 
-  F = boundary_faces(T);
+  if nargout>2
+    F = boundary_faces(T);
+  end
 
   % determine neighbors using fact that vertices are in order
 %   I = (1:size(V,1))';

@@ -21,6 +21,7 @@ function [V,F,UV,TF,N,NF] = readOBJ( filename )
 
 
 
+% TODO: should use amortized array allocation
 
 V = [];
 UV = [];
