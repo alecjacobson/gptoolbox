@@ -13,6 +13,8 @@ function B = repdiag(A,d)
   %   B  m*d by n*d matrix with A repeated d times along the diagonal,
   %     will be dense or sparse to match A
   %
+  % See also: kroneye
+  %
 
   %m = size(A,1);
   %n = size(A,2);
