@@ -14,14 +14,10 @@ function [V,F,UV,TF,N,NF] = readOBJ( filename )
   %  NF  #F by 3 list of triangle corner normal indices into N
   %
   %
-  % WARNING: This is at least 40 times slower than readOFF but probably much much
-  % slower... Because it's probably quadratic
   %
   % See also: load_mesh, readOBJfast, readOFF
 
 
-
-% TODO: should use amortized array allocation
 
 numv = 0;
 numf = 0;
@@ -30,6 +26,7 @@ numtf = 0;
 numn = 0;
 numnf = 0;
 
+% Amortized array allocation
 V = zeros(10000,3);
 F = zeros(10000,3);
 UV = zeros(10000,3);
