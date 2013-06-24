@@ -43,11 +43,21 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   % mandatory input
   V = varargin{1};
   F = varargin{2};
+
+  % number of domain vertices
+  n = size(V,1);
+  % simplex size
+  ss = size(F,2);
   gamma = varargin{3};
   if nargin>=4 && ~isempty(varargin{4})
     t = varargin{4};
   else
-    t = 20*sum(doublearea(V,F))/size(F,1);
+    switch ss
+    case 3
+      t = 20*mean(doublearea(V,F));
+    case 4
+      t = 20*mean(volume(V,F));
+    end
   end
 
   % option parameter default values
@@ -98,11 +108,6 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   % Integrate the heat flow: "We discretize the heat equation from step I of
   % Algorithm 1 using a single backward Euler step"
 
-  % number of domain vertices
-  n = size(V,1);
-
-  % simplex size
-  ss = size(F,2);
 
   switch ss
   case 3
@@ -112,8 +117,6 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
     M = massmatrix(V,F,'barycentric');
   case 4
     L = cotmatrix3(V,F);
-    % "where 𝐴𝑖 is one third the area of all triangles incident on vertex ...
-    % where 𝐴 ∈ R|𝑉|×|𝑉| is a diagonal matrix containing the vertex areas"
     M = massmatrix3(V,F,'barycentric');
   end
 
@@ -184,7 +187,14 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   end
 
   % Evaluate the vector field X
-  G = grad(V,F);
+  switch ss
+  case 3
+    G = grad(V,F);
+    Div = div(V,F);
+  case 4
+    G = grad3(V,F);
+    Div = div3(V,F);
+  end
   grad_u = reshape(G*u,size(F,1),size(V,2));
   grad_u_norm = sqrt(sum(grad_u.^2,2));
   % normalize grad_u
@@ -196,7 +206,7 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   
   % Solve the Poisson equation 
   % divergence of X
-  div_X = div(V,F,X);
+  div_X = Div*X(:);
   if legacy
     [phi,pre.poisson] = min_quad_with_fixed( ...
       -L,div_X,gamma,zeros(numel(gamma),1),[],[],pre.poisson);

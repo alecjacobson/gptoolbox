@@ -64,7 +64,6 @@ function writePOLY_triangle(varargin)
   end
 
   % vertices section
-  fprintf(poly_file_handle,'# vertices\n');
   format = '%d %.17g %.17g\n';
 
   fprintf(poly_file_handle,'# Part 1 - node list\n');

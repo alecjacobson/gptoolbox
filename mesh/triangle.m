@@ -217,8 +217,10 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   if(status ~= 0)
      error(result);
   end
-  status
-  result
+  if ~quiet
+    status
+    result
+  end
   % read outputs from files
   [TV,I] = readNODE([prefix '.1.node']);
   TF = readELE([prefix '.1.ele']);

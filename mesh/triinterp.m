@@ -1,7 +1,7 @@
 function [Xr,Yr,Wr] = triinterp(V,F,w,speedup)
   % TRIINTERP
   %
-  % [Xr,Yr,Wr] = triinterp()
+  % [Xr,Yr,Wr] = triinterp(V,F,w,speedup)
   %
   % Given a scalar field S defined over a triangle mesh with vertices V and
   % faces F, linearly interpolate the data for new positions U. NaNs are

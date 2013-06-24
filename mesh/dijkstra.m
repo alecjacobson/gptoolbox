@@ -26,6 +26,9 @@ function [D,P] = dijkstra( G , S )
 %       platform, delete the .dll version and dijkstra will then call the
 %	Matlab function dijk.m (by Michael G. Kay).  Note that this Matlab
 %	code is several orders of magnitude slower than the C based mex file.
+%
+%
+% Note: The shortest_paths function of matlab_bgl is much faster
 
 N = size( G , 1 );
 [D,P] = dijk( G , S , 1:N );
