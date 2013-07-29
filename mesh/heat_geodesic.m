@@ -54,7 +54,13 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   else
     switch ss
     case 3
-      t = 20*mean(doublearea(V,F));
+      t = 
+      % Section 3.1.1
+      AM = sum(doublearea(V,F))/2;
+      F = size(F,1);
+      c = 5;
+      t = c * AM / sF;
+      %t = 20*mean(doublearea(V,F));
     case 4
       t = 20*mean(volume(V,F));
     end
