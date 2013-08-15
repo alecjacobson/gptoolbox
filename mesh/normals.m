@@ -16,7 +16,9 @@ function [ N ] = normals( V, F )
   p2 = V(F(:,2),:);
   p3 = V(F(:,3),:);
   
-  N = cross(p2 - p1, p3 - p1);
+  % ,2 is necessary because this will produce the wrong result if there are
+  % exactly 3 faces
+  N = cross(p2 - p1, p3 - p1,2);
 
 end
 

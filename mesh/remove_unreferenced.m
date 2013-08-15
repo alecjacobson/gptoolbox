@@ -14,9 +14,12 @@ function [RV,IM] = remove_unreferenced(V,F)
   %
   % Examples:
   %   % Tet mesh in (V,T,F)
-  %   [V,I] = remove_unreferenced(V,[T(:);F(:)]);
+  %   [RV,I] = remove_unreferenced(V,[T(:);F(:)]);
   %   T = I(T);
   %   F = I(F);
+  %   ... % do some computation on RV
+  %   % replace back into V
+  %   RV(I(1:size(RV,1),:),:) = V;
   %
 
   % get list of unique vertex indices that occur in faces

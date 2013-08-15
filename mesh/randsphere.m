@@ -18,6 +18,8 @@ function [N] = randsphere(n,varargin)
 % Outputs:
 %   N  n by 3 list of sample positions on sphere
 %
+% Todo: This function is badly named. Should be something like random_dir
+%
   
   method = 'trig';
   
