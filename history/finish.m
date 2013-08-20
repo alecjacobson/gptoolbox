@@ -1,8 +1,10 @@
-button = questdlg('Are you sure you want to quit?', 'Exit Dialog','Cancel','Quit','Cancel');
-
-if strcmp(button,'Cancel')
-  quit cancel;
-  return
+if usejava('desktop')
+  button = questdlg('Are you sure you want to quit?', 'Exit Dialog','Cancel','Quit','Cancel');
+  
+  if strcmp(button,'Cancel')
+    quit cancel;
+    return
+  end
 end
 
 lastworkspace = '/var/tmp/lastworkspace.mat';
