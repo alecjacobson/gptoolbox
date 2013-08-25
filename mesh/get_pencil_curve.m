@@ -1,4 +1,4 @@
-function P = get_pencil_curve(f)
+function [P,p] = get_pencil_curve(f)
   % GET_PENCIL_CURVE Get a curve (sequence of points) from the user by dragging
   % on the current plot window
   %
@@ -9,6 +9,7 @@ function P = get_pencil_curve(f)
   %   f  figure id
   % Outputs:
   %   P  #P by 3 list of points
+  %   p  handle to plot
   %
   %
   P = [];
@@ -68,9 +69,9 @@ function P = get_pencil_curve(f)
     switch ev.Character
     case ESC
       finish();
-    otherwise
-      finish();
-      error(['Unknown key: ' ev.Character]);
+    %otherwise
+    %  finish();
+    %  error(['Unknown key: ' ev.Character]);
     end
   end
 
