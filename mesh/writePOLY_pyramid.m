@@ -52,8 +52,8 @@ function writePOLY_pyramid(poly_file_name,V,E,F,H)
     fprintf(poly_file_handle,format,[1:size(V,1);V']);
   end
 
-  fprintf(poly_file_handle,'%d %d\n',size(E,1),size(E,2)-2);
   fprintf(poly_file_handle,'# Part 2 - segment list\n');
+  fprintf(poly_file_handle,'%d %d\n',size(E,1),size(E,2)-2);
   format = ['%d %d %d' repmat(' %d',1,size(E,2)-2) '\n'];
   fprintf(poly_file_handle,format, [1:size(E,1);E']);
 
@@ -64,7 +64,7 @@ function writePOLY_pyramid(poly_file_name,V,E,F,H)
   if isempty(F)
     fprintf(poly_file_handle,'0\n');
   else
-      fprintf(poly_file_handle,'%d %d\n',numel(F.facets),1);
+      fprintf(poly_file_handle,'%d %d\n',numel(F.facets),~isempty(F.boundary_marker));
       fs = cell2mat(cellfun(@size,F.facets,'UniformOutput',false));
       % Try to print all at once if facets are all the same size
       if ~isempty(fs) && all(fs(:,1) == 1) && all(fs(:,2) == fs(1,2))
