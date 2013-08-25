@@ -66,7 +66,7 @@ function [theta,cos_theta] = dihedral_angles(V,T,varargin)
                   (-2*s(:,[2 3 1 4 4 4]).* ...
                       s(:,[3 1 2 1 2 3]));
   % If this line ever becomes a bottleneck (unlikely) we should this function
-  % as a wrapper to cos_dihedral_angles(V,T)
+  % as a wrapper to cos_dihedral_angles(V,T) or better as a parameter 'CosOnly',true
   theta = acos(cos_theta);
 
   % TODO: there should be a more accurate way. Probably involving atan2,
