@@ -14,6 +14,15 @@ function loop = outline_loop(F,varargin)
   % Outputs:
   %   loop  #loop by 1 list of outline endpoints on single loop
   %
+  %
+  % Example:
+  %   % list all loops
+  %   O = outline(F);
+  %   loops = {};
+  %   while ~isempty(O)
+  %     loops{end+1} = outline_loop(O);
+  %     O = O(~all(ismember(O,loops{end}),2),:);
+  %   end
   % 
   % Known bugs: Only works for single loop
   %
@@ -43,7 +52,9 @@ function loop = outline_loop(F,varargin)
   [~,IM] = remove_unreferenced((1:max(F(:)))',O);
   O = IM(O);
   RIM = sparse(IM,1,1:max(IM));
-  assert(max(components(adjacency_matrix(O)))==1);
+  if max(components(adjacency_matrix(O))) > 1
+      warning('Only first loop will be returned');
+  end
 
   if unoriented
     A = adjacency_matrix(O(2:end,:));

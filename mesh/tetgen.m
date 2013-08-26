@@ -29,14 +29,10 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   %writeOFF(off_filename,SV,SF);
   
   % Try to mesh with all faces included directly
-  Facets = [];
-  Facets.facets = mat2cell(SF,ones(size(SF,1),1),[size(SF,2)]);
-  Facets.boundary_marker = ones(numel(Facets.facets),1);
-  Facets.holes = cell(numel(Facets.facets),1);
 
   prefix = tempname;
   poly_filename = [prefix '.poly'];
-  writePOLY_tetgen(poly_filename,SV,Facets,[]);
+  writePOLY_tetgen(poly_filename,SV,SF,[],'BoundaryMarkers',ones(size(SF,1),1));
 
   % if there are internal constraint vertices then print them to a .node file
   if(internal_constraints)
