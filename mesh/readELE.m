@@ -45,7 +45,11 @@ function E = readELE(ele_file_name)
   E = fscanf(ele_file_handle,parser,[num_items, num_e])';
   fclose(ele_file_handle);
 
-  % get rid of row indices and assume already one-indexed
-  E = E(:,2:end);
+  % get rid of row indices 
+  offset = 1-min(min(E(:,1)),1);
+  if offset
+    warning('Offseting indices by %d',offset);
+  end
+  E = E(:,2:end)+offset;
 end
 

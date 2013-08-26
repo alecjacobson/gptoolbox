@@ -1,12 +1,12 @@
-function [V,F,BM] = readPOLY_triangle(filename)
+function [V,E,BME] = readPOLY_triangle(filename)
   % READPOLY_TRIANGLE Read .poly file of triangle output
   %
   % Inputs:
   %   filename  path to .poly file
   % Outputs:
   %   V  #V list of vertices
-  %   F  #F by simplex_size list of facets
-  %   BM  #F by 1 list of boundary markers
+  %   E  #E by 2 list of segments
+  %   BME  #E by 1 list of boundary markers
   %   H  #H by dim list of holes (not supported)
   %
 
@@ -18,13 +18,13 @@ function [V,F,BM] = readPOLY_triangle(filename)
   V = V(2:Vhead(2)+1,:)';
   assert(count == (Vhead(1)*(1+sum(Vhead(2:end)))));
   line = eat_comments(fp,'#');
-  [Fhead,count] = sscanf(line,'%d %d');
+  [Ehead,count] = sscanf(line,'%d %d');
   assert(count == 2);
-  [F,count] = fscanf(fp,'%d',[3+Fhead(2) Fhead(1)]);
+  [E,count] = fscanf(fp,'%d',[3+Ehead(2) Ehead(1)]);
   % only segments are supported
-  BM = F(4:3+Fhead(2),:)';
-  F = F(2:3,:)';
-  assert(count == prod([3+Fhead(2) Fhead(1)]));
+  BME = E(4:3+Ehead(2),:)';
+  E = E(2:3,:)';
+  assert(count == prod([3+Ehead(2) Ehead(1)]));
   line = eat_comments(fp,'#');
   [Hhead,count] = sscanf(line,'%d %d');
   assert(Hhead(1) == 0);
