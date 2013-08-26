@@ -208,7 +208,6 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   end
   params = [params ' ' flags];
 
-  path_to_triangle = '/opt/local/bin/triangle';
   command = [path_to_triangle ' ' params ' ' prefix];
   if ~quiet
     fprintf('%s\n',command);
