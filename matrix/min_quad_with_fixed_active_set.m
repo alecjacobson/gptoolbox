@@ -27,6 +27,12 @@ function [Z,F,Lambda] = ...
   %     F  struct containing all information necessary to solve a prefactored
   %     system touching only B, Y, and optionally Beq, Bieq
   %
+  % Examples:
+  %   qZ = quadprog( ... 
+  %     2*A,B,Aieq,Bieq, ...
+  %     [Aeq;sparse(1:numel(known),known,1,numel(known),size(A,2))], ...
+  %     [Beq;Y],lx,ux);
+  %
 
   max_iter = inf;
   %max_iter = 100;
@@ -125,6 +131,7 @@ function [Z,F,Lambda] = ...
   Z = F.Z0;
   old_Z = -Inf(n,cols);
 
+  %threshold = 0;
   threshold = eps;
   %threshold = 1e-8;
 
@@ -134,12 +141,29 @@ function [Z,F,Lambda] = ...
     %fprintf('iter: %d\n',F.iter);
 
     if ~isempty(Z)
-      % keep track of last solution
-      old_Z = Z;
       % Append constraints for infeasible values
-      ths = 0;
+      ths = eps;
       new_as_lx = find((Z-lx)<-ths);
       new_as_ux = find((Z-ux)>ths);
+
+      %fprintf('%0.17f %d %d %g\n', ...
+      %  energy(Z),numel(new_as_lx), numel(new_as_ux),max(max(lx-Z,Z-ux)));
+      diff = sum((old_Z(:)-Z(:)).^2);
+      %fprintf('diff: %g\n',diff);
+      if diff < threshold
+        if numel(new_as_lx) > 0 || numel(new_as_ux) > 0
+          % Indeed this is "disturbing" at first glance. Why should there be
+          % new constraints? Turns out these "last constraints" are only
+          % producing numerical noise. The can safely be caught and ignored by
+          % setting ths to eps rather than 0
+          %warning( ...
+          %  sprintf('Diff (%g) < threshold (%g) but new constraints (%d)', ...
+          %    diff,threshold,numel(new_as_lx)+numel(new_as_ux)));
+        end
+        break;
+      end 
+      % keep track of last solution
+      old_Z = Z;
 
       % only add k worst offenders
       min_k = 1;
@@ -231,11 +255,6 @@ function [Z,F,Lambda] = ...
     F.as_ux = F.as_ux(Lambda_ux > inactive_threshold);
     F.as_ieq = F.as_ieq(Lambda_ieq > inactive_threshold);
 
-    diff = sum((old_Z(:)-Z(:)).^2);
-    %fprintf('diff: %g\n',diff);
-    if diff < threshold
-      break;
-    end 
     if F.iter == max_iter
       warning( ...
         sprintf('Max iterations %d reached without convergence',max_iter));
