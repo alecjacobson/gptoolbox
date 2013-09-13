@@ -391,7 +391,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
       % Where did this -0.5 come from? Probably the same place as above.
       NB = -0.5*(B(F.unknown,:) + F.preY * Y);
       lambda_0 = F.AeqTQ1 * (F.AeqTR1' \ (F.AeqTE' * Beq));
-      QRB = -F.AeqTQ2' * F.Auu * lambda_0 + F.AeqTQ2' * NB;
+      QRB = -F.AeqTQ2' * (F.Auu * lambda_0) + F.AeqTQ2' * NB;
       lambda = F.Q * (F.U \ (F.L \ ( F.P * QRB)));
       % prepare solution
       Z = zeros(F.n,cols);
