@@ -6,8 +6,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
   % http://www.alecjacobson.com/weblog/?p=2491
   %
   % [Z,F] = min_quad_with_fixed(A,B,known,Y)
-  % [Z,F] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq)
-  % [Z,F] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
+  % [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
   %
   % Inputs:
   %   A  n by n matrix of quadratic coefficients
@@ -18,6 +17,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
   %     Aeq  m by n list of linear equality constraint coefficients
   %     Beq  m by 1 list of linear equality constraint constant values, if
   %       empty then assumed Beq = 0
+  %     F see output
   % Outputs:
   %   Z  n by cols solution
   %   Optional:
@@ -336,10 +336,11 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
       Z([F.unknown F.lagrange],:) = -0.5 * F.Q * (F.U \ (F.L \ ( F.P * NB)));
     end
 
-    Lambda = [];
+    % fix any removed constraints (set Lambda to 0)
+    Lambda = zeros(numel(F.blank_eq),1);
     if neq ~= 0
       % save lagrange multipliers
-      Lambda = Z(F.lagrange,:);
+      Lambda(~F.blank_eq) = Z(F.lagrange,:);
       % throw away lagrange multipliers
       Z = Z(1:(end-neq),:);
     end

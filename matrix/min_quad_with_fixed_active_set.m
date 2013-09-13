@@ -85,6 +85,9 @@ function [Z,F,Lambda] = ...
   if ~isfield(F,'as_ux')
     F.as_ux= [];
   end
+  if isfield(F,'max_iter')
+    max_iter = F.max_iter;
+  end
 
   % number of rows
   n = size(A,1);
@@ -165,14 +168,14 @@ function [Z,F,Lambda] = ...
       % keep track of last solution
       old_Z = Z;
 
-      % only add k worst offenders
-      min_k = 1;
-      [~,ii] = sort(Z(new_as_lx),'ascend');
-      k = max(min_k,ceil(numel(new_as_lx)*0.05));
-      new_as_lx = new_as_lx(ii(1:min(end,k)));
-      [~,ii] = sort(Z(new_as_ux),'descend');
-      k = max(min_k,ceil(numel(new_as_ux)*0.05));
-      new_as_ux = new_as_ux(ii(1:min(end,k)));
+      %% only add k worst offenders
+      %min_k = 1;
+      %[~,ii] = sort(Z(new_as_lx),'ascend');
+      %k = max(min_k,ceil(numel(new_as_lx)*0.05));
+      %new_as_lx = new_as_lx(ii(1:min(end,k)));
+      %[~,ii] = sort(Z(new_as_ux),'descend');
+      %k = max(min_k,ceil(numel(new_as_ux)*0.05));
+      %new_as_ux = new_as_ux(ii(1:min(end,k)));
 
       F.as_lx = [F.as_lx(:); new_as_lx]; 
       F.as_ux = [F.as_ux(:); new_as_ux]; 
@@ -201,6 +204,10 @@ function [Z,F,Lambda] = ...
       Lambda_lx = Lambda(size(Aeq,1) + (1:numel(F.as_lx)));
       Lambda_ux = ... 
         Lambda(size(Aeq,1) + numel(F.as_lx) + (1:numel(F.as_ux)));
+      Lambda_ieq = ... 
+        Lambda( ...
+          size(Aeq,1) + numel(F.as_lx) + numel(F.as_ux) + ...
+          (1:numel(F.as_ieq)));
     else
       % append active set constant bounds as known/fixed values
       known_i = [known(:);F.as_lx(:);F.as_ux(:)];
@@ -209,20 +216,17 @@ function [Z,F,Lambda] = ...
       Aeq_i = [Aeq;Aieq(F.as_ieq,:)];
       Beq_i = [Beq;Bieq(F.as_ieq)];
       % solve equality problem
-      [Z,mqwf,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i);
+      [Z,mqwf,Lambda,Lambda_known] = ...
+        min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i);
       % Lower bound lambda values need to be reversed because constraints
       % always represent <=
       Lambda_lx = -Lambda_known(numel(known) + (1:numel(F.as_lx)));
       Lambda_ux = ...
         Lambda_known(numel(known) + numel(F.as_lx) + ...
         (1:numel(F.as_ux)));
+      Lambda_ieq = Lambda(size(Aeq,1) + (1:numel(F.as_ieq)));
     end
     %fprintf('E after: %0.20f\n',energy(Z));
-
-    Lambda_ieq = ... 
-      Lambda( ...
-        size(Aeq,1) + numel(F.as_lx) + numel(F.as_ux) + ...
-        (1:numel(F.as_ieq)));
 
     %Lambda_lx
     %Lambda_ux
