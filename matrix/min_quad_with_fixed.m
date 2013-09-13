@@ -93,13 +93,17 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
   if nargin >= 7
     F = varargin{7};
   end
-
-  if isempty(F)
-    F = precompute(A,known,Aeq);
+  
+  if isempty(F) || true
+    if ~isempty(F)
+      warning('Precomputing');
+    end
+    F = precompute(A,known,Aeq,F);
   end
   [Z,Lambda,Lambda_known] = solve(F,B,Y,Beq);
 
-  function F = precompute(A,known,Aeq)
+  % !!SHOULD REMOVE F AS INPUT PARAM!!
+  function F = precompute(A,known,Aeq,F)
     % PRECOMPUTE perform any necessary precomputation of system including
     % factorization and preparation of right-hand side
     % 
@@ -139,8 +143,6 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
     % cache known
     F.known = known;
     % get list of unknown variables including lagrange multipliers
-    %indices = 1:n;
-    %F.unknown = indices(~ismember(indices,known));
     F.unknown = find(~sparse(1,known,true,1,n));
 
     Auu = A(F.unknown,F.unknown);
@@ -148,7 +150,6 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
     F.Ak = A(F.known,:);
 
     % determine if A(unknown,unknown) is symmetric and/or postive definite
-    %F.Auu_sym = ~any(any(Auu - Auu'));
     sym_measure = max(max(abs(Auu - Auu')))/max(max(abs(Auu)));
     %sym_measure = normest(Auu-Auu')./normest(Auu);
     if sym_measure > eps
@@ -192,74 +193,122 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
     % keep track of whether original A was sparse
     A_sparse = issparse(A);
 
-    % get list of lagrange multiplier indices
-    F.lagrange = n+(1:neq);
-
+    % Determine number of linearly independent constraints
     if neq > 0
-      if issparse(A) && ~issparse(Aeq)
-        warning('min_quad_with_fixed:sparse_system_dense_constraints', ...
-        'System is sparse but constraints are not, solve will be dense');
+      %tic;
+      % Null space substitution with QR
+      [AeqTQ,AeqTR,AeqTE] = qr(Aeq(:,F.unknown)');
+      nc = find(any(AeqTR,2),1,'last');
+      if isempty(nc)
+        nc = 0;
       end
-      if issparse(Aeq) && ~issparse(A)
-        warning('min_quad_with_fixed:dense_system_sparse_constraints', ...
-        'Constraints are sparse but system is not, solve will be dense');
-      end
-      Z = sparse(neq,neq);
-      % append lagrange multiplier quadratic terms
-      A = [A Aeq';Aeq Z];
-      %assert(~issparse(Aeq) || A_sparse == issparse(A));
+      %fprintf('QR: %g secs\n',toc);
+      assert(nc<=neq);
+      F.Aeq_li = nc == neq;
+    else
+      F.Aeq_li = true;
     end
-    % precompute RHS builders
-    F.preY = A([F.unknown F.lagrange],known) + ...
-      A(known,[F.unknown F.lagrange])';
+    if neq > 0 && isfield(F,'force_Aeq_li')
+      F.Aeq_li = F.force_Aeq_li;
+    end
 
-    % LDL has a different solve prototype
-    F.ldl = false;
-    % create factorization
-    if F.Auu_sym
-      if neq == 0 && F.Auu_pd
-        % we already have F.L
-        F.U = F.L';
-        F.P = F.S';
-        F.Q = F.S;
+    % Use raw Lagrange Multiplier method only if rows of Aeq are Linearly
+    % Independent
+    if F.Aeq_li
+      % get list of lagrange multiplier indices
+      F.lagrange = n+(1:neq);
+      if neq > 0
+        if issparse(A) && ~issparse(Aeq)
+          warning('min_quad_with_fixed:sparse_system_dense_constraints', ...
+          'System is sparse but constraints are not, solve will be dense');
+        end
+        if issparse(Aeq) && ~issparse(A)
+          warning('min_quad_with_fixed:dense_system_sparse_constraints', ...
+          'Constraints are sparse but system is not, solve will be dense');
+        end
+        Z = sparse(neq,neq);
+        % append lagrange multiplier quadratic terms
+        A = [A Aeq';Aeq Z];
+        %assert(~issparse(Aeq) || A_sparse == issparse(A));
+      end
+      % precompute RHS builders
+      F.preY = A([F.unknown F.lagrange],known) + ...
+        A(known,[F.unknown F.lagrange])';
+
+      % LDL has a different solve prototype
+      F.ldl = false;
+      % create factorization
+      if F.Auu_sym
+        if neq == 0 && F.Auu_pd
+          % we already have F.L
+          F.U = F.L';
+          F.P = F.S';
+          F.Q = F.S;
+        else
+          % LDL is faster than LU for moderate #constraints < #unknowns
+          NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
+          [F.L,F.D,F.P,F.S] = ldl(NA);
+          F.ldl = true;
+        end
       else
-      %    % check that Auu is not ill-conditioned, if it is then don't us
-      %    % lu_lagrange trick, rather use straight LU decomposition
-      %    if log10(condest(Auu)) < 16
-      %      %% p will only be 0 if this works
-      %      %[F.L,F.U,p] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L);
-      %      %F.Q = 1;
-      %      %F.P = F.Q';
-      %      % 4 times faster (but only for small number of constraints in Aeq)
-      %      [F.L,F.U,p,F.Q] = lu_lagrange(Auu,Aeq(:,F.unknown)',F.L,F.S);
-      %      F.P = F.Q';
-      %    else
-      %      p = -1;
-      %    end
-      %    if p ~= 0
-      %      NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
-      %      [F.L,F.U,F.P,F.Q] = lu(NA);
-      %    end
-        % LU_LAGRANGE is faster only for #constraints << #unknowns
-        % LDL is faster than LU for moderate #constraints < #unknowns
         NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
-        [F.L,F.D,F.P,F.S] = ldl(NA);
-        F.ldl = true;
+        % LU factorization of NA
+        if issparse(NA)
+          [F.L,F.U,F.P,F.Q] = lu(NA);
+        else
+          [F.L,F.U] = lu(NA);
+          F.P = 1;
+          F.Q = 1;
+        end
       end
     else
-      NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
-      % LU factorization of NA
-      %[F.L,F.U] = lu(NA);
-      %F.P = 1;
-      %F.Q = 1;
-      % 10 times faster
-      if issparse(NA)
-        [F.L,F.U,F.P,F.Q] = lu(NA);
-      else
-        [F.L,F.U] = lu(NA);
-        F.P = 1;
-        F.Q = 1;
-      end
+      % We alread have CTQ,CTR,CTE
+      %tic;
+      % Aeq' * AeqTE = AeqTQ * AeqTR
+      % AeqTE' * Aeq = AeqTR' * AeqTQ'
+      % Aeq x = Beq
+      % Aeq (Q2 lambda + lambda_0) = Beq
+      % we know Aeq Q2 = 0 --> Aeq Q2 lambda = 0
+      % Aeq lambda_0 = Beq
+      % AeqTE' * Aeq lambda_0 = AeqTE' * Beq
+      % AeqTR' * AeqTQ' lambda_0 = AeqTE' * Beq
+      % AeqTQ' lambda_0 = AeqTR' \ (AeqTE' * Beq)
+      % lambda_0 = AeqTQ * (AeqTR' \ (AeqTE' * Beq))
+      % lambda_0 = Aeq \ Beq;
+      % lambda_0 = AeqTQ * (AeqTR' \ (AeqTE' * Beq));
+      AeqTQ1 = AeqTQ(:,1:nc);
+      AeqTR1 = AeqTR(1:nc,:);
+      %lambda_0 = [AeqTQ1 * (AeqTR1' \ (AeqTE' * Beq))];
+      %fprintf('lambda_0: %g secs\n',toc);
+      %tic;
+      % Substitute x = Q2 lambda + lambda_0
+      % min 0.5 x' A x - x' b
+      %   results in A x = b
+      % min 0.5 (Q2 lambda + lambda_0)' A (Q2 lambda + lambda_0) - (Q2 lambda + lambda_0)' b
+      % min 0.5 lambda' Q2' A Q2 lambda + lambda Q2' A lambda_0 - lambda Q2' b 
+      %  results in Q2' A Q2 lambda = - Q2' A lambda_0 + Q2' b
+      AeqTQ2 = AeqTQ(:,(nc+1):end);
+      QRAuu =  AeqTQ2' * Auu * AeqTQ2;
+      %QRb = -AeqTQ2' * Auu * lambda_0 + AeqTQ2' * b;
+      % precompute RHS builders
+      F.preY = A(F.unknown,known) + A(known,F.unknown)';
+      %fprintf('Proj: %g secs\n',toc);
+      %tic;
+      % QRA seems to be PSD
+      [F.L,p,F.S] = chol(QRAuu,'lower');
+      F.U = F.L';
+      F.P = F.S';
+      F.Q = F.S;
+      %fprintf('Chol: %g secs\n',toc);
+      % Perhaps if Auu is not PD then we need to use LDL...
+      assert(p==0);
+      % WHICH OF THESE ARE REALLY NECESSARY?
+      F.Aeq = Aeq;
+      F.AeqTQ2 = AeqTQ2;
+      F.AeqTQ1 = AeqTQ1;
+      F.AeqTR1 = AeqTR1;
+      F.AeqTE = AeqTE;
+      F.Auu = Auu;
     end
   end
 
@@ -300,49 +349,58 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
       Beq = Beq(~F.blank_eq,:);
     end
 
-    % number of lagrange multipliers aka linear equality constraints
-    neq = numel(F.lagrange);
 
-    if neq == 0
-      assert(isempty(Beq),'Constraint right-hand sides should not be empty');
-      Beq = zeros(0,1);
-    end
+    % Build system's rhs
+    if F.Aeq_li
+      % number of lagrange multipliers aka linear equality constraints
+      neq = numel(F.lagrange);
+      if neq == 0
+        assert(isempty(Beq),'Constraint right-hand sides should not be empty');
+        Beq = zeros(0,1);
+      end
 
-    %if cols ~= size(B,2)
-    %  B = repmat(B,1,cols);
-    %end
-    %if cols ~= size(Beq,2)
-    %  Beq = repmat(Beq,1,cols);
-    %end
-    %% append lagrange multiplier rhs's
-    %B = [B; -2*Beq];
-    %assert(size(Y,2) == size(B,2));
-    %NB = F.preY * Y + B([F.unknown F.lagrange],:);
-    %NBold = bsxfun(@plus, F.preY * Y, [B(F.unknown,:); -2*Beq(F.lagrange-F.n,:)]);
-    NB = ...
-      bsxfun(@plus, ...
-        bsxfun(@plus,  ...
-          F.preY * Y,  ...
-          [B(F.unknown,:); zeros(numel(F.lagrange),size(B,2))]), ...
-        [zeros(numel(F.unknown),size(Beq,2)); -2*Beq(F.lagrange-F.n,:)]);
+      NB = ...
+        bsxfun(@plus, ...
+          bsxfun(@plus,  ...
+            F.preY * Y,  ...
+            [B(F.unknown,:); zeros(numel(F.lagrange),size(B,2))]), ...
+          [zeros(numel(F.unknown),size(Beq,2)); -2*Beq(F.lagrange-F.n,:)]);
 
-    Z = zeros(F.n,cols);
-    Z(F.known,:) = Y;
+      % prepare solution
+      Z = zeros(F.n,cols);
+      Z(F.known,:) = Y;
 
-    if F.ldl
-      Z([F.unknown F.lagrange],:) = ...
-        -0.5 * F.S * (F.P * (F.L'\(F.D\(F.L\(F.P' * (F.S * NB))))));
+      if F.ldl
+        Z([F.unknown F.lagrange],:) = ...
+          -0.5 * F.S * (F.P * (F.L'\(F.D\(F.L\(F.P' * (F.S * NB))))));
+      else
+        Z([F.unknown F.lagrange],:) = -0.5 * F.Q * (F.U \ (F.L \ ( F.P * NB)));
+      end
+
+      % fix any removed constraints (set Lambda to 0)
+      Lambda = zeros(numel(F.blank_eq),1);
+      if neq ~= 0
+        % save lagrange multipliers
+        Lambda(~F.blank_eq) = Z(F.lagrange,:);
+        % throw away lagrange multipliers
+        Z = Z(1:(end-neq),:);
+      end
     else
-      Z([F.unknown F.lagrange],:) = -0.5 * F.Q * (F.U \ (F.L \ ( F.P * NB)));
-    end
-
-    % fix any removed constraints (set Lambda to 0)
-    Lambda = zeros(numel(F.blank_eq),1);
-    if neq ~= 0
-      % save lagrange multipliers
-      Lambda(~F.blank_eq) = Z(F.lagrange,:);
-      % throw away lagrange multipliers
-      Z = Z(1:(end-neq),:);
+      % Adjust Aeq rhs to include known parts
+      Beq = -F.Aeq(:,known)*Y + Beq;
+      % Where did this -0.5 come from? Probably the same place as above.
+      NB = -0.5*(B(F.unknown,:) + F.preY * Y);
+      lambda_0 = F.AeqTQ1 * (F.AeqTR1' \ (F.AeqTE' * Beq));
+      QRB = -F.AeqTQ2' * F.Auu * lambda_0 + F.AeqTQ2' * NB;
+      lambda = F.Q * (F.U \ (F.L \ ( F.P * QRB)));
+      % prepare solution
+      Z = zeros(F.n,cols);
+      Z(F.known,:) = Y;
+      Z(F.unknown) = F.AeqTQ2 * lambda + lambda_0;
+      Aequ = F.Aeq(:,F.unknown);
+      % http://www.math.uh.edu/~rohop/fall_06/Chapter3.pdf
+      %Lambda = (F.AeqTQ1' * Aequ') \ (F.AeqTQ1' * NB - F.AeqTQ1' * F.Auu * Z(F.unknown));
+      Lambda = F.AeqTE * (F.AeqTR1 \ (F.AeqTQ1' * NB - F.AeqTQ1' * F.Auu * Z(F.unknown)));
     end
 
     Lambda_known = -bsxfun(@plus,F.Ak * Z,0.5*B(F.known,:));

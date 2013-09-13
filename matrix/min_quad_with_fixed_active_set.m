@@ -216,8 +216,15 @@ function [Z,F,Lambda] = ...
       Aeq_i = [Aeq;Aieq(F.as_ieq,:)];
       Beq_i = [Beq;Bieq(F.as_ieq)];
       % solve equality problem
-      [Z,mqwf,Lambda,Lambda_known] = ...
-        min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i);
+      [Z,~,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i);
+      %[Z,~,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i,struct('force_Aeq_li',true));
+      %[Z_qr,~,Lambda_qr,Lambda_known] = min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i,struct('force_Aeq_li',false));
+      %save('bad.mat','A','B','known_i','Y_i','Aeq_i','Beq_i');
+      %fprintf('Z: %g Lambda: %g\n', ...
+      %  max(max(abs(Z-Z_qr))), ...
+      %  max(max(abs(Lambda-Lambda_qr))));
+      %  input('');
+
       % Lower bound lambda values need to be reversed because constraints
       % always represent <=
       Lambda_lx = -Lambda_known(numel(known) + (1:numel(F.as_lx)));
