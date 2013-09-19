@@ -148,6 +148,10 @@ function [Z,F,Lambda] = ...
       ths = eps;
       new_as_lx = find((Z-lx)<-ths);
       new_as_ux = find((Z-ux)>ths);
+      new_as_ieq = [];
+      if ~isempty(Aieq)
+        new_as_ieq = find((Aieq*Z-Bieq)>ths);
+      end
 
       %fprintf('%0.17f %d %d %g\n', ...
       %  energy(Z),numel(new_as_lx), numel(new_as_ux),max(max(lx-Z,Z-ux)));
@@ -179,9 +183,7 @@ function [Z,F,Lambda] = ...
 
       F.as_lx = [F.as_lx(:); new_as_lx]; 
       F.as_ux = [F.as_ux(:); new_as_ux]; 
-      if ~isempty(Aieq)
-        F.as_ieq = [F.as_ieq; find(Aieq*Z>Bieq)];
-      end
+      F.as_ieq = [F.as_ieq(:); new_as_ieq];
       % get rid of duplicates
       %F.as_lx = setdiff(unique(F.as_lx),known);
       %F.as_ux = setdiff(unique(F.as_ux),known);

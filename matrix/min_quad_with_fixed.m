@@ -1,4 +1,4 @@
-function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
+function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
   % MIN_QUAD_WITH_FIXED Minimize quadratic energy Z'*A*Z + Z'*B + C with
   % constraints that Z(known) = Y, optionally also subject to the constraints
   % Aeq*Z = Beq
@@ -70,28 +70,20 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
   % Setting that to zero and moving the knowns to the right hand side we get:
   % [A Aeq';Aeq Z] * [x; lambda] = -0.5 * [B; -2*Beq]
   
-  % Process input
-  A = varargin{1};
-  B = varargin{2};
   % treat empty B as column of zeros to match A
   if isempty(B)
     B = zeros(size(A,1),1);
   end
-  known = varargin{3};
-  Y = varargin{4};
-  Aeq = [];
-  Beq = [];
-  if nargin >= 6
-    Aeq = varargin{5};
-    Beq = varargin{6};
+  if nargin < 6
+    Aeq = [];
+    Beq = [];
   end
   % treat empty Beq as column of zeros to match Aeq
   if isempty(Beq)
     Beq = zeros(size(Aeq,1),1);
   end
-  F = [];
-  if nargin >= 7
-    F = varargin{7};
+  if nargin < 7
+    F = [];
   end
   
   if isempty(F) || true
@@ -390,7 +382,13 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
       Beq = -F.Aeq(:,known)*Y + Beq;
       % Where did this -0.5 come from? Probably the same place as above.
       NB = -0.5*(B(F.unknown,:) + F.preY * Y);
-      lambda_0 = F.AeqTQ1 * (F.AeqTR1' \ (F.AeqTE' * Beq));
+      eff_Beq = F.AeqTE' * Beq;
+      % can't solve rectangular system: trim (expects that constraints are not
+      % contradictory)
+      AeqTR1T = F.AeqTR1';
+      AeqTR1T = AeqTR1T(1:size(F.AeqTQ1,2),1:size(F.AeqTQ1,2));
+      eff_Beq = eff_Beq(1:size(F.AeqTQ1,2));
+      lambda_0 = F.AeqTQ1 * (AeqTR1T \ eff_Beq);
       QRB = -F.AeqTQ2' * (F.Auu * lambda_0) + F.AeqTQ2' * NB;
       lambda = F.Q * (F.U \ (F.L \ ( F.P * QRB)));
       % prepare solution
@@ -400,7 +398,14 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(varargin)
       Aequ = F.Aeq(:,F.unknown);
       % http://www.math.uh.edu/~rohop/fall_06/Chapter3.pdf
       %Lambda = (F.AeqTQ1' * Aequ') \ (F.AeqTQ1' * NB - F.AeqTQ1' * F.Auu * Z(F.unknown));
-      Lambda = F.AeqTE * (F.AeqTR1 \ (F.AeqTQ1' * NB - F.AeqTQ1' * F.Auu * Z(F.unknown)));
+      % Can't solve rectangular system
+      %Lambda = F.AeqTE * (F.AeqTR1 \ (F.AeqTQ1' * NB - F.AeqTQ1' * F.Auu * Z(F.unknown)));
+      % TRIM: (other linearly dependent constraints get 0s?)
+      Lambda = F.AeqTE * [ ...
+        (F.AeqTR1(:,1:size(F.AeqTR1,1)) \ ...
+          (F.AeqTQ1' * NB - F.AeqTQ1' * F.Auu * Z(F.unknown))); ...
+        zeros(size(F.AeqTE,2)-size(F.AeqTR1,1),1)
+        ];
     end
 
     Lambda_known = -bsxfun(@plus,F.Ak * Z,0.5*B(F.known,:));
