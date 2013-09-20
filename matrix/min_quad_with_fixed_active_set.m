@@ -7,6 +7,8 @@ function [Z,F,Lambda] = ...
   % constraints lx <= x <= ux
   %
   % [Z] = min_quad_with_fixed_active_set(A,B,known,Y,Aeq,Beq,Aeiq,Beiq,lx,ux)
+  % [Z,F,Lambda] = ...
+  %   min_quad_with_fixed_active_set(A,B,known,Y,Aeq,Beq,Aeiq,Beiq,lx,ux,F)
   %
   % Inputs:
   %   A  n by n matrix of quadratic coefficients
