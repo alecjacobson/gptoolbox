@@ -94,8 +94,12 @@ function [Z,F,Lambda] = ...
   % number of rows
   n = size(A,1);
   % number of cols
-  cols = size(Y,2);
-  assert(cols == 1);
+  if isempty(Y)
+    cols = 1;
+  else
+    cols = size(Y,2);
+    assert(cols == 1);
+  end
   
   if numel(lx) == 1
     lx = lx*ones(n,1);

@@ -51,6 +51,8 @@ function [U] = dualquatlbs(V,DQ,W)
   len = repmat(sqrt(sum(VDQ1.^2,2)),1,4);
   VDQ1 = VDQ1./len;
   VDQ2 = VDQ2./len;
+  VDQ1(:,2:4)
+  VDQ2(:,2:4)
 
   U = ...
     V + ...
