@@ -1,15 +1,17 @@
-function [I,C] = in_elements(F,T)
+function [I,R,C] = in_elements(F,T)
   % IN_ELEMENTS  Check whether each facet in F truly apears as a facet of the
   % at least one of the elements in T
   %
   % [I] = in_elements(F,T)
+  % [I,R,C] = in_elements(F,T)
   %
   % Inputs:
   %   F  #F by dim list of facets
   %   T  #T by dim+1 list of elements
   % Outputs:
   %   I  #F list of indicators whether facet is in element list
-  %   C  #F list with locations in T
+  %   R  #F list revealing which tet
+  %   C  #F list revealing where in tet
   %
 
   assert(size(F,2)+1 == size(T,2));
@@ -21,6 +23,7 @@ function [I,C] = in_elements(F,T)
     allF = [T(:,[2 3 4]);T(:,[3 4 1]);T(:,[4 1 2]);T(:,[1 2 3])];
   end
   [I,LOCB] = ismember(sort(F,2),sort(allF,2),'rows');
-  C = mod(LOCB-1,size(T,1))+1;
+  R = mod(LOCB-1,size(T,1))+1;
+  C = floor((LOCB-1)/size(T,1))+1; 
 
 end
