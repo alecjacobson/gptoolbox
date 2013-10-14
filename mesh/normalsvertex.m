@@ -1,7 +1,7 @@
 function [ N ] = normalsvertex( V, F )
   % NORMALSVERTEX 
   %
-  % N = normals(V,F)
+  % N = normalsvertex(V,F)
   %
   % Compute normals per vertex with angle weights
   %
