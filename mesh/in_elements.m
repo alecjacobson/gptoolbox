@@ -10,8 +10,8 @@ function [I,R,C] = in_elements(F,T)
   %   T  #T by dim+1 list of elements
   % Outputs:
   %   I  #F list of indicators whether facet is in element list
-  %   R  #F list revealing which tet
-  %   C  #F list revealing where in tet
+  %   R  #F list revealing which *first* tet
+  %   C  #F list revealing where in *first* tet
   %
 
   assert(size(F,2)+1 == size(T,2));
