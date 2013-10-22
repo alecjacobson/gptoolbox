@@ -1,21 +1,22 @@
-function t = tsurf(F,V,vertex_indices,face_indices)
+function t = tsurf(F,V,varargin)
   % TSURF trisurf wrapper, easily plot triangle meshes with(out) face or vertex
   % indices. Attaches callbacks so that click-and-holding on the mesh and then
   % pressing 'm' launches meshplot (if available)
   %
-  % tsurf(F,V,vertex_indices,face_indices)
+  % t = tsurf(F,V);
+  % t = tsurf(F,V,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
   %   F  list of faces #F x 3
   %   V  vertex positiosn #V x 3 or #V x 2
-  %   vertex_indices  show vertex indices on plot
+  %   Optional:
+  %     'VertexIndices' followed by 
+  %     'FaceIndices' followed by 
   %                   0 -> off
   %                   1 -> text and grey background
   %                  >1 -> text
-  %   face_indices  show face indices on plot
-  %                   0 -> off
-  %                   1 -> text and grey background
-  %                  >1 -> text
+  %%     'ColorMultiplier' followed by #CData list of color multiplier values.
+  %     ... additional options passed on to trisurf
   % Outputs:
   %  t  handle to trisurf object
   %
@@ -24,7 +25,7 @@ function t = tsurf(F,V,vertex_indices,face_indices)
   % Example:
   %   % Compose with set function to set trisurf parameters to achieve
   %   % sharp isointervals
-  %   set(tsurf(F,V), ...
+  %   tsurf(F,V, ...
   %     'FaceColor','interp', ...
   %     'FaceLighting','phong', ...
   %     'EdgeColor',[0.2 0.2 0.2]); 
@@ -34,13 +35,24 @@ function t = tsurf(F,V,vertex_indices,face_indices)
   %
 
 
-  if(~exist('vertex_indices'))
-    % off by default
-    vertex_indices = 0;
-  end
-  if(~exist('face_indices'))
-    % off by default
-    face_indices = 0;
+  vertex_indices = 0;
+  face_indices = 0;
+
+  v = 1;
+  while v<=numel(varargin) && ischar(varargin{v}) 
+    switch varargin{v}
+    case 'VertexIndices'
+      v = v+1;
+      assert(v<=numel(varargin));
+      vertex_indices = varargin{v};
+    case 'FaceIndices'
+      v = v+1;
+      assert(v<=numel(varargin));
+      face_indices = varargin{v};
+    otherwise
+      break;
+    end
+    v = v+1;
   end
 
   % number of vertices
@@ -95,6 +107,10 @@ function t = tsurf(F,V,vertex_indices,face_indices)
   %axis equal; axis vis3d;
   %axis(reshape([min(V(:,1:dim));max(V(:,1:dim))],1,dim*2));
   axis tight;
+
+  if v<=numel(varargin)
+    set(t_copy,varargin{v:end});
+  end
 
   % Only output if called with output variable, prevents ans = ... output on
   % terminal
