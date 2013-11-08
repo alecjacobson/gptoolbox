@@ -13,7 +13,7 @@ function writeOBJ(filename, V,F,UV,TF,N,NF)
   %  NF  #NF by 3 list of corner normal indices into N
   %
 
-disp(['writing: ',filename]);
+%disp(['writing: ',filename]);
 f = fopen( filename, 'w' );
 
 assert(size(V,2) == 3);

@@ -11,7 +11,7 @@ function writeOFF(filename, V,F,UV,C,N)
   %  C  #V by 3 list of colors
   %  N  #V by 3 list of normals
 
-disp(['writing: ',filename]);
+%disp(['writing: ',filename]);
 
 hasN =  exist('N','var') && ~isempty(N);
 hasUV = exist('UV','var') && ~isempty(UV);

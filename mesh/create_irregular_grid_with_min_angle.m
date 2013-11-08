@@ -13,7 +13,7 @@ function [UV,F, res, edge_norms] = ...
   %    xWrap, yWrap: wrap around in X/Y direction
   %    min_angle: minimum angle between edges
   %    no_interior: don't generate an interior before sending to triangle
-  %    dart_threshold: controls variation from regular
+  %    dart_threshold: 0--> regular, 1-->irregular
   %    
 
   % (C) 2008 Denis Kovacs/NYU

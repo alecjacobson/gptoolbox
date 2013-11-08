@@ -13,6 +13,7 @@ function [ dblA ] = doublearea_intrinsic( l)
   %
 
   l = sort(l,2,'descend');
+  l
   l1 = l(:,1); l2 = l(:,2); l3 = l(:,3);
   % Kahan's assertion: "Miscalculating Area and Angles of a Needle-like
   % Triangle" Section 2.

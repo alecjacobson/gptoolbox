@@ -15,19 +15,13 @@ function [F,C] = bfs_orient(F,V);
   %  I = rand(size(F,1),1)<0.5;
   %  RF(I,:) = fliplr(RF(I,:));
   %  [FF,C] = bfs_orient(RF);
-  %  for c = 1:max(C)
-  %    N = normalizerow(normals(V,FF(C==c,:)));
-  %    A = doublearea(V,FF(C==c,:));
-  %    BC = barycenter(V,FF(C==c,:));
-  %    BCmean = A'*BC/sum(A);
-  %    BC = bsxfun(@minus,BC,BCmean);
-  %    if sum(bsxfun(@times,A,sum(N.*BC,2)))<0
-  %      FF(C==c,:) = fliplr(FF(C==c,:));
-  %    end
-  %  end
+  %  FF = orient_outward(V,F,C);
   %  I = randperm(max(C))';
   %  meshplot(V,RF,'ScalarFieldF',I(C));
   %  meshplot(V,FF,'ScalarFieldF',I(C));
+  %
+  % See also: orient_outward, manifold_patches
+  %
 
   [C,A] = manifold_patches(F);
   % No self matches

@@ -20,6 +20,13 @@ function [im_out,alpha_out] = texture_map(V,F,TC,im_in,alpha_in)
   %  [oim, oalpha] = texture_map(V,F,TC,im,alpha);
   %
 
+  if ~exist('alpha_in')
+    alpha_in = ones(size(im_in,1),size(im_in,2));
+  end
+  if size(V,2) == 2
+    V(:,end+1:3) = 0;
+  end
+
   path_to_TexMapPreview = ...
     '/usr/local/igl/igl_apps/TexMapPreview/TexMapPreview';
   path_to_convert = '/opt/local/bin/convert';
