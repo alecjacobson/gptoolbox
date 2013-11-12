@@ -19,7 +19,7 @@ function writeMESH( filename, V,T,F,E)
     E = [];
   end
       
-  disp(['writing: ',filename]);
+  %disp(['writing: ',filename]);
   fp = fopen(filename,'w');
   % mandatory header info
   fprintf(fp,'MeshVersionFormatted 1\n');

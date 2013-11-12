@@ -6,7 +6,7 @@ function writeMSH(filename,V,T,F)
   %   T  #T by 4 list of tet indices
   %   F  #F by 3 list of triangle indices
 
-  disp(['writing: ',filename]);
+  %disp(['writing: ',filename]);
   fp = fopen(filename,'w');
   % Write header
   fprintf(fp,'$MeshFormat\n');

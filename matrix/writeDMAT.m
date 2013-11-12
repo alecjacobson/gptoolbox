@@ -24,7 +24,7 @@ function writeDMAT(filename,W,ascii)
   % See also: readDMAT
   %
   
-  disp(['writing: ',filename]);
+  %disp(['writing: ',filename]);
     % open file
     fp = fopen(filename,'w');
   if ~exist('ascii','var') || ascii

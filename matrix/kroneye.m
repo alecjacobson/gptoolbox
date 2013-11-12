@@ -1,6 +1,6 @@
 function K = kroneye(A,n)
   % KRONEYE Take kronecker product with sparse identity in fast way.  Compare
-  % performance to kron(A,sparse(n,n))
+  % performance to kron(A,speye(n,n))
   %
   % K = kroneye(A,n)
   %

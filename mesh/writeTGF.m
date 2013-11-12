@@ -16,7 +16,7 @@ function writeTGF(filename,V,E)
     % append zeros
     V = [V 0*V(:,1)];
   end
-  disp(['writing: ',filename]);
+  %disp(['writing: ',filename]);
   fp = fopen(filename,'w');
   % print vertices
   fprintf(fp,'%d %g %g %g\n',[1:size(V,1); V']);
