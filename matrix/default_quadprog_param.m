@@ -30,20 +30,21 @@ function [param,mosek_exists] = default_quadprog_param()
       end
     end
     % Different parameter for mosek 7
-    if !isempty(strfind(which('mosekopt'),'7'))
+    if ~isempty(strfind(which('mosekopt'),'7'))
       param.MSK_IPAR_NUM_THREADS = num_threads;
     else
       param.MSK_IPAR_INTPNT_NUM_THREADS = num_threads;
+      param.Diagnostics = 'on';
+      param.Display = 'iter';
     end
+    param.MSK_IPAR_CHECK_CONVEXITY = 'MSK_CHECK_CONVEXITY_NONE';
     param.MSK_DPAR_INTPNT_TOL_REL_GAP = 1e-14;
     %param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 0;
     %param.MSK_DPAR_INTPNT_CO_TOL_PFEAS = 0;
     %param.MSK_DPAR_INTPNT_CO_TOL_MU_RED = 0;
     %param.MSK_DPAR_INTPNT_CO_TOL_INFEAS = 0;
     %param.MSK_IPAR_INTPNT_ORDER_METHOD = 'MSK_ORDER_METHOD_NONE';
-    param.MSK_IPAR_CHECK_CONVEXITY = 'MSK_CHECK_CONVEXITY_NONE';
-    param.Diagnostics = 'on';
-    param.Display = 'iter';
+    param
 
     mosek_exists = true;
   else 

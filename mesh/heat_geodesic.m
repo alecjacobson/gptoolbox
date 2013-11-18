@@ -54,7 +54,6 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   else
     switch ss
     case 3
-      t = 
       % Section 3.1.1
       AM = sum(doublearea(V,F))/2;
       F = size(F,1);
@@ -106,9 +105,9 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   end
 
   % Algorithm 1 in Section 3:
-  %   Integrate the heat flow ů = Δu for time t
-  %   Evaluate the vector field X = -∇u/|∇u|
-  %   Solve the Poisson equation Δφ = ∇⋅X
+  %   Integrate the heat flow ?? = ??u for time t
+  %   Evaluate the vector field X = -???u/|???u|
+  %   Solve the Poisson equation ???? = ??????X
 
 
   % Integrate the heat flow: "We discretize the heat equation from step I of
@@ -118,15 +117,15 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   switch ss
   case 3
     L = cotmatrix(V,F);
-    % "where 𝐴𝑖 is one third the area of all triangles incident on vertex ...
-    % where 𝐴 ∈ R|𝑉|×|𝑉| is a diagonal matrix containing the vertex areas"
+    % "where ???????? is one third the area of all triangles incident on vertex ...
+    % where ???? ??? R|????|??|????| is a diagonal matrix containing the vertex areas"
     M = massmatrix(V,F,'barycentric');
   case 4
     L = cotmatrix3(V,F);
     M = massmatrix3(V,F,'barycentric');
   end
 
-  % "... with initial conditions u0 = δ(x)"
+  % "... with initial conditions u0 = ??(x)"
   % "Note that a Dirac delta appears as a literal one in this system since we
   % are effectively working with integrated quantities"
   u0 = zeros(n,1);
@@ -155,7 +154,7 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
         [uD,pre.D] = min_quad_with_fixed(Q,B,b,bc,[],[],pre.D);
       else
         b = out;
-        % Q: How should we deal with gamma ∩ out ?
+        % Q: How should we deal with gamma ??? out ?
         % This gives *reasonable* results, but doesn't look right for fixing
         % entire boundary. Probably more because of the lack of correct boundary
         % conditions for the final poisson solve.
@@ -165,7 +164,7 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
       end
     end
     if strcmp(bc_type,'neumann') || strcmp(bc_type,'robin')
-      % See Figure 9, pretty sure these are implicit ∂x/∂n = 0 neumann
+      % See Figure 9, pretty sure these are implicit ???x/???n = 0 neumann
       % conditions, though it is not stated in the text. At best, "Neumann
       % conditions prevent heat from flowing out of the domain..."
       if legacy
@@ -221,7 +220,7 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
       min_quad_with_fixed(-L,div_X,[],[],[],[],pre.poisson);
   end
   D = phi;
-  % "Note that 𝜑 is unique only up to an additive constant and should be
+  % "Note that ???? is unique only up to an additive constant and should be
   % shifted such that the smallest distance value is zero."
   D = D - min(D(:));
 
