@@ -20,9 +20,10 @@ function R = random_color(n,preset)
     preset = '';
   end
 
-  if(strcmp(preset,''))
+  switch preset
+      case ''
     R = rand([n,3]);
-  else if(strcmp(preset,'Pastel'))
+      case 'Pastel'
     attempt = 0;
     % probably should be between O(n) and O(log n)
     max_attempts = 10*prod(n);
@@ -46,8 +47,13 @@ function R = random_color(n,preset)
       attempt = attempt+1;
     end
     R=reshape(R,[n 3]) +  34/255;
-  else 
-    error('Preset not supported');
+      case {'jet','hsv','hot','pink','flag','bone','gray','cool','copper'}
+          f = str2func(preset);
+          R = f(n*10);
+          R = R(randperm(end),:);
+          R = R(1:n,:);
+      otherwise
+          error('Unsupported preset');
   end
 
 end

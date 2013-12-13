@@ -30,7 +30,11 @@ function [s,r] = medit(varargin)
 
   V = varargin{1};
   T = varargin{2};
-  F = varargin{3};
+  if nargin<3
+    F = [];
+  else
+    F = varargin{3};
+  end
   wait = true;
   D = [];
   E = [];

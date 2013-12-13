@@ -16,7 +16,13 @@ function writeOBJ(filename, V,F,UV,TF,N,NF)
 %disp(['writing: ',filename]);
 f = fopen( filename, 'w' );
 
-assert(size(V,2) == 3);
+
+if size(V,2) == 2
+  warning('Appending 0s as z-coordinate');
+  V(:,end+1:3) = 0;
+else
+  assert(size(V,2) == 3);
+end
 fprintf( f, 'v %0.17g %0.17g %0.17g\n', V');
 
 hasN =  exist('N','var') && ~isempty(N);
@@ -38,10 +44,10 @@ if hasN
     fprintf( f, 'vn %0.17g %0.17g %0.17g\n', N');
 end
 
-if hasUV && (~exist('TF') || isempty(TF))
+if hasUV && (~exist('TF','var') || isempty(TF))
     TF = F;
 end
-if hasN && (~exist('NF') || isempty(NF))
+if hasN && (~exist('NF','var') || isempty(NF))
     NF = F;
 end
 

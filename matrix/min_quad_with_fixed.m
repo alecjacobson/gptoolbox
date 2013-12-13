@@ -35,10 +35,18 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
   %     condest of A and rank of A
   %     (2) Some constraints in Aeq are linearly dependent (after removing
   %     known values), check SVD of Aeq
-  %   "My should be symmetric, positive definite but I see that lu is being
-  %   used". Check (1) and (2) above, and:
+  %   "My hessian should be symmetric, positive definite but I see that lu is
+  %     being used". Check (1) and (2) above, and:
   %     (3) be sure you giving A and not accidentally -A, which would be
   %     negative definite.
+  %   "My constraints are not satisfied. That is, some abs(Aeq * Z - Beq) are
+  %     not zero." In the output, check F.Aeq_li. If this is false then
+  %     according to QR decomposition your constraints are linearly dependent.
+  %     Check that your constraints are not conflicting.  Redundant or linearly
+  %     dependent constraints **equations** (including rhs) should be OK, but
+  %     linearly dependent rows in Aeq with mismatching rows in Beq mean
+  %     there's a conflict.
+  %     
   %
   %
   % Example:
@@ -73,6 +81,10 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
   % treat empty B as column of zeros to match A
   if isempty(B)
     B = zeros(size(A,1),1);
+  end
+  if nargin < 4
+    Y = [];
+    known = [];
   end
   if nargin < 6
     Aeq = [];

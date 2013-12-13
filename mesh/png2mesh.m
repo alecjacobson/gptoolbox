@@ -50,7 +50,7 @@ function [V,F] = png2mesh( ...
   avg_sqr_edge_length = mean(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2));
   % triangulate the polygon
   [V,F] = triangle(V,E,[],'MaxArea',avg_sqr_edge_length/2.0,'Quality',30);
-
+  %[V,F] = triangle(V,E,[]);
   unr = setdiff(1:size(V,1),F(:));
   if(~isempty(unr))
     warning('Removing unreferenced vertices in mesh...');
