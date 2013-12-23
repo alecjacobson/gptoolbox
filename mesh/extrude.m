@@ -28,15 +28,27 @@ function [VV,FF] = extrude(V,F,varargin)
 
   % Copy top and bottom
   VV = [V 1+0*V(:,1);V 0*V(:,1)];
-  if cap
-    FF = [F;size(V,1)+fliplr(F)];
-  else
-    FF = F;
-  end
+  switch size(F,2)
+  case 3
+    % Mesh as input
+    if cap
+      FF = [F;size(V,1)+fliplr(F)];
+    else
+      FF = F;
+    end
 
-  % connect boundaries
-  O = outline(F);
-  FO = [size(V,1)+O(:,1) O(:,[2 1]); O(:,2) size(V,1)+O(:,1:2)];
+    % connect boundaries
+    O = outline(F);
+  case 2
+    % Curve as input
+    FF = [];
+    O = F;
+  end
+  assert(size(unique(sort(O,2),'rows'),1) == size(O,1));
+
+  FO = [ ... 
+    size(V,1)+O(:,1) O(:,[2 1]); ...
+    O(:,2) size(V,1)+O(:,1:2)];
 
   FF = [FF;FO];
 
