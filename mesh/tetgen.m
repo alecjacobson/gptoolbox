@@ -50,11 +50,11 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   %end
   % call tetgen
   command = [path_to_tetgen ' ' flags ' ' poly_filename];
-  fprintf(command);
+  %fprintf(command);
   [status, result] = system(command);
-  status
-  result
-
+  if status~=0
+    error(result)
+  end
   % tetgen always writes output to file:
   %   xxxx.1.ele  tetrahedra
   %   xxxx.1.node tetrahedra vertices
@@ -76,7 +76,7 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
     % make 1-indexed
     T = T + 1;
   else if min(T(:)) >= 1
-    warning('min(T) >= 1, leaving indices as is');
+    %warning('min(T) >= 1, leaving indices as is');
   end
 
 
