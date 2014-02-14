@@ -13,7 +13,7 @@ function N = matrixnormalize(M)
   %
   %
   switch class(M)
-  case 'double'
+  case {'double','single'}
     N = (M-min(M(:)))./(max(M(:))-min(M(:)));
   case 'uint8'
     N = (M-min(M(:)))*(255/double((max(M(:))-min(M(:)))));

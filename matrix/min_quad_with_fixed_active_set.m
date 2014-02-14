@@ -36,8 +36,8 @@ function [Z,F,Lambda] = ...
   %     [Beq;Y],lx,ux);
   %
 
-  max_iter = inf;
-  %max_iter = 100;
+  %max_iter = inf;
+  max_iter = 100;
 
   A = varargin{1};
   B = varargin{2};

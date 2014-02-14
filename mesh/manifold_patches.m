@@ -28,7 +28,6 @@ function [C,A,uE2F,uE] = manifold_patches(F)
   [uE,~,IC] = unique(sortallE,'rows');
   % uE2F(e,f) = 1 means face f is adjacent to unique edge e
   uE2F = sparse(IC(:),repmat(1:size(F,1),1,ss)',1);
-  full(uE2F)
   % kill non-manifold edges
   uE2F(sum(uE2F,2)>2,:) = 0;
   % Face-face Adjacency matrix

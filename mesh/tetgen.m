@@ -45,11 +45,9 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   if(internal_constraints)
     flags = [flags ' -i'];
   end
-
   if(~exist('allow_resampling','var') || ~allow_resampling)
     flags = [flags ' -Y' '-V'];
   end
-
   % call tetgen
   command = [path_to_tetgen ' ' flags ' ' poly_filename];
   %fprintf(command);
