@@ -26,6 +26,8 @@ function L = cotmatrix_intrinsic(l,F,nvert)
   end
   F = F';
 
+  % Law of cosines + Law of sine gives you:
+
   % renaming indices of vertices of triangles for convenience
   i1 = F(1,:); i2 = F(2,:); i3 = F(3,:); 
   l1 = l(:,1); l2 = l(:,2); l3 = l(:,3);
