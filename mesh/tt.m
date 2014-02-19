@@ -1,10 +1,8 @@
 function [Fp, Fi] = tt(F)
-  % TT
+  % TT Build a face adjacency data structure for a **manifold** triangle mesh.
+  % From each face we can find where on its neighboring faces it's incident.
   %
   % [Fp, Fi] = tt(F)
-  %
-  % Build a face adjacency data structure. From each face we can find where on
-  % its neighboring faces it's incident.
   %
   % Input:
   %   F  list of face indices, #faces by 3

@@ -1,35 +1,40 @@
-function [c] = slerp(a,b,t)
+function [C] = slerp(A,B,t)
+  % SLERP Spherically interpolate between to unit vectors. If not unit then
+  % this will normalize, slerp and then lerp magnitudes.
+  %
+  % Inputs:
+  %   A  #A by 3 list of unit vectors
+  %   B  #A by 3 list of unit vectors
+  %   t  #t list of values between 0 and 1
+  % Outputs:
+  %   C  #A by 3 list of interpolated unit vectors
+  %
+
+  assert(size(A,1)==size(B,1),'#A != #B');
+  if numel(t) == 1
+    t = repmat(t,size(A,1),1);
+  end
+  assert(size(A,1)==numel(t),'#A != #T');
+
+  % Original magnitudes
+  Amag = sqrt(sum(A.^2,2));
+  Bmag = sqrt(sum(B.^2,2));
   % normalize a and b and keep 0's
-  norma = sqrt(sum(a.^2,2));
-  na = a;
-  na(norma>0,:) = a(norma>0,:)./repmat(norma(norma>0),1,size(a,2));
+  A = bsxfun(@rdivide,A,Amag);
+  B = bsxfun(@rdivide,B,Bmag);
+  Omega = acos( sum(A.*B,2) );
+  Omega(abs(Omega-pi)<1e-8) = pi-10*1e-8;
+  sinOmega = sin(Omega);
+  C = bsxfun(@times,A,sin((1-t).*Omega)./sinOmega) + ...
+      bsxfun(@times,B,sin(t.*Omega)./sinOmega);
+  % coincident
+  co = abs(Omega)<eps;
+  % Converge to typical lerp
+  if any(co)
+    C(co,:) = A(co,:) + bsxfun(@times,t(co),(B(co,:)-A(co,:)));
+  end
 
-  normb = sqrt(sum(b.^2,2));
-  nb = b;
-  nb(normb>0,:) = b(normb>0,:)./repmat(normb(normb>0),1,size(b,2));
-
-  %angle = acos( dot(a,b) );
-  angle = acos( sum(na.*nb,2) );
-  % hard case
-  %if(max(pi==angle))
-  %  error('SLERP: angle between vectors cannot be exactly PI...');
-  %else
-    % easy degenerate case
-    c = na;
-    %c(angle==0) = na(angle==0);
-    % errrrrr
-    c(angle~=0 & angle~=pi,:) = ...
-      repmat( ...
-        sin((1.0-t(angle~=0 & angle~=pi)).*angle(angle~=0 & angle~=pi))./ ...
-        sin(angle(angle~=0 & angle~=pi)),1,size(na,2)).* ...
-      na(angle~=0 & angle~=pi,:) + ...
-      repmat((sin(t(angle~=0 & angle~=pi).*angle(angle~=0 & angle~=pi))./ ...
-      sin(angle(angle~=0 & angle~=pi))),1,size(nb,2)).*...
-      nb(angle~=0 & angle~=pi,:); 
-  %end
-
-  % lerp magnitudes
-  c = c.*repmat((1.0-t).*sqrt(sum(a.^2,2)) + ...
-    t.*sqrt(sum(b.^2,2)),1,size(a,2));
+  % lerp original magnitudes
+  C = bsxfun(@times,C,Amag + t.*(Bmag-Amag));
 
 end
