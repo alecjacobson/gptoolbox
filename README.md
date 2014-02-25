@@ -50,6 +50,7 @@ you're intersted in contributing, please contact Alec Jacobson
 (alecjacobson@gmail.com).
 
 ## Documentation ##
-For now, documentation is limited to a per-function basis. For example, to find documentation for `cotmatrix` issue:
+For now, documentation is limited to a per-function basis. For example, to find
+documentation for `cotmatrix` issue:
 
     help cotmatrix

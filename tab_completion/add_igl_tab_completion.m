@@ -1,5 +1,5 @@
-function [d,L] = add_igl_tab_completion()
-  % d = add_igl_tab_completion()
+function [d,L] = add_gptoolbox_tab_completion()
+  % d = add_gptoolbox_tab_completion()
   %
   % Outputs:
   %   d  return value of tabcomplete after all have been added
