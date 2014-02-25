@@ -37,6 +37,13 @@ To make this change permanent, then issue:
 There are some mex files, whose documentation for installation are included in
 respective `README.md` files. 
 
+To enable tab completion on gptoolbox's IO functions issue:
+
+    add_gptoolbox_tab_completion
+
+this takes a second or two (or 30) and then you'll need to restart MATLAB for
+it to take effect.
+
 ## License ##
 Unless marked otherwise all code is Copyright Alec Jacobson 2014.
 
