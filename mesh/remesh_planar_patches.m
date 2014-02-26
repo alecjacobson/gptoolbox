@@ -1,15 +1,24 @@
-function [VV,FF,IM,C] = remesh_planar_patchs(V,F)
+function [W,G,IM,C] = remesh_planar_patchs(V,F,varargin)
   % REMESH_PLANAR_PATCHS  Find nearly planar patches and retriangulate them.
   %   (V,F) should probably not be self-intersecting, at least not near the
   %   planar patches. This will attempt to maintain non-manifold edges
   %   (untested).
   %
+  % [W,G] = remesh_planar_patchs(V,F)
+  % [W,G,IM,C] = remesh_planar_patchs(V,F,'ParameterName',ParameterValue,...)
+  %
   % Inputs:
   %   V  #V by 3 list of vertices
   %   F  #F by 3 list of triangle indices
+  %   Optional:
+  %     'Force' followed by whether to remesh even if it will not improve
+  %        the number of vertices {false}.
+  %     'MinSize' followed by minimum number of facets in group to consider for
+  %       remeshing {4}
+  %
   % Outputs:
-  %   VV  #VV by 3 list of output mesh positions
-  %   FF  #FF by 3 list of output triangle indices
+  %   W  #W by 3 list of output mesh positions
+  %   G  #G by 3 list of output triangle indices
   %   IM  indices from final remove_unreferenced
   %   C  #F list of patch indices
   %
@@ -20,6 +29,24 @@ function [VV,FF,IM,C] = remesh_planar_patchs(V,F)
   % in radians
   %min_delta_angle = pi-1e-5;
   min_delta_angle = pi-1e-3;
+  min_size = 4;
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Force','MinSize'}, ...
+    {'force_remesh','min_size'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace 
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
 
   % The right way to deal with them would be to make a list of feature edges
   % (aka "exterior edges") on the original mesh and be sure these end up in any
@@ -42,9 +69,8 @@ function [VV,FF,IM,C] = remesh_planar_patchs(V,F)
   axis equal;
   drawnow;
 
-  VV = V;
-  min_size = 4;
-  FF = F(counts<=min_size,:);
+  W = V;
+  G = F(counts<=min_size,:);
   % loop over connected components
   %for c = reshape(UC(ucounts>min_size),1,[])
   for c = 1:max(C)
@@ -55,7 +81,7 @@ function [VV,FF,IM,C] = remesh_planar_patchs(V,F)
       %% Not dealing with holes yet
       %if S.num_boundary_loops > 1
       %  warning('Skipping high-genus planar patch...');
-      %  FF = [FF;Fc];
+      %  G = [G;Fc];
       %  continue;
       %end
       %assert(S.num_boundary_loops == 1);
@@ -72,7 +98,7 @@ function [VV,FF,IM,C] = remesh_planar_patchs(V,F)
       uo = unique(E);
       % Nothing to gain by remeshing
       if ~force_remesh && numel(uo) == numel(uf)
-        FF = [FF;Fc];
+        G = [G;Fc];
         continue;
       end
       % only boundary edges projected to plane
@@ -86,35 +112,36 @@ function [VV,FF,IM,C] = remesh_planar_patchs(V,F)
       % THIS IS INSANELY SLOW
       % DT = delaunayTriangulation(Vuo(:,1),Vuo(:,2));
       % DT.Constraints = E;
-      % FFc = DT.ConnectivityList;
+      % Gc = DT.ConnectivityList;
       % Triangle is way faster...
-      [VVuo,FFc] = triangle(Vuo,E,[],'Quiet');
-      assert(size(FFc,1) >= 1);
-      assert(size(VVuo,1) == size(Vuo,1));
+      [Wuo,Gc] = triangle(Vuo,E,[],'Quiet');
+      assert(size(Gc,1) >= 1);
+      assert(size(Wuo,1) == size(Vuo,1));
       % easier to remove holes post hoc than pass hole positions to triangle
       AE = adjacency_matrix(E);
       [~,CE] = graphconncomp(AE);
       if max(CE) > 1
-        w = winding_number(Vuo,O,barycenter(Vuo,FFc));
+        w = winding_number(Vuo,O,barycenter(Vuo,Gc));
         % should only be 1s and 0s
-        FFc = FFc(abs(w)>0.1,:);
+        Gc = Gc(abs(w)>0.1,:);
       end
 
 
-      % remap FFc to V
-      FFc = uo(FFc);
+      % remap Gc to V
+      Gc = uo(Gc);
       % old mean normal
       oldN = mean(normalizerow(normals(V,Fc)));
-      N = mean(normalizerow(normals(V,FFc)));
+      N = mean(normalizerow(normals(V,Gc)));
       flip  = dot(oldN,N) < 0;
       if flip
-        FFc = fliplr(FFc);
+        Gc = fliplr(Gc);
       end
-      FF = [FF;FFc];
+      tsurf(Gc,W);
+      G = [G;Gc];
     end
   end
 
-  [VV,IM] = remove_unreferenced(VV,FF);
-  FF = IM(FF);
+  [W,IM] = remove_unreferenced(W,G);
+  G = IM(G);
 
 end
