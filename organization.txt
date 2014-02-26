@@ -1,0 +1,21 @@
+The following is a possible reorganization of gptoolbox:
+
+- gptoolbox/
+  - README.md
+  - mesh/  # functions which take (V,F) as input
+    - modeling/ # modeling specific shapes/primitives
+    - deformation/  #functions related to deformation/skinning
+  - geometry/ #functions related to simple geometry operations (not on a mesh)
+  - imageprocessing/ 
+  - matrix/ #functions for manipulating general matrices
+  - utility/ #functions for making matlab/gptoolbox easier to use
+  - data/ #image and mesh files
+    - woody.obj
+    - hans-hass.jpg
+  - external/ #functions not written by us (licenses)
+    - matlabPyrTools/
+  - mex/ #functions that require a mex compilation
+    - README.md
+    - selfintersect/
+    - winding_number/
+    - boneheat/

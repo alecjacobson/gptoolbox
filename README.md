@@ -44,10 +44,21 @@ To enable tab completion on gptoolbox's IO functions issue:
 this takes a second or two (or 30) and then you'll need to restart MATLAB for
 it to take effect.
 
-## License ##
-Unless marked otherwise all code is Copyright Alec Jacobson 2014.
+## Dependencies ##
+This depends on MATLAB and its various toolbox extensions. Many functions
+should also work with Octave, though this has not been tested.
 
-We will probably move this code under a MPL2 license in the near future.
+Functions that rely on `quadprog` have been tested and optimized assuming that
+the Mosek toolbox has been installed, but should also work with the `quadprog`
+in MATLAB's Optimization Toolbox.
+
+Mex files may have other external dependencies (e.g. CGAL, Eigen, libigl). See
+their respective READMEs for more information.
+
+## License ##
+Unless marked otherwise, all code is Copyright Alec Jacobson 2014.
+
+We will probably switch to a MPL2 license in the near future.
 
 ## Contact ##
 The Geometry Processing Toolbox grew out of Alec Jacobson's private codebase
