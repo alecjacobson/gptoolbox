@@ -1,4 +1,4 @@
-function C = centroid(V,F,varargin)
+function [C,vol] = centroid(V,F,varargin)
   % CENTROID Compute the centroid of a closed polyhedron boudned by (V,F)
   %
   % C = centroid(V,F)
