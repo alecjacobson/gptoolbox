@@ -9,5 +9,5 @@ function v = gptoolbox_version()
   % Anyone may increment Minor to indicate a small change.
   % Major indicates a large change or large number of changes.
   % World indicates a substantial change or release.
-  v = '0.1.1';
+  v = '0.1.2';
 end
