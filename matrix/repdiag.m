@@ -5,6 +5,8 @@ function B = repdiag(A,d)
   % B( (k*m+1):(k*m+1+m-1), (k*n+1):(k*n+1+n-1)) = A 
   % for k from 0 to d-1
   %
+  % B = repdiag(A,d)
+  %
   % Inputs:
   %   A  m by n matrix we are repeating along the diagonal. May be dense or
   %     sparse

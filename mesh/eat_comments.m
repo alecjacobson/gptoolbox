@@ -6,9 +6,10 @@ function line = eat_comments(file_pointer,comment_symbol)
   % Inputs:
   %   file_pointer  returned from fopen
   %   comment_symbol  symbol of comment, e.g. '#'
-  % Outputs:
+  % Output:
   %   line  next line that does not start with a comment_symbol 
   %     (file_pointer is correspondingly adjusted)
+  %
   assert(size(comment_symbol,2) == 1);
 
   while(true)

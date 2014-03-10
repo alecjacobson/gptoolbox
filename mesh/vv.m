@@ -1,14 +1,14 @@
 function [VV] = vv(V,F)
-% VV
+% VV Compute the Vertex-Vertex topology of a manifold mesh
 %
-% Compute the Vertex-Vertex topology
+% [VV] = vv(V,F)
 %
 % Input:
-% V: vertex coordinates, Vx3
-% F: triangles         , Fx3
+%   V  vertex coordinates, Vx3
+%   F  triangles         , Fx3
 % Output:
-% VV: sparse matrix that contains a 1 in the i-j element if vertices i and
-% j are connected by edge
+%   VV  sparse matrix that contains a 1 in the i-j element if vertices i and j
+%     are connected by edge
 
 %% prepare sparse matrix
 i = ones(10*size(V,1),1);

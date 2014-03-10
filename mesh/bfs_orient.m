@@ -1,5 +1,5 @@
 function [F,C] = bfs_orient(F,V);
-  % Consistently orient faces in orientable patches using BFS
+  % BFS_ORIENT Consistently orient faces in orientable patches using BFS
   %
   % F = bfs_orient(F,V);
   %
@@ -8,7 +8,6 @@ function [F,C] = bfs_orient(F,V);
   % Outputs:
   %  F  #F by 3 list of faces
   %  C  #F list of component ids
-  %
   %
   % Example:
   %  RF = F;

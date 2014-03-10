@@ -1,25 +1,24 @@
 function D = prebiharmonic( W,L,a,t,k)
-%PREBIHARMONIC 
+% PREBIHARMONIC Compute the pre-biharmonic kernel SGP 2011 - Raif Rustamov -
+% Multiscale Biharmonic Kernels
 %
 % D = prebiharmonic(W,L,t,k)
 %
-%Compute the pre-biharmonic kernel 
-%SGP 2011 - Raif Rustamov - Multiscale Biharmonic Kernels
-%
 % Input:
-% W: Area weight per vertex (see massmatrix)
-% L: Cotan matrix (see cotmatrix)
-% t: Size of support (0..1)
-% a: Total area of the surface
-% k: source vertex
+%   W  #V by #V sparse Area weight per vertex (see massmatrix)
+%   L  #V by #V sparse Cotan matrix (see cotmatrix)
+%   t  Size of support (0..1)
+%   a  Total area of the surface
+%   k  source vertex
+% Outputs:
+%   D  #V list of kernel values
 %
 % Example:
-%
-% [V,F] = readOBJ('woody.obj');
-% W = massmatrix(V,F,'voronoi');
-% L = cotmatrix(V,F);
-% a = sum(doublearea(V,F))/2.0;
-% d = prebiharmonic(W,L,a,0.5,1);
+%   [V,F] = readOBJ('woody.obj');
+%   W = massmatrix(V,F,'voronoi');
+%   L = cotmatrix(V,F);
+%   a = sum(doublearea(V,F))/2.0;
+%   d = prebiharmonic(W,L,a,0.5,1);
 
 
 

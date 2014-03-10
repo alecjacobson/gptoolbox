@@ -3,7 +3,7 @@ function [U,Uall] = laplacian_smooth(V,F,L_method,b,lambda,method,S,max_iter)
   %
   % [U] = laplacian_smooth(V,F)
   % [U] = laplacian_smooth(V,F,L_method,b,lambda,method,S)
-  % [U,Uall] = smooth(V,F,L_method,b,lambda,method,S,max_iter)
+  % [U,Uall] = laplacian_smooth(V,F,L_method,b,lambda,method,S,max_iter)
   % 
   % Inputs:
   %   V  #V x 3 matrix of vertex coordinates

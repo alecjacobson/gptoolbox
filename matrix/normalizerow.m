@@ -1,7 +1,5 @@
 function [ A ] = normalizerow( A ) %#codegen
-  % NORMALIZEROW 
-  %
-  % Normalize each row
+  % NORMALIZEROW Normalize each row so that each row's l2 norm as a vector is 1
   %
   % [ A ] = normalizerow( A )
   %

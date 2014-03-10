@@ -4,7 +4,6 @@ function writeMESH( filename, V,T,F,E)
   % writeMESH(filename,V,T,F)
   % writeMESH(filename,V,T,F,E)
   %
-  %
   % Input:
   %  filename  path to .mesh file
   %  V  #V by 3 list of vertices

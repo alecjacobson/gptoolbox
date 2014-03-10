@@ -1,9 +1,8 @@
 function [S,SE] = sample_edges(V,E,samples_per_edge)
-  % SAMPLE_EDGES
-  % S = sample_edges(V,E,samples_per_edge)
+  % SAMPLE_EDGES Compute samples_per_edge extra points along each edge in E
+  % defined over vertices of V.
   %
-  % Compute samples_per_edge extra points along each edge in E defined over
-  % vertices of V.
+  % S = sample_edges(V,E,samples_per_edge)
   %
   % Inputs:
   %   V  vertices over which edges are defined, # vertices by dim

@@ -1,6 +1,8 @@
 function writeSMF(filename,V,F)
   % WRITESMF Write a mesh (V,F) to a .smf file.
   % 
+  % writeSMF(filename,V,F)
+  %
   % Input:
   %  filename  path to .obj file
   %  V  #V by 3 list of vertices

@@ -3,7 +3,7 @@ function [FF,I] = orient_outward(V,F,C)
   % manifold/orientable patch of a mesh. Assumes that independent patches have
   % already been oriented consistently up to sign.
   % 
-  %[FF,I] = orient_outward(V,F,C)
+  % [FF,I] = orient_outward(V,F,C)
   %
   % Inputs:
   %   V  #V by 3 list of vertex positions

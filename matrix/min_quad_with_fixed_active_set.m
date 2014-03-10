@@ -1,5 +1,4 @@
-function [Z,F,Lambda] = ...
-  min_quad_with_fixed_active_set(varargin)
+function [Z,F,Lambda] = min_quad_with_fixed_active_set(varargin)
   % MIN_QUAD_WITH_FIXED_ACTIVE_SET Minimize quadratic energy Z'*A*Z + Z'*B + C
   % with constraints that Z(known) = Y, optionally also subject to the
   % constraints Aeq*Z = Beq, and further optionally subject to the linear

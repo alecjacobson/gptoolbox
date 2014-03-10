@@ -1,10 +1,9 @@
 function tricontour(V,F,w,speedup)
-  % tricontour
+  % TRICONTOUR Plot a filled contour defined on top of a triangle mesh returns
+  % function handle
   %
   % tricontour(V,F,w,speedup)
   %
-  % Plot a filled contour defined on top of a triangle mesh
-  % returns function handle
   %
   % Inputs:
   %  V  list of vertex positions

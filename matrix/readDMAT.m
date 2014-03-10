@@ -1,7 +1,6 @@
 function [W] = readDMAT(filename)
-  % READDMAT  read a matrix from a dmat file.
-  %   first line is <# columns> <# rows>, then values with columns running
-  %   faster
+  % READDMAT  read a matrix from a dmat file.  first line is <# columns> <#
+  % rows>, then values with columns running faster
   %
   % [W] = readDMAT(filename)
   %
@@ -10,6 +9,7 @@ function [W] = readDMAT(filename)
   % Output:
   %   W  matrix read from file
   %
+  % See also: writeDMAT
   %
   
   % open file

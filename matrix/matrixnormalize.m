@@ -1,16 +1,18 @@
 function N = matrixnormalize(M)
-  % MATRIXNORMALIZE
+  % MATRIXNORMALIZE Normalize matrix values to be between the range 0 and 1.
+  % Current just works with matrices of type double.
   % 
   % N = matrixnormalize(M)
-  %
-  % Normalize matrix values to be between the range 0 and 1. Current just works with
-  % matrices of type double.
   %
   % Inputs:
   %   M  original input matrix
   % Output:
   %   N  normalized matrix
-  %
+  % 
+  % Example:
+  %   imshow(matrixnormalize(im))
+  %   % Equivalent to
+  %   imshow(im,[])
   %
   switch class(M)
   case {'double','single'}

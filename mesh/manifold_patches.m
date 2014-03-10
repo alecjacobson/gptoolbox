@@ -1,7 +1,8 @@
 function [C,A,uE2F,uE] = manifold_patches(F)
-  % Compute connected components of facets connected by manifold edges.
+  % MANIFOLD_PATCHES Compute connected components of facets connected by
+  % manifold edges.
   %
-  %[C,A,uE2F,uE] = manifold_patches(F)
+  % [C,A,uE2F,uE] = manifold_patches(F)
   %
   % Known bugs: This will detect a moebius strip as a single patch (manifold,
   % non-orientable) and also non-manfiold, yet orientable patches. 

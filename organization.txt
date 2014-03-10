@@ -7,7 +7,7 @@ The following is a possible reorganization of gptoolbox:
     - deformation/  #functions related to deformation/skinning
   - geometry/ #functions related to simple geometry operations (not on a mesh)
   - imageprocessing/ 
-  - matrix/ #functions for manipulating general matrices
+  - matrix/ #functions for manipulating general matrices, solvers
   - utility/ #functions for making matlab/gptoolbox easier to use
   - data/ #image and mesh files
     - woody.obj
@@ -19,3 +19,10 @@ The following is a possible reorganization of gptoolbox:
     - selfintersect/
     - winding_number/
     - boneheat/
+    - ambient-occlusion/
+  - wrappers/ #functions that just wrap command line applications, eventually
+    should be mex files...
+    - README.md  explain `path_to_*` convention
+    - qslim
+    - triangle
+    - tetgen

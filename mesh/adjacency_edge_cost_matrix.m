@@ -13,6 +13,8 @@ function [C] = adjacency_edge_cost_matrix(V,E)
   %  F  #F by 3 triangle list
   %  or 
   %  T  #F by 4 tet list
+  % Outputs:
+  %   C  #V by #V adjacency matrix weighted by edge norms
   %
 
   if(size(E,2)>2)

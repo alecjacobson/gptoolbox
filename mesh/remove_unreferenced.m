@@ -1,6 +1,8 @@
 function [RV,IM] = remove_unreferenced(V,F)
   % REMOVE_UNREFERENCED Removes any rows in V that are not referenced in R
   %
+  % [RV,IM] = remove_unreferenced(V,F)
+  %
   % Inputs:
   %   V  #V by dim list of "vertex positions"
   %   F  #F by anything list of indices into V (will be treated as F(:))
@@ -10,8 +12,6 @@ function [RV,IM] = remove_unreferenced(V,F)
   %  IM  #V by 1 list of indices such that: RF = IM(F) and RT = IM(T)
   %    and RV(IM,:) = V
   % 
-  % 
-  %
   % Examples:
   %   % Tet mesh in (V,T,F)
   %   [RV,I] = remove_unreferenced(V,[T(:);F(:)]);

@@ -1,15 +1,24 @@
 function [Nu,Nv] = neumannmatrix(mmesh,V, nlayers)
+% NEUMANNMATRIX Computes matrices for computing neumann boundary conditions.
+%
 % [Nu,Nv] = neumannmatrix(mmesh,V)
-% returns two sparse matrices of size #V x #V;
-% the only nonzero columns/rows are for boundary vertices.
-% The indices used in the matrix match the original indices. 
-% If the derivatives gradx_u = dx/du and gradx_v = dx/dv of the unknown x
-% are given at vertices of the boundary, we interpolate them linearly
-% and compute the vector withe entries 
-% <dx/dn phi_j>,  as \sum_i <gradx dot t_ij, phi_j> = 
-% = \sum_i gradx_i dot t_ij <phi_i phi_j> = 
-% = (Nu gradx_u + Nv gradx_v)_j, where phi_i are hats on the boundary
-% and t_ij are outward perpendiculars to the boundary edges
+%
+% Inputs:
+%   mmesh  hds representation of mesh
+%   V  #V by dim list of mesh positions
+%   nlayers  number of layers into mesh
+% Outputs:
+%   Nu  sparse matrices of size #V x #V,
+%   Nv  sparse matrices of size #V x #V, The only nonzero columns/rows are for
+%     boundary vertices.  The indices used in the matrix match the original
+%     indices.  If the derivatives gradx_u = dx/du and gradx_v = dx/dv of the
+%     unknown x are given at vertices of the boundary, we interpolate them
+%     linearly and compute the vector withe entries <dx/dn phi_j>,  as \sum_i
+%     <gradx dot t_ij, phi_j> = = \sum_i gradx_i dot t_ij <phi_i phi_j> = = (Nu
+%     gradx_u + Nv gradx_v)_j, where phi_i are hats on the boundary and t_ij
+%     are outward perpendiculars to the boundary edges
+%
+% See also: hds
 
     % indices of tails and tips of boundary edges
     % TODO should not be here

@@ -1,6 +1,8 @@
 function [Y,I] = maxnz(X)
   % MAXNZ  find maximum nonzero entry in columns of X
   %
+  % [Y,I] = maxnz(X)
+  %
   % Inputs:
   %   X  m by n sparse matrix
   % Outputs
@@ -8,7 +10,6 @@ function [Y,I] = maxnz(X)
   %   I  n list of row indices to maximum non-zero entries in each column of X
   %
   % See also: min, max, minnz
-  %
   %
 
   [XI,XJ,XV] = find(X);

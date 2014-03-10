@@ -17,6 +17,16 @@ function [LS,LD,I] = isolines(V,F,S,iso)
   % alternative: tracing isolines should result in smaller plot data (every
   % vertex only appears once
   %
+  % Example:
+  %   iso = linspace(min(S),max(S),10);
+  %   [LS,LD] = isolines(V,F,S,iso);
+  %   colormap(jet(numel(iso)-1));
+  %   tsurf(F,V,'CData',S,fphong);
+  %   hold on;
+  %   plot_edges([LS;LD],[1:size(LS,1);size(LS,1)+(1:size(LD,1))]', ...
+  %     'Color','k','LineWidth',10);
+  %   hold off;
+  %
 
   % make sure iso is a ROW vector
   iso = iso(:)';

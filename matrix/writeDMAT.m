@@ -1,9 +1,9 @@
 function writeDMAT(filename,W,ascii)
-  % WRITEDMAT  writes a matrix from a dmat file.
-  %   first line is <# columns> <# rows>, then values with columns running
-  %   faster
+  % WRITEDMAT  writes a matrix from a dmat file.  first line is <# columns> <#
+  % rows>, then values with columns running faster
   %
   % writeDMAT(filename,W)
+  % writeDMAT(filename,W,asci)
   %
   % Input:
   %   filename  name of .dmat file

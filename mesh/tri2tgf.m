@@ -1,7 +1,7 @@
 function tri2tgf(input_name,output_name)
-  % TRI2TGF
+  % TRI2TGF Script to convert a triangle mesh to a tgf graph (skeleton file)
   %
-  % Script to convert a triangle mesh to a tgf graph (skeleton file)
+  % tri2tgf(input_name,output_name)
   %
   % Inputs:
   %  input_name  name of file contaning input vertices and faces of surface,

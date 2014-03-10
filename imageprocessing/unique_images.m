@@ -1,16 +1,16 @@
-function [U,D] = unique_images(varargin)
-  % UNIQUE_IMAGES 
+function [U,D] = unique_images(dir_name)
+  % UNIQUE_IMAGES Generate a list of unique and duplicate images in a
+  % directory.
   %
-  % [U,D] = unique_images(directory_name)
+  % [U,D] = unique_images(dir_name)
   %
   % Inputs:
-  %   directory_name
+  %   dir_name  path to directory
   % Outputs:
   %   U list of unique images/image paths
   %   D list of duplicate iamges, so that [U,D] are all images
   %
 
-  dir_name = varargin{1};
   assert(isdir(dir_name));
   files = imdir(dir_name);
   U = {};

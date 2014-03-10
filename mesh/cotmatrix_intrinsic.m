@@ -1,12 +1,13 @@
 function L = cotmatrix_intrinsic(l,F,nvert)
-  % COTMATRIX_INTRINSIC
+  % COTMATRIX_INTRINSIC Compute cotangent Laplacian using edge lengths (not
+  % vertex positions).
   %
   % L = cotmatrix(l,F,nvert)
   %
   % Inputs:
-  %  l: #F by 3, array of edge lengths of edges opposite each face in F
-  %  F: #F by 3, list of indices of triangle corners
-  %  nvert: number of vertices, only needed to set size
+  %   l  #F by 3, array of edge lengths of edges opposite each face in F
+  %   F  #F by 3, list of indices of triangle corners
+  %   nvert  number of vertices, only needed to set size
   % Outputs:
   %   L  sparse nvert x nvert matrix of cot weights 
   %

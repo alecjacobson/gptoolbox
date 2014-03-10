@@ -6,8 +6,8 @@ function [D] = biharmonic_distance(V,F,i,dim,p)
   % [D] = biharmonic_distance(V,F,i,dim,p)
   %
   % Input:
-  %   V  vertex list
-  %   F  face list
+  %   V  #V by dim list of vertex positions
+  %   F  #F by 3 list of triangle indices
   %   i  index of vertex from which to calculate distances
   %   dim  requested dimension of the embedding
   %   Optional:

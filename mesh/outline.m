@@ -7,6 +7,7 @@ function [O] = outline(F)
   %  F  #F by 3 face list of indices
   % Output:
   %  O  #O by 2 list of outline edges
+  %
   % Example:
   %   [V,F] = create_regular_grid(17,17,0,0);
   %   [O] = outline(F);

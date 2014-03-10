@@ -1,8 +1,6 @@
 function [W,dist_H_V] = shepard(V,C,P,E,CE,p)
-  % SHEPARD
-  %
-  % Compute shepard weights for a list of vertices, given a list of samples and
-  % optionally a denominator power value.
+  % SHEPARD Compute shepard weights for a list of vertices, given a list of
+  % samples and optionally a denominator power value.
   %
   % W = shepard(V,C)
   %

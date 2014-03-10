@@ -1,23 +1,23 @@
-function [denoised, noise] = denoise(noisy_signal,prior,standard_deviation_of_noise)
+function [denoised, noise] = denoise(noisy_signal,prior,std_noise)
   % Given a noisy image and a similar prior image and the standard deviation of
   % the noise (assumes gaussian distribution) denoise the iamge by building a
   % steerable freq pyramid and using probabilistic algorithms to build a coring
   % function (highest 5 bands only) to remap the image to the original. Also
   % prints and shows plots of the estimators.
   %
-  % Input:
-  %  noisy_signal: image with noise
-  %  prior: similar image without noise 
-  %  standard_deviation_of_noise: the standard deviation of the noise
-  %                               distribution
+  % [denoised, noise] = denoise(noisy_signal,prior,std_noise)
   %
+  % Inputs:
+  %   noisy_signal  image with noise
+  %   prior  similar image without noise 
+  %   std_noise  the standard deviation of the noise distribution
   % Output:
-  %  denoised: the denoised result image
-  %  noise: the generated noise image
+  %   denoised  the denoised result image
+  %   noise  the generated noise image
   %
   
   % create noise image
-  noise = standard_deviation_of_noise.*randn(size(noisy_signal));
+  noise = std_noise.*randn(size(noisy_signal));
 
   % build steerable pyramids for each image
   [prior_pyr,prior_ind]=buildSFpyr(prior,3,3);

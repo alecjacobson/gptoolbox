@@ -1,11 +1,9 @@
 function [Xr,Yr,Wr] = triinterp(V,F,w,speedup)
-  % TRIINTERP
+  % TRIINTERP Given a scalar field S defined over a triangle mesh with vertices
+  % V and faces F, linearly interpolate the data for new positions U. NaNs are
+  % returned if position in U is not in or on a mesh triangle
   %
   % [Xr,Yr,Wr] = triinterp(V,F,w,speedup)
-  %
-  % Given a scalar field S defined over a triangle mesh with vertices V and
-  % faces F, linearly interpolate the data for new positions U. NaNs are
-  % returned if position in U is not in or on a mesh triangle
   %
   % Inputs:
   %   V vertex position #V x 3 or #V x 2

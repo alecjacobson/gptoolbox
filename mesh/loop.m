@@ -2,12 +2,13 @@ function [VV,FF] = loop(V,F,iter)
 % LOOP perform loop subdivision
 %
 % [VV,FF] = loop(V,F)
+%
 % Inputs:
-%  V  #vertices by 3 list of vertex positions
-%  F  #faces by 3 list of face indices
+%   V  #vertices by 3 list of vertex positions
+%   F  #faces by 3 list of face indices
 % Outpus:
-%  VV new vertex positions
-%  FF new list of face indices
+%   VV new vertex positions
+%   FF new list of face indices
 %
 % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
 %

@@ -1,12 +1,10 @@
-function [ E ] = edges(F)
-  % EDGES Compute the edges of a mesh
+function E = edges(F)
+  % EDGES Compute the unique undireced edges of a simplicial complex
   % 
-  % [ E ] = edges(F)
+  % E = edges(F)
   %
   % Input:
-  %  F #F x 3  matrix of indices of triangle corners
-  %  or
-  %  T #T x 4  matrix of indices of tet corners
+  %  F #F x simplex-size  matrix of indices of simplex corners
   % Output:
   %  E edges in sorted order, direction of each is also sorted
   %

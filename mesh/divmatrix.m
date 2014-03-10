@@ -3,6 +3,7 @@ function D = divmatrix(V,F)
 % V:  #V x 3 matrix of vertex coordinates
 % F:  3 x #F  matrix of indices of triangle corners
 % returns  #V x #V matrix of grad weights
+  warning('Obsolete, use `div` instead');
 
   FT = F';
   E = ...

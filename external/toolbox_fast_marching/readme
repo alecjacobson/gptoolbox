@@ -1,0 +1,72 @@
+WARNING: you have to add the files under toolbox/ in your Matlab path.
+
+The Fast Marching algorithm, introduced by Sethian (1996) is a 
+numerical algorithm that is able to catch the viscosity solution 
+of the Eikonal equation |grad(D)|=P. The level set {x \ F(x)=t} 
+can be seen as a front advancing with speed P(x).
+ 
+The resulting function D is a distance function, and if the speed 
+P is constant, it can be seen as the distance function to a set 
+of starting points.
+  
+The Fast Marching is very similar to the Dijkstra algorithm that 
+finds shortest paths on graphs. Using a gradient descent of the 
+distance function D, one is able to extract a good approximation 
+of the shortest path (geodesic) in various settings (euclidean for 
+P constant, and a weighted riemanian manifold with P varying).
+ 
+The main reference about the Fast Marching algorithm is the book 
+	Level Set Methods and Fast Marching Methods Evolving Interfaces 
+	in Computational Geometry, Fluid Mechanics, Computer Vision, and Materials Science
+    J.A. Sethian, Cambridge University Press, 1999
+    Cambridge Monograph on Applied and Computational Mathematics
+ 
+A good review of the Fast Marching in 3D together with some applications 
+can be found in 
+    Fast extraction of minimal paths in 3D images and application to virtual endoscopy.  
+    T.Deschamps and L.D. Cohen. 
+    September 2000. To appear in  Medical Image Analysis.
+ 
+Basic features:
+* The functions 'perform_fast_marching_2d' and 'perform_fast_marching_3d' 
+  compute the distance function from a set of starting points. 
+* To extract the geodesics between these starting points and an 
+  ending point, you can use 'extract_path_2d' and 'extract_path_3d'.
+* There are also test applications 'test_fast_marching_2d'
+  and 'test_fast_marching_3d' so that you can easily 
+  understand the use of the functions.
+
+Additional features: 
+* Circular path extraction : a callback function can be passed
+ to the C++ function 'perform_front_propagation_2d' to prevent
+ the front to passing though some area. The function 
+ 'perform_circular_fast_marching_2d' implement a simple trick, 
+ by prenventing the front to pass through an horizontal half line, 
+ which in turn enable the extraction of circular paths.
+ The function 'test_circular_fast_marching_2d' shows
+ an application of this to cell segmentation.
+ For more information you can read the original paper:
+	Appleton, B., Talbot, H., 
+	Globally Optimal Geodesic Active Contours, 
+	Journal of Mathematical Imaging and Vision, to appear.
+* Constraint path planing : the script 'test_path_planing'
+ shows the application of 3D fast marching to the extraction
+ of optimal path for a tiny rectangle.
+ The function 'generate_constrained_map' generate the 3D speed
+ function for a given 2D map (the 2D speed function that 
+ should be used if the object to move was a point). 
+ For more information see:
+	http://math.berkeley.edu/~sethian/Movies/Movierobotics.html
+ and read
+    Kimmel, R., and Sethian, J.A., 
+	Fast Marching Methods for Robotic Navigation with Constraints 
+	Center for Pure and Applied Mathematics Report, 
+	Univ. of California, Berkeley, May 1996
+
+The main computation are done in a mex file so it is very fast 
+(using a Fibonacci heap structure). To compile the mex files, 
+simply run 'compile_mex'. This should be ok if you have
+set some C++ compiler (use 'mex -setup').
+Precompiled version (.dll) for Windows are provided.
+
+Copyright (c) 2004 Gabriel Peyré

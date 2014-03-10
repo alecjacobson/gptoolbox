@@ -1,10 +1,8 @@
 function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   % HEAT_GEODESIC  geodesic distance approximation following the method of
-  % section 3 in the 2012 SIGGRAPH submission Olga Sorkine is reviewing--- and
-  % asked me, Alec Jacobson, to implement---called "Geodesics in Heat". Computes
-  % geodesic distances D from all points V in the domain (V,F) to a source
-  % point/set of points, gamma. The method is motivated by heat using a time
-  % parameter t to guide the heat diffusion.
+  % "Geodesics in Heat" [Krane et al. 2013] D from all points V in the domain
+  % (V,F) to a source point/set of points, gamma. The method is motivated by
+  % heat using a time parameter t to guide the heat diffusion.
   % 
   % D = heat_geodesic(V,F,gamma,t)
   % [D,u,X,div_X,phi,pre] = heat_geodesic(V,F,gamma,t,'ParamName',ParamValue)

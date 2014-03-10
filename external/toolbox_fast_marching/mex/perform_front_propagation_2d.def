@@ -1,0 +1,3 @@
+LIBRARY perform_front_propagation_2d.dll
+EXPORTS
+	mexFunction

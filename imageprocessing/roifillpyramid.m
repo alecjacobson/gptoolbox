@@ -3,6 +3,13 @@ function J = roifillpyramid(I,BW)
   % function using multiresolution image pyramid and iterative solve for
   % laplace equation.
   %
+  % J = roifillpyramid(I,BW)
+  %
+  % Inputs:
+  %   I  h by w by c source image with hole
+  %   BW  h by w binary image specifying where to fill
+  % Outputs:
+  %   J  h by w by c Filled image
   %
 
   assert(size(I,1) == size(BW,1));

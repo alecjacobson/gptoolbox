@@ -6,7 +6,7 @@ function R = random_color(n,preset)
   % R = random_color(size,preset)
   %
   % Inputs:
-  %   size size of matrix of random colors to generate
+  %   size  size of matrix of random colors to generate
   %   preset  string containing colormap name or 'Pastel'
   % Outputs:
   %   R  size by 3 list of RGB colors

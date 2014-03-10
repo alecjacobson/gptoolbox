@@ -1,17 +1,22 @@
 function [polycoefs] = vtxpolyfit(V,mmesh,vtxset,vals,deg) 
-% [polycoefs] = vtxpolyfit(mmesh,vtxset,vals,deg), produces #V x m matrix of
-% polynomial coefficients, m = (deg+1)*(deg+2)/2
-% the ordering of monomials is 1, u, v, u^2, uv v^2, u^3, u^2 v ..
-% mmesh: data structure produced by hds
-% vtxset: a set of indices
-% vals: values at vertices
-% deg: polynomial total degree 
-%      primarily intended for deg = 1,2
-% the fit is regularized, so that if there are not enough degrees of
-% freedom a reasonable result should still be produced
-% if 2 layers of vertices are fixed, there is enough dofs for deg 1
-% and typically not enough for deg 2
+% VTXPOLYFIT produces #V x m matrix of polynomial coefficients, m =
+% (deg+1)*(deg+2)/2 the ordering of monomials is 1, u, v, u^2, uv v^2, u^3, u^2
+% v ...  the fit is regularized, so that if there are not enough degrees of
+% freedom a reasonable result should still be produced if 2 layers of vertices
+% are fixed, there is enough dofs for deg 1 and typically not enough for deg 2
 % if 3 layers are fixed then there is typically enough dofs for deg 2
+%
+% [polycoefs] = vtxpolyfit(V,mmesh,vtxset,vals,deg)
+% 
+% Inputs:
+%   V  #V list of points
+%   mmesh  data structure produced by hds
+%   vtxset  a set of indices
+%   vals  values at vertices
+%   deg  polynomial total degree , primarily intended for deg = 1,2
+% Outputs:
+%   polycoefs  #V by m matrix of polynomial coefficients
+% 
 
     num_monom = (deg+1)*(deg+2)/2;
     % powers of u and v for monomials u^l u^m, l+m <=deg, enumerated

@@ -1,9 +1,7 @@
 function [ N ] = normals( V, F )
-  % NORMALS 
+  % NORMALS Compute *unnormalized* normals per face
   %
   % N = normals(V,F)
-  %
-  % Compute *unnormalized* normals per face
   %
   % Inputs:
   %  V  #V x 3 matrix of vertex coordinates

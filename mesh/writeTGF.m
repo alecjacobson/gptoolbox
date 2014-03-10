@@ -1,9 +1,7 @@
 function writeTGF(filename,V,E)
-  % WRITETGF
+  % WRITETGF Write a graph to a .tgf file
   %
   % writeTGF(filename,V,E)
-  %
-  % Write a graph to a .tgf file
   %
   % Input:
   %  filename  .tgf file name

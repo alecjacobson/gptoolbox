@@ -1,5 +1,7 @@
 function [kappa,alpha,ev,l] = curvature(P)
   % CURVATURE compute pointwise curvature on a closed piecewise-linear curve P
+  % 
+  % [kappa,alpha,ev,l] = curvature(P)
   %
   % Inputs:
   %   P  #P by 2 list of curve vertices

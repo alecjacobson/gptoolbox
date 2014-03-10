@@ -1,5 +1,13 @@
 function [q] = project_point_to_line_segment(A,B,p)
-  % returns q the closest point to p on the line segment from A to B 
+  % PROJECT_POINT_TO_LINE_SEGMENT Project a point p onto a line segment AB.
+  %
+  % Inputs:
+  %   A  #A by dim list of soruce points
+  %   B  #A by dim list of soruce points
+  %   p  point in dim-space
+  % Output:
+  %   q  closest point to p on the line segment from A to B in dim-space
+  %
 
   % vector from A to B
   AB = (B-A);

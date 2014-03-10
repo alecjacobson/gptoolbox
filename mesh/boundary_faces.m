@@ -1,14 +1,13 @@
 function [F,J] = boundary_faces(T)
-  % BOUNDARY_FACES
+  % BOUNDARY_FACES Determine boundary faces of tetrahedra stored in T
+  %
   % F = boundary_faces(T)
-  % Determine boundary faces of tetrahedra stored in T
   %
   % Input:
-  %  T  tetrahedron index list, m by 4, where m is the number of tetrahedra
-  %
+  %   T  tetrahedron index list, m by 4, where m is the number of tetrahedra
   % Output:
-  %  F  list of boundary faces, n by 3, where n is the number of boundary faces
-  %  J  list of indices into T, n by 1
+  %   F  list of boundary faces, n by 3, where n is the number of boundary faces
+  %   J  list of indices into T, n by 1
   %
 
   % get all faces

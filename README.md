@@ -44,6 +44,19 @@ To enable tab completion on gptoolbox's IO functions issue:
 this takes a second or two (or 30) and then you'll need to restart MATLAB for
 it to take effect.
 
+### Full installation ###
+
+This strives to be full installation instructions, but will no doubt remain
+incomplete for some time. Begin by adding paths as above. 
+
+#### Compile `toolbox_fast_marching` ####
+
+In MATLAB issue:
+
+    cd external/toolbox_fast_marching/
+    compile_mex
+
+
 ## Dependencies ##
 This depends on MATLAB and its various toolbox extensions. Many functions
 should also work with Octave, though this has not been tested.

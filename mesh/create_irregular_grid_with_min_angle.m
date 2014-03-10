@@ -5,15 +5,19 @@ function [UV,F, res, edge_norms] = ...
   % creates random UV positions and their connectivity information guaranteeing
   % min angle by wrapping trianlge (http://www.cs.cmu.edu/~quake/triangle.html)
   %
-  % Usage:
-  %   [V,F] = create_irregular_grid_with_min_angle(xRes, yRes, n, xWrap, yWrap)
+  % [V,F] = create_irregular_grid_with_min_angle(xRes, yRes, n, xWrap, yWrap)
   %
   % Input:
-  %    n: number of points to create per block
-  %    xWrap, yWrap: wrap around in X/Y direction
-  %    min_angle: minimum angle between edges
-  %    no_interior: don't generate an interior before sending to triangle
-  %    dart_threshold: 0--> regular, 1-->irregular
+  %   n  number of points to create per block
+  %   xWrap, yWrap  wrap around in X/Y direction
+  %   min_angle  minimum angle between edges
+  %   no_interior  don't generate an interior before sending to triangle
+  %   dart_threshold  0--> regular, 1-->irregular
+  % Outputs:
+  %   UV  #UV by 2 list of vertex positions
+  %   F  #F by 3 list of triangle indices into UV
+  %   res  [yRes,xRes] effective resolution
+  %   edge_norms  #F*3 list of edge lengths
   %    
 
   % (C) 2008 Denis Kovacs/NYU

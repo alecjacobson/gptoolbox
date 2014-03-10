@@ -1,5 +1,5 @@
 function FF = flip_ears(V,F,varargin)
-  % FLIP_EARS Flip ears (trianles with two boundary edges in a mesh 
+  % FLIP_EARS Flip ears (triangles with two boundary edges)
   %
   % FF = flip_ears(V,F)
   % FF = flip_ears(V,F,'ParameterName',ParameterValue, ...)
@@ -13,6 +13,8 @@ function FF = flip_ears(V,F,varargin)
   %     'PlanarEpsilon' Epsilon used to determine planarity {1e-8}.
   % Outputs:
   %   FF  #F by 3 list of new triangle mesh indices
+  %
+  % Known bugs: (V,F) mmust be manifold near ears.
   %
 
 

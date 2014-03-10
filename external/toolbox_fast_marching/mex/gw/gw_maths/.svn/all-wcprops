@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths
+END
+GW_Matrix2x2.h
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_Matrix2x2.h
+END
+GW_Matrix3x3.h
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_Matrix3x3.h
+END
+GW_MathsConfig.h
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_MathsConfig.h
+END
+GW_Matrix4x4.h
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_Matrix4x4.h
+END
+gw_complex.h
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/gw_complex.h
+END
+GW_VectorStatic.h
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_VectorStatic.h
+END
+GW_MatrixStatic.h
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_MatrixStatic.h
+END
+GW_Maths.h
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_Maths.h
+END
+GW_SparseMatrix.h
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_SparseMatrix.h
+END
+GW_VectorND.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_VectorND.h
+END
+GW_Quaternion.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_Quaternion.h
+END
+GW_Vector2D.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_Vector2D.h
+END
+GW_Vector3D.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_Vector3D.h
+END
+GW_MatrixNxP.h
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_MatrixNxP.h
+END
+GW_Vector4D.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_maths/GW_Vector4D.h
+END

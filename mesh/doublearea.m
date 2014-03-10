@@ -1,8 +1,7 @@
-function [ dblA ] = doublearea( V, F )
+function dblA = doublearea(V,F)
   % DOUBLEAREA Compute the double area of the triangles of a mesh
   %
-  % [ dblA ] = doublearea( V, F )
-  %
+  % dblA = doublearea(V,F)
   %
   % Inputs:
   %  V #V x dim matrix of vertex coordinates

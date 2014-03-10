@@ -1,6 +1,8 @@
 function [Y,I] = minnz(X)
   % MINNZ  find minimum nonzero entry in columns of X
   %
+  % [Y,I] = minnz(X)
+  %
   % Inputs:
   %   X  m by n sparse matrix
   % Outputs

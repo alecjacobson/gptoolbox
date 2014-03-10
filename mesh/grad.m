@@ -1,8 +1,7 @@
 function [G] = grad(V,F)
-  % GRAD
-  % G = grad(V,F)
+  % GRAD Compute the numerical gradient operator
   %
-  % Compute the numerical gradient operator
+  % G = grad(V,F)
   %
   % Inputs:
   %   V  #vertices by dim list of mesh vertex positions

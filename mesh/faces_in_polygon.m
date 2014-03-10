@@ -15,8 +15,8 @@ function [xin,iin,cin] = faces_in_polygon(V,F,X,Y,Vin)
   %       as inside polygon formed by (X,Y), default is to use inpolygon
   % Outputs:
   %   xin #F list of flags revealing whether query face indices are all in (X,Y)
-  %   iin #F list of flags revealing whether query faces have at least one index 
-  %     in (X,Y)
+  %   iin #F list of flags revealing whether query faces have at least one
+  %     index in (X,Y)
   %   cin #F list of flags revealing whether query face barycenters are in (X,Y)
   %
   % See in_mesh, inpolygon

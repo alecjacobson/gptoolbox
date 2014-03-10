@@ -1,7 +1,7 @@
-function [ ET ] = et(V,F,E)
-%  ET Compute the relation edge to triangle
+function ET = et(V,F,E)
+%  ET Compute the relation edge to triangle of a manifold mesh.
 %
-%  [ ET ] = et(V,F,E)
+%  ET = et(V,F,E)
 %
 %  Input:
 %   V  #V x 3  matrix of vertex coordinates

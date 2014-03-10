@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "perform_front_propagation_2d", "perform_front_propagation_2d.vcproj", "{E4A823A7-267F-494F-87CF-BB933886F90D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "perform_front_propagation_3d", "perform_front_propagation_3d.vcproj", "{44920EEA-EA60-4A6E-8695-0133BBB93332}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "perform_circular_front_propagation_2d", "perform_circular_front_propagation_2d.vcproj", "{3E2E583E-2CAB-4420-B4EE-7CCCB4719694}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "perform_front_propagation_mesh", "perform_front_propagation_mesh.vcproj", "{E4A823A7-267F-494F-87CF-BB933986F90D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E4A823A7-267F-494F-87CF-BB933886F90D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E4A823A7-267F-494F-87CF-BB933886F90D}.Debug|Win32.Build.0 = Debug|Win32
+		{E4A823A7-267F-494F-87CF-BB933886F90D}.Release|Win32.ActiveCfg = Release|Win32
+		{E4A823A7-267F-494F-87CF-BB933886F90D}.Release|Win32.Build.0 = Release|Win32
+		{44920EEA-EA60-4A6E-8695-0133BBB93332}.Debug|Win32.ActiveCfg = Debug|Win32
+		{44920EEA-EA60-4A6E-8695-0133BBB93332}.Release|Win32.ActiveCfg = Release|Win32
+		{3E2E583E-2CAB-4420-B4EE-7CCCB4719694}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3E2E583E-2CAB-4420-B4EE-7CCCB4719694}.Release|Win32.ActiveCfg = Release|Win32
+		{E4A823A7-267F-494F-87CF-BB933986F90D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E4A823A7-267F-494F-87CF-BB933986F90D}.Debug|Win32.Build.0 = Debug|Win32
+		{E4A823A7-267F-494F-87CF-BB933986F90D}.Release|Win32.ActiveCfg = Release|Win32
+		{E4A823A7-267F-494F-87CF-BB933986F90D}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,5 +1,6 @@
 function F = triangles_from_strip(S)
-  % TRIANGLES_FROM_STRIP
+  % TRIANGLES_FROM_STRIP Create a list of triangles from a stream of indices
+  % along a strip.
   %
   % Inputs:
   %   S  #S list of indices

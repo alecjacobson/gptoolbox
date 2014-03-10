@@ -1,7 +1,7 @@
 function [V,E,cid] = get_pencil_curves(tol)
-  % GET_PENCIL_CURVES
+  % GET_PENCIL_CURVES Get many pencil curves
   %
-  % [[V,E,cid] = get_pencil_curves(tol)
+  % [V,E,cid] = get_pencil_curves(tol)
   %
   % Inputs:
   %   tol  dpsimplify tolerance
@@ -9,6 +9,8 @@ function [V,E,cid] = get_pencil_curves(tol)
   %   V  #V by 2 list of vertices
   %   E  #E by 2 list of edge indices into V
   %   cid list of indices into V indicating last vertex in each curve
+  %
+  % See also: get_pencil_curve
   %
   V = [];
   E = [];

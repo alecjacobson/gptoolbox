@@ -1,14 +1,14 @@
 function [B,L] = ordered_outline(F)
-  % OUTLINE Find outline (boundary) edges of mesh
+  % ORDERED_OUTLINE Find outline (boundary) edges of mesh
   %
   % [B,L] = outline(F)
   %
   % Input:
-  %  F  #F by 3 face list of indices
+  %   F  #F by 3 face list of indices
   % Outputs:
-  %  B  #B by 1 list of outline edges 
-  %  L  #loops+1 by 1 list of boundary loop start indices into B, the last
-  %    entries is (by tradition) always the numel of B + 1
+  %   B  #B by 1 list of outline edges 
+  %   L  #loops+1 by 1 list of boundary loop start indices into B, the last
+  %     entries is (by tradition) always the numel of B + 1
   %
   % Example:
   %   V = [0 0; 1 0; 1 1 ; 0 1; 4 0; 4 4; 0 4];
@@ -19,6 +19,7 @@ function [B,L] = ordered_outline(F)
   %     plot(V([B(L(l):(L(l+1)-1)) B(L(l))],1),V([B(L(l):(L(l+1)-1)) B(L(l))],2));
   %   end
   %   hold off
+  %
   % See also: outline
   %
 

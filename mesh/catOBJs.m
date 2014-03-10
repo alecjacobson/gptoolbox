@@ -1,7 +1,7 @@
 function catOBJs(input_files, output_file)
   % Concatenate meshes obj files into one mesh
   %
-  % function catOBJs(input_files, output_file) 
+  % catOBJs(input_files, output_file) 
   %
   % Inputs:
   %   input_files  cell of paths to input files

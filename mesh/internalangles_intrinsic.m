@@ -1,9 +1,8 @@
 function [ A ] = internalangles_intrinsic(l)
-% INTERNALANGLES_INTRINSIC
+% INTERNALANGLES_INTRINSIC Compute internal angles per face (in degrees) using
+% edge lengths
 %
 % A = internalangles_intrinsic(l)
-%
-% Compute internal angles per face (in degrees) using edge lengths
 %
 % Inputs:
 %  l  #F x 3  matrix of edge lengths

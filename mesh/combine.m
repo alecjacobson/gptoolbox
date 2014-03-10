@@ -1,13 +1,13 @@
 function [OV,OF] = combine(IV,IF,EV,EF)
-  % Two meshes where the second mesh was constructed as the surface of the
-  % union of the volume of the first mesh and a third mesh. The order of
+  % COMBINE Two meshes where the second mesh was constructed as the surface of
+  % the union of the volume of the first mesh and a third mesh. The order of
   % vertices is such that the first chunk of vertices in the second mesh is a
   % subsequence of vertices in the first mesh (the remaining chunks are a
-  % subsequence of vertices from the third mesh, then new vertices). The goal is
-  % to create a new mesh where the vertices are: all the vertices from the first
-  % mesh then other vertices and faces from the second mesh. This means in the
-  % resulting mesh the unreferenced vertices correspond to vertices that were in
-  % the first mesh but not in the second mesh.
+  % subsequence of vertices from the third mesh, then new vertices). The goal
+  % is to create a new mesh where the vertices are: all the vertices from the
+  % first mesh then other vertices and faces from the second mesh. This means
+  % in the resulting mesh the unreferenced vertices correspond to vertices that
+  % were in the first mesh but not in the second mesh.
   % 
   % Inputs:
   %   IV  vertex list of the first mesh

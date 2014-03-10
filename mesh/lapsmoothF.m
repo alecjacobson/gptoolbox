@@ -1,15 +1,15 @@
 function [S] = lapsmoothF(TT,S,a,it)
-% lapsmoothF
-% Laplacian smoothing for a scalar field defined on faces
+% LAPSMOOTHF Laplacian smoothing for a scalar field defined on faces
 % 
-% Input:
-% TT: triangle-triangle topology (use tt to compute it)
-% S: scalar filed defined over faces, Fx1
-% a: controls the smoothing strenght (0..1)
-% it: number of iterations
-%
+% [S] = lapsmoothF(TT,S,a,it)
+% 
+% Inputs:
+%   TT  triangle-triangle topology (use tt to compute it)
+%   S  scalar filed defined over faces, Fx1
+%   a  controls the smoothing strenght (0..1)
+%   it  number of iterations
 % Output:
-% S: smoothed scalar field, Fx1
+%   S  smoothed scalar field, Fx1
 
 for x = 1:it
     for i=1:size(TT,1)

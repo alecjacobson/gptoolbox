@@ -1,9 +1,7 @@
 function [ A ] = internalangles( V, F)
-% INTERNALANGLES
+% INTERNALANGLES Compute internal angles per face (in degrees)
 %
 % A = internalangles(V,F)
-%
-% Compute internal angles per face (in degrees)
 %
 % Inputs:
 %  V  #V x 3 matrix of vertex coordinates

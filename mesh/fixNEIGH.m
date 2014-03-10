@@ -24,11 +24,11 @@ function [new_TN,mani,correct] = fixNEIGH(TT,TN)
   new_TN = [];
 
   % Get edges
-  TE = [repmat(1:size(TT,1),1,size(TT,2))' TN(:)];                                                         
-  % verify edges are symmetric                                                                             
-  A = sparse(TE(TE(:,2)>0,1),TE(TE(:,2)>0,2),1);                                                           
-  assert(size(A,1)==size(A,2));                                                                            
-  assert(max(max(A'-A))==0);                                                                               
+  TE = [repmat(1:size(TT,1),1,size(TT,2))' TN(:)];
+  % verify edges are symmetric
+  A = sparse(TE(TE(:,2)>0,1),TE(TE(:,2)>0,2),1);
+  assert(size(A,1)==size(A,2));
+  assert(max(max(A'-A))==0);
 
   %% Need to fix?
   % Interface triangles

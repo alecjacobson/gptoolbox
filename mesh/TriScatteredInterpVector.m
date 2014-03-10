@@ -2,6 +2,8 @@ function [F] = TriScatteredInterpVector(V,D)
   % TRISCATTEREDINTERPVECTOR simple extension of TriScatteredInterp to handle
   % vector values at each data point
   %
+  % [F] = TriScatteredInterpVector(V,D)
+  %
   % Inputs:
   %   V  #V by 2 list of data positions
   %   D  #V by m list of data vectors

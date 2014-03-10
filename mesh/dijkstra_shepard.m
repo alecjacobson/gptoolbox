@@ -1,22 +1,19 @@
 function [W,dist_H_V] = dijkstra_shepard(V,F,C,p)
-  % DIJKSTRA_SHEPARD
-  %
-  % Compute shepard weights for a list of vertices, given a list of samples and
-  % optionally a denominator power value. But use "geodesic distance" as
-  % defined by dijkstra's shortest path distances
+  % DIJKSTRA_SHEPARD Compute shepard weights for a list of vertices, given a
+  % list of samples and optionally a denominator power value. But use "geodesic
+  % distance" as defined by dijkstra's shortest path distances
   %
   % W = dijkstra_shepard(V,C)
   %
   % Inputs:
-  %  V  list of vertex positions
-  %  F  #F by 3 list of face indices
-  %  C  list of control vertices
-  %  p  (optional) power for denominator, scalar or list same size as C {2}
+  %   V  list of vertex positions
+  %   F  #F by 3 list of face indices
+  %   C  list of control vertices
+  %   p  (optional) power for denominator, scalar or list same size as C {2}
   % Outputs:
-  %  W  weights, # vertices by # handles matrix of weights
+  %   W  weights, # vertices by # handles matrix of weights
   %
-  % See also:
-  %   shepard
+  % See also: shepard
   %
 
   % check if either are 3D but really all z's are 0
@@ -46,11 +43,6 @@ function [W,dist_H_V] = dijkstra_shepard(V,F,C,p)
   % number of domain vertices
   n = size(V,1);
 
-  % if p is a scalar convert it now to a list the same size as C
-  if(prod(size(p)) == 1)
-    p = repmat(p,c,1);
-  end
-
   % compute distance from every vertex in the mesh to every control vertex
   D = permute(sum((repmat(V,[1,1,c]) - ...
     permute(repmat(C,[1,1,n]),[3,2,1])).^2,2),[1,3,2]);
@@ -65,22 +57,19 @@ function [W,dist_H_V] = dijkstra_shepard(V,F,C,p)
 
   % build adjacency matrix with edge lengths as entries
   C = adjacency_edge_cost_matrix(V,F);
-  dist_H_V = repmat(minD',[1 n]) + dijkstra(C,Cv);
+  D = cell2mat(arrayfun(@(s) graphshortestpath(C,s)',Cv,'UniformOutput',false));
+  dist_H_V = bsxfun(@plus,minD,D);
 
   % power of each control point seen by each vertex in domain
-  pp = repmat(p,1,n);
-  W = 1.0./((dist_H_V).^pp);
+  W = 1.0./bsxfun(@power,dist_H_V,p);
 
   % Handle degenrate case that a control point is on a mesh vertex
   % snap vertices close to corners
   on_sample = dist_H_V < eps;
-  W(:,any(on_sample)) = 0;
+  W(any(on_sample,2),:) = 0;
   W(on_sample) = 1;
 
   % normalize W
-  W = W./repmat(sum(W,1),c,1);
-
-  % we've made W transpose
-  W = W';
+  W = bsxfun(@rdivide,W,sum(W,2));
 
 end

@@ -1,16 +1,18 @@
 function [layershe] = ...
   getlayershe(mesh, outside_region_of_interest, nlayers)
-% Does the same as getlayers except instead of finding layers by shrinking from
-% boundary it expects mesh.layers to already contain the proper indices. So
-% that this function just sets layershe properly
+% GETLAYERSHE Does the same as getlayers except instead of finding layers by
+% shrinking from boundary it expects mesh.layers to already contain the proper
+% indices. So that this function just sets layershe properly
 % 
-% function [layers,interior] = getlayers(mesh, nlayers)
-% mesh:     mesh half-edge struct
-% nlayers:  number of layers to get, >= 1
-% returns cell array of index sets for layers 1.. k, and index set for interior
-% layers are defined recursively as
-% layer(1) = vertices on the boundary
-% layer(i) = vertices edge-adjacent to layer(i-1)
+% [layers,interior] = getlayers(mesh, nlayers)
+%
+% Inputs:
+%   mesh  mesh half-edge struct
+%   nlayers  number of layers to get, >= 1
+% Outputs:
+%   lyaershe  cell array of index sets for layers 1.. k, and index set for
+%     interior layers are defined recursively as layer(1) = vertices on the
+%     boundary layer(i) = vertices edge-adjacent to layer(i-1)
 
     ind = 1:mesh.nhe;
     for i = 1:nlayers

@@ -1,17 +1,15 @@
 function SV = stacktimes(S,V)
   % STACKTIMES Multiply each matrix in a vertical stack of matrices, S, times
   % each vector in a list of row-vectors, V. Equivalent to the following:
-  % 
+  %     s = size(V,1);
+  %     n = size(V,2);
+  %     m = size(S,1)/s;
+  %     SV = zeros(s,m);
+  %     for ii = 0:(s-1)
+  %      SV(ii+1,:) = (S((m*ii+1):(m*ii+m),:)*(V(ii+1,:)'))';
+  %     end
+  %
   % SV = stacktimes(S,V)
-  %
-  % s = size(V,1);
-  % n = size(V,2);
-  % m = size(S,1)/s;
-  % SV = zeros(s,m);
-  % for ii = 0:(s-1)
-  %  SV(ii+1,:) = (S((m*ii+1):(m*ii+m),:)*(V(ii+1,:)'))';
-  % end
-  %
   %
   % Inputs:
   %   S  a list of s, m by n matrices, stacked vertically. That is a s*m by n

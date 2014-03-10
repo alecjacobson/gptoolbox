@@ -4,3 +4,4 @@ syntax: glob
 *.a
 *~
 .DS_Store
+*.mexmaci64

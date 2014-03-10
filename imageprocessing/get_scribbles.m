@@ -1,6 +1,8 @@
 function [SI,S,C] = get_scribbles(im)
   % Display an image and ask the user to draw scribbles then hit enter
   %
+  % [SI,S,C] = get_scribbles(im)
+  %
   % Inputs:
   %   im  w by h by channels image
   % Outputs:

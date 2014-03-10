@@ -1,0 +1,155 @@
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core
+END
+GW_Mesh.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Mesh.h
+END
+stdafx.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/stdafx.h
+END
+GW_Face.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Face.h
+END
+GW_Config.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Config.cpp
+END
+GW_FaceIterator.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_FaceIterator.cpp
+END
+gw_core.vcproj
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/gw_core.vcproj
+END
+GW_Config.h
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Config.h
+END
+GW_Serializable.h
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Serializable.h
+END
+GW_FaceIterator.h
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_FaceIterator.h
+END
+GW_Vertex.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Vertex.cpp
+END
+GW_Vertex.inl
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Vertex.inl
+END
+GW_PolygonIntersector.h
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_PolygonIntersector.h
+END
+GW_MathsWrapper.h
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_MathsWrapper.h
+END
+GW_Vertex.h
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Vertex.h
+END
+GW_SmartCounter.inl
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_SmartCounter.inl
+END
+GW_SmartCounter.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_SmartCounter.cpp
+END
+GW_VertexIterator.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_VertexIterator.cpp
+END
+GW_SmartCounter.h
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_SmartCounter.h
+END
+GW_Mesh.inl
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Mesh.inl
+END
+GW_Mesh.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Mesh.cpp
+END
+GW_VertexIterator.h
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_VertexIterator.h
+END
+stdafx.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/stdafx.cpp
+END
+GW_ProgressBar.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_ProgressBar.h
+END
+GW_Face.inl
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Face.inl
+END
+GW_Face.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/matlabcompanion/!svn/ver/1/toolbox/toolbox_fast_marching/mex/gw/gw_core/GW_Face.cpp
+END

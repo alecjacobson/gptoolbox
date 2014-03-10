@@ -1,4 +1,4 @@
-function [D] = div(V,F,X)
+function [D] = div(V,F)
   % DIV Compute the numerical divergence at each vertex of a mesh of a vector
   % field defined at each face of a mesh at every face of a triangle mesh.
   %

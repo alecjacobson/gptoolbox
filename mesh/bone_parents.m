@@ -1,6 +1,8 @@
 function P = bone_parents(BE)
   % BONE_PARENTS Find parents in bone
   %
+  % P = bone_parents(BE)
+  %
   % Inputs:
   %   BE  #BE by 2 list of **directed** bone edge indices 
   % Outputs:

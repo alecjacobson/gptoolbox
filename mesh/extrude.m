@@ -1,17 +1,18 @@
 function [VV,FF] = extrude(V,F,varargin)
-  % EXTRUDE Extrude a 2d mesh in the z direction by 1, connecting boundaries apropriately 
+  % EXTRUDE Extrude a 2d mesh in the z direction by 1, connecting boundaries
+  % apropriately 
   %
   % [VV,FF] = extrude(V,F)
   % [VV,FF] = extrude(V,F,'ParmeterName',ParameterValue,...)
   %
   % Inputs:
-  %  V  #V by 2 list of 2d vertex positions
-  %  F  #F by 3 list of triangle indices into V
-  %  Optional:
-  %    'Cap' followed by {true} of false whether to put a *bottom cap*
+  %   V  #V by 2 list of 2d vertex positions
+  %   F  #F by 3 list of triangle indices into V
+  %   Optional:
+  %     'Cap' followed by {true} of false whether to put a *bottom cap*
   % Outputs:
-  %  VV #VV by 3 list of 3d vertex positions
-  %  FF  #FF by 3 list of triangle indices into VV
+  %   VV #VV by 3 list of 3d vertex positions
+  %   FF  #FF by 3 list of triangle indices into VV
   %
 
   cap = true;

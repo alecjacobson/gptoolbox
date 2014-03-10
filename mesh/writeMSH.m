@@ -1,6 +1,8 @@
 function writeMSH(filename,V,T,F)
   % WRITEMSH  write a tet mesh to gmsh's .msh file format
   %
+  % writeMSH(filename,V,T,F)
+  %
   % Inputs:
   %   V  #V by dim=3 list of vertex positions
   %   T  #T by 4 list of tet indices

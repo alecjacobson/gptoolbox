@@ -1,14 +1,14 @@
 function [VT] = vt(V,F)
-% VT
+% VT Compute the Vertex-Face topology
 %
-% Compute the Vertex-Face topology
+% VT = vt(V,F)
 %
 % Input:
-% V: vertex coordinates, Vx3
-% F: triangles         , Fx3
+%   V  vertex coordinates, Vx3
+%   F  triangles         , Fx3
 % Output:
-% VT: sparse matrix that contains a 1 in the i-j element if vertices i is
-% part of face j
+%   VT  sparse matrix that contains a 1 in the i-j element if vertices i is
+%     part of face j
 
 %% prepare sparse matrix
 i = ones(10*size(V,1),1);

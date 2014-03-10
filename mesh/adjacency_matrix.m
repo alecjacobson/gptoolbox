@@ -6,11 +6,14 @@ function [A] = adjacency_matrix(E)
   % [A] = adjacency_matrix(T)
   %
   % Inputs:
-  %  E  #E by 2 edges list
-  %  or 
-  %  F  #F by 3 triangle list
-  %  or 
-  %  T  #F by 4 tet list
+  %   E  #E by 2 edges list
+  %   or 
+  %   F  #F by 3 triangle list
+  %   or 
+  %   T  #F by 4 tet list
+  % Outputs:
+  %   A  #V by #V adjacency matrix (#V = max(E(:)))
+  %    
   %
 
   if(size(E,2)>2)

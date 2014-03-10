@@ -1,11 +1,10 @@
 function [V,T,F] = regular_tetrahedral_mesh(varargin)
-  % REGULAR_TETRAHEDRAL_MESH
+  % REGULAR_TETRAHEDRAL_MESH Generates a regular tetrahedral mesh with
+  % dimensions (nx,ny,nz)
   %
   % [V,T,F] = regular_tetrahedral_mesh(nx,ny,nz)
   % [V,T,F] = regular_tetrahedral_mesh(nx)
   % [V,T,F] = regular_tetrahedral_mesh([nx,ny,nz])
-  %
-  % Generates a regular tetrahedral mesh with dimensions (nx,ny,nz)
   %
   % Input:
   %   nx  number of points in x direction on grid

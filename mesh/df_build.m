@@ -1,15 +1,16 @@
 function [DF] = df_build(V,C)
+% DF_BUILD Build a volumetric distance field and spatial index that can be used
+% to speed up approximate NN queries in 3D This code is not optimized, it is
+% very slow for big datasets
+% 
 % [DF] = df_build(V,C)
-% Build a volumetric distance field and spatial index that can be used to
-% speed up approximate NN queries in 3D
-% This code is not optimized, it is very slow for big datasets
 %
-% Input:
-% V: Coordinates of the points
-% C: Column vector that defines the number of cells for every
-%    dimension
+% Inputs:
+%   V  Coordinates of the points
+%   C  Column vector that defines the number of cells for every
+%      dimension
 % Output:
-% DF: structure to be passed to df_query to execute queries
+%   DF  structure to be passed to df_query to execute queries
 
 if ~exist('C','var')
     C=[10;10;10];

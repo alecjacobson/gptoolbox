@@ -1,7 +1,8 @@
 function writeOFF(filename, V,F,UV,C,N)
   % WRITEOFF writes an OFF file with vertex/face information
   %
-  % writeOFF(filename
+  % writeOFF(filename,V,F)
+  % writeOFF(filename,V,F,UV,C,N)
   %
   % Input:
   %  filename  path to .obj file

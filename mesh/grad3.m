@@ -1,9 +1,7 @@
 function G = grad3(V,T)
-  % GRAD3
+  % GRAD3 Compute the numerical gradient operator for tet meshes in 3d
   % 
   % G = grad(V,F)
-  %
-  % Compute the numerical gradient operator for tet meshes in 3d
   %
   % Inputs:
   %   V  #vertices by dim list of mesh vertex positions

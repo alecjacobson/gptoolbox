@@ -1,4 +1,4 @@
-%function clear_class(class_name)
+function clear_class(class_name)
   % CLEAR_CLASS  clears all variables of a specific class
   % 
   % clear_class(class_name)
@@ -25,4 +25,4 @@
     end
   end
   
-%end
+end

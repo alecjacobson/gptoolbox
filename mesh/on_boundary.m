@@ -5,10 +5,10 @@ function [I,C] = on_boundary(F)
   % [I,C] = on_boundary(F)
   %
   % Inputs:
-  %  F  #F by simplex-size list of element indices
+  %   F  #F by simplex-size list of element indices
   % Outputs:
-  %  I  #F list of bools, whether on boundary
-  %  C  #F by simplex size matrix of bools, whether opposite edge on boundary
+  %   I  #F list of bools, whether on boundary
+  %   C  #F by simplex size matrix of bools, whether opposite edge on boundary
   simplex_size = size(F,2);
   switch simplex_size
   case 3

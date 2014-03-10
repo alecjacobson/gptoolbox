@@ -1,18 +1,20 @@
 function [C] = connectedComponent(TT,TAG)
-% connectedComponent
+% CONNECTEDCOMPONENT Compute the connected components of a subset of triangles
+% on a tri surface. Two faces are considered connected iff they share an edge.
+%
 %
 % [C] = connectedComponent(TT,TAG)
 %
-% Compute the connected components of a subset of triangles on a
-% tri surface. Two faces are considered connected iff they share an
-% edge.
 % Inputs:
-% TT: face-face topology, Fx3 (you can use the function tt(F) to compute it)
-% TAG: subset of faces where the connected components are computed, Fx1
+%   TT  face-face topology, Fx3 (you can use the function tt(F) to compute it)
+%   TAG  subset of faces where the connected components are computed, Fx1
 % Outputs:
-% C: cell array of connected components. Every element of the cell array
-% contains the indices of the faces in the corresponding connected component
+%   C  cell array of connected components. Every element of the cell array
+%      contains the indices of the faces in the corresponding connected
+%      component
+%
 % Use size(C) to know the number of connected components detected
+%
 
 TOVISIT = 1;
 VISITED = 2;

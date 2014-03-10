@@ -1,13 +1,14 @@
 function [ SV ] = moveFV(V,F,S)
-% moveFV 
-% Move a scalar field defined on faces to vertices by averaging
+% MOVEFV  Move a scalar field defined on faces to vertices by averaging
+% 
+% [ SV ] = moveFV(V,F,S)
 %
 % Input:
-% V,F: mesh
-% S: scalar field defined on faces, Fx1
+%   V,F  mesh
+%   S  scalar field defined on faces, Fx1
 % 
 % Output:
-% SV: scalar field defined on vertices
+%   SV  scalar field defined on vertices
 
 SV = zeros(size(V,1),size(S,2));
 COUNT = zeros(size(V,1),1);
