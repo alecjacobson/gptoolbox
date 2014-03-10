@@ -49,13 +49,22 @@ it to take effect.
 This strives to be full installation instructions, but will no doubt remain
 incomplete for some time. Begin by adding paths as above. 
 
+#### Compile `/mex` ####
+Most of our mex files will depend on
+[libigl](https://github.com/libigl/libigl). The following will assume your
+usign a "standard" unix-y install of libigl as a static library.
+
+In MATLAB issue:
+
+    cd mex
+    compile_qptoolbox_mex
+
 #### Compile `toolbox_fast_marching` ####
 
 In MATLAB issue:
 
     cd external/toolbox_fast_marching/
     compile_mex
-
 
 ## Dependencies ##
 This depends on MATLAB and its various toolbox extensions. Many functions
