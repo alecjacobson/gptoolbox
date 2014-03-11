@@ -1,4 +1,4 @@
-function s path_to_meshfix()
+function s = path_to_meshfix()
   % PATH_TO_MESHFIX Returns absolute, system-dependent path to meshfix executable
   %
   % Outputs:
