@@ -37,6 +37,7 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set(varargin)
 
   %max_iter = inf;
   max_iter = 100;
+  %max_iter = 1;
 
   A = varargin{1};
   B = varargin{2};

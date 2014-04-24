@@ -98,7 +98,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     F = [];
   end
   
-  if isempty(F) || true
+  if isempty(F)
     if ~isempty(F)
       warning('Precomputing');
     end
