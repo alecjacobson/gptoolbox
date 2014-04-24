@@ -17,8 +17,8 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set(varargin)
   %   Optional:
   %     Aeq  meq by n list of linear equality constraint coefficients
   %     Beq  meq by 1 list of linear equality constraint constant values
-  %     Aieq  mieq by n list of linear equality constraint coefficients
-  %     Bieq  mieq by 1 list of linear equality constraint constant values
+  %     Aieq  mieq by n list of linear inequality constraint coefficients
+  %     Bieq  mieq by 1 list of linear inequality constraint constant values
   %     lx n by 1 list of lower bounds [] implies -Inf
   %     ux n by 1 list of upper bounds [] implies Inf
   %     F  see output
