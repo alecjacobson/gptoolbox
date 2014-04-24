@@ -26,6 +26,7 @@ function [N,E] = gaussmap(V,F)
   %   axis equal;
 
   N = normalizerow(normals(V,F));
+
   % List of all "half"-edges: 3*#F by 2
   allE = [F(:,[2 3]); F(:,[3 1]); F(:,[1 2])];
   % Sort each row
@@ -37,6 +38,7 @@ function [N,E] = gaussmap(V,F)
   uE2F = sparse(IC(:),repmat(1:size(F,1),1,3)',1);
   % Face-face Adjacency matrix
   A = uE2F'*uE2F;
+
   [EI,EJ,~] = find(A);
   E = [EI EJ];
 

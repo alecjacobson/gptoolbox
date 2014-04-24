@@ -153,6 +153,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     % note that columns are in *original* order
     F.Ak = A(F.known,:);
 
+
     % determine if A(unknown,unknown) is symmetric and/or postive definite
     sym_measure = max(max(abs(Auu - Auu')))/max(max(abs(Auu)));
     %sym_measure = normest(Auu-Auu')./normest(Auu);
@@ -163,7 +164,8 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
       % nearly symmetric but not perfectly
       F.Auu_sym = true;
     else
-      assert(sym_measure == 0);
+      % Either Auu is empty or sym_measure should be perfect
+      assert(isempty(sym_measure) || sym_measure == 0);
       % Perfectly symmetric
       F.Auu_sym = true;
     end
@@ -251,6 +253,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
         else
           % LDL is faster than LU for moderate #constraints < #unknowns
           NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
+          assert(issparse(NA));
           [F.L,F.D,F.P,F.S] = ldl(NA);
           F.ldl = true;
         end
@@ -422,6 +425,6 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     end
 
     Lambda_known = -bsxfun(@plus,F.Ak * Z,0.5*B(F.known,:));
-    
   end
+
 end

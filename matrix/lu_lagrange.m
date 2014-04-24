@@ -9,7 +9,7 @@ function [L,U,p,PT] = lu_lagrange(ATA,C,J,S)
   % http://www.alecjacobson.com/weblog/?p=2480
   %
   % [L,U] = lu_lagrange(ATA,C)
-  % [L,U] = lu_lagrange(ATA,C,J)
+  % [L,U,p,PT] = lu_lagrange(ATA,C,J,S)
   %
   % Inputs:
   %   ATA   n by n square, symmetric, positive-definite system matrix, usually
