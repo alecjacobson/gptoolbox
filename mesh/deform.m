@@ -399,11 +399,13 @@ classdef deform < handle
         end
         % be sure there are no repeats
         slaves = setdiff(unique(slaves),[this]);
-        for that = slaves
-          that.slave_seen = true;
-          %assert(this ~= that);
-          if ~that.is_down
-            that.set_axes();
+        if ~isempty(slaves)
+          for that = slaves
+            that.slave_seen = true;
+            %assert(this ~= that);
+            if ~that.is_down
+              that.set_axes();
+            end
           end
         end
       end
@@ -1546,18 +1548,20 @@ classdef deform < handle
         end
         % be sure there are no repeats
         slaves = setdiff(unique(slaves),[this]);
-        for that = slaves
-          that.slave_seen = true;
-          %assert(this ~= that);
-          if ~that.is_down
-            % control assume master controls correspond to beginning of slave
-            % controls
-            % Only control as many handles of slave as possible
-            nc = min(size(this.new_C,1),size(that.new_C,1));
-            nr = min(size(this.R,1),    size(that.R,1));
-            that.new_C(1:nc,:) = this.new_C(1:nc,:);
-            that.R(1:nr) = this.R(1:nr);
-            that.update_positions();
+        if ~isempty(slaves)
+          for that = slaves
+            that.slave_seen = true;
+            %assert(this ~= that);
+            if ~that.is_down
+              % control assume master controls correspond to beginning of slave
+              % controls
+              % Only control as many handles of slave as possible
+              nc = min(size(this.new_C,1),size(that.new_C,1));
+              nr = min(size(this.R,1),    size(that.R,1));
+              that.new_C(1:nc,:) = this.new_C(1:nc,:);
+              that.R(1:nr) = this.R(1:nr);
+              that.update_positions();
+            end
           end
         end
       end
