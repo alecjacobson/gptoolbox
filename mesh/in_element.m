@@ -10,8 +10,13 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   %   F  #F by dim+1 list of element indices
   %   P  #P by dim list of query positions
   %   Optional:
-  %     'BruteForce' followed by whether to use brute force computation without
-  %       acceleration.
+  %     'Method' followed by one of the following:
+  %       'brute-force' no acceleration O(#P * #F)
+  %       'spatial-hash' spatial hash on regular grid ~O(#P * sqrt(#F))
+  %       'edge-walk' walk along edges ~O(#P * sqrt(#F)) Starting with a random
+  %         barycenter step along the edges that intersect with the ray toward
+  %         the query point. If a boundary is reached then search along all
+  %         boundary edges and jump to farthest hit.
   % Outputs:
   %   I  #P by #F matrix of bools
   %   B1  #P by #F list of barycentric coordinates
@@ -121,9 +126,9 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   end
 
   % default values
-  brute_force = false;
+  method = 'spatial-hash';
   % Map of parameter names to variable names
-  params_to_variables = containers.Map( {'BruteForce'}, {'brute_force'});
+  params_to_variables = containers.Map( {'Method'}, {'method'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -138,10 +143,11 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
     v=v+1;
   end
 
-  if brute_force
+  switch method
+  case 'brute-force'
     I = in_element_brute_force(V,F,P);
-  else
-    % Try 45° spatial grid, too (reduce corner cases)
+  case 'spatial-hash'
+    % Try 45?? spatial grid, too (reduce corner cases)
     R = [cos(pi/4) -sin(pi/4);sin(pi/4) cos(pi/4)];
     I = in_element_hash_helper(V,F,P) | in_element_hash_helper(V*R,F,P*R);
 
@@ -155,12 +161,116 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
     RI = NI & WI;
     I(RI,:) = in_element_brute_force(V,F,P(RI,:));
 
+  case 'edge-walk'
+
+    assert(size(F,2) == 3,'F must contain triangles for Method=''edge-walk''');
+    % List of all "half"-edges: 3*#F by 2
+    allE = [F(:,[2 3]); F(:,[3 1]); F(:,[1 2])];
+    % Sort each row
+    sortallE = sort(allE,2);
+    % IC(i) tells us where to find sortallE(i,:) in uE:
+    % so that sortallE(i,:) = uE(IC(i),:)
+    [uE,~,IC] = unique(sortallE,'rows');
+    % uE2F(e,f) = i means face f's ith edge is unique edge e
+    uE2F = sparse(IC(:),repmat(1:size(F,1),1,3)',reshape(repmat(1:3,size(F,1),1),[],1));
+    % uE2F(e,f) = 1 means face f is adjacent to unique edge e
+    uE2F1 = sparse(IC(:),repmat(1:size(F,1),1,3)',1);
+    % Face-face Adjacency matrix
+    A = uE2F1'*uE2F;
+    % A(f,g) = i means face f's ith edge is shared with g
+    A = A-diag(diag(A));
+
+    I = sparse(size(P,1),size(F,1));
     B1 = sparse(size(I,1),size(I,2));
     B2 = sparse(size(I,1),size(I,2));
     B3 = sparse(size(I,1),size(I,2));
 
+    [~,is_b] = on_boundary(F);
+    EF = repmat(1:size(F,1),1,3)';
+    EFI = reshape(repmat(1:3,size(F,1),1),[],1);
+    O = allE(is_b(:),:);
+    OF = EF(is_b(:));
+    OFI = EFI(is_b(:));
+
+    % initial closest vertex
+    BC = barycenter(V,F);
+    % Centroid
+    f_init = snap_points(mean(V),BC);
+    %% Random initial guess
+    %f_init = ceil(rand(1,1)*size(F,1));
+    for p = 1:size(P,1)
+      % current closest face, barycenter
+      f = f_init;
+      q = BC(f_init,:);
+      % incoming edge
+      e_in = [];
+      while true
+        % current point
+        % edges to test
+        E = ... %mod(bsxfun(@plus,setdiff([1;2;3],e_in),-1+(1:2)),3)+1;
+          [2 3;3 1;1 2];
+        out = ...
+          lineSegmentIntersect([q P(p,:)],[V(F(f,E(:,1)),:) V(F(f,E(:,2)),:)]);
+        out.intAdjacencyMatrix(e_in) = false;
+        e_out = find(out.intAdjacencyMatrix);
+        if isempty(e_out)
+          % no hits so we're in the element
+          I(p,f) = 1;
+          B = barycentric_coordinates(P(p,:),V(F(f,1),:),V(F(f,2),:),V(F(f,3),:));
+          B1(p,f) = B(1); B2(p,f) = B(2); B3(p,f) = B(3);
+          break;
+        else
+          f_prev = f;
+          if numel(e_out) > 1
+            % Take farthests
+            [sd,si] = sort(out.intNormalizedDistance1To2(e_out),'descend');
+            e_out = e_out(si(1));
+            % TODO: recurse on all in f
+          end
+          f = find(A(:,f_prev)==e_out);
+          % Todo if 
+          if isempty(f)
+            % no neighbors so we're shooting outside.
+            out = ...
+              lineSegmentIntersect([q P(p,:)],[V(O(:,1),:) V(O(:,2),:)]);
+            hits = find(out.intAdjacencyMatrix);
+            [sd,si] = sort(out.intNormalizedDistance1To2(hits),'descend');
+            f = OF(hits(si(1)));
+            e_in = OFI(hits(si(1)));
+            if f==f_prev
+              error('Point is outside');
+            end
+          else
+            if numel(f) > 1
+              f = f(1);
+              warning('Ignoring non-manifold edge: might miss multiply inside.');
+              % TODO: recurse on all in f
+            end
+            e_in = A(f_prev,f);
+          end
+        end
+        %tsurf(F,V);
+        %hold on;
+        %tsurf(F(f,:),V,'CData',-1);
+        %tsurf(F(f_prev,:),V,'CData',1);
+        %plot_edges([q;P(p,:)],[1 2],'r');
+        %plot_edges(V,[F(f_prev,E(:,1));F(f_prev,E(:,2))]','b');
+        %plot(P(p,1),P(p,2),'*');
+        %plot_edges(V,[F(f_prev,E(e_out,1));F(f_prev,E(e_out,2))]', ...
+        %  'y','LineWidth',2);
+        %hold off;
+        %drawnow;
+        %input('');
+      end
+    end
+
+    return
   end
 
+  % Compute barycentric coordinates
+  B1 = sparse(size(I,1),size(I,2));
+  B2 = sparse(size(I,1),size(I,2));
+  B3 = sparse(size(I,1),size(I,2));
   work_I = I;
   while true
     % Peal off a layer
