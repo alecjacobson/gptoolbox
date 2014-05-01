@@ -64,6 +64,7 @@ function [F,C] = bfs_orient(F,V);
 
       %t = tsurf(FF(seen,:),V);
       %drawnow;
+      %input('');
     end
     assert(all(seen));
   end

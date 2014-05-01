@@ -16,12 +16,15 @@ function B = barycentric_coordinates(P,V1,V2,V3)
   assert(size(P,1) == size(V1,1));
   assert(size(P,1) == size(V2,1));
   assert(size(P,1) == size(V3,1));
-  % Only 2D supported for now
-  assert(size(P,2) == 2);
+  %% Only 2D supported for now
+  %assert(size(P,2) == 2);
   n = size(P,1);
   A1 = doublearea([ P;V2;V3],[1:n;n+[1:n;n+(1:n)]]');
   A2 = doublearea([V1; P;V3],[1:n;n+[1:n;n+(1:n)]]');
   A3 = doublearea([V1;V2; P],[1:n;n+[1:n;n+(1:n)]]');
   A  = doublearea([V1;V2;V3],[1:n;n+[1:n;n+(1:n)]]');
+  if size(P,2)>2 && max(abs(sum([A1 A2 A3],2)-A))>1e-14
+    warning('Possibly negative coordinates. Not supported in dim~=2');
+  end
   B = bsxfun(@rdivide,[A1 A2 A3],A);
 end

@@ -8,6 +8,8 @@ function [L,U,p,PT] = lu_lagrange(ATA,C,J,S)
   % http://www.alecjacobson.com/weblog/?p=2242
   % http://www.alecjacobson.com/weblog/?p=2480
   %
+  % This is often called the "Schur complement trick".
+  %
   % [L,U] = lu_lagrange(ATA,C)
   % [L,U,p,PT] = lu_lagrange(ATA,C,J,S)
   %
