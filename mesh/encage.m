@@ -1,4 +1,4 @@
-function [DV,DT,DF,b,bc] = encage(V,CV,CF)
+function [DV,DT,DF,b,bc] = encage(V,CV,CF,varargin)
   % ENCAGE  Create a mesh and compute boundary conditions for computing weights
   % on for points V embedded in a polyhedron cage (CV,CF).
   %
