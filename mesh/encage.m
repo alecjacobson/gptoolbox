@@ -21,7 +21,7 @@ function [DV,DT,DF,b,bc] = encage(V,CV,CF,varargin)
   % 
 
   tetgen_flags = '-q100';
-  quiet = false;
+  quiet = true;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'TetgenFlags','Quiet'}, ...
