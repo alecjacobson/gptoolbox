@@ -19,29 +19,26 @@ function [S,D,J] = sample_discrete(D,n)
   assert(abs(sum(D) - 1)<1e-15);
   % We want to sort based on above or below 1/n
   D = D*m;
-  D
   % now we can sort based on above or below 1
   % Below queue: http://www.alecjacobson.com/weblog/?p=3933
-  % and preallocate up to 2*n (extra n to be safe, I don't think it's needed)
+  % and preallocate up to 2*m (extra m to be safe, I don't think it's needed)
   B = find(D<1);
   Bl = numel(B);
-  Bf = 0;
   B(end+1:2*m) = 0;
-  % After queue, and preallocate up to n
+  % After queue, and preallocate up to m
   A = find(D>=1);
   Al = numel(A);
-  Af = 0;
   A(end+1:m) = 0;
   % Upper half list (initialize with this index because above includes "equal")
   J = (1:m)';
 
   % While below and above still have elements
-  while (Bl-Bf)>0 && (Al-Af)>0
+  while Bl>0 && Al>0
     % pop below
-    b = B(Bf+1);
-    Bf = Bf + 1;
+    b = B(Bl);
+    Bl = Bl - 1;
     % Look above
-    a = A(Af+1);
+    a = A(Al);
     % a going to be b's upper half
     J(b) = a;
     % lob off enough to fit D(b) to 1
@@ -50,7 +47,7 @@ function [S,D,J] = sample_discrete(D,n)
     D(a) = (D(a) + D(b)) - 1.0;
     if D(a) < 1
       % pop off above
-      Af = Af + 1;
+      Al = Al - 1;
       % push onto below
       Bl = Bl+1;
       B(Bl) = a;
