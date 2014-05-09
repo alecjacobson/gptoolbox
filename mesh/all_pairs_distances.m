@@ -2,6 +2,8 @@ function D = all_pairs_distances(V,U)
   % ALL_PAIRS_DISTANCES compute distances between each point i in V and point j
   % in U
   % 
+  % This is obsolete: use pdist2 instead
+  % 
   % D = all_pairs_distances(V,U)
   % 
   % Inputs:
@@ -11,6 +13,8 @@ function D = all_pairs_distances(V,U)
   %   D  #V by #U matrix of distances, where D(i,j) gives the distance between
   %     V(i,:) and U(j,:)
   % 
+
+  warning('obsolete. Call `pdist2` directly instead');
 
   assert(size(V,2) == size(U,2));
 
