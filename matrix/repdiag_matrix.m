@@ -49,66 +49,60 @@ classdef repdiag_matrix
       B = repdiag(this.A,this.d);
     end
 
-    function C = mtimes(this,B)
-      % MTIMES Computes C = this * B where this is a repeated block diagonal
-      % matrix and B is a regular old matrix
+    function C = mtimes(this,that)
+      % MTIMES Computes C = this * that where this and/or that is a repeated
+      % block diagonal matrix.
       %
       % Inputs:
-      %   this  d*m by d*n repeated block diagonal matrix
-      %   B  d*n by k matrix
+      %   this  n by m matrix of some form (repdiag_matrix or double)
+      %   that  m by p matrix of some form (repdiag_matrix or double)
       % Outputs:
-      %   C  d*m by k matrix
+      %   C  n by p matrix
       %
       % Compare to:
-      %   C = A.expand() * B;
+      %   C = this.expand() * that.expand();
+      %   C = this * that.expand();
+      %   C = this.expand() * that;
 
-      assert(size(this.A,2)*this.d == size(B,1));
-      n = size(B,1)/this.d;
-      k = size(B,2);
-      m = size(this.A,1);
-      
-      %% naive way
-      %C = this.expand() * B;
+      if isa(this,'repdiag_matrix') && ~isa(that,'repdiag_matrix')
+        m = size(this.A,1);
+        B = that;
+        assert(size(this.A,2)*this.d == size(B,1));
+        n = size(B,1)/this.d;
+        assert(n == m);
+        k = size(B,2);
+        % Apply to columns of each block (disregarding order but then
+        % reassembling)
+        BB = reshape(B,n,k*this.d);
+        CC = this.A*BB;
+        C = reshape(CC,m*this.d,k);
+      elseif ~isa(this,'repdiag_matrix') && isa(that,'repdiag_matrix')
+        %% Cheapskate
+        %C = (that'*this')';
+        B = this;
+        % B * this
+        % k by n*d  *  m*d by m*d
+        m = size(that.A,1);
+        assert(size(that.A,2)*that.d == size(B,2));
+        n = size(B,2)/that.d;
+        assert(n == m);
+        k = size(B,1);
+        % Apply to columns of each block (disregarding order but then
+        % reassembling)
+        % STILL NEED TO TRANSPOSE... Lame...
+        BB = reshape(B',n,k*that.d);
+        % BB * A
+        % k*d by n  *  n * n
+        CC = that.A'*BB;
+        C = reshape(CC,m*that.d,k)';
+      else
+        assert(this.d == that.d, ...
+          'Non-matching repdiag_matrix multiplication not supported');
+        assert(all(size(this.A)==size(that.A)), ...
+          'Non-matching repdiag_matrix multiplication not supported');
+        C = repdiag_matrix(this.A*that.A,this.d);
+      end
 
-      %% for-loop cell2mat
-      %C = cell(this.d,1);
-      %for ii = 0:(this.d-1)
-      %  C{ii+1} = this.A * B(ii*n + (1:n),:);
-      %end
-      %C = cell2mat(C);
-
-      %% for-loop arrays 
-      %C = zeros(m*this.d,k);
-      %for ii = 0:(this.d-1)
-      %  C(ii*m + (1:m),:) = this.A * B(ii*n + (1:n),:);
-      %end
-
-
-      %% Transpose each "block" of B, so that if B=[B1;B2;...;Bd];
-      %% now B = [B1 B2 ... Bd];
-      %BB = reshape(permute(reshape(B',[k n this.d]),[1 3 2]),[this.d*k n]);
-      %CC = BB * this.A';
-      %% now we have made C = [A*B1 A*B2 ... A*Bd]
-      %C = reshape(permute(reshape(CC,[k this.d n]),[1 3 2]),[k n*this.d])';
-
-
-      %% Transpose each "block" of B, so that if B=[B1;B2;...;Bd];
-      %% now B = [B1 B2 ... Bd];
-      %BB = cell2mat(reshape(mat2cell(B,n*ones(1,this.d),k),1,this.d));
-      %CC = this.A * BB;
-      %% now we have made C = [A*B1 A*B2 ... A*Bd]
-      %C = cell2mat(reshape(mat2cell(CC,m,k*ones(1,this.d)),this.d,1));
-
-      %% cellfun
-      %timesA = @(X) this.A * X;
-      %BB = mat2cell(B,n*ones(1,this.d),k);
-      %C = cell2mat(cellfun(timesA,BB,'UniformOutput',false));
-
-      % Apply to columns of each block (disregarding order but then
-      % reassembling)
-      BB = reshape(B,n,k*this.d);
-      CC = this.A*BB;
-      C = reshape(CC,m*this.d,k);
     end
 
     function C = mldivide(this,B)
