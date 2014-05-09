@@ -350,7 +350,13 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     end
     assert(kr == size(Y,1), ...
       'Number of knowns (%d) != rows in known values (%d)',kr, size(Y,1));
-    cols = size(Y,2);
+    if isempty(Y)
+      % use linear coefficients to determine cols
+      cols = size(B,2);
+      Y = zeros(0,cols);
+    else
+      cols = size(Y,2);
+    end
 
     if any(F.blank_eq)
       Beq = Beq(~F.blank_eq,:);
