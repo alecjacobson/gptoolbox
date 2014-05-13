@@ -10,7 +10,7 @@ function [RV,IM] = remove_unreferenced(V,F)
   %  RV  #V by dim vertex positions, order such that if the jth vertex is
   %    some face in F, and the kth vertex is not then j comes before k
   %  IM  #V by 1 list of indices such that: RF = IM(F) and RT = IM(T)
-  %    and RV(IM,:) = V
+  %    and V(find(IM<=size(SV,1)),:) = RV
   % 
   % Examples:
   %   % Tet mesh in (V,T,F)
@@ -19,7 +19,7 @@ function [RV,IM] = remove_unreferenced(V,F)
   %   F = I(F);
   %   ... % do some computation on RV
   %   % replace back into V
-  %   RV(I(1:size(RV,1),:),:) = V;
+  %   DV(find(IM<=size(SV,1)),:) = V
   %
 
   % get list of unique vertex indices that occur in faces

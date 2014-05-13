@@ -53,25 +53,19 @@ end
 
 for k=1:size(F,1)
     if ( (~hasN) && (~hasUV) ) || (any(TF(k,:)<=0,2) && any(NF(k,:)<=0,2))
-        fprintf( f, 'f %d %d %d\n', ...
-            F(k,1), F(k,2), F(k,3));
+        fmt = repmat(' %d',1,size(F,2));
+        fprintf( f,['f' fmt '\n'], F(k,:));
     elseif ( hasUV && (~hasN || any(NF(k,:)<=0,2)))
-        fprintf( f, 'f %d/%d %d/%d %d/%d\n', ...
-            F(k,1), TF(k,1), ...
-            F(k,2), TF(k,2), ...
-            F(k,3), TF(k,3) );
+        fmt = repmat(' %d/%d',1,size(F,2));
+        fprintf( f, ['f' fmt '\n'], [F(k,:);TF(k,:)]);
     elseif ( (hasN) && (~hasUV || any(TF(k,:)<=0,2)))
-        fprintf( f, 'f %d//%d %d//%d %d//%d\n', ...
-            F(k,1), NF(k,1), ...
-            F(k,2), NF(k,2), ...
-            F(k,3), NF(k,3) );
+        fmt = repmat(' %d//%d',1,size(F,2));
+        fprintf( f, ['f' fmt '\n'],[F(k,:);TF(k,:)]');
     elseif ( (hasN) && (hasUV) )
         assert(all(NF(k,:)>0));
         assert(all(TF(k,:)>0));
-        fprintf( f, 'f %d/%d/%d %d/%d/%d %d/%d/%d\n', ...
-            F(k,1), TF(k,1), NF(k,1),...
-            F(k,2), TF(k,2), NF(k,2),...
-            F(k,3), TF(k,3), NF(k,3) );
+        fmt = repmat(' %d/%d/%d',1,size(F,2));
+        fprintf( f, ['f' fmt '\n'],[F(k,:);TF(k,:);NF(k,:)]);
     end
 end
 

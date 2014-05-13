@@ -392,10 +392,10 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
       end
 
       % fix any removed constraints (set Lambda to 0)
-      Lambda = zeros(numel(F.blank_eq),1);
+      Lambda = zeros(numel(F.blank_eq),cols);
       if neq ~= 0
         % save lagrange multipliers
-        Lambda(~F.blank_eq) = Z(F.lagrange,:);
+        Lambda(~F.blank_eq,:) = Z(F.lagrange,:);
         % throw away lagrange multipliers
         Z = Z(1:(end-neq),:);
       end

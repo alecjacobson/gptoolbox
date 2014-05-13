@@ -58,4 +58,5 @@ function [V,E,P,BE,CE,PE] = readTGF(filename)
   % point handles are points not attached to a bone
   P = 1:size(V,1);
   P = P(~ismember(P,BE(:)));
+  fclose(fp);
 end

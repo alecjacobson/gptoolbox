@@ -7,7 +7,8 @@ function C = cotangent(V,F,varargin)
   % C = cotangent(V,F,'ParameterName',parameter_value,...)
   %
   % Known bugs:
-  %   This seems to return 0.5*C
+  %   This seems to return 0.5*C and for tets already multiplies by
+  %   edge-lengths
   %
   % Inputs:
   %   V  #V by dim list of rest domain positions

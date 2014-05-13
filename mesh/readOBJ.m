@@ -18,6 +18,12 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
   %  N  #V by 3 list of normals
   %  NF  #F by 3 list of triangle corner normal indices into N
   %
+  % Examples:
+  %   % read a quad/triangle mesh and display it
+  %   [V,F] = readOBJ('quads.obj','Quads',true);
+  %   % Turn triangles into degenerate quads 
+  %   DF = (F==0).*F(:,[4 1 2 3])+(F~=0).*F;
+  %   trisurf(DF,V(:,1),V(:,2),V(:,3));
   %
   %
   % See also: load_mesh, readOBJfast, readOFF
@@ -142,17 +148,17 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
             if(numf>size(F,1))
               F = cat(1,F,zeros(10000,ss));
             end
-            F(numf,:) = [t(corners)'];
+            F(numf,1:numel(corners)) = [t(corners)'];
             numtf = numtf+1;
             if(numtf>size(TF,1))
               TF = cat(1,TF,zeros(10000,ss));
             end
-            TF(numtf,:) = [tf(corners)'];
+            TF(numtf,1:numel(corners)) = [tf(corners)'];
             numnf = numnf+1;
             if(numnf>size(NF,1))
               NF = cat(1,NF,zeros(10000,ss));
             end
-            NF(numnf,:) = [nf(corners)'];
+            NF(numnf,1:numel(corners)) = [nf(corners)'];
             if numel(t) <= ss
               break;
             end

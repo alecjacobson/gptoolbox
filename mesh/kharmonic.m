@@ -1,11 +1,11 @@
-function W = harmonic(V,F,b,bc,k)
-  % HARMONIC k-harmonic coordinates, "Harmonic Coordinates for Character
+function W = kharmonic(V,F,b,bc,k)
+  % KHARMONIC k-harmonic coordinates, "Harmonic Coordinates for Character
   % Articulation" by Joshi et al, and "An Intuitive Framework for Real-Time
   % Freeform Modeling" section 3 "Precomputed basis functions" by Botsch and
   % Kobbelt
   %
-  % W = harmonic(V,F,b,bc)
-  % W = harmonic(V,F,b,bc,k);
+  % W = kharmonic(V,F,b,bc)
+  % W = kharmonic(V,F,b,bc,k);
   %
   % Inputs:
   %  V  list of vertex positions

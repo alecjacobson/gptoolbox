@@ -101,13 +101,21 @@ function [DV,DT,DF,b,bc] = encage(V,CV,CF,varargin)
   assert(size(DF,1) == size(BF,1));
   % B2CF(i,:) = [v f] --> vertex v in DV is on face f in CF
   B2CF = [DF(:) repmat(BF,size(DF,2),1)];
+  % Just keep one matching for each vertex
   [~,UI] = unique(B2CF(:,1));
   B2CF = B2CF(UI,:);
-  K = CF(B2CF(:,2),:);
-  B = barycentric_coordinates( ...
-    DV(B2CF(:,1),:), CV(K(:,1),:), CV(K(:,2),:), CV(K(:,3),:));
   % boundary conditions
   b = B2CF(:,1);
-  bc = sparse(repmat(1:numel(b),1,3)',K(:),B(:),numel(b),size(CV,1));
+  if size(CF,2) == 3
+    % Corners of face for each vertex
+    K = CF(B2CF(:,2),:);
+    B = barycentric_coordinates( ...
+      DV(B2CF(:,1),:), CV(K(:,1),:), CV(K(:,2),:), CV(K(:,3),:));
+    bc = sparse(repmat(1:numel(b),1,3)',K(:),B(:),numel(b),size(CV,1));
+  else
+    if nargout>4
+      error('bc not supported for non-triangle mesh cages');
+    end
+  end
 
 end
