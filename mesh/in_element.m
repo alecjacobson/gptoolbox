@@ -311,9 +311,9 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
     % indices of points we haven't found yet
     IP = 1:size(P,1);
 
+    prev_k = 0;
+    k = 5;
     while true
-      prev_k = 0;
-      k = 5;
       K = knnsearch(BC,P(IP,:),'K',k);
       K = K(:,prev_k+1:end);
       for ki = 1:size(K,2)
