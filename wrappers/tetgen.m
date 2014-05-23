@@ -40,7 +40,7 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   end
 
   % graded: -q100, very-fine:-q1
-  flags = '-Cp -q100 ';
+  flags = '-Cpg -q100 ';
   if(internal_constraints)
     flags = [flags ' -i'];
   end
@@ -62,9 +62,7 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   face_filename = [prefix '.1.face'];
   node_filename = [prefix '.1.node'];
 
-  % Not sure why this isn't coming out 1-indexed
   F = readFACE(face_filename);
-  F = F+1;
   % reverse faces because tetgen uses backwards order
   F = fliplr(F);
   % I guess this is 1-indexed because we're using a .off file rather than a
@@ -72,12 +70,12 @@ function [V,T,F] = tetgen(SV,SF,IV,allow_resampling)
   T = readELE(ele_filename);
   V = readNODE(node_filename);
   if min(T(:)) == 0 && max(T(:))<size(V,1)
+    error
     % make 1-indexed
     T = T + 1;
   else if min(T(:)) >= 1
     %warning('min(T) >= 1, leaving indices as is');
   end
-
 
   delete(poly_filename);
   if(internal_constraints)
