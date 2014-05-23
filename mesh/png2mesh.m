@@ -28,8 +28,10 @@ function [V,F] = png2mesh( ...
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
   %
-  % See also: png2poly, triangle
+  % See also: bwmesh, png2poly, triangle
   %
+
+  warning('obsolete: use bwmesh');
 
   basename = regexprep(filename,'\.png$','');
   % use alpha channel of png image to define poly
@@ -49,7 +51,7 @@ function [V,F] = png2mesh( ...
   % for the triangulation
   avg_sqr_edge_length = mean(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2));
   % triangulate the polygon
-  [V,F] = triangle(V,E,[],'MaxArea',avg_sqr_edge_length/2.0,'Quality',30);
+  [V,F] = triangle(V,E,H,'MaxArea',avg_sqr_edge_length/2.0,'Quality',30);
   %[V,F] = triangle(V,E,[]);
   unr = setdiff(1:size(V,1),F(:));
   if(~isempty(unr))

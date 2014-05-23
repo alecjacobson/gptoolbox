@@ -80,5 +80,5 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
     triangle_flags = sprintf('-q%da%0.17f',quality,avg_sqr_edge_length);
   end
 
-  [W,F] = triangle(V,E,H,'Flags',triangle_flags);
+  [W,F] = triangle(V,E,H,'Flags',triangle_flags,'Quiet');
 end

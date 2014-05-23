@@ -54,12 +54,16 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
     case 3
       % Section 3.1.1
       AM = sum(doublearea(V,F))/2;
-      F = size(F,1);
+      sF = size(F,1);
       c = 5;
       t = c * AM / sF;
       %t = 20*mean(doublearea(V,F));
     case 4
-      t = 20*mean(volume(V,F));
+      AM = sum(volume(V,F));
+      sF = size(F,1);
+      c = 1e3;
+      t = c * AM / sF;
+      %t = 20*mean(volume(V,F));
     end
   end
 
@@ -121,6 +125,7 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   case 4
     L = cotmatrix3(V,F);
     M = massmatrix3(V,F,'barycentric');
+    %M = M./max(M(:));
   end
 
   % "... with initial conditions u0 = ??(x)"
