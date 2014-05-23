@@ -1,6 +1,7 @@
 # use glob syntax.
 syntax: glob
 *.o
+*.*.swp
 *.a
 *~
 .DS_Store
