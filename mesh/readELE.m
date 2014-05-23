@@ -1,8 +1,8 @@
-function E = readELE(ele_file_name)
+function [E,A] = readELE(ele_file_name)
   % READELE Read (face or tet) elements from a .ele file, used by Stellar and
   % Triangle
   %
-  % E = readELE(ele_file_name)
+  % [E,A] = readELE(ele_file_name)
   % 
   % Input:
   %   ele_file_name  path to .ele file
@@ -10,6 +10,7 @@ function E = readELE(ele_file_name)
   % Output:
   %   E  list of element indices, could be triangles or tets based
   %     on header of .ele file
+  %   A  #E by num_attributes list of attributes.
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
   %
@@ -29,9 +30,9 @@ function E = readELE(ele_file_name)
   else
     num_a = 0;
   end
-  if(num_a ~= 0)
-    error('Attributes are not supported.');
-  end
+  %if(num_a ~= 0)
+  %  error('Attributes are not supported.');
+  %end
 
   % line always start with row index
   parser = '%d';
@@ -40,8 +41,8 @@ function E = readELE(ele_file_name)
     error(['Size of an element must be at least one, not ' num2str(size_e)]);
   end
   % append to parser enough to read all entries in element
-  parser = [parser repmat(' %d',1,size_e)];
-  num_items = num_items + size_e;
+  parser = [parser repmat(' %d',1,size_e+num_a)];
+  num_items = num_items + size_e + num_a;
   E = fscanf(ele_file_handle,parser,[num_items, num_e])';
   fclose(ele_file_handle);
 
@@ -50,6 +51,7 @@ function E = readELE(ele_file_name)
   if offset
     warning('Offseting indices by %d',offset);
   end
-  E = E(:,2:end)+offset;
+  E = E(:,1+(1:size_e))+offset;
+  A = E(:,(1+size_e)+1:num_a);
 end
 
