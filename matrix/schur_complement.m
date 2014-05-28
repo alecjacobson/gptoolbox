@@ -93,7 +93,12 @@ function [x,y,AFUN] = schur_complement(AFUN,B,C,f,g,varargin)
   %   multiply by B*A\
   % B*A\A*x + B*A\B'*y = f
   % B*x + B*A\B'*y = B*A\f
-  BAif = B * AFUN(f);
+  if isempty(f)
+    BAif = sparse(size(B,1),size(g,2));
+    f = sparse(size(B,2),size(g,2));
+  else
+    BAif = B * AFUN(f);
+  end
   %   substitute B*x = g - Cy
   % g - Cy + B*A\B'*y = B*A\f
   % (B*A\B' - C) *y = B*A\f - g
