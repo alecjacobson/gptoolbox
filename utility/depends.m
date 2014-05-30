@@ -52,7 +52,9 @@ function C = depends(f,depth)
     % ignore anything in matlab folder
     new_deps = new_deps(cellfun(@isempty,strfind(new_deps,matlabroot)));
     Q = setdiff(new_deps,C);
-    C = cat(1,C,Q);
+    if ~isempty(Q)
+      C = cat(1,C,Q);
+    end
     level= level + 1;
   end
   

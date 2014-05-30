@@ -14,6 +14,7 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   %     'Tol'  tolerance for Douglas-Peucker algorithm {0}
   %     'TriangleFlags' followed by flags to pass to triangle
   %       {'-q30a[avg_sqr_length]'}
+  %     'SmoothingIters' followed by smoothing amount {0}
   % Outputs:
   %   W  #W by 2 list of mesh vertices
   %   F  #F by 3 list of triangle indices into W
@@ -26,14 +27,16 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
     % read alpha channel
     [~,~,A] = imread(A);
   end
+  A = im2double(A);
 
   % default values
   tol = 0;
   triangle_flags = '';
+  smoothing_iters = 0;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Tol','TriangleFlags'}, ...
-    {'tol','triangle_flags'});
+    {'Tol','TriangleFlags','SmoothingIters'}, ...
+    {'tol','triangle_flags','smoothing_iters'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -60,6 +63,10 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
     if tol > 0 
       Vb = dpsimplify(Vb([1:end 1],:),tol);
       Vb = Vb(1:end-1,:);
+    end
+    if smoothing_iters > 0
+      Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
+      Vb = curve_smooth(Vb,Eb,'MaxIters',smoothing_iters);
     end
     % don't consider degenerate boundaries
     if size(Vb,1)>2
