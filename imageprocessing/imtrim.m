@@ -23,6 +23,11 @@ function [C,top, bottom, left, right] = imtrim(im,varargin)
   %   Copyright Alec Jacobson, 2010
   %
 
+  if ~isfloat(im)
+    warning('converting input to double');
+    im = im2double(im);
+  end
+
   location = 'NorthWest';
   % default threshold parameter, works equivalently with Photoshop's
   % hardcoded parameter
@@ -53,9 +58,9 @@ function [C,top, bottom, left, right] = imtrim(im,varargin)
 
   % gather corner value to which the image is compared
   if(strcmp(location,'NorthWest'))
-    corner_value = im(1,1);
+    corner_value = im(1,1,:);
   elseif(strcmp(location,'SouthEast'))
-    corner_value = im(1,1);
+    corner_value = im(1,1,:);
   else
     error([location ' is not a valid location']);
   end
@@ -63,7 +68,9 @@ function [C,top, bottom, left, right] = imtrim(im,varargin)
   % get difference of image with corner value
   %difference = abs(im - corner_value)>0.1;
   % should work for any number of channels
-  difference = sqrt(sum((im - corner_value).^2,3)) > ...
+  %difference = sqrt(sum((im - corner_value).^2,3)) > ...
+  %  sqrt(threshold^2*size(im,3)); 
+  difference = sqrt(sum(bsxfun(@minus,im,corner_value).^2,3)) > ...
     sqrt(threshold^2*size(im,3)); 
   if dims(2)
     [left_i,left] = ind2sub(size(difference),find(difference,1));
