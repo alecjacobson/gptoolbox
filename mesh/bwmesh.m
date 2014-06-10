@@ -58,23 +58,26 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   E = [];
   H = [];
   for b = 1:numel(B)
-    Vb = B{b};
-    Vb = bsxfun(@plus,Vb*[0 -1;1 0],[-0.5,size(A,1)+0.5]);
-    if tol > 0 
-      Vb = dpsimplify(Vb([1:end 1],:),tol);
-      Vb = Vb(1:end-1,:);
-    end
-    if smoothing_iters > 0
-      Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
-      Vb = curve_smooth(Vb,Eb,'MaxIters',smoothing_iters);
-    end
-    % don't consider degenerate boundaries
-    if size(Vb,1)>2
-      Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
-      E = [E;size(V,1)+Eb];
-      V = [V;Vb];
-      if b > N
-        H = [H;point_inside_polygon(Vb)];
+    if size(B{b},1)>2
+      Vb = B{b};
+      Vb = bsxfun(@plus,Vb*[0 -1;1 0],[-0.5,size(A,1)+0.5]);
+      if smoothing_iters > 0
+        Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
+        Vb = curve_smooth(Vb,Eb,'MaxIters',smoothing_iters);
+      end
+    
+      if tol > 0 
+        Vb = dpsimplify(Vb([1:end 1],:),tol);
+        Vb = Vb(1:end-1,:);
+      end
+      % don't consider degenerate boundaries
+      if size(Vb,1)>2
+        Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
+        E = [E;size(V,1)+Eb];
+        V = [V;Vb];
+        if b > N
+          H = [H;point_inside_polygon(Vb)];
+        end
       end
     end
   end

@@ -39,12 +39,18 @@ function [I,minD,VI] = snap_points(C,V,varargin)
   % number of control vertices
   c = size(C,1);
 
-  % compute distance from every vertex in the mesh to every control vertex
-  D = permute(sum(abs(repmat(V,[1,1,c]) - ...
-    permute(repmat(C,[1,1,n]),[3,2,1])).^p,2),[1,3,2]);
-  % use distances to determine closest mesh vertex to each control vertex
-  % Cv(i) is closest vertex in V to ith control vertex in C
-  [minD,I] = min(D);
+  if p~=2
+    %% compute distance from every vertex in the mesh to every control vertex
+    %D = permute(sum(abs(repmat(V,[1,1,c]) - ...
+    %  permute(repmat(C,[1,1,n]),[3,2,1])).^p,2),[1,3,2]);
+    %% use distances to determine closest mesh vertex to each control vertex
+    %% Cv(i) is closest vertex in V to ith control vertex in C
+    %[minD,I] = min(D);
+    [I,minD] = knnsearch(V,C,'Distance','minkowski','P',p);
+  else
+    [I,minD] = knnsearch(V,C);
+  end
+
   if(nargout == 3)
     VI = V(I,:);
   end

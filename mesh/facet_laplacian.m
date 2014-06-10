@@ -56,12 +56,22 @@ function [L,E] = facet_laplacian(V,F)
     % Map each face-edge to a unique edge
     F2E = reshape(1:3*m,m,3);
     % Assemble entries
+    %             R S S R S S R S S
     LI = [ F2E(:,[1 1 1 2 2 2 3 3 3]) ];
     LJ = [   F(:,[1 2 3 2 3 1 3 1 2]) ];
     LV = [ ...
       C(:,2)+C(:,3), -C(:,3), -C(:,2) ...
       C(:,3)+C(:,1), -C(:,1), -C(:,3) ...
       C(:,1)+C(:,2), -C(:,2), -C(:,1)];
+
+    %warning('only spokes');
+    %LI = LI(:,[2 3 5 6 8 9]);
+    %LJ = LJ(:,[2 3 5 6 8 9]);
+    %LV = LV(:,[2 3 5 6 8 9]);
+    %warning('only rims');
+    %LI = LI(:,[1 4 7]);
+    %LJ = LJ(:,[1 4 7]);
+    %LV = LV(:,[1 4 7]);
 
     assert(all(size(LI)==size(LJ)));
     assert(all(size(LI)==size(LV)));
