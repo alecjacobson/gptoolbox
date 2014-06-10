@@ -8,6 +8,8 @@ function [ B ] = barycenter(V, F)
   %   F #F x simplex_size  matrix of indices of triangle corners
   % Output:
   %   B a #F x dim matrix of 3d vertices
+  % 
+  % See also: quadrature_points
   %
 
   B = zeros(size(F,1),size(V,2));

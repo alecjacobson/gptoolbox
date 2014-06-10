@@ -7,21 +7,39 @@ This is a toolbox of useful matlab functions for geometry processing. There are
 also tools related to constrainted optimization and image processing. Typically
 these are utility functions that are not stand alone applications.
 
+Here's an incomplete list of cool features this matlab toolbox contains:
+
+- wrappers for TetGen, Triangle, QSlim, meshfix
+- mesh smoothing
+- mesh clean up (remove duplicates, remove unreferenced)
+- geodesic distances on triangle and tetrahedral meshes
+- deep matlab function dependency
+- mesh quantities and querires (normals, discrete gaussian curvature, list
+  boundary edges, topology, etc.)
+- mesh deformation (as-rigid-as-possible (ARAP), moving least-squares, etc.)
+- mesh parameterization (harmonic, least squares conformal, ARAP, etc.)
+- automatic skinning weight computation
+- 2D mesh from image mask
+- Input/Output for many mesh formats
+  (.obj,.off,.wrl,.mesh,.node,.ele,.poly,.smf,.bdl)
+- quadratic programming, active set solver
+- image dithering
+- scribble-based image colorization
+- discrete differential geometry operators for triangle and tetrahedral meshes
+  (cotangent Laplacian, gradient, divergence)
+- _exact (un)signed distance field computation for meshes (coming soon)_
+- _constructive solid geometry operations on meshes, booleans (coming soon)_
+
 The functions have been organized into folders based on their primary
 application:
 
-- dithering/
-- geometry/
+- external/
 - imageprocessing/
 - images/
-- matlabPyrTools/
 - matrix/
 - mesh/
-- meshplot/
-- old/
-- paths/
-- plot/
 - utility/
+- wrappers/
 
 ## Installation ##
 The vast majority of this code is __straight MATLAB__ (`*.m` files). Thus, only
