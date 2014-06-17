@@ -4,12 +4,12 @@
 //   -L/usr/local/igl/libigl/lib -ligl -liglmatlab ...
 //   -I/opt/local/include/eigen3 ...
 //   -o in_element_aabb in_element_aabb.cpp
-#include <igl/matlab/prepare_lhs.h>
 
 #include <igl/InElementAABB.h>
 #include <igl/in_element.h>
 #include <igl/matlab/mexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
+#include <igl/matlab/prepare_lhs.h>
 #include <igl/matlab/parse_rhs.h>
 
 #include <mex.h>
