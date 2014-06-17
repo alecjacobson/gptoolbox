@@ -308,11 +308,15 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
     % assumes samples are all inside exactly one element
     BC = barycenter(V,F);
     I = sparse(size(P,1),size(F,1));
+    B1 = sparse(size(P,1),size(F,1));
+    B2 = sparse(size(P,1),size(F,1));
+    B3 = sparse(size(P,1),size(F,1));
+    B4 = sparse(size(P,1),size(F,1));
     % indices of points we haven't found yet
     IP = 1:size(P,1);
 
     prev_k = 0;
-    k = 5;
+    k = 2;
     while true
       K = knnsearch(BC,P(IP,:),'K',k);
       K = K(:,prev_k+1:end);
@@ -334,6 +338,13 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
         end
         found = abs(sum(B,2)-1)<sqrt(eps);
         I(sub2ind(size(I),IP,K(:,ki)')) = found;
+        % DOESN'T REALLY PAY OFF TO COMPUTE THESE HERE
+        %B1(sub2ind(size(I),IP,K(:,ki)')) = found.*B(:,1);
+        %B2(sub2ind(size(I),IP,K(:,ki)')) = found.*B(:,2);
+        %B3(sub2ind(size(I),IP,K(:,ki)')) = found.*B(:,3);
+        %if size(F,2) == 4
+        %  B4(sub2ind(size(I),IP,K(:,ki)')) = found.*B(:,4);
+        %end
         % Peel off found
         IP = IP(~found);
         if isempty(IP)
@@ -360,6 +371,8 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
         break;
       end
     end
+
+    %return;
 
   end
 
