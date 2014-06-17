@@ -26,7 +26,21 @@
 %   aabbx = [];
 %   aabbe = [];
 %   % Call once to build AABB and query
-%   [I,aabbn,aabbx,aabbe] = in_element_aabb(V,Elements,Q,aabbn,aabbx,aabbe);
+%   [I,aabbn,aabbx,aabbe] = in_element_aabb(V,Ele,Q,aabbn,aabbx,aabbe);
 %   % Call again with same output to build AABB from serialized output
-%   [I,aabbn,aabbx,aabbe] = in_element_aabb(V,Elements,Q,aabbn,aabbx,aabbe);
+%   [I,aabbn,aabbx,aabbe] = in_element_aabb(V,Ele,Q,aabbn,aabbx,aabbe);
+%   % recover barycentric coordinates (assuming tet mesh)
+%   [II,~,IV] = find(I);
+%   B = barycentric_coordinates( ...
+%     Q(II,:),V(Ele(IV,1),:),V(Ele(IV,2),:),V(Ele(IV,3),:),V(Ele(IV,4),:));
+%   % reproduce positions of found points using barycentric coordinates
+%   BQ = sum(bsxfun(@times, permute(B,[1 3 2]), ...
+%     cat(3,V(Ele(IV,1),:),V(Ele(IV,2),:),V(Ele(IV,3),:),V(Ele(IV,4),:))),3);
+%   % Map back so that size(B,1) == size(Q,1)
+%   B = sparse(repmat(II,1,size(B,2)),repmat(1:size(B,2),size(B,1),1),B, ...
+%     numel(I),size(B,2));
+%   scatter3(Q(:,1),Q(:,2),Q(:,3));
+%   hold on;
+%   scatter3(BQ(:,1),BQ(:,2),BQ(:,3),'r','SizeData',10);
+%   hold off;
 %

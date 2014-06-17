@@ -47,10 +47,14 @@ void parse_rhs(
   {
     mexErrMsgTxt(nrhs >= 6, "The number of input arguments must be 3 or >=6.");
     parse_rhs_double(prhs+3,bb_mins);
-    mexErrMsgTxt(bb_mins.cols() == dim,"Dimension of bb_mins should match V");
-    mexErrMsgTxt(bb_mins.rows() >= Ele.rows(),"|bb_mins| should be > |Ele|");
+    if(bb_mins.size()>0)
+    {
+      mexErrMsgTxt(bb_mins.cols() == dim,"Dimension of bb_mins should match V");
+      mexErrMsgTxt(bb_mins.rows() >= Ele.rows(),"|bb_mins| should be > |Ele|");
+    }
     parse_rhs_double(prhs+4,bb_maxs);
-    mexErrMsgTxt(bb_maxs.cols() == dim,"Dimension of bb_maxs should match V");
+    mexErrMsgTxt(bb_maxs.cols() == bb_mins.cols(),
+      "|bb_maxs| should match |bb_mins|");
     mexErrMsgTxt(bb_mins.rows() == bb_maxs.rows(),
       "|bb_mins| should match |bb_maxs|");
     parse_rhs_index(prhs+5,elements);
