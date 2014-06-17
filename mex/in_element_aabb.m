@@ -20,3 +20,13 @@
 %   bb_maxs (see optional input)
 %   elements (see optional input)
 %
+% Example:
+%   % Dummy data
+%   aabbn = [];
+%   aabbx = [];
+%   aabbe = [];
+%   % Call once to build AABB and query
+%   [I,aabbn,aabbx,aabbe] = in_element_aabb(V,Elements,Q,aabbn,aabbx,aabbe);
+%   % Call again with same output to build AABB from serialized output
+%   [I,aabbn,aabbx,aabbe] = in_element_aabb(V,Elements,Q,aabbn,aabbx,aabbe);
+%
