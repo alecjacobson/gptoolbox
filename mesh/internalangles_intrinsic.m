@@ -10,15 +10,15 @@ function [ A ] = internalangles_intrinsic(l)
 %  A  #F x 3 list of triples of triangle angles
 %
 
-s12 = l(:,3);
-s13 = l(:,2);
 s23 = l(:,1);
+s31 = l(:,2);
+s12 = l(:,3);
 
-a12 = acos((s13.^2 + s23.^2 - s12.^2)./(2.*s13.*s23));
-a13 = acos((s12.^2 + s23.^2 - s13.^2)./(2.*s12.*s23));
-a23 = acos((s12.^2 + s13.^2 - s23.^2)./(2.*s12.*s13));
+a23 = acos((s12.^2 + s31.^2 - s23.^2)./(2.*s12.*s31));
+a31 = acos((s23.^2 + s12.^2 - s31.^2)./(2.*s23.*s12));
+a12 = acos((s31.^2 + s23.^2 - s12.^2)./(2.*s31.*s23));
 
-A = [a23 a13 a12];
+A = [a23 a31 a12];
 
 end
 

@@ -69,6 +69,7 @@ function [theta,cos_theta] = dihedral_angles(V,T,varargin)
   % as a wrapper to cos_dihedral_angles(V,T) or better as a parameter 'CosOnly',true
   theta = acos(cos_theta);
 
-  % TODO: there should be a more accurate way. Probably involving atan2,
-  % shewchuck probably writes about this someplace.
+  % Q: Could also use atan2 formulation if you're after the dihedral angles (not
+  % the cosine of dihedral angles)?
+  % A: Yup, http://en.wikipedia.org/wiki/Dihedral_angle#Alternative_definitions
 end

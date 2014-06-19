@@ -59,12 +59,17 @@ function [U,CSM] = arap(varargin)
   %     'Tikhonov' followed by constant Tikhonov regularization parameter
   %       alpha:
   %       http://en.wikipedia.org/wiki/Tikhonov_regularization#Relation_to_probabilistic_formulation
+  %     'Flat' followed by whether to add the constraint that Z=0 {false}
   % Outputs:
   %   U  #V by dim list of new positions
   %   CSM dim*n by dim*n sparse matrix containing special laplacians along the
   %     diagonal so that when multiplied by repmat(U,dim,1) gives covariance 
   %     matrix elements, can be used to speed up next time this function is
   %     called, see function definitions
+  %
+  % Known issues: 'Flat',true + 'Energy','elements' should only need a 2D
+  % rotation fit, but this does 3D to stay general (e.g. if one were to use
+  % 'spokes' then the edge-set cannot be pre-mapped to a common plane)
   %
   % See also: takeo_arap
   %
@@ -93,6 +98,8 @@ function [U,CSM] = arap(varargin)
   h = 1;
   % Tikhonov regularization alpha
   alpha_tik = 0;
+  % flatten/parameterization
+  flat = false;
 
   ii = 5;
   while(ii <= nargin)
@@ -145,10 +152,20 @@ function [U,CSM] = arap(varargin)
       ii = ii + 1;
       assert(ii<=nargin);
       Vm1 = varargin{ii};
+    case 'Flat'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      flat = varargin{ii};
     otherwise
       error(['Unsupported parameter: ' varargin{ii}]);
     end
     ii = ii + 1;
+  end
+
+  if flat
+    eff_dim = 2;
+  else
+    eff_dim = dim;
   end
 
   if isempty(bc)
@@ -162,21 +179,24 @@ function [U,CSM] = arap(varargin)
     else
       U = V;
     end
+    U = U(:,1:eff_dim);
   end
   assert(n == size(U,1));
-  assert(dim == size(U,2));
+  assert(eff_dim == size(U,2));
 
   if dynamic
-    V0 = U;
+    V0 = U(:,1:eff_dim);
     if ~exist('Vm1','var')
       Vm1 = V0;
     end
     M = massmatrix(V,F,'voronoi');
-    DQ = 0.5*1/h^3*M;
-    Dl = 1/h^3*M*(-2*V0 + Vm1) - fext;
+    DQ = 0.5*1/h^2*M;
+    vel = (V0-Vm1)/h;
+    Dl = 1/(h^2)*M*(-V0 - h*vel) - fext;
+    %Dl = 1/h^3*M*(-2*V0 + Vm1) - fext;
   else
     DQ = sparse(size(V,1),size(V,1));
-    Dl = sparse(size(V,1),size(V,2));
+    Dl = sparse(size(V,1),eff_dim);
   end
 
   if(~exist('L','var'))
@@ -230,7 +250,7 @@ function [U,CSM] = arap(varargin)
   end
 
   % precompute rhs premultiplier
-  [~,K] = arap_rhs(V,F,[],'Energy',energy);
+  [~,K] = arap_rhs(V,F,[],'Energy',energy,'Dim',eff_dim);
 
   % initialize rotations with identies (not necessary)
   R = repmat(eye(dim,dim),[1 1 size(CSM,1)/dim]);
@@ -247,11 +267,12 @@ function [U,CSM] = arap(varargin)
     %[1 E]
 
     % compute covariance matrix elements
-    S = CSM*repmat(U,dim,1);
+    S = zeros(size(CSM,1),dim);
+    S(:,1:eff_dim) = CSM*repmat(U,dim,1);
     % dim by dim by n list of covariance matrices
-    S = permute(reshape(S,[size(CSM,1)/dim dim dim]),[2 3 1]);
+    SS = permute(reshape(S,[size(CSM,1)/dim dim dim]),[2 3 1]);
     % fit rotations to each deformed vertex
-    R = fit_rotations(S);
+    R = fit_rotations(SS);
 
     % energy after last local step
     U(b,:) = bc;
@@ -271,8 +292,9 @@ function [U,CSM] = arap(varargin)
     U(b,:) = bc;
 
     %B = arap_rhs(V,F,R);
-    B = K * reshape(permute(R,[3 1 2]),size(K,2)/dim/dim*dim*dim,1);
-    B = reshape(B,[size(B,1)/dim dim]);
+    Rcol = reshape(permute(R,[3 1 2]),size(K,2),1);
+    Bcol = K * Rcol;
+    B = reshape(Bcol,[size(Bcol,1)/eff_dim eff_dim]);
 
     [U,preF] = min_quad_with_fixed( ...
       -0.5*L+DQ+alpha_tik*speye(size(L)),-B+Dl,b,bc,[],[],preF);
@@ -282,4 +304,5 @@ function [U,CSM] = arap(varargin)
     %U(interior,:)=cholL\((B(interior,:)+L(interior,b)*bc)'/cholL)';
     iteration = iteration + 1;
   end
+  U = U(:,1:eff_dim);
 end

@@ -12,6 +12,7 @@ function R = fit_rotation(S)
   % svd 
   [su,ss,sv]=svd(S);
   R = sv*su';
+  R
   % if reflection then flip last column
   if( det(R) < 0 )
     su(:,end) = -su(:,end);

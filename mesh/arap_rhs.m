@@ -28,6 +28,7 @@ function [b,K] = arap_rhs(varargin)
   %           al.  2010], rotations defined at vertices affecting incident
   %           edges and opposite edges
   %     and only K is computed
+  %      'Dim'  solve dimension {size(V,2)}
   % Output:
   %   b  #V by dim right hand side
   %   K  #V*dim by #V*dim*dim matrix such that: 
@@ -47,7 +48,8 @@ function [b,K] = arap_rhs(varargin)
   simplex_size = size(F,2);
   assert(simplex_size == 3 || simplex_size == 4);
   % number of dimensions
-  dim = size(V,2);
+  Vdim = size(V,2);
+  dim = Vdim;
 
   ii = 4;
   while(ii <= nargin)
@@ -56,6 +58,10 @@ function [b,K] = arap_rhs(varargin)
       ii = ii + 1;
       assert(ii<=nargin);
       energy = varargin{ii};
+    case 'Dim'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      dim = varargin{ii};
     otherwise
       error(['Unsupported parameter: ' varargin{ii}]);
     end
@@ -75,16 +81,21 @@ function [b,K] = arap_rhs(varargin)
   KX = arap_linear_block(V,F,1,'Energy',energy);
   KY = arap_linear_block(V,F,2,'Energy',energy);
   Z = sparse(size(V,1),nr);
-  if dim == 2
+  if Vdim == 2
     K = [ ...
       KX Z KY Z; ...
       Z KX Z KY];
-  elseif dim == 3
+    assert(dim == 2);
+  elseif Vdim == 3
     KZ = arap_linear_block(V,F,3,'Energy',energy);
     K = [ ...
-      KX Z Z  KY Z  Z  KZ Z  Z ; ...
-      Z KX Z  Z  KY Z  Z  KZ Z ; ...
-      Z Z  KX Z  Z  KY Z  Z  KZ ];
+             KX Z Z  KY Z  Z  KZ Z  Z ; ...
+             Z KX Z  Z  KY Z  Z  KZ Z];
+    if dim == 3
+      K = [K;Z Z  KX Z  Z  KY Z  Z  KZ ];
+    else
+      assert(dim == 2);
+    end
   end
 
   if(~isempty(R))

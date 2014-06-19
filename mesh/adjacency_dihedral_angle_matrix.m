@@ -10,7 +10,10 @@ function A = adjacency_dihedral_angle_matrix(V,F)
   %   F  #F by 3 list of triangle indices into V. F does *not* need to be
   %     manifold
   % Outputs:
-  %   A  #F by #F sparse matrix of dihedral angles. All entries are in [0,pi]
+  %   A  #F by #F sparse matrix of signed dihedral angles. All entries are in
+  %     [0,2*pi] A-->0 as edge is more convex, A-->pi as edge is more flat,
+  %     A-->2*pi as edge is more convace (as view from outside, assuming
+  %     counter-clockwise orientation.
   % 
   % Example:
   %   A = adjacency_dihedral_angle_matrix(V,F);
@@ -23,6 +26,11 @@ function A = adjacency_dihedral_angle_matrix(V,F)
   %   CM = jet(numel(unique(C)));
   %   colormap(CM(randperm(end),:));
   % 
+  %  % Signed dihedral angles
+  %  A = adjacency_dihedral_angle_matrix(V,F);
+  %  % unsigned dihedral angles
+  %  UA = pi*(A~=0)-abs(pi*(A~=0)-A);
+  % 
   %
 
   % all edges "both" directions
@@ -31,7 +39,12 @@ function A = adjacency_dihedral_angle_matrix(V,F)
   [E,~,IC] = unique(sort(allE,2),'rows');
   % FE(i,j) = 1 means that face j is incident upon edge i
   % so all FE(:,j) == 1 are neighbors
-  FE = sparse(IC(:),repmat(1:size(F,1),3,1)',1,size(E,1),size(F,1));
+  FE = sparse( ...
+    IC(:), ...
+    repmat(1:size(F,1),3,1)', ...
+    reshape(repmat(1:3,size(F,1),1),3*size(F,1),1), ...
+    size(E,1), ...
+    size(F,1));
 
   % precompute all unit normals
   N = normalizerow(normals(V,F));
@@ -42,23 +55,31 @@ function A = adjacency_dihedral_angle_matrix(V,F)
   while nnz(FE) > 0
     % Get index of first face per row
     [M,J] = max(FE,[],2);
-    I = 1:size(E,1);
+    I = 1:size(E,1); % Edge index
     I = I(M~=0);
-    J = J(M~=0);
-    % Lookup: L(i) = j
+    J = J(M~=0); % First face index
+    M = M(M~=0);
+    % Lookup: L(i) = j  --> edge i reveals face j
     L = sparse(I,1,J,size(E,1),1);
     % remove these from FE
     old = nnz(FE);
-    FE = FE - sparse(I,J,1,size(E,1),size(F,1));
+    FE = FE - sparse(I,J,M,size(E,1),size(F,1));
     new = nnz(FE);
     assert(new<=old);
-    [I2,J2] = find(FE);
+    [I2,J2,M2] = find(FE);
     % Pair up with first
     J1 = L(I2);
     % get unit normals
     N1 = N(J1,:);
     N2 = N(J2,:);
-    D12 = pi-acos(sum(N1.*N2,2));
+    % get unit edge vector
+    E1 = sub2ind(size(F),J2,mod(M2+1,3)+1);
+    E2 = sub2ind(size(F),J2,mod(M2-1+1,3)+1);
+    EV = normalizerow(V(F(E2),:)-V(F(E1),:));
+    % Don't need unit normals
+    % http://en.wikipedia.org/wiki/Dihedral_angle#Alternative_definitions
+    D12 = pi-atan2(dot(cross(N1,N2,2),EV,2),dot(N1,N2,2));
+    %D12 = pi-acos(sum(N1.*N2,2));
     % append to A: plus is OK here because if two facets share more than one
     % edge they are coplanar so D12 equals 0 in both cases
     A = A + sparse([J1;J2],[J2;J1],[D12;D12],size(F,1),size(F,1));
