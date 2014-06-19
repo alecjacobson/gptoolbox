@@ -31,7 +31,7 @@ function [b,K] = arap_rhs(varargin)
   %      'Dim'  solve dimension {size(V,2)}
   % Output:
   %   b  #V by dim right hand side
-  %   K  #V*dim by #V*dim*dim matrix such that: 
+  %   K  #V*dim by #(F|V)*dim*dim matrix such that: 
   %     b = K * reshape(permute(R,[3 1 2]),size(V,1)*size(V,2)*size(V,2),1);
   %   
 

@@ -164,9 +164,15 @@ function [U,CSM] = arap(varargin)
 
   if flat
     eff_dim = 2;
+    [ref_V,ref_F,ref_map] = plane_project(V,F);
+    assert(strcmp(energy,'elements'),'flat only makes sense with elements');
   else
+    ref_map = 1;
+    ref_V = V;
+    ref_F = F;
     eff_dim = dim;
   end
+  dim = size(ref_V,2);
 
   if isempty(bc)
     bc = sparse(0,dim);
@@ -234,7 +240,11 @@ function [U,CSM] = arap(varargin)
   % build covariance scatter matrix used to build covariance matrices we'll
   % later fit rotations to
   if(~exist('CSM','var'))
-    CSM = covariance_scatter_matrix(V,F,'Energy',energy);
+    assert(size(ref_V,2) == eff_dim);
+    CSM = covariance_scatter_matrix(ref_V,ref_F,'Energy',energy);
+    if flat
+      CSM = CSM * repdiag(ref_map',eff_dim);
+    end
     
     % if there are groups then condense scatter matrix to only build
     % covariance matrices for each group
@@ -250,7 +260,10 @@ function [U,CSM] = arap(varargin)
   end
 
   % precompute rhs premultiplier
-  [~,K] = arap_rhs(V,F,[],'Energy',energy,'Dim',eff_dim);
+  [~,K] = arap_rhs(ref_V,ref_F,[],'Energy',energy,'Dim',eff_dim);
+  if flat
+    K = repdiag(ref_map,dim) * K;
+  end
 
   % initialize rotations with identies (not necessary)
   R = repmat(eye(dim,dim),[1 1 size(CSM,1)/dim]);
