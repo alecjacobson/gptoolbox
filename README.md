@@ -14,8 +14,8 @@ Here's an incomplete list of cool features this matlab toolbox contains:
 - mesh clean up (remove duplicates, remove unreferenced)
 - geodesic distances on triangle and tetrahedral meshes
 - deep matlab function dependency
-- mesh quantities and querires (normals, discrete gaussian curvature, list
-  boundary edges, topology, etc.)
+- mesh quantities and queries (normals, discrete gaussian curvature, list
+  boundary edges, topology, angles, dihedral angles etc.)
 - mesh deformation (as-rigid-as-possible (ARAP), moving least-squares, etc.)
 - mesh parameterization (harmonic, least squares conformal, ARAP, etc.)
 - automatic skinning weight computation
