@@ -1,6 +1,8 @@
 function [U,UF,I] = plane_project(V,F)
   % Project each triangle to the plane
   %
+  % [U,UF,I] = plane_project(V,F)
+  %
   % Inputs:
   %   V  #V by 3 list of vertex positions
   %   F  #F by 3 list of mesh indices

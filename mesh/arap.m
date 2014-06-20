@@ -85,8 +85,6 @@ function [U,CSM] = arap(varargin)
   n = size(V,1);
   assert(isempty(b) || max(b) <= n);
   assert(isempty(b) || min(b) >= 1);
-  % dimension
-  dim = size(V,2);
 
   % default is Sorkine and Alexa style local rigidity energy
   energy = 'spokes';
@@ -163,14 +161,12 @@ function [U,CSM] = arap(varargin)
   end
 
   if flat
-    eff_dim = 2;
     [ref_V,ref_F,ref_map] = plane_project(V,F);
     assert(strcmp(energy,'elements'),'flat only makes sense with elements');
   else
     ref_map = 1;
     ref_V = V;
     ref_F = F;
-    eff_dim = dim;
   end
   dim = size(ref_V,2);
 
@@ -185,13 +181,13 @@ function [U,CSM] = arap(varargin)
     else
       U = V;
     end
-    U = U(:,1:eff_dim);
+    U = U(:,1:dim);
   end
   assert(n == size(U,1));
-  assert(eff_dim == size(U,2));
+  assert(dim == size(U,2));
 
   if dynamic
-    V0 = U(:,1:eff_dim);
+    V0 = U(:,1:dim);
     if ~exist('Vm1','var')
       Vm1 = V0;
     end
@@ -202,7 +198,7 @@ function [U,CSM] = arap(varargin)
     %Dl = 1/h^3*M*(-2*V0 + Vm1) - fext;
   else
     DQ = sparse(size(V,1),size(V,1));
-    Dl = sparse(size(V,1),eff_dim);
+    Dl = sparse(size(V,1),dim);
   end
 
   if(~exist('L','var'))
@@ -240,10 +236,10 @@ function [U,CSM] = arap(varargin)
   % build covariance scatter matrix used to build covariance matrices we'll
   % later fit rotations to
   if(~exist('CSM','var'))
-    assert(size(ref_V,2) == eff_dim);
+    assert(size(ref_V,2) == dim);
     CSM = covariance_scatter_matrix(ref_V,ref_F,'Energy',energy);
     if flat
-      CSM = CSM * repdiag(ref_map',eff_dim);
+      CSM = CSM * repdiag(ref_map',dim);
     end
     
     % if there are groups then condense scatter matrix to only build
@@ -260,7 +256,7 @@ function [U,CSM] = arap(varargin)
   end
 
   % precompute rhs premultiplier
-  [~,K] = arap_rhs(ref_V,ref_F,[],'Energy',energy,'Dim',eff_dim);
+  [~,K] = arap_rhs(ref_V,ref_F,[],'Energy',energy);
   if flat
     K = repdiag(ref_map,dim) * K;
   end
@@ -281,7 +277,7 @@ function [U,CSM] = arap(varargin)
 
     % compute covariance matrix elements
     S = zeros(size(CSM,1),dim);
-    S(:,1:eff_dim) = CSM*repmat(U,dim,1);
+    S(:,1:dim) = CSM*repmat(U,dim,1);
     % dim by dim by n list of covariance matrices
     SS = permute(reshape(S,[size(CSM,1)/dim dim dim]),[2 3 1]);
     % fit rotations to each deformed vertex
@@ -307,7 +303,7 @@ function [U,CSM] = arap(varargin)
     %B = arap_rhs(V,F,R);
     Rcol = reshape(permute(R,[3 1 2]),size(K,2),1);
     Bcol = K * Rcol;
-    B = reshape(Bcol,[size(Bcol,1)/eff_dim eff_dim]);
+    B = reshape(Bcol,[size(Bcol,1)/dim dim]);
 
     [U,preF] = min_quad_with_fixed( ...
       -0.5*L+DQ+alpha_tik*speye(size(L)),-B+Dl,b,bc,[],[],preF);
@@ -317,5 +313,5 @@ function [U,CSM] = arap(varargin)
     %U(interior,:)=cholL\((B(interior,:)+L(interior,b)*bc)'/cholL)';
     iteration = iteration + 1;
   end
-  U = U(:,1:eff_dim);
+  U = U(:,1:dim);
 end
