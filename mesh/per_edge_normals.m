@@ -1,4 +1,4 @@
-function [N,E] = per_edge_normals(V,F)
+function [N,E,EMAP] = per_edge_normals(V,F)
   % PER_EDGE_NORMALS  Compute per-edge normals over a mesh (V,F)
   %
   % N = per_edge_normals(V,F)
