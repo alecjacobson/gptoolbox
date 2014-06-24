@@ -14,13 +14,13 @@ function [P,PI] = farthest_points(V,k)
 
   PI = ceil(rand(k,1)*size(V,1));
 
-  scatter3(V(:,1),V(:,2),V(:,3),'.b');
-  hold on;
-  P = V(PI,:);
-  s = scatter3(P(:,1),P(:,2),P(:,3),'or','SizeData',100,'LineWidth',5);
-  hold off;
-  view(2);
-  axis equal;
+  %scatter3(V(:,1),V(:,2),V(:,3),'.b');
+  %hold on;
+  %P = V(PI,:);
+  %s = scatter3(P(:,1),P(:,2),P(:,3),'or','SizeData',100,'LineWidth',5);
+  %hold off;
+  %view(2);
+  %axis equal;
   
   max_iter = 100;
   iter = 1;

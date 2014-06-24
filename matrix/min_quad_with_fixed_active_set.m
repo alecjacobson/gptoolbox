@@ -1,4 +1,5 @@
-function [Z,F,Lambda] = min_quad_with_fixed_active_set(varargin)
+function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
+    A,B,known,Y,Aeq,Beq,Aieq,Bieq,lx,ux,F,varargin)
   % MIN_QUAD_WITH_FIXED_ACTIVE_SET Minimize quadratic energy Z'*A*Z + Z'*B + C
   % with constraints that Z(known) = Y, optionally also subject to the
   % constraints Aeq*Z = Beq, and further optionally subject to the linear
@@ -35,39 +36,35 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set(varargin)
   %     [Beq;Y],lx,ux);
   %
 
-  %max_iter = inf;
-  max_iter = 100;
-  %max_iter = 1;
+  %A = varargin{1};
+  %B = varargin{2};
+  %known = varargin{3};
+  %Y = varargin{4};
+  %Aeq = [];
+  %Beq = [];
+  %Aieq = [];
+  %Bieq = [];
+  %lx = [];
+  %ux = [];
+  %F = [];
+  %if nargin >= 6
+  %  Aeq = varargin{5};
+  %  Beq = varargin{6};
+  %end
 
-  A = varargin{1};
-  B = varargin{2};
-  known = varargin{3};
-  Y = varargin{4};
-  Aeq = [];
-  Beq = [];
-  Aieq = [];
-  Bieq = [];
-  lx = [];
-  ux = [];
-  F = [];
-  if nargin >= 6
-    Aeq = varargin{5};
-    Beq = varargin{6};
-  end
+  %if nargin >= 8
+  %  Aieq = varargin{7};
+  %  Bieq = varargin{8};
+  %end
 
-  if nargin >= 8
-    Aieq = varargin{7};
-    Bieq = varargin{8};
-  end
+  %if nargin >= 10
+  %  lx = varargin{9};
+  %  ux = varargin{10};
+  %end
 
-  if nargin >= 10
-    lx = varargin{9};
-    ux = varargin{10};
-  end
-
-  if nargin >= 11
-    F = varargin{11};
-  end
+  %if nargin >= 11
+  %  F = varargin{11};
+  %end
 
   %if isempty(F)
   %  F.Z0 = [];
@@ -87,9 +84,33 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set(varargin)
   if ~isfield(F,'as_ux')
     F.as_ux= [];
   end
-  if isfield(F,'max_iter')
-    max_iter = F.max_iter;
-  end
+  %if isfield(F,'max_iter')
+  %  max_iter = F.max_iter;
+  %end
+
+  % default values
+  max_iter = 100;
+  % solve equality problem
+  force_Aeq_li = false;
+
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'MaxIter','ForceAeqLI'}, ...
+    {'max_iter','force_Aeq_li'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace 
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end 
+
 
   % number of rows
   n = size(A,1);
@@ -223,8 +244,7 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set(varargin)
       % append active set linear inequality constraints as *equality* constraints
       Aeq_i = [Aeq;Aieq(F.as_ieq,:)];
       Beq_i = [Beq;Bieq(F.as_ieq)];
-      % solve equality problem
-      [Z,~,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i);
+      [Z,~,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i,struct('force_Aeq_li',force_Aeq_li));
       %[Z,~,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i,struct('force_Aeq_li',true));
       %[Z_qr,~,Lambda_qr,Lambda_known] = min_quad_with_fixed(A,B,known_i,Y_i,Aeq_i,Beq_i,struct('force_Aeq_li',false));
       %save('bad.mat','A','B','known_i','Y_i','Aeq_i','Beq_i');

@@ -98,10 +98,10 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     F = [];
   end
   
-  if isempty(F)
-    if ~isempty(F)
-      warning('Precomputing');
-    end
+  if isempty(F) || ~isfield(F,'precomputed') || F.precomputed == false
+%     if ~isempty(F)
+%       warning('Precomputing');
+%     end
     F = precompute(A,known,Aeq,F);
   end
   [Z,Lambda,Lambda_known] = solve(F,B,Y,Beq);
@@ -200,7 +200,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     A_sparse = issparse(A);
 
     % Determine number of linearly independent constraints
-    if neq > 0
+    if neq > 0 && ~(isfield(F,'force_Aeq_li') && F.force_Aeq_li)
       %tic;
       % Null space substitution with QR
       [AeqTQ,AeqTR,AeqTE] = qr(Aeq(:,F.unknown)');
@@ -317,6 +317,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
       F.AeqTE = AeqTE;
       F.Auu = Auu;
     end
+    F.precomputed = true;
   end
 
   function [Z,Lambda,Lambda_known] = solve(F,B,Y,Beq)

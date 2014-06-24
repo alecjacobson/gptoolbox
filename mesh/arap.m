@@ -60,6 +60,8 @@ function [U,CSM] = arap(varargin)
   %       alpha:
   %       http://en.wikipedia.org/wiki/Tikhonov_regularization#Relation_to_probabilistic_formulation
   %     'Flat' followed by whether to add the constraint that Z=0 {false}
+  %     'RemoveRigid' followed by whether to add a constraint that places an
+  %       arbitrary point at the origin and another along the x-axis {false}
   % Outputs:
   %   U  #V by dim list of new positions
   %   CSM dim*n by dim*n sparse matrix containing special laplacians along the
@@ -98,6 +100,8 @@ function [U,CSM] = arap(varargin)
   alpha_tik = 0;
   % flatten/parameterization
   flat = false;
+  % remove rigid transformation invariance
+  remove_rigid = false;
 
   ii = 5;
   while(ii <= nargin)
@@ -154,6 +158,10 @@ function [U,CSM] = arap(varargin)
       ii = ii + 1;
       assert(ii<=nargin);
       flat = varargin{ii};
+    case 'RemoveRigid'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      remove_rigid = varargin{ii};
     otherwise
       error(['Unsupported parameter: ' varargin{ii}]);
     end
@@ -208,6 +216,47 @@ function [U,CSM] = arap(varargin)
       L = cotmatrix3(V,F);
     else
       error('Invalid face list');
+    end
+  end
+
+  rr.b = cell(dim,1);
+  rr.bc = cell(dim,1);
+  rr.preF = cell(dim,1);
+  if remove_rigid
+    if ~isempty(b)
+      warning('RemoveRigid`s constraints are not typically wanted if |b|>0');
+    end
+    % the only danger is picking two points which end up mapped very close to
+    % each other
+    [~,f] = farthest_points(V,dim);
+    for c = 1:dim
+      rr.b{c} = f([1:dim-(c-1)])';
+      rr.bc{c} = zeros(numel(rr.b{c}),1);
+    end
+    % Immediately remove rigid transformation from initial guess
+    U = bsxfun(@minus,U,U(f(1),:));
+    % We know that f(1) is at origin
+    switch dim
+    case 3
+      % rotate about y-axis so that f(2) has (x=0)
+      theta = atan2(U(f(2),1),U(f(2),3));
+      R = axisangle2matrix([0 1 0],theta);
+      U = U*R;
+      % rotate about x-axis so that f(2) has (y=0)
+      theta = atan2(U(f(2),3),U(f(2),2))+pi/2;
+      R = axisangle2matrix([1 0 0],theta);
+      U = U*R;
+      % rotate about z-axis so that f(3) has (x=0)
+      theta = atan2(U(f(3),2),U(f(3),1))+pi/2;
+      R = axisangle2matrix([0 0 1],theta);
+      U = U*R;
+    case 2
+      % rotate so that f(2) is on y-axis (x=0)
+      theta = atan2(U(f(2),2),U(f(2),1))+pi/2;
+      R = [cos(theta) -sin(theta);sin(theta) cos(theta)];
+      U = U*R;
+    otherwise
+      error('Unsupported dimension');
     end
   end
 
@@ -305,8 +354,20 @@ function [U,CSM] = arap(varargin)
     Bcol = K * Rcol;
     B = reshape(Bcol,[size(Bcol,1)/dim dim]);
 
-    [U,preF] = min_quad_with_fixed( ...
-      -0.5*L+DQ+alpha_tik*speye(size(L)),-B+Dl,b,bc,[],[],preF);
+    % RemoveRigid requires to solve each indepently
+    if remove_rigid
+      for c = 1:dim
+        eff_b = [b rr.b{c}];
+        eff_bc = [bc(:,c);rr.bc{c}];
+        [U(:,c),rr.preF{c}] = min_quad_with_fixed( ...
+          -0.5*L+DQ+alpha_tik*speye(size(L)), ...
+          -B(:,c)+Dl(:,c),eff_b,eff_bc,[],[],rr.preF{c});
+      end
+    else 
+      [U,preF] = min_quad_with_fixed( ...
+        -0.5*L+DQ+alpha_tik*speye(size(L)),-B+Dl,b,bc,[],[],preF);
+    end
+    energy = trace(U'*(-0.5*L)*U+U'*(-B))
     %U(interior,:) = -L(interior,interior) \ (B(interior,:) + L(interior,b)*bc);
     %U(interior,:) = -L(interior,all)*L(all,interior) \ (L(interior,all)*B(all,:) + L(interior,all)*L(all,b)*bc);
     %U(interior,:) = luQ*(luU\(luL\(luP*(luR\(B(interior,:)+L(interior,b)*bc)))));
