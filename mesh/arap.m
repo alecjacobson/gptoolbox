@@ -1,4 +1,4 @@
-function [U,CSM] = arap(varargin)
+function [U,CSM,SS,R] = arap(varargin)
   % ARAP Solve for the as-rigid-as-possible deformation according to various
   % manifestations including:
   %   (1) "As-rigid-as-possible Surface Modeling" by [Sorkine and Alexa 2007]
