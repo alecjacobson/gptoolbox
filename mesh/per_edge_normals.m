@@ -18,10 +18,10 @@ function [N,E,EMAP] = per_edge_normals(V,F)
   % Map duplicate edges to first instance
   [E,~,EMAP] = unique(sort(allE,2),'rows');
   % Map each face-edge to a unique edge
-  F2E = reshape(1:3*m,m,3);
+  F2E = repmat(1:m,3,1)';
   dblA = doublearea(V,F);
   % #E by #F*3
-  A = sparse(EMAP,mod(F2E(:)-1,m)+1,repmat(dblA,3,1),size(E,1),m);
+  A = sparse(EMAP,F2E(:),repmat(dblA,3,1),size(E,1),m);
   FN = normalizerow(normals(V,F)+eps);
   N = normalizerow(A*FN);
 end

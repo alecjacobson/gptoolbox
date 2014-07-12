@@ -14,7 +14,10 @@ function C = cotangent(V,F,varargin)
   %   V  #V by dim list of rest domain positions
   %   F  #F by {3|4} list of {triangle|tetrahedra} indices into V
   %   Optional (3-manifolds only):
-  %     'SideLengths' followed by #T by 6 list of tet edges lenghts: 
+  %     'SideLengths' followed by #F by 3 list of edge lengths corresponding
+  %       to: 23 31 12. In this case V is ignored.
+  %       or
+  %       followed by #T by 6 list of tet edges lengths:
   %       41 42 43 23 31 12
   %     'FaceAreas' followed by #T by 4 list of tet face areas
   % Outputs:
@@ -31,14 +34,36 @@ function C = cotangent(V,F,varargin)
 
   switch size(F,2)
   case 3
+
+    % default values
+    l = [];
+    % Map of parameter names to variable names
+    params_to_variables = containers.Map( ...
+      {'SideLengths'}, {'l'});
+    v = 1;
+    while v <= numel(varargin)
+      param_name = varargin{v};
+      if isKey(params_to_variables,param_name)
+        assert(v+1<=numel(varargin));
+        v = v+1;
+        % Trick: use feval on anonymous function to use assignin to this workspace 
+        feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+      else
+        error('Unsupported parameter: %s',varargin{v});
+      end
+      v=v+1;
+    end
     assert(numel(varargin) == 0);
+
     % triangles
-    % edge lengths numbered same as opposite vertices
-    l = [ ...
-      sqrt(sum((V(F(:,2),:)-V(F(:,3),:)).^2,2)) ...
-      sqrt(sum((V(F(:,3),:)-V(F(:,1),:)).^2,2)) ...
-      sqrt(sum((V(F(:,1),:)-V(F(:,2),:)).^2,2)) ...
-      ];
+    if isempty(l)
+      % edge lengths numbered same as opposite vertices
+      l = [ ...
+        sqrt(sum((V(F(:,2),:)-V(F(:,3),:)).^2,2)) ...
+        sqrt(sum((V(F(:,3),:)-V(F(:,1),:)).^2,2)) ...
+        sqrt(sum((V(F(:,1),:)-V(F(:,2),:)).^2,2)) ...
+        ];
+    end
     i1 = F(:,1); i2 = F(:,2); i3 = F(:,3);
     l1 = l(:,1); l2 = l(:,2); l3 = l(:,3);
     % semiperimeters
