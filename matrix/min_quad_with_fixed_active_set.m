@@ -72,6 +72,9 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
   %  F.as_lx = [];
   %  F.as_ux = [];
   %end
+  if ~exist('F','var')
+      F = [];
+  end
   if ~isfield(F,'Z0')
     F.Z0= [];
   end

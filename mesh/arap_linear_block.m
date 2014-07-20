@@ -13,8 +13,8 @@ function [Kd] = arap_linear_block(varargin)
   % known and the positions unknown, and vice versa for rotation fitting. These
   % linear block just relate the rotations to the positions, linearly in each.
   %
-  % Kd = arap_linear_block(V,F)
-  % Kd = arap_linear_block(V,F,'ParameterName','ParameterValue,...)
+  % Kd = arap_linear_block(V,F,d)
+  % Kd = arap_linear_block(V,F,d,'ParameterName','ParameterValue,...)
   % 
   % Inputs:
   %   V  #V by dim list of initial domain positions

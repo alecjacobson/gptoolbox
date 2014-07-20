@@ -15,6 +15,11 @@ function [G] = grad(V,F)
   %   dblA = doublearea(V,F);
   %   GMG = -G'*repdiag(diag(sparse(dblA)/2),3)*G;
   %
+  %   % Columns of W are scalar fields
+  %   G = grad(V,F);
+  %   % Compute gradient magnitude for each column in W
+  %   GM = squeeze(sqrt(sum(reshape(G*W,size(F,1),size(V,2),size(W,2)).^2,2)));
+  %
 
   % append with 0s for convenience
   dim = size(V,2);
