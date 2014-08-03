@@ -20,6 +20,7 @@ function W = biharmonic_bounded(varargin)
   %        'quad'
   %        'least-squares'
   %        'conic'
+  %        'active-set'
   %      'POU'  true or false, enforce partition of unity explicitly {false}
   %      'Low'  lower bound {0}
   %      'Up'  upper bound {1}
@@ -207,7 +208,8 @@ function W = biharmonic_bounded(varargin)
   else
     % Drop partition of unity constraints, solve for weights of each handle
     % independently then normalize to enforce partition of unity
-    if(strcmp(opt_type,'quad'))
+    switch opt_type
+    case {'quad','active-set'}
       % build quadratic coefficient matrix (bilaplacian operator)
       Q = -L;
       for ii = 2:k
@@ -219,7 +221,7 @@ function W = biharmonic_bounded(varargin)
       % set bounds
       ux = up.*ones(n,1);
       lx = low.*ones(n,1);
-    elseif(strcmp(opt_type,'least-squares'))
+    case 'least-squares'
       % solve same problem but as least-squares problem see mosek documention
       % for details
       I = speye(n);
@@ -231,7 +233,7 @@ function W = biharmonic_bounded(varargin)
       B = [F,-I];
       ux = [up.*ones(n,1) ;  Inf*ones(n,1)];
       lx = [low.*ones(n,1); -Inf*ones(n,1)];
-    elseif(strcmp(opt_type,'conic'))
+    case 'conic'
       % solve same problem but as conic problem see mosek documention for
       % details
       %
@@ -251,7 +253,7 @@ function W = biharmonic_bounded(varargin)
       t_index = 2*n +1;
       z_indices = (n+1):(2*n);
       prob.cones{1}.sub = [t_index z_indices];
-    else
+    otherwise
       error('Bad opt_type');
     end
 
@@ -262,7 +264,16 @@ function W = biharmonic_bounded(varargin)
     tic;
     % loop over handles
     for i = 1:m
-      if(strcmp(opt_type,'quad'))
+      switch opt_type
+      case 'active-set'
+        fprintf('Quadratic optimization using active set...\n');
+        fprintf( [ ...
+          '  minimize:     x''LM\\Lx\n' ...
+          'subject to: %g <= x <= %g\n' ], ...
+          low,up);
+        AS = [];
+        x = min_quad_with_fixed_active_set(Q,[],b,bc(:,i),[],[],[],[],lx,ux,AS);
+      case 'quad'
         % enforce boundary conditions via lower and upper bounds
         %lx(b) = bc(:,i);
         %ux(b) = bc(:,i);
@@ -305,7 +316,7 @@ function W = biharmonic_bounded(varargin)
         [r,res]=mosekopt(['minimize' quiet],prob,param);
         report_mosek_error(r,res);
 
-      elseif(strcmp(opt_type,'least-squares'))
+      case 'least-squares'
         % enforce boundary conditions via lower and upper bounds
         lx(b) = bc(:,i);
         ux(b) = bc(:,i);
@@ -316,7 +327,7 @@ function W = biharmonic_bounded(varargin)
           '  and          %g <= x <= %g\n'], ...
           low,up);
         x = quadprog(Q,zeros(2*n,1),[],[],B,c,lx,ux,[],param);
-      elseif(strcmp(opt_type,'conic'))
+      case 'conic'
         prob.bux(b) = bc(:,i);
         prob.blx(b) = bc(:,i);
         fprintf('Conic optimization using mosek...\n');
