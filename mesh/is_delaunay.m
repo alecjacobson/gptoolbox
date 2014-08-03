@@ -1,4 +1,4 @@
-function D = is_delaunay(V,F,varargin)
+function [D,allE] = is_delaunay(V,F,varargin)
   % IS_DELAUNAY Determine if each edge in F is intrinsically Delaunay.
   %
   % Inputs:
@@ -7,6 +7,9 @@ function D = is_delaunay(V,F,varargin)
   %   Optional:
   %     'SideLengths' followed by:
   %       l  #F by 3 list of side lengths corresponding to edges 23 31 12
+  %     'Tol' followed by a tolerance
+  %     'BoundaryDefault' followed by whether boundary is considered delaunay
+  %       {true}
   % Outputs:
   %   D  #F by 3 list of bools revealing whether edges corresponding 23 31 12
   %     are locally delaunay. Boundary edges are by definition Delaunay.
@@ -16,9 +19,11 @@ function D = is_delaunay(V,F,varargin)
 
   % default values
   l = [];
+  tol = 0;
+  boundary_default = true;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'SideLengths'}, {'l'});
+    {'SideLengths','Tol','BoundaryDefault'}, {'l','tol','boundary_default'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -40,10 +45,12 @@ function D = is_delaunay(V,F,varargin)
 
   % [Fisher et al. 2007]
   allE = [F(:,[2 3]);F(:,[3 1]);F(:,[1 2])];
-  D = full(reshape(L(sub2ind(size(L),allE(:,1),allE(:,2)))>0,size(F)));
+  D = full(reshape(L(sub2ind(size(L),allE(:,1),allE(:,2)))>=-abs(tol),size(F)));
 
-  [~,B] = on_boundary(F);
-  D(B) = true;
+  if boundary_default
+    [~,B] = on_boundary(F);
+    D(B) = true;
+  end
 
   %% Deal with non-manifold and boundary edges
   %sortE = sort(allE,2);

@@ -109,6 +109,12 @@ function [FF,I,l] = flip_edges(F,E,varargin)
     f_left_c = floor((f_left-1)/nf)+1;
     f_left = mod(f_left-1,nf)+1;
     [found,f_right] = ismember(fliplr(EE),allE,'rows');
+    if any(~found) && ~isempty(V)
+      tsurf(F,V);
+      hold on;
+      plot_edges(V,EE(~found,:),'r','LineWidth',4);
+      hold off;
+    end
     assert(all(found),'Edges should appear in facets in both directions');
     f_right_c = floor((f_right-1)/nf)+1;
     f_right = mod(f_right-1,nf)+1;

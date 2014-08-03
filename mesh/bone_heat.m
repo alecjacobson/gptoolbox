@@ -1,4 +1,4 @@
-function W = bone_heat(V,F,C,P,BE,CE)
+function [W,PP] = bone_heat(V,F,C,P,BE,CE)
   % BONE_HEAT computes "bone heat" weights from "Automatic Rigging and
   % Animation of 3D Characters" by Baran and Popovic.
   %

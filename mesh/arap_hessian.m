@@ -1,4 +1,4 @@
-function [H,L,BT,C] = arap_hessian(V,F,varargin)
+function [H,L,BT,CC] = arap_hessian(V,F,varargin)
   % ARAP_HESSIAN Compute the Hessian of an as-rigid-as-possible energy defined
   % for a mesh (V,F), according to "Shape Decomposition using Modal Analysis"
   % [Huang et al. 2009].

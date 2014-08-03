@@ -44,7 +44,6 @@ function [param,mosek_exists] = default_quadprog_param()
     %param.MSK_DPAR_INTPNT_CO_TOL_MU_RED = 0;
     %param.MSK_DPAR_INTPNT_CO_TOL_INFEAS = 0;
     %param.MSK_IPAR_INTPNT_ORDER_METHOD = 'MSK_ORDER_METHOD_NONE';
-    param
 
     mosek_exists = true;
   else 

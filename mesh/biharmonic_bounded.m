@@ -50,7 +50,7 @@ function W = biharmonic_bounded(varargin)
   k = 2;
   % check for mosek and set its parameters
   [param,mosek_exists] = default_quadprog_param();
-  param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 1e-12;
+  param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 1e-8;
   if mosek_exists
     opt_type = 'conic';
   else
