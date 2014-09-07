@@ -1,11 +1,11 @@
-function [W,G,IM,C] = remesh_planar_patchs(V,F,varargin)
-  % REMESH_PLANAR_PATCHS  Find nearly planar patches and retriangulate them.
+function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
+  % REMESH_PLANAR_PATCHES  Find nearly planar patches and retriangulate them.
   %   (V,F) should probably not be self-intersecting, at least not near the
   %   planar patches. This will attempt to maintain non-manifold edges
   %   (untested).
   %
-  % [W,G] = remesh_planar_patchs(V,F)
-  % [W,G,IM,C] = remesh_planar_patchs(V,F,'ParameterName',ParameterValue,...)
+  % [W,G] = remesh_planar_patches(V,F)
+  % [W,G,IM,C] = remesh_planar_patches(V,F,'ParameterName',ParameterValue,...)
   %
   % Inputs:
   %   V  #V by 3 list of vertices
@@ -27,8 +27,8 @@ function [W,G,IM,C] = remesh_planar_patchs(V,F,varargin)
   force_remesh = false;
   % Minmimum angle for two neighboring facets to be considered coplanar
   % in radians
-  %min_delta_angle = pi-1e-5;
-  min_delta_angle = pi-1e-3;
+  min_delta_angle = pi-1e-5;
+  %min_delta_angle = pi-1e-3;
   min_size = 4;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
@@ -56,18 +56,19 @@ function [W,G,IM,C] = remesh_planar_patchs(V,F,varargin)
 
   A = adjacency_dihedral_angle_matrix(V,F);
   % Adjacency matrix of nearly coplanar neighbors
-  AF = A>=min_delta_angle;
+  UA = pi*(A~=0)-abs(pi*(A~=0)-A);
+  AF = UA>=min_delta_angle;
   % get connected components
   [~,C] = graphconncomp(AF);
-  tsurf(F,V,'CData',randcycle(C))
+  %tsurf(F,V,'CData',randcycle(C))
 
   [UC,~,ic] = unique(C);
   ucounts = histc(C,UC);
   counts = ucounts(ic);
 
-  tsurf(F,V,'CData',C);
-  axis equal;
-  drawnow;
+  %tsurf(F,V,'CData',C);
+  %axis equal;
+  %drawnow;
 
   W = V;
   G = F(counts<=min_size,:);
@@ -115,6 +116,8 @@ function [W,G,IM,C] = remesh_planar_patchs(V,F,varargin)
       % Gc = DT.ConnectivityList;
       % Triangle is way faster...
       [Wuo,Gc] = triangle(Vuo,E,[],'Quiet');
+      %tsurf(Gc,Wuo);
+      %input('');
       assert(size(Gc,1) >= 1);
       assert(size(Wuo,1) == size(Vuo,1));
       % easier to remove holes post hoc than pass hole positions to triangle
@@ -136,7 +139,8 @@ function [W,G,IM,C] = remesh_planar_patchs(V,F,varargin)
       if flip
         Gc = fliplr(Gc);
       end
-      tsurf(Gc,W);
+      %tsurf(Gc,W);
+      %input('');
       G = [G;Gc];
     end
   end

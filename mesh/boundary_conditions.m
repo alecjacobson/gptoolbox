@@ -32,7 +32,7 @@ function [b,bc] = boundary_conditions(V,F,C,P,E,CE)
   %
 
   % control vertices and domain should live in same dimensions
-  assert(size(C,2) == size(V,2));
+  assert(size(C,2) == size(V,2),'Dims of V and C should match');
   % number o dimensions
   dim = size(C,2);
 
@@ -96,6 +96,8 @@ function [b,bc] = boundary_conditions(V,F,C,P,E,CE)
     bc(Cv(P),:) = eye(np,m);
   end
 
+  sqr_d_tol = 1e-6;
+
 
   % Compute boundary conditions for bone edge handles
   if(~isempty(E))
@@ -105,7 +107,7 @@ function [b,bc] = boundary_conditions(V,F,C,P,E,CE)
     % loop over bones
     for( ii = 1:size(E,1) )
       [t,sqr_d] = project_to_lines(V,V(Cv(E(ii,1)),:),V(Cv(E(ii,2)),:));
-      on_edge = ((abs(sqr_d) < h*1e-6) & ((t > -1e-10) & (t < (1+1e-10))));
+      on_edge = ((abs(sqr_d) < h*sqr_d_tol) & ((t > -1e-10) & (t < (1+1e-10))));
       % get rid of any NaNs on these rows
       % WARNING: any (erroneous) point handle boundary conditions will get
       % "normalized" with bone boundary conditions
@@ -124,7 +126,7 @@ function [b,bc] = boundary_conditions(V,F,C,P,E,CE)
     for( ii = 1:size(CE,1) )
       [t,sqr_d] = project_to_lines(V,V(Cv(P(CE(ii,1))),:),V(Cv(P(CE(ii,2))),:));
       h = avgedge(V,F);
-      on_edge = ((abs(sqr_d) < h*1e-6) & ((t > -1e-10) & (t < (1+1e-10))));
+      on_edge = ((abs(sqr_d) < h*sqr_d_tol) & ((t > -1e-10) & (t < (1+1e-10))));
       % get rid of any NaNs on these rows
       % WARNING: clobbers any (erroneous) point handle boundary conditions on
       % points that are on bones)

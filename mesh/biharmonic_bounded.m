@@ -51,7 +51,7 @@ function W = biharmonic_bounded(varargin)
   k = 2;
   % check for mosek and set its parameters
   [param,mosek_exists] = default_quadprog_param();
-  param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 1e-8;
+  param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 1e-14;
   if mosek_exists
     opt_type = 'conic';
   else
@@ -262,6 +262,11 @@ function W = biharmonic_bounded(varargin)
     % allocate space for weights
     W = zeros(n,m);
     tic;
+    if strcmp(opt_type,'active-set')
+      fprintf('Initial guess for active set...\n');
+      W = min_quad_with_fixed(Q,[],b,bc);
+      fprintf('Lap time: %gs\n',toc);
+    end
     % loop over handles
     for i = 1:m
       switch opt_type
@@ -272,6 +277,7 @@ function W = biharmonic_bounded(varargin)
           'subject to: %g <= x <= %g\n' ], ...
           low,up);
         AS = [];
+        AS.Z0 = W(:,i);
         x = min_quad_with_fixed_active_set(Q,[],b,bc(:,i),[],[],[],[],lx,ux,AS);
       case 'quad'
         % enforce boundary conditions via lower and upper bounds
@@ -339,7 +345,8 @@ function W = biharmonic_bounded(varargin)
           low,up);
         [r,res]=mosekopt('minimize echo(0)',prob,param);
         % check for mosek error
-        if(r == 4006)
+        switch r
+        case 4006
           warning(['MOSEK ERROR. rcode: ' ...
             num2str(res.rcode) ' ' ...
             res.rcodestr ' ' ...
@@ -348,11 +355,22 @@ function W = biharmonic_bounded(varargin)
             'to make this error go away, increase: ' ...
             'MSK_DPAR_INTPNT_CO_TOL_REL_GAP' ...
             n]);
-        elseif(r ~= 0)
-          error(['FATAL MOSEK ERROR. rcode: ' ...
+        case 10006
+          warning(['MOSEK ERROR. rcode: ' ...
             num2str(res.rcode) ' ' ...
             res.rcodestr ' ' ...
-            res.rmsg]);
+            res.rmsg ...
+            'The solution is probably OK, but ' ...
+            'to make this error go away, decrease: ' ...
+            'MSK_DPAR_INTPNT_CO_TOL_REL_GAP' ...
+            n]);
+        otherwise
+          if r ~= 0
+            error(['FATAL MOSEK ERROR. rcode: ' ...
+              num2str(res.rcode) ' ' ...
+              res.rcodestr ' ' ...
+              res.rmsg]);
+          end
         end
         % extract solution from result
         x = res.sol.itr.xx;

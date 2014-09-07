@@ -72,7 +72,7 @@ function [varargout] = skinning_transformations(C,P,BE,new_C,RP)
 
   assert(all(size(C) == size(new_C)));
   % if rotations are not given or given empty matrix just use identity rotation
-  if(~exist('RP','var') || isempty(RP))
+  if(~exist('RP','var') || isempty(RP) || all(RP==0))
     RP = repmat(eye(dim,dim),[1,1,np]);
     if(nargout == 5)
       ANp = zeros([np,1]);

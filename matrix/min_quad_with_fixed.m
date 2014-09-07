@@ -165,7 +165,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
       F.Auu_sym = true;
     else
       % Either Auu is empty or sym_measure should be perfect
-      assert(isempty(sym_measure) || sym_measure == 0);
+      assert(isempty(sym_measure) || sym_measure == 0,'not symmetric');
       % Perfectly symmetric
       F.Auu_sym = true;
     end

@@ -183,6 +183,7 @@ elseif isnumeric(varargin{1})
 end
 
 if ~isempty(options.facecolor) % Handle colour preparation
+    fprintf('HAY COLOR!\n');
     facecolor = uint16(options.facecolor);
     %Set the Valid Color bit (bit 15)
     c0 = bitshift(ones(size(faces,1),1,'uint16'),15);

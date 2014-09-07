@@ -12,11 +12,12 @@ function [flag] = point_visible(V,F,o,heuristic_ratio)
   %    flag  #V by 1 list of bools (true) visible, (false) obstructed
   %
   
+  dim = size(V,2);
   % Try to use accelerated bone_visible code
-  if 3==exist('bone_visible_embree','file')
+  if dim == 3 && 3==exist('bone_visible_embree','file')
     flag = bone_visible_embree(V,F,o,o);
   % otherwise try to use mex bone_visible code
-  elseif 3==exist('bone_visible','file')
+  elseif dim ==3 && 3==exist('bone_visible','file')
     warning('Using non accelerated visibility test');
     flag = bone_visible(V,F,o,o);
   % otherwise use super slow matlab code
@@ -24,7 +25,6 @@ function [flag] = point_visible(V,F,o,heuristic_ratio)
     warning('Using non accelerated, pure matlab visibility test');
   
   
-    dim = size(V,2);
     assert(size(o,2) == dim);
     assert(size(F,2) == 3);
     % number of mesh vertices

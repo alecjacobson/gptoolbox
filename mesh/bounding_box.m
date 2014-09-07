@@ -23,6 +23,7 @@ function [BB,BF] = bounding_box(V)
     BF = outline(D.Triangulation);
   case 4
     BF = boundary_faces(D.Triangulation);
+    BF = fliplr(BF);
   otherwise
     error('Not supported');
   end

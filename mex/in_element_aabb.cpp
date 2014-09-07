@@ -7,7 +7,7 @@
 
 #include <igl/InElementAABB.h>
 #include <igl/in_element.h>
-#include <igl/matlab/mexStream.h>
+#include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/prepare_lhs.h>
 #include <igl/matlab/parse_rhs.h>
@@ -78,7 +78,7 @@ void mexFunction(
   using namespace Eigen;
   using namespace igl;
 
-  igl::mexStream mout;        
+  igl::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 
@@ -99,6 +99,10 @@ void mexFunction(
 
   switch(nlhs)
   {
+    default:
+    {
+      mexErrMsgTxt(false,"Too many output parameters.");
+    }
     case 4:
     {
       prepare_lhs_index(elements,plhs+3);
@@ -119,7 +123,7 @@ void mexFunction(
       prepare_lhs_index(I,plhs+0);
       //fallthrough
     }
-    default:break;
+    case 0: break;
   }
 
   std::cout.rdbuf(outbuf);

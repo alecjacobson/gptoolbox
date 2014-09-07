@@ -53,7 +53,7 @@ function [C,vol] = centroid(V,F,varargin)
     % Needs to be **unnormalized** normals
     N = cross(B-A,C-A,2);
     % total volume via divergence theorem: ∫ 1
-    vol = sum(sum(V(F(:,1),:).*N))/6;
+    vol = sum(sum(A.*N))/6;
     % centroid via divergence theorem and midpoint quadrature: ∫ x
     C = 1/(2*vol)*(1/24* sum(N.*((A+B).^2 + (B+C).^2 + (C+A).^2)));
   end

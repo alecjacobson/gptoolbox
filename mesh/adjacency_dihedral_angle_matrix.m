@@ -17,20 +17,19 @@ function A = adjacency_dihedral_angle_matrix(V,F)
   % 
   % Example:
   %   A = adjacency_dihedral_angle_matrix(V,F);
+  %   % unsigned dihedral angles
+  %   UA = pi*(A~=0)-abs(pi*(A~=0)-A);
+  % 
+  %   A = adjacency_dihedral_angle_matrix(V,F);
   %   % Adjacency matrix of nearly coplanar neighbors
-  %   AF = A>=(pi-1e-5);
+  %   UA = pi*(A~=0)-abs(pi*(A~=0)-A);
+  %   AF = UA>=(pi-1e-5);
   %   % get connected components
   %   C = components(AF);
   %   % plot with unique colors for each coplanar patch
   %   set(tsurf(F,V),'CData',C);
   %   CM = jet(numel(unique(C)));
   %   colormap(CM(randperm(end),:));
-  % 
-  %  % Signed dihedral angles
-  %  A = adjacency_dihedral_angle_matrix(V,F);
-  %  % unsigned dihedral angles
-  %  UA = pi*(A~=0)-abs(pi*(A~=0)-A);
-  % 
   %
 
   % all edges "both" directions
