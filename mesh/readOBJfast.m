@@ -1,4 +1,4 @@
-function [V,F] = readOBJfast(filename)
+function [V,F] = readOBJfast(filename,varargin)
   % readOBJfast
   %
   % reads an OBJ file quickly, but OBJ file should be formated *simply*
@@ -24,11 +24,33 @@ function [V,F] = readOBJfast(filename)
   % 
   % See also readOBJ
   %
+
+
+  % default values
+  quads = false;
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Quads'}, ...
+    {'quads'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace 
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
   fp = fopen(filename);
   % read in vertices
   V = [];
   while(true)
-    V = fscanf(fp,' v %g %g %g ',inf);
+    V = fscanf(fp,' v %lg %lg %lg ',inf);
     if(prod(size(V)) > 0)
       break;
     else
@@ -42,8 +64,13 @@ function [V,F] = readOBJfast(filename)
   V = reshape(V,3,size(V,1)/3)';
   % read in faces
   F = [];
+  if quads
+    format = ' f %d %d %d %d ';
+  else
+    format = ' f %d %d %d ';
+  end
   while(true)
-    F = fscanf(fp,' f %d %d %d ',inf);
+    F = fscanf(fp,format,inf);
     if(prod(size(F)) > 0)
       break;
     else
@@ -54,6 +81,10 @@ function [V,F] = readOBJfast(filename)
       end
     end
   end
-  F = reshape(F,3,size(F,1)/3)';
+  if quads
+    F = reshape(F,4,size(F,1)/4)';
+  else
+    F = reshape(F,3,size(F,1)/3)';
+  end
   fclose(fp);
 end

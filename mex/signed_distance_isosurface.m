@@ -15,6 +15,11 @@
 %       as fraction of bounding box diagonal {0.02} 
 %     'DistanceBound' followed by cgal mysterious parameter (mesh density?)
 %       as fraction of bounding box diagonal {0.02} 
+%     'SignedDistanceType' followed by
+%       'winding_number' use winding number (continuous sign value for
+%         non-watertight)
+%       'pseudonormal'  use pseudo-normal, binary scale (but not robust for
+%         non-watertight meshes.
 % Outputs:
 %   V  #V by 3 list of output mesh positions
 %   F  #F by 3 list of output triangle indices into V

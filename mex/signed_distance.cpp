@@ -7,9 +7,9 @@
 //   -L/opt/local/lib ...
 //   -lCGAL -lCGAL_Core -lgmp -lmpfr ...
 //   -lboost_thread-mt -lboost_system-mt ...
-//   -o signed_distance_isosurface signed_distance_isosurface.cpp
+//   -o signed_distance signed_distance.cpp
 
-#include <igl/cgal/signed_distance_isosurface.h>
+#include <igl/cgal/signed_distance.h>
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/prepare_lhs.h>
@@ -25,44 +25,32 @@
 void parse_rhs(
   const int nrhs, 
   const mxArray *prhs[], 
-  Eigen::MatrixXd & IV,
-  Eigen::MatrixXi & IF,
-  double & level,
-  double & angle_bound,
-  double & radius_bound,
-  double & distance_bound,
+  Eigen::MatrixXd & P,
+  Eigen::MatrixXd & V,
+  Eigen::MatrixXi & F,
   igl::SignedDistanceType & type)
 {
   using namespace std;
   using namespace igl;
   using namespace Eigen;
-  mexErrMsgTxt(nrhs >= 2, "The number of input arguments must be >=2.");
+  mexErrMsgTxt(nrhs >= 3, "The number of input arguments must be >=3.");
 
   const int dim = mxGetN(prhs[0]);
   mexErrMsgTxt(dim == 3,
+    "Mesh vertex list must be #P by 3 list of vertex positions");
+  mexErrMsgTxt(mxGetN(prhs[1]) == 3,
     "Mesh vertex list must be #V by 3 list of vertex positions");
 
-  mexErrMsgTxt(dim == mxGetN(prhs[1]),
+  mexErrMsgTxt(dim == mxGetN(prhs[2]),
     "Mesh \"face\" simplex size must equal dimension");
 
-  parse_rhs_double(prhs,IV);
-  parse_rhs_index(prhs+1,IF);
+  parse_rhs_double(prhs,P);
+  parse_rhs_double(prhs+1,V);
+  parse_rhs_index(prhs+2,F);
 
-  // defaults
-  level = 0.0;
-  angle_bound = 28.0;
-  double bbd = 1.0;
-  // Radius and distance in terms of fraction of bbd
-  if(IV.size() > 0)
+  type = SIGNED_DISTANCE_TYPE_PSEUDONORMAL;
   {
-    bbd = (IV.colwise().maxCoeff()-IV.colwise().minCoeff()).norm();
-  }
-  radius_bound = 0.02*bbd;
-  distance_bound = 0.02*bbd;
-  type = SIGNED_DISTANCE_TYPE_DEFAULT;
-
-  {
-    int i = 2;
+    int i = 3;
     while(i<nrhs)
     {
       mexErrMsgTxt(mxIsChar(prhs[i]),"Parameter names should be strings");
@@ -74,53 +62,13 @@ void parse_rhs(
         mexErrMsgTxt((i+1)<nrhs,
           C_STR("Parameter '"<<name<<"' requires argument"));
       };
-      const auto validate_double = 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxIsDouble(prhs[i]),
-          C_STR("Parameter '"<<name<<"' requires Logical argument"));
-      };
-      const auto validate_scalar = 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxGetN(prhs[i])==1 && mxGetM(prhs[i])==1,
-          C_STR("Parameter '"<<name<<"' requires scalar argument"));
-      };
       const auto validate_char = 
         [](const int i, const mxArray * prhs[], const char * name)
       {
         mexErrMsgTxt(mxIsChar(prhs[i]),
           C_STR("Parameter '"<<name<<"' requires char argument"));
       };
-      if(strcmp("Level",name) == 0)
-      {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_double(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        level = (double)*mxGetPr(prhs[i]);
-      }else if(strcmp("AngleBound",name) == 0)
-      {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_double(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        angle_bound = (double)*mxGetPr(prhs[i]);
-      }else if(strcmp("RadiusBound",name) == 0)
-      {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_double(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        radius_bound = ((double)*mxGetPr(prhs[i])) * bbd;
-      }else if(strcmp("DistanceBound",name) == 0)
-      {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_double(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        distance_bound = ((double)*mxGetPr(prhs[i])) * bbd;
-      }else if(strcmp("SignedDistanceType",name) == 0)
+      if(strcmp("SignedDistanceType",name) == 0)
       {
         requires_arg(i,nrhs,name);
         i++;
@@ -157,27 +105,37 @@ void mexFunction(
   std::streambuf *outbuf = cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 
-  MatrixXd IV,V;
-  MatrixXi IF,F;
-  double level,angle_bound,radius_bound,distance_bound;
+  MatrixXd P,V,C,N;
+  MatrixXi F;
+  VectorXi I;
+  VectorXd S;
   SignedDistanceType type;
-  parse_rhs(nrhs,prhs,IV,IF,level,angle_bound,radius_bound,distance_bound,type);
-  signed_distance_isosurface(
-    IV,IF,level,angle_bound,radius_bound,distance_bound,type,V,F);
+  parse_rhs(nrhs,prhs,P,V,F,type);
+  signed_distance<CGAL::Simple_cartesian<double> >(P,V,F,type,S,I,C,N);
   switch(nlhs)
   {
     default:
     {
       mexErrMsgTxt(false,"Too many output parameters.");
     }
+    case 4:
+    {
+      prepare_lhs_index(N,plhs+3);
+      // Fall through
+    }
+    case 3:
+    {
+      prepare_lhs_index(C,plhs+2);
+      // Fall through
+    }
     case 2:
     {
-      prepare_lhs_index(F,plhs+1);
+      prepare_lhs_index(I,plhs+1);
       // Fall through
     }
     case 1:
     {
-      prepare_lhs_double(V,plhs+0);
+      prepare_lhs_double(S,plhs+0);
       // Fall through
     }
     case 0: break;
@@ -188,3 +146,4 @@ void mexFunction(
 }
 
 #endif
+

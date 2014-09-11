@@ -23,6 +23,16 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
   %     lx n by 1 list of lower bounds [] implies -Inf
   %     ux n by 1 list of upper bounds [] implies Inf
   %     F  see output
+  %     'MaxIter' followed by maximum number of iterations {100}
+  %     'ActiveThreshold' followed by threshold to determine whether constraint
+  %       needs to be activated (smaller and negative means more
+  %       agressive, larger means more lenient) {+eps}
+  %     'InactiveThreshold' followed by threshold to determine whether
+  %       constraint should stay active. Smaller and negative means constraints
+  %       are "stickier", larger means constraints flicker more {+eps}
+  %     'StopThreshold' followed by threshodl to determine whether no more
+  %       progress is being made based on difference between iterations'
+  %       solutions.
   % Outputs:
   %   Z  n by cols solution
   %   Optional:
@@ -34,6 +44,8 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
   %     2*A,B,Aieq,Bieq, ...
   %     [Aeq;sparse(1:numel(known),known,1,numel(known),size(A,2))], ...
   %     [Beq;Y],lx,ux);
+  %
+  %   % bbw works well with 'InactiveThreshold',-1e-9,'ActiveThreshold',0
   %
 
   %A = varargin{1};
@@ -87,19 +99,18 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
   if ~isfield(F,'as_ux')
     F.as_ux= [];
   end
-  %if isfield(F,'max_iter')
-  %  max_iter = F.max_iter;
-  %end
-
-  % default values
   max_iter = 100;
+  inactive_threshold = eps;
+  stop_threshold = eps;
+  active_threshold = eps;
+
   % solve equality problem
   force_Aeq_li = false;
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'MaxIter','ForceAeqLI'}, ...
-    {'max_iter','force_Aeq_li'});
+    {'MaxIter','ForceAeqLI','InactiveThreshold','StopThreshold','ActiveThreshold'}, ...
+    {'max_iter','force_Aeq_li','inactive_threshold','stop_threshold','active_threshold'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -164,35 +175,31 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
   Z = F.Z0;
   old_Z = -Inf(n,cols);
 
-  %threshold = 0;
-  threshold = eps;
-  %threshold = 1e-8;
-
   F.iter = 1;
   % repeat until satisfied
   while true 
     %fprintf('iter: %d\n',F.iter);
+    %tic;
 
     if ~isempty(Z)
       % Append constraints for infeasible values
-      ths = eps;
-      new_as_lx = find((Z-lx)<-ths);
-      new_as_ux = find((Z-ux)>ths);
+      new_as_lx = find((Z-lx)<-active_threshold);
+      new_as_ux = find((Z-ux)>active_threshold);
       new_as_ieq = [];
       if ~isempty(Aieq)
-        new_as_ieq = find((Aieq*Z-Bieq)>ths);
+        new_as_ieq = find((Aieq*Z-Bieq)>active_threshold);
       end
 
       %fprintf('%0.17f %d %d %g\n', ...
       %  energy(Z),numel(new_as_lx), numel(new_as_ux),max(max(lx-Z,Z-ux)));
       diff = sum((old_Z(:)-Z(:)).^2);
       %fprintf('diff: %g\n',diff);
-      if diff < threshold
+      if diff < stop_threshold
         if numel(new_as_lx) > 0 || numel(new_as_ux) > 0
           % Indeed this is "disturbing" at first glance. Why should there be
           % new constraints? Turns out these "last constraints" are only
           % producing numerical noise. The can safely be caught and ignored by
-          % setting ths to eps rather than 0
+          % setting active_threshold to eps rather than 0
           %warning( ...
           %  sprintf('Diff (%g) < threshold (%g) but new constraints (%d)', ...
           %    diff,threshold,numel(new_as_lx)+numel(new_as_ux)));
@@ -220,6 +227,8 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
       F.as_lx = unique(F.as_lx);
       F.as_ux = unique(F.as_ux);
       F.as_ieq = unique(F.as_ieq);
+      F.as_lx = setdiff(F.as_lx,known);
+      F.as_ux = setdiff(F.as_ux,known);
     end
 
     %fprintf('E before: %0.20f\n',energy(Z));
@@ -272,26 +281,33 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
     %if F.iter == 2
     %  return
     %end 
-    inactive_threshold = eps;
 
 
-    if(isfield(F,'im'))
+    if isfield(F,'im') || isfield(F,'t')
       AS = 0.5*ones(n,1);
       AS(F.as_lx) = 0;
       AS(F.as_ux) = 1;
-      h = size(get(F.im,'CData'),1);
-      w = size(get(F.im,'CData'),2);
       newAS = 0.5*ones(n,1);
       newAS(F.as_lx(Lambda_lx > inactive_threshold)) = 0;
       newAS(F.as_ux(Lambda_ux > inactive_threshold)) = 1;
-      set(F.im,'CData', ...
-        cat(3,reshape(AS,[h w]),reshape(newAS,[h w]),zeros([h w 1])) ...
-        );
+      if isfield(F,'t')
+        set(F.t,'FaceVertexCData',[AS newAS zeros(n,1)]);
+        %set(F.t,'CData',log10(abs(Z)));
+        colorbar;
+      end
+      if isfield(F,'im')
+        h = size(get(F.im,'CData'),1);
+        w = size(get(F.im,'CData'),2);
+        set(F.im,'CData', ...
+          cat(3,reshape(AS,[h w]),reshape(newAS,[h w]),zeros([h w 1])) ...
+          );
+      end
       drawnow;
       %if F.iter ==1
         %input('');
       %end
     end
+
 
     F.as_lx = F.as_lx(Lambda_lx > inactive_threshold);
     F.as_ux = F.as_ux(Lambda_ux > inactive_threshold);
@@ -303,6 +319,7 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
       break
     end
     F.iter = F.iter + 1;
+    %toc;
   end
 
   function E = energy(ZZ)

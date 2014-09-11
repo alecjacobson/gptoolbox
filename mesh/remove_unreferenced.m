@@ -19,7 +19,7 @@ function [RV,IM] = remove_unreferenced(V,F)
   %   F = I(F);
   %   ... % do some computation on RV
   %   % replace back into V
-  %   DV(find(IM<=size(SV,1)),:) = V
+  %   V(find(IM<=size(SV,1)),:) = V
   %
 
   % get list of unique vertex indices that occur in faces
