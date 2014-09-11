@@ -120,12 +120,12 @@ void mexFunction(
     }
     case 4:
     {
-      prepare_lhs_index(N,plhs+3);
+      prepare_lhs_double(N,plhs+3);
       // Fall through
     }
     case 3:
     {
-      prepare_lhs_index(C,plhs+2);
+      prepare_lhs_double(C,plhs+2);
       // Fall through
     }
     case 2:
