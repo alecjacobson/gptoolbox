@@ -15,10 +15,11 @@ function [D,S] = signed_distance_direction(P,V,F)
 
   [S,I,C,N] = signed_distance(P,V,F);
   D = normalizerow(C-P);
+  D = bsxfun(@times,sign(S),D);
   min_dist = 1e-5;
   too_close = abs(S) < min_dist;
+  % Normals always point outside regardless of the eval point.
   D(too_close,:) = -N(too_close,:);
-  D = bsxfun(@times,sign(S),D);
 
   %% Find closest points
   %[sqrD,I,C] = point_mesh_squared_distance(P,V,F);
@@ -50,6 +51,9 @@ function [D,S] = signed_distance_direction(P,V,F)
   %N_edge = N_edge(EMAP,:);
   %% This is an expensive way to find out if inside/outside a closed mesh
   %w = winding_number(V,F,P);
+  %% Flip sign for interior points
+  %S = (1-2*w);
+  %D = bsxfun(@times,S,D);
   %% Use inverse normals for those that are too close
   %if any(on_vertex)
   %  D(on_vertex,:) = ...
@@ -61,7 +65,4 @@ function [D,S] = signed_distance_direction(P,V,F)
   %if any(on_face)
   %  D(on_face,:) = -N_face(I(on_face),:);
   %end
-  %% Flip sign for interior points
-  %S = (1-2*w);
-  %D = bsxfun(@times,S,D);
 end
