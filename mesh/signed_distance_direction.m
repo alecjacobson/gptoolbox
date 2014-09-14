@@ -1,4 +1,4 @@
-function [D] = signed_distance_direction(P,V,F)
+function [D,S] = signed_distance_direction(P,V,F)
   % SIGNED_DISTANCE_DIRECTION Compute a direction which decreases signed
   % distance with respect to an input mesh (V,F) at a set of points P.
   %
@@ -10,6 +10,7 @@ function [D] = signed_distance_direction(P,V,F)
   %   F  #F by dim+1 list of mesh indices into V
   % Outputs:
   %   D  #P by dim list of normalized directions
+  %   S  #P signed distances
   %
 
   [S,I,C,N] = signed_distance(P,V,F);
@@ -17,6 +18,7 @@ function [D] = signed_distance_direction(P,V,F)
   min_dist = 1e-5;
   too_close = abs(S) < min_dist;
   D(too_close,:) = -N(too_close,:);
+  D = bsxfun(@times,sign(S),D);
 
   %% Find closest points
   %[sqrD,I,C] = point_mesh_squared_distance(P,V,F);
@@ -48,8 +50,6 @@ function [D] = signed_distance_direction(P,V,F)
   %N_edge = N_edge(EMAP,:);
   %% This is an expensive way to find out if inside/outside a closed mesh
   %w = winding_number(V,F,P);
-  %% Flip sign for interior points
-  %D = bsxfun(@times,(1-2*w),D);
   %% Use inverse normals for those that are too close
   %if any(on_vertex)
   %  D(on_vertex,:) = ...
@@ -61,4 +61,7 @@ function [D] = signed_distance_direction(P,V,F)
   %if any(on_face)
   %  D(on_face,:) = -N_face(I(on_face),:);
   %end
+  %% Flip sign for interior points
+  %S = (1-2*w);
+  %D = bsxfun(@times,S,D);
 end

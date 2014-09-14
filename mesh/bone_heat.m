@@ -26,9 +26,7 @@ function [W,PP] = bone_heat(V,F,C,P,BE,CE)
   assert( isempty(BE) || (size(BE,2) == 2));
   assert( isempty(CE) || (size(CE,2) == 2));
 
-  % cage edges not supported yet
   nce = size(CE,1);
-
   % number of mesh vertices
   n = size(V, 1);
   % number of point controls
@@ -182,7 +180,7 @@ function [W,PP] = bone_heat(V,F,C,P,BE,CE)
   % make sure all rows are non-zero
   assert(all(sum(abs(M),2)~=0))
   % discrete laplace beltrami operator
-  K = 0.5*(M\L);
+  K = 0.5*(L);
 
   %% prefactor (-K+H) using lu decomposition, should be able to use cholesky...
   %[pfL,pfU,pfP,pfQ,pfR] = lu(-K+H);
@@ -195,6 +193,6 @@ function [W,PP] = bone_heat(V,F,C,P,BE,CE)
   %  %W(:,ii) = pfQ*(pfU\(pfL\(pfP*(pfR\rhs)))); 
   %  W(:,ii) = (-K+H)\rhs;
   %end
-  W = (-K+H)\(H*PP);
+  W = (-K+M*H)\(M*H*full(PP));
 
 end
