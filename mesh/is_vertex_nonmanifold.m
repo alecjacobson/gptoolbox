@@ -1,12 +1,12 @@
-function N = is_vertex_manifold(F)
-  % IS_VERTEX_MANIFOLD Determine if each vertex in a mesh with faces F is
-  % manifold: incident faces form a single connected component with respect to
-  % shared edges.
+function N = is_vertex_nonmanifold(F)
+  % IS_VERTEX_NONMANIFOLD Determine if each vertex in a mesh with faces F is
+  % not manifold: incident faces form a single connected component with respect
+  % to shared edges.
   %
   % Inputs:
   %   F  #F by 3 list of triangle indices
   % Outputs:
-  %   N  #V list of bools whether vertices are manifold
+  %   N  #V list of bools whether vertices are not manifold
   %
 
   function A = face_adjacency(F)

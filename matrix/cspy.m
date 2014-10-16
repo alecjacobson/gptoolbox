@@ -1,4 +1,4 @@
-function [h,g] = cspy(S,epsilon)
+function cspy(S,epsilon)
   % cspy Visualize sparsity pattern. coloring positive and negative entries of S
   % in red and blue respectively
   %
@@ -15,8 +15,8 @@ function [h,g] = cspy(S,epsilon)
   if nargin < 2
     epsilon = 0;
   end
-  h = spy(S>epsilon,'r');
+  spy(S>epsilon,'r');
   hold on;
-  g = spy(S<-epsilon,'b');
+  spy(S<-epsilon,'b');
   hold off;
 end

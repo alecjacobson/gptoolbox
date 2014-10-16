@@ -51,7 +51,7 @@ function W = biharmonic_bounded(varargin)
   k = 2;
   % check for mosek and set its parameters
   [param,mosek_exists] = default_quadprog_param();
-  param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 1e-14;
+  param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 1e-12;
   if mosek_exists
     opt_type = 'conic';
   else
@@ -66,6 +66,27 @@ function W = biharmonic_bounded(varargin)
   ii = 5;
   while(ii <= nargin)
     switch varargin{ii}
+    case 'W0'
+        ii = ii + 1;
+        assert(ii<=nargin);
+        W0 = varargin{ii};
+    case 'k'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      k = varargin{ii};
+      if k > 2
+          opt_type = 'quad';
+      end
+    case 'QuadProgParam'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      param = varargin{ii};
+    case 'Low'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      low = varargin{ii};
+    case 'Up'
+      ii = ii + 1;
     case 'POU'
       if (ii+1)<=nargin && islogical(varargin{ii+1})
         ii = ii + 1;
@@ -263,9 +284,13 @@ function W = biharmonic_bounded(varargin)
     W = zeros(n,m);
     tic;
     if strcmp(opt_type,'active-set')
-      fprintf('Initial guess for active set...\n');
-      W = min_quad_with_fixed(Q,[],b,bc);
-      fprintf('Lap time: %gs\n',toc);
+      if isempty(W0)
+        fprintf('Initial guess for active set...\n');
+        W = min_quad_with_fixed(Q,[],b,bc);
+        fprintf('Lap time: %gs\n',toc);
+      else
+        W = W0;
+      end
     end
     % loop over handles
     for i = 1:m
