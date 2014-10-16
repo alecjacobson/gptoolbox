@@ -1,19 +1,21 @@
-function [VV,FF] = upsample(V,F,varargin)
+function [VV,FF,FO] = upsample(V,F,varargin)
   % UPSAMPLE Upsample a mesh by adding vertices on existing edges/faces
   %
   % [VV,FF] = upsample(V,F)
   % [VV,FF] = upsample(V,F,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
-  %   V  #vertices by 3 list of vertex positions
-  %   F  #faces by 3 list of face indices
+  %   V  #V by dim list of vertex positions
+  %   F  #F by simplex-size list of simplex indices
   %   Optional:
   %     'KeepDuplicates' followed by either true or {false}}
-  %     'OnlySelected' followed by a list of face indices into F to subdivide.
-  %
-  % Outpus:
-  %  VV new vertex positions
-  %  FF new list of face indices
+  %     'OnlySelected' followed by a list of simplex indices into F to
+  %       subdivide.
+  % Outputs:
+  %  VV  #VV by dim list new vertex positions, original V always comes first.
+  %  FF  #FF by simplex-size new list of face indices into VV
+  %  FO  #FF list of indices into F of original "parent" simplex
+  %  
   %
   % This is Loop subdivision without moving the points
   %
@@ -135,15 +137,16 @@ function [VV,FF] = upsample(V,F,varargin)
   if islogical(sel)
     sel = find(sel);
   end
+  sel = sel(:);
 
   switch size(F,2)
   % http://mathoverflow.net/questions/28615/tetrahedron-splitting-subdivision
   case 3
     % Add a new vertex at the midpoint of each edge
     if isempty(sel)
-      sel = 1:size(F,1);
+      sel = (1:size(F,1))';
     end
-    nsel = setdiff(1:size(F,1),sel);
+    nsel = setdiff((1:size(F,1))',sel);
 
     Fsel = F(sel,:);
 
@@ -163,13 +166,14 @@ function [VV,FF] = upsample(V,F,varargin)
     n = size(V,1);
     S14 = union(sel,nsel(C==3));
 
-    S11 = setdiff(1:size(F,1),[S14(:);S13(:);S12(:)]);
+    S11 = setdiff((1:size(F,1))',[S14(:);S13(:);S12(:)]);
     [U14,F14,EU14] = one_four(size(V,1),V,F(S14,:));
     [U13,F13,EU13] = one_three(size(V,1)+size(U14,1),V,F(S13,:),M13);
     [U12,F12,EU12] = one_two(size(V,1)+size(U14,1)+size(U13,1),V,F(S12,:),M12);
     F11 = F(S11,:);
 
     FF = [F14;F13;F12;F11];
+    FO = [S14;S14;S14;S14;S13;S13;S13;S12;S12;S11];
     U = [U14;U13;U12];
     EU = [EU14;EU13;EU12];
     nu = size(U,1);
@@ -196,6 +200,7 @@ function [VV,FF] = upsample(V,F,varargin)
       im = size(V,1) + (1:size(m,1))';
       % insert new face indices
       FF = [F(:,1) im;im F(:,2)];
+      FO = [1:m 1:m]';
       % append unique midpoints to vertex positions
       VV = [V;m];
       % No duplicates in 2D case
@@ -203,8 +208,9 @@ function [VV,FF] = upsample(V,F,varargin)
       Fsel = F(sel,:);
       nsel = setdiff(1:size(F,1),sel);
       Fnsel = F(nsel,:);
-      [VV,FF] = upsample(V,Fsel,'KeepDuplicates',keep_duplicates);
-      FF = [Fnot;FF];
+      [VV,FF,FO] = upsample(V,Fsel,'KeepDuplicates',keep_duplicates);
+      FF = [Fnsel;FF];
+      FO = [nsel;sel(FO)];
     end
   end
   
