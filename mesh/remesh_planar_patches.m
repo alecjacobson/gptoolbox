@@ -15,6 +15,8 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
   %        the number of vertices {false}.
   %     'MinSize' followed by minimum number of facets in group to consider for
   %       remeshing {4}
+  %     'MinDeltaAngle' followd by minimum change in angle between neighboring
+  %     facets to be considered co-planar {pi-1e-5}
   %
   % Outputs:
   %   W  #W by 3 list of output mesh positions
@@ -32,8 +34,8 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
   min_size = 4;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Force','MinSize'}, ...
-    {'force_remesh','min_size'});
+    {'Force','MinSize','MinDeltaAngle'}, ...
+    {'force_remesh','min_size','min_delta_angle'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};

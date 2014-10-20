@@ -1,4 +1,4 @@
-function A = adjacency_dihedral_angle_matrix(V,F)
+function [A,C] = adjacency_dihedral_angle_matrix(V,F)
   % ADJACENCY_DIHEDRAL_ANGLE_MATRIX Build a matrix A such that A(i,j) = θij the
   % dihedral angle between faces F(i,:) and F(j,:) if they're neighbors (share
   % an edge) or 0 if they're not.
@@ -12,8 +12,10 @@ function A = adjacency_dihedral_angle_matrix(V,F)
   % Outputs:
   %   A  #F by #F sparse matrix of signed dihedral angles. All entries are in
   %     [0,2*pi] A-->0 as edge is more convex, A-->pi as edge is more flat,
-  %     A-->2*pi as edge is more convace (as view from outside, assuming
+  %     A-->2*pi as edge is more concave (as view from outside, assuming
   %     counter-clockwise orientation.
+  %   C  #F by #F sparse matrix revealing C(i,j) = c that face j is incident on
+  %     face i across its corner c
   % 
   % Example:
   %   A = adjacency_dihedral_angle_matrix(V,F);
@@ -49,15 +51,16 @@ function A = adjacency_dihedral_angle_matrix(V,F)
   N = normalizerow(normals(V,F));
 
   A = sparse(size(F,1),size(F,1));
+  C = sparse(size(F,1),size(F,1));
   % Peal off one set of pairs at a time
   % There is a chance this is significantly faster by first transposing FE
   while nnz(FE) > 0
     % Get index of first face per row
-    [M,J] = max(FE,[],2);
+    [OM,J] = max(FE,[],2);
     I = 1:size(E,1); % Edge index
-    I = I(M~=0);
-    J = J(M~=0); % First face index
-    M = M(M~=0);
+    I = I(OM~=0);
+    J = J(OM~=0); % First face index
+    M = OM(OM~=0);
     % Lookup: L(i) = j  --> edge i reveals face j
     L = sparse(I,1,J,size(E,1),1);
     % remove these from FE
@@ -72,6 +75,8 @@ function A = adjacency_dihedral_angle_matrix(V,F)
     N1 = N(J1,:);
     N2 = N(J2,:);
     % get unit edge vector
+    C1 = mod(OM(I2)+2,3)+1;
+    C2 = mod(M2+2,3)+1;
     E1 = sub2ind(size(F),J2,mod(M2+1,3)+1);
     E2 = sub2ind(size(F),J2,mod(M2-1+1,3)+1);
     EV = normalizerow(V(F(E2),:)-V(F(E1),:));
@@ -82,6 +87,7 @@ function A = adjacency_dihedral_angle_matrix(V,F)
     % append to A: plus is OK here because if two facets share more than one
     % edge they are coplanar so D12 equals 0 in both cases
     A = A + sparse([J1;J2],[J2;J1],[D12;D12],size(F,1),size(F,1));
+    C = C + sparse([J2 J1],[J1 J2],[C2 C1],size(F,1),size(F,1));
   end
 
 end
