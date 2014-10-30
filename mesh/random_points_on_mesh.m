@@ -1,10 +1,20 @@
 function [N,I,B] = random_points_on_mesh(V,F,n,varargin)
   % RANDOM_POINTS_ON_MESH Uniform random sampling of a mesh.
   %
+  % N = random_points_on_mesh(V,F,n)
+  % [N,I,B] = random_points_on_mesh(V,F,n,'ParameterName',parameter_value,...)
+  %
   % Inputs:
   %   V  #V by dim list of vertex positions
   %   F  #F by 3 list of triangle indices into V
   %   n  number of samples
+  %   Optional:
+  %     'Color' followed by "color of noise", one of:
+  %       {'white'}  uniform random noise
+  %       'blue'  approximate blue noise via approximate Poisson disk sampling
+  %     'MaxIter'  followed by maximum number of iterations, only applicable
+  %       for blue noise.
+  %     'Bias'  followed by #F list of biases per triangle {doublearea(V,F)}
   % Outputs:
   %   N  n by dim list of sample positions
   %   I  n list of face indices upon which N are
@@ -18,10 +28,11 @@ function [N,I,B] = random_points_on_mesh(V,F,n,varargin)
   % default values
   color = 'white';
   max_iter = 100;
+  A = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Color','MaxIter'}, ...
-    {'color','max_iter'});
+    {'Color','MaxIter','Bias'}, ...
+    {'color','max_iter','A'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -36,9 +47,14 @@ function [N,I,B] = random_points_on_mesh(V,F,n,varargin)
     v=v+1;
   end
 
+  if isempty(A)
+    A = doublearea(V,F);
+  end
+
+  assert(size(A,1) == size(F,1));
+
   switch color
   case 'white'
-    A = doublearea(V,F);
     A = A./sum(A);
     A0 = [0;A];
     C = cumsum(A0);
@@ -56,7 +72,7 @@ function [N,I,B] = random_points_on_mesh(V,F,n,varargin)
     % sampling which approximates a blue noise sampling.
     k = 10;
     BV = biharmonic_embedding(V,F,k);
-    randsample = @(n) random_points_on_mesh(V,F,n,'Color','white');
+    randsample = @(n) random_points_on_mesh(V,F,n,'Color','white','Bias',A);
     embed = @(N,I,B) ...
       bsxfun(@times,B(:,1),V(F(I,1),:)) +  ...
       bsxfun(@times,B(:,2),V(F(I,2),:)) +  ...

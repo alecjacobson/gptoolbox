@@ -23,7 +23,7 @@ function [LS,LD,I] = isolines(V,F,S,iso)
   %   colormap(jet(numel(iso)-1));
   %   tsurf(F,V,'CData',S,fphong);
   %   hold on;
-  %   plot_edges([LS;LD],[1:size(LS,1);size(LS,1)+(1:size(LD,1))]', ...
+  %   plot([LS(:,1) LD(:,1)]',[LS(:,2) LD(:,2)]', ...
   %     'Color','k','LineWidth',10);
   %   hold off;
   %

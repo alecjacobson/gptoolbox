@@ -130,12 +130,12 @@ function t = tsurf(F,V,varargin)
   function onkeypress(src,ev)
     switch ev.Character
     case 'm'
-      V3 = V;
+      V3 = t.Vertices;
       if size(V3,2) == 2
         V3(:,3) = 0*V(:,1);
       end
       fprintf('Opening mesh in meshplot...\n');
-      meshplot(V3,F);
+      meshplot(V3,t.Faces);
     otherwise
       warning(['Unknown key: ' ev.Character]);
     end

@@ -64,12 +64,12 @@ function U = conformalized_mean_curvature_flow(V,F,varargin)
     if d < 1e-13
       break;
     end
-    tsurf(F,U);
     % Volume of unit area sphere: pi^-0.5/6
     [c,vol] = centroid(U,F);
-    %[vol pi^-0.5/6]
-    title(sprintf('%g',sum(doublearea(U,F)*0.5)));
-    drawnow;
+    %tsurf(F,U);
+    %%[vol pi^-0.5/6]
+    %title(sprintf('%g',sum(doublearea(U,F)*0.5)));
+    %drawnow;
     if iter > max_iter
       break;
     end

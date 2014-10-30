@@ -1,4 +1,4 @@
-function [AO,l] = apply_ambient_occlusion(t,varargin)
+function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   % APPLY_AMBIENT_OCCLUSION  Apply ambient occlusion to a given plot of a mesh.
   % Derive colors from the current plot and provide new modulated colors
   % according to the ambient occlusion computed for this mesh.
@@ -16,11 +16,12 @@ function [AO,l] = apply_ambient_occlusion(t,varargin)
   %       ambient occlusion {1000}
   %     'ColorMap' followed by a colormap to use
   %     'CAxis' followed by a caxis ("color axis") to use
+  %     'Colors' followed by a #V|#F|1 list of colors to use
   % Outputs:
   %   AO  #V by 1 list of ambient occlusion values
   %   l  #l list of light handles
 
-  function [AO] = apply_ambient_occlusion_helper(t,AO)
+  function [AO,C] = apply_ambient_occlusion_helper(t,AO,C)
     V = t.Vertices;
     Poly = t.Faces;
     % triangulate high order facets
@@ -28,13 +29,20 @@ function [AO,l] = apply_ambient_occlusion(t,varargin)
     for c = 3:size(Poly,2)
       F = [F;Poly(:,[1 c-1 c])];
     end
-    C = t.FaceVertexCData;
-    if size(C,2) == 1
-      CI = floor((C-CA(1))/(CA(2)-CA(1))*size(CM,1))+1;
-      C = squeeze(ind2rgb(CI,CM));
+    if isempty(C)
+      C = t.FaceVertexCData;
     end
-    if strcmp(t.FaceColor,'flat') && size(C,1) == size(V,1)
-      C = C(F(:,1),:);
+    if isnumeric(t.FaceColor)
+      assert(numel(t.FaceColor) == 3);
+      C = repmat(reshape(t.FaceColor,1,3),size(V,1),1);
+    else
+      if size(C,2) == 1
+        CI = floor((C-CA(1))/(CA(2)-CA(1))*size(CM,1))+1;
+        C = squeeze(ind2rgb(CI,CM));
+      end
+      if strcmp(t.FaceColor,'flat') && size(C,1) == size(V,1)
+        C = C(F(:,1),:);
+      end
     end
     if size(C,1) == size(V,1)
       t.FaceColor = 'interp';
@@ -68,14 +76,15 @@ function [AO,l] = apply_ambient_occlusion(t,varargin)
   AO = [];
   CM = [];
   CA = [];
+  C = [];
   % default values
   add_lights = true;
   soft_lighting = true;
   samples = 1000;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'AO','AddLights','SoftLighting','Samples','ColorMap','CAxis'}, ...
-    {'AO','add_lights','soft_lighting','samples','CM','CA'});
+    {'AO','AddLights','SoftLighting','Samples','ColorMap','CAxis','Colors'}, ...
+    {'AO','add_lights','soft_lighting','samples','CM','CA','C'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -103,6 +112,7 @@ function [AO,l] = apply_ambient_occlusion(t,varargin)
   end
 
   AOin = AO;
+  Cin = C;
   for ii = 1:numel(t)
     if isempty(AOin)
       AOii = [];
@@ -113,12 +123,24 @@ function [AO,l] = apply_ambient_occlusion(t,varargin)
         AOii = AOin{ii};
       end
     end
+    if isempty(Cin)
+      Cii = [];
+    else
+      if numel(t) == 1
+        Cii = Cin;
+      else
+        Cii = Cin{ii};
+      end
+    end
+
     tii = t(ii);
-    AOii = apply_ambient_occlusion_helper(tii,AOii);
+    [AOii,Cii] = apply_ambient_occlusion_helper(tii,AOii,Cii);
     if numel(t) == 1
       AO = AOii;
+      C = Cii;
     else
       AO{ii} = AOii;
+      C{ii} = Cii;
     end
   end
 

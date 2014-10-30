@@ -6,10 +6,10 @@ function [Q,T] = forward_kinematics(C,BE,P,dQ)
   %   C  #C by dim list of joint positions
   %   BE  #BE by 2 list of bone edge indices
   %   P  #BE list of parent indices into BE
-  %   dQ  #BE list of relative rotations
+  %   dQ  #BE by 4 list of relative rotations
   % Outputs:
-  %   Q  #BE list of absolute rotations
-  %   T  #BE list of absolute translations
+  %   Q  #BE by 4 list of absolute rotations
+  %   T  #BE by 2 list of absolute translations
   %
   % Example:
   %   [Q,T] = forward_kinematics(C,BE,P,mpose);
