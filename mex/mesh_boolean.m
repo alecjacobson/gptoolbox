@@ -27,6 +27,7 @@
 % Outputs:
 %   W  #W by 3 list of vertex positions of boolean result mesh
 %   H  #H by 3 list of triangle indices into W
+%   J  #H list of indices into [FA;FB] of facet birth parents
 % 
 % See also: self_intersect
 %    

@@ -1,18 +1,20 @@
 #ifdef MEX
 // mex -v -largeArrayDims -DMEX ...
-//   CXX='/usr/bin/clang++' LD='/usr/bin/clang++' ...
-//   LDOPTIMFLAGS='-O ' ...
 //   -I/usr/local/igl/libigl/include ...
+//   -DIGL_STATIC_LIBRARY ...
 //   -I/opt/local/include/eigen3 ...
 //   -I/opt/local/include ...
 //   -L/opt/local/lib ...
 //   -I/usr/local/igl/libigl/external/cork/include ...
+//   -L/usr/local/igl/libigl/lib -ligl -liglmatlab -liglboolean -liglcgal ...
 //   -L/usr/local/igl/libigl/external/cork/lib -lcork ...
 //   -lCGAL -lCGAL_Core -lgmp -lmpfr ...
 //   -lboost_thread-mt -lboost_system-mt ...
 //   -o mesh_boolean mesh_boolean.cpp
 
 #include <igl/boolean/mesh_boolean.h>
+#include <igl/cgal/remesh_self_intersections.h>
+#include <igl/remove_unreferenced.h>
 #include <igl/boolean/mesh_boolean_cork.h>
 
 #include <igl/matlab/MexStream.h>
@@ -42,7 +44,7 @@ void parse_rhs(
   Eigen::MatrixXi & FA,
   Eigen::MatrixXd & VB,
   Eigen::MatrixXi & FB,
-  MeshBooleanType & type,
+  igl::MeshBooleanType & type,
   BooleanLibType & boolean_lib)
 {
   using namespace std;
@@ -148,31 +150,45 @@ void mexFunction(
 
   MatrixXd VA,VB,VC;
   MatrixXi FA,FB,FC;
+  VectorXi J;
   MeshBooleanType type;
   BooleanLibType boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL;
   parse_rhs(nrhs,prhs,VA,FA,VB,FB,type,boolean_lib);
   switch(boolean_lib)
   {
     case BOOLEAN_LIB_TYPE_LIBIGL:
-      mesh_boolean(VA,FA,VB,FB,type,VC,FC);
+      mesh_boolean(VA,FA,VB,FB,type,VC,FC,J);
       break;
     case BOOLEAN_LIB_TYPE_CORK:
       mesh_boolean_cork(VA,FA,VB,FB,type,VC,FC);
       break;
     case BOOLEAN_LIB_TYPE_LIBIGL_TRY_CORK_RESOLVE:
     {
-      const auto & try_cork_resolve = [](
-        const Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> & V,
-        const Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> & F,
-              Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> & CV,
-              Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> & CF)
+      // gcc needs an explicit type here, const auto & fails to reveal template
+      // in mesh_boolean call (clang relizes it though)
+      const std::function<void(
+          const Eigen::Matrix<double, -1, 3>&, 
+          const Eigen::Matrix<int, -1, 3>&, 
+          Eigen::Matrix<double, -1, 3>&, 
+          Eigen::Matrix<int, -1, 3>&, 
+          Eigen::Matrix<int, -1, 1>&)> &
+        try_cork_resolve = [](
+          const Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> & V,
+          const Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> & F,
+                Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> & CV,
+                Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> & CF,
+                Eigen::Matrix<Eigen::VectorXi::Scalar,Eigen::Dynamic,1> & J)
       {
         typedef Matrix<MatrixXd::Scalar,Dynamic,3> MatrixX3S;
         typedef Matrix<MatrixXi::Scalar,Dynamic,3> MatrixX3I;
         typedef Matrix<MatrixXi::Scalar,Dynamic,2> MatrixX2I;
         typedef Matrix<MatrixXi::Scalar,Dynamic,1> VectorXI;
         const auto & cork_resolve = [](
-          const MatrixX3S &V, const MatrixX3I &F, MatrixX3S &CV, MatrixX3I &CF)
+          const MatrixX3S &V, 
+          const MatrixX3I &F, 
+          MatrixX3S &CV, 
+          MatrixX3I &CF,
+          VectorXI &/*J*/)
         {
           Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> _1;
           Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> _2;
@@ -180,15 +196,19 @@ void mexFunction(
         };
         // OK if &(CV,CF) = &(V,F)
         const auto & libigl_resolve = [](
-          const MatrixX3S &V, const MatrixX3I &F, MatrixX3S &CV, MatrixX3I &CF)
+          const MatrixX3S &V, 
+          const MatrixX3I &F, 
+          MatrixX3S &CV, 
+          MatrixX3I &CF,
+          VectorXI &J)
         {
           using namespace Eigen;
           MatrixX3S SV;
           MatrixX3I SF;
           MatrixX2I SIF;
-          VectorXI SJ,SIM,UIM;
+          VectorXI SIM,UIM;
           RemeshSelfIntersectionsParam params;
-          remesh_self_intersections(V,F,params,SV,SF,SIF,SJ,SIM);
+          remesh_self_intersections(V,F,params,SV,SF,SIF,J,SIM);
           for_each(SF.data(),SF.data()+SF.size(),[&SIM](int & a){a=SIM(a);});
           {
             remove_unreferenced(SV,SF,CV,CF,UIM);
@@ -207,13 +227,15 @@ void mexFunction(
           remesh_self_intersections(V,F,params,SV,SF,SIF,SJ,SIM);
           return SIM.size() == 0;
         };
-        cork_resolve(V,F,CV,CF);
+        cork_resolve(V,F,CV,CF,J);
         if(!validate(CV,CF))
         {
-          libigl_resolve(CV,CF,CV,CF);
+          libigl_resolve(CV,CF,CV,CF,J);
         }
+        // Cork does not keep track of birth parents (to my knowledge)
+        J.setConstant(CF.rows(),1,-1);
       };
-      mesh_boolean(VA,FA,VB,FB,type,try_cork_resolve,VC,FC);
+      //mesh_boolean(VA,FA,VB,FB,type,try_cork_resolve,VC,FC,J);
       break;
     }
     default:
@@ -226,6 +248,11 @@ void mexFunction(
     default:
     {
       mexErrMsgTxt(false,"Too many output parameters.");
+    }
+    case 3:
+    {
+      prepare_lhs_index(J,plhs+2);
+      // Fall through
     }
     case 2:
     {
