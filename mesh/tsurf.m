@@ -72,20 +72,18 @@ function t = tsurf(F,V,varargin)
   switch size(F,2)
   case 3
     t_copy = trisurf(F,V(:,1),V(:,2),V(:,3));
+    FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
     if(face_indices==1)
-      FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
       text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
     elseif(face_indices)
-      FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
       text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
     end
   case 4
     t_copy = tetramesh(F,V,'FaceAlpha',0.5);
+    FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:)+V(F(:,4),:))./3;
     if(face_indices==1)
-      FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:)+V(F(:,4),:))./3;
       text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
     elseif(face_indices)
-      FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:)+V(F(:,4),:))./3;
       text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
     end
     set(gcf,'Renderer','OpenGL');
@@ -120,33 +118,50 @@ function t = tsurf(F,V,varargin)
 
   % subversively set up the callbacks so that if the user clicks and holds on
   % the mesh then hits m, meshplot will open with this mesh
-  set(t_copy,'buttondownfcn',@onmeshdown);
+  set(t_copy,'buttondownfcn',@ondown);
 
-  function onmeshdown(src,ev)
-    set(gcf,'windowbuttonupfcn',        @onmeshup);
-    set(gcf,'keypressfcn',        @onkeypress);
-  end
-
-  function onkeypress(src,ev)
-    switch ev.Character
-    case 'm'
-      V3 = t_copy.Vertices;
-      if size(V3,2) == 2
-        V3(:,3) = 0*V(:,1);
+  
+  function ondown(src,ev)
+    if exist('point_mesh_squared_distance','file')
+      [~,ci,C] = point_mesh_squared_distance(ev.IntersectionPoint,V,F);
+      warning off;
+        B = barycentric_coordinates(C,V(F(ci,1),:),V(F(ci,2),:),V(F(ci,3),:));
+      warning on;
+      on_vertex = sum(B<0.15)==2;
+      color = [.7 .5 .5];
+      C = FC(ci,:);
+      if on_vertex
+        ci = F(ci,max(B)==B);
+        color = [.5 .5 .7];
+        C = V(ci,:);
       end
-      fprintf('Opening mesh in meshplot...\n');
-      meshplot(V3,t_copy.Faces);
-    otherwise
-      warning(['Unknown key: ' ev.Character]);
+      text_h = text(C(:,1),C(:,2),C(:,3),num2str(ci),'BackgroundColor',color);
     end
-  end
+    set(gcf,'windowbuttonupfcn',@onup);
+    set(gcf,'keypressfcn',@onkeypress);
 
-  function append_current_point()
-  end
+    function onkeypress(src,ev)
+      switch ev.Character
+      case 'm'
+        V3 = t_copy.Vertices;
+        if size(V3,2) == 2
+          V3(:,3) = 0*V(:,1);
+        end
+        fprintf('Opening mesh in meshplot...\n');
+        meshplot(V3,t_copy.Faces);
+      otherwise
+        warning(['Unknown key: ' ev.Character]);
+      end
+    end
 
-  function onmeshup(src,ev)
-    set(gcf,'windowbuttonupfcn','');
-    set(gcf,'keypressfcn',      '');
+    function onup(src,ev)
+      if exist('text_h','var') && ishandle(text_h)
+        delete(text_h);
+      end
+      set(gcf,'windowbuttonupfcn','');
+      set(gcf,'keypressfcn',      '');
+      set(gcf,'windowbuttonmotionfcn','');
+    end
   end
 
 end
