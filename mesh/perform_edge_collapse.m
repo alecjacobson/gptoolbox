@@ -35,34 +35,16 @@ function [W,G,V2W] = perform_edge_collapse(V,F,C,t)
     axis equal;
     view(2);
   end
-  if nargout >=3
-    sp = false;
-    if sp
-      V2W = speye(size(V,1));
-    else
-      V2W = (1:size(V,1))';
-    end
-  end
+  V2W = (1:size(V,1))';
   % loop over collapses
   for ci = 1:numel(C)
     c = C(ci);
     % move vertex
     W(c.a,:) = W(c.a,:) + c.da;
-    % remove faces in a cheapskate way
+    % remove faces in a cheapskate, in-place way
     G(c.rm,:) = 1;
     rm_so_far = rm_so_far + numel(c.rm);
-    if nargout >=3
-      if sp
-        % columns are faster with sparse matrices in matlab, but this probably
-        % still ends up being linear as columns become dense... Need a linked
-        % list...
-        V2W(:,c.a) = V2W(:,c.a) + V2W(:,c.b);
-        V2W(:,c.b) = 0;
-      else
-        % this is linear...
-        V2W(V2W==c.b) = c.a;
-      end
-    end
+    V2W(c.b) = c.a;
     % modify faces
     G(c.mod,:) = (G(c.mod,:) == c.b)*c.a + (G(c.mod,:) ~= c.b).*G(c.mod,:);
     if size(F,1)-rm_so_far <= t
@@ -75,18 +57,18 @@ function [W,G,V2W] = perform_edge_collapse(V,F,C,t)
       drawnow;
     end
   end
+
+  % peal off layers of indirection
+  found = V2W==(1:size(V,1))';
+  while any(~found)
+    old_found = found;
+    found(~old_found) = found(V2W(~old_found));
+    V2W(~old_found) = V2W(V2W(~old_found));
+  end
   
   G = G(~all(G==1,2),:);
   [W,IM] = remove_unreferenced(W,G);
   G = IM(G);
-  if nargout >=3
-    if sp
-      [I J] = find(V2W);
-      V2W = zeros(size(V,1),1);
-      V2W(I) = J;
-    end
-    % no matter which, need to reindex
-    V2W = IM(V2W);
-  end
+  V2W = IM(V2W);
 
 end
