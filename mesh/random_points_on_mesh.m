@@ -14,7 +14,10 @@ function [N,I,B] = random_points_on_mesh(V,F,n,varargin)
   %       'blue'  approximate blue noise via approximate Poisson disk sampling
   %     'MaxIter'  followed by maximum number of iterations, only applicable
   %       for blue noise.
-  %     'Bias'  followed by #F list of biases per triangle {doublearea(V,F)}
+  %     'Bias'  **experimental** followed by #F list of biases per triangle
+  %       {doublearea(V,F)}.  This bias is a little funny because it effects
+  %       the sampling, but not the distances...probably it gets "washed out"
+  %       by the iterations.
   % Outputs:
   %   N  n by dim list of sample positions
   %   I  n list of face indices upon which N are
