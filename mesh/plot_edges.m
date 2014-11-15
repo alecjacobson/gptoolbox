@@ -1,4 +1,4 @@
-function p = plot_edges(V,E,varargin)
+function varargout = plot_edges(V,E,varargin)
   % PLOT_EDGES Plot edges
   %
   % p = plot_edges(V,E)
@@ -25,6 +25,10 @@ function p = plot_edges(V,E,varargin)
       varargin{:});
   otherwise
     error('Unsupported dimension: %d',size(V,2));
+  end
+  
+  if nargout>1
+    varargout{1} = p;
   end
 
 end

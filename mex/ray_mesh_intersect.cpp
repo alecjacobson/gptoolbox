@@ -17,6 +17,9 @@
  *    lambda: #F by 3 list of barycentric coordinate of hits on each triangle
  * Modified from code by: 
  *    Jesus Mena
+ *
+ * mex -o ray_mesh_intersect ray_mesh_intersect.cpp
+ * 
  */
 
 void parse_rhs(

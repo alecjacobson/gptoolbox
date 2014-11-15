@@ -28,7 +28,7 @@ function M = massmatrix(V,F, type)
     
     % renaming indices of vertices of triangles for convenience
     i1 = F(1,:); i2 = F(2,:); i3 = F(3,:); 
-    %#F x 3 matrices of triangle edge vectors, named after opposite vertices
+    % #F x 3 matrices of triangle edge vectors, named after opposite vertices
     v1 = V(i3,:) - V(i2,:);  v2 = V(i1,:) - V(i3,:); v3 = V(i2,:) - V(i1,:);
     % computing the areas
     if size(V,2) == 2
