@@ -58,13 +58,15 @@ void parse_rhs(
       const auto requires_arg = 
         [](const int i, const int nrhs, const char * name)
       {
-        mexErrMsgTxt((i+1)<nrhs,
+        // Windows doesn't find igl::mexErrMsgTxt overload
+        igl::mexErrMsgTxt((i+1)<nrhs,
           C_STR("Parameter '"<<name<<"' requires argument"));
       };
       const auto validate_char = 
         [](const int i, const mxArray * prhs[], const char * name)
       {
-        mexErrMsgTxt(mxIsChar(prhs[i]),
+        // Windows doesn't find igl::mexErrMsgTxt overload
+        igl::mexErrMsgTxt(mxIsChar(prhs[i]),
           C_STR("Parameter '"<<name<<"' requires char argument"));
       };
       if(strcmp("SignedDistanceType",name) == 0)
