@@ -33,6 +33,7 @@ mex -v -largeArrayDims -DMEX ...
 Some of these functions depend on:
 
  - c++ 11
+   - VS2012 or newer (windows users only)
  - Eigen
  - libigl
  - CGAL
