@@ -13,22 +13,23 @@ Here's an incomplete list of cool features this matlab toolbox contains:
 - mesh smoothing
 - mesh clean up (remove duplicates, remove unreferenced)
 - geodesic distances on triangle and tetrahedral meshes
-- deep matlab function dependency
 - mesh quantities and queries (normals, discrete gaussian curvature, list
   boundary edges, topology, angles, dihedral angles etc.)
 - mesh deformation (as-rigid-as-possible (ARAP), moving least-squares, etc.)
 - mesh parameterization (harmonic, least squares conformal, ARAP, etc.)
-- automatic skinning weight computation
-- 2D mesh from image mask
+- automatic skinning weight computation (bounded biharmonic weights, bone heat)
+- 2D triangle mesh from binary image
 - Input/Output for many mesh formats
-  (.obj,.off,.wrl,.mesh,.node,.ele,.poly,.smf,.bdl)
-- quadratic programming, active set solver
-- image dithering
-- scribble-based image colorization
+  (.obj,.off,.stl,.wrl,.ply,.mesh,.node,.ele,.poly,.smf,.bdl,.face)
 - discrete differential geometry operators for triangle and tetrahedral meshes
   (cotangent Laplacian, gradient, divergence)
-- _exact (un)signed distance field computation for meshes (coming soon)_
-- _constructive solid geometry operations on meshes, booleans (coming soon)_
+- quadratic programming, active set solver
+- scribble-based image colorization, diffusion curves
+- exact (un)signed distance field computation for meshes
+- constructive solid geometry operations on meshes, booleans
+- accelerated point location in triangle and tetrahedral meshes
+- image dithering
+- deep matlab function dependency
 
 The functions have been organized into folders based on their primary
 application:
@@ -38,6 +39,7 @@ application:
 - images/
 - matrix/
 - mesh/
+- mex/
 - utility/
 - wrappers/
 
@@ -53,7 +55,7 @@ To make this change permanent, then issue:
     savepath
 
 There are some mex files, whose documentation for installation are included in
-respective `README.md` files. 
+respective `mex/README.md` file.
 
 To enable tab completion on gptoolbox's IO functions issue:
 
@@ -66,6 +68,9 @@ it to take effect.
 
 This strives to be full installation instructions, but will no doubt remain
 incomplete for some time. Begin by adding paths as above. 
+
+As stated above, most files are straight matlab and will _just run_ if you have
+gptoolbox in your path.
 
 #### Compile `/mex` ####
 Most of our mex files will depend on
@@ -105,7 +110,7 @@ The Geometry Processing Toolbox grew out of Alec Jacobson's private codebase
 during his PhD, but has benefited a lot from various collaborators at NYU and
 ETH Zurich. Now, the Geometry Processing Toolbox is a group endeavour. If
 you're intersted in contributing, please contact Alec Jacobson
-(alecjacobson@gmail.com).
+(alecjacobson@gmail.com) or submit a pull request on github.
 
 ## Documentation ##
 For now, documentation is limited to a per-function basis. For example, to find
