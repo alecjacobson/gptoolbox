@@ -38,6 +38,12 @@ function [V,F] = load_mesh(filename,varargin)
   switch ext
   case '.off'
     [V,F] = readOFF(filename);
+  case '.ply'
+    [V,F] = readPLY(filename);
+  case '.stl'
+    [V,F] = readSTL(filename);
+  case '.wrl'
+    [V,F] = readWRL(filename);
   case '.obj'
     try
       [V,F] = readOBJfast(filename);

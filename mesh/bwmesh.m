@@ -90,5 +90,10 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
     triangle_flags = sprintf('-q%da%0.17f',quality,avg_sqr_edge_length);
   end
 
+  % Why do I need to do this?
+  [V,~,J] = remove_duplicate_vertices(V,0);
+  % remap faces
+  E = J(E);
+
   [W,F] = triangle(V,E,H,'Flags',triangle_flags,'Quiet');
 end

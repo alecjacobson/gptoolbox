@@ -36,10 +36,15 @@ Data.vertex.x = vertex(:,1);
 Data.vertex.y = vertex(:,2);
 Data.vertex.z = vertex(:,3);
 Data.face.vertex_indices = {};
-for i=1:size(face,1)
-    Data.face.vertex_indices{end+1} = face(i,:)-1;
-end
-plywrite(Data,filename,mode);
+%tic;
+%for i=1:size(face,1)
+%    Data.face.vertex_indices{end+1} = face(i,:)-1;
+%end
+%toc
+% This is twice as fast
+Data.face.vertex_indices = mat2cell(face-1,ones(size(face,1),1),3);
+
+plywrite(Data,filename,mode,'double');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -116,8 +121,8 @@ PlyTypeNames = {'char','uchar','short','ushort','int','uint','float','double', .
 FWriteTypeNames = {'schar','uchar','int16','uint16','int32','uint32','single','double'};
 MatlabTypeNames = {'int8','uint8','int16','uint16','int32','uint32','single','double'};
 PrintfTypeChar = {'%d','%u','%d','%u','%d','%u','%-.6f','%-.14e'};
-IntegerDataMin = [-128,0,-2^15,-2^31,0];
-IntegerDataMax = [127,255,2^16-1,2^31-1,2^32-1];
+IntegerDataMin = [-2^7, 0, -2^15, 0, -2^31, 0];
+IntegerDataMax = [ 2^7-1,2^8-1,2^15-1,2^16-1,2^31-1,2^32-1];
 
 %%% write PLY header %%%
 fprintf(fid,'ply\nformat %s 1.0\ncomment created by MATLAB plywrite\n',Format);
@@ -135,7 +140,7 @@ for i = 1:NumElements
    end
    
    if ~isempty(PropertyNames{i})
-   	eval(['Data{i}{1}=Elements.',ElementNames{i},'.',PropertyNames{i}{1},';']);
+      eval(['Data{i}{1}=Elements.',ElementNames{i},'.',PropertyNames{i}{1},';']);
       ElementCount(i) = prod(size(Data{i}{1}));
       Type{i} = zeros(length(PropertyNames{i}),1);
    else
@@ -148,7 +153,7 @@ for i = 1:NumElements
       eval(['Data{i}{j}=Elements.',ElementNames{i},'.',PropertyNames{i}{j},';']);
       
       if ElementCount(i) ~= prod(size(Data{i}{j}))
-      	fclose(fid);
+         fclose(fid);
          error('All property data in an element must have the same length.');
       end
       
@@ -158,9 +163,9 @@ for i = 1:NumElements
       end
       
       for k = 1:length(MatlabTypeNames)
-      	if isa(Data{i}{j},MatlabTypeNames{k})
-         	Type{i}(j) = Type{i}(j) + k;
-	         break;
+         if isa(Data{i}{j},MatlabTypeNames{k})
+            Type{i}(j) = Type{i}(j) + k;
+            break;
          end
       end
       
@@ -170,9 +175,9 @@ for i = 1:NumElements
       end
       
       % try to convert float data to integer data
-      if Type{i}(j) <= 8 			% array data
+      if Type{i}(j) <= 8          % array data
          if any(strcmp({'single','double'},MatlabTypeNames{Type{i}(j)}))
-            if ~any(floor(Data{i}{j}) ~= Data{i}{j})		% data is integer
+            if ~any(floor(Data{i}{j}) ~= Data{i}{j})      % data is integer
                MinValue = min(min(Data{i}{j}));
                MaxValue = max(max(Data{i}{j}));
                
@@ -184,22 +189,22 @@ for i = 1:NumElements
                end
             end
          end
-      else								% cell array data
+      else                        % cell array data
          eval(['Data{i}{j}=Elements.',ElementNames{i},'.',PropertyNames{i}{j},';']);
          tmp = 1;
          
          for k = 1:prod(size(Data{i}{j}))
             tmp = tmp & all(floor(Data{i}{j}{k}) == Data{i}{j}{k});
-	      end
+         end
          
-         if tmp		% data is integer
-	         MinValue = inf;
-   	      MaxValue = -inf;
+         if tmp      % data is integer
+            MinValue = inf;
+            MaxValue = -inf;
          
-      	   for k = 1:prod(size(Data{i}{j}))
-         	   MinValue = min(MinValue,min(Data{i}{j}{k}));
-            	MaxValue = max(MaxValue,max(Data{i}{j}{k}));
-	         end
+            for k = 1:prod(size(Data{i}{j}))
+               MinValue = min(MinValue,min(Data{i}{j}{k}));
+               MaxValue = max(MaxValue,max(Data{i}{j}{k}));
+            end
             
             % choose smallest possible integer data format
             tmp = max(min(find(MinValue >= IntegerDataMin)),min(find(MaxValue <= IntegerDataMax)));
@@ -212,7 +217,7 @@ for i = 1:NumElements
       
       % convert double to single if specified
       if rem(Type{i}(j),9) == 8 & ~strcmpi(Str,'double')
-      	Type{i}(j) = Type{i}(j) - 1;
+         Type{i}(j) = Type{i}(j) - 1;
       end
       
       if Type{i}(j) <= 8
@@ -240,61 +245,61 @@ end
 
 for i = 1:NumElements
    if ~isempty(PropertyNames{i})
-   	if ~Format										% write ASCII data
-      	for k = 1:ElementCount(i)
-         	for j = 1:length(PropertyNames{i})
-            	if Type{i}(j) <= 8
-               	fprintf(fid,[PrintfTypeChar{Type{i}(j)},' '],Data{i}{j}(k));
-            	else
-               	fprintf(fid,'%u%s ',length(Data{i}{j}{k}),sprintf([' ',PrintfTypeChar{Type{i}(j)-9}],Data{i}{j}{k}));
-					end
+      if ~Format                              % write ASCII data
+         for k = 1:ElementCount(i)
+            for j = 1:length(PropertyNames{i})
+               if Type{i}(j) <= 8
+                  fprintf(fid,[PrintfTypeChar{Type{i}(j)},' '],Data{i}{j}(k));
+               else
+                  fprintf(fid,'%u%s ',length(Data{i}{j}{k}),sprintf([' ',PrintfTypeChar{Type{i}(j)-9}],Data{i}{j}{k}));
+               end
             end
             
-         	fprintf(fid,'\n');
-      	end
-   	else												% write binary data
-      	if all(Type{i} <= 8) & all(Type{i} == Type{i}(1))
-         	% property data without list types (fast)
-         	tmp = zeros(length(PropertyNames{i}),ElementCount(i));
+            fprintf(fid,'\n');
+         end
+      else                                    % write binary data
+         if all(Type{i} <= 8) & all(Type{i} == Type{i}(1))
+            % property data without list types (fast)
+            tmp = zeros(length(PropertyNames{i}),ElementCount(i));
          
-         	for j = 1:length(PropertyNames{i})
-            	tmp(j,:) = Data{i}{j}(:)';
-         	end
+            for j = 1:length(PropertyNames{i})
+               tmp(j,:) = Data{i}{j}(:)';
+            end
          
-         	fwrite(fid,tmp,FWriteTypeNames{Type{i}(j)});
-     		elseif all(Type{i} > 8)
-      		% only list types
-         	Type{i} = Type{i} - 9;
+            fwrite(fid,tmp,FWriteTypeNames{Type{i}(j)});
+           elseif all(Type{i} > 8)
+            % only list types
+            Type{i} = Type{i} - 9;
             
-         	if length(PropertyNames{i}) == 1
-         		% only one list property
-            	tmp = FWriteTypeNames{Type{i}(1)};
+            if length(PropertyNames{i}) == 1
+               % only one list property
+               tmp = FWriteTypeNames{Type{i}(1)};
             
-            	for k = 1:ElementCount(i)
-               	fwrite(fid,length(Data{i}{1}{k}),'uchar');
-               	fwrite(fid,Data{i}{1}{k},tmp);
-            	end
-         	else
-         		% multiple list properties
-	         	for k = 1:ElementCount(i)
-   					for j = 1:length(PropertyNames{i})
-      					fwrite(fid,length(Data{i}{j}{k}),'uchar');
-                  	fwrite(fid,Data{i}{j}{k},FWriteTypeNames{Type{i}(j)});
-						end
-            	end
-         	end
-      	else
-      		% mixed type
-		      for k = 1:ElementCount(i)
-   		      for j = 1:length(PropertyNames{i})
-      		      if Type{i}(j) <= 8
-         		      fwrite(fid,Data{i}{j}(k),FWriteTypeNames{Type{i}(j)});
-	         	   else
-   	         	   fwrite(fid,length(Data{i}{j}{k}),'uchar');
+               for k = 1:ElementCount(i)
+                  fwrite(fid,length(Data{i}{1}{k}),'uchar');
+                  fwrite(fid,Data{i}{1}{k},tmp);
+               end
+            else
+               % multiple list properties
+               for k = 1:ElementCount(i)
+                  for j = 1:length(PropertyNames{i})
+                     fwrite(fid,length(Data{i}{j}{k}),'uchar');
+                     fwrite(fid,Data{i}{j}{k},FWriteTypeNames{Type{i}(j)});
+                  end
+               end
+            end
+         else
+            % mixed type
+            for k = 1:ElementCount(i)
+               for j = 1:length(PropertyNames{i})
+                  if Type{i}(j) <= 8
+                     fwrite(fid,Data{i}{j}(k),FWriteTypeNames{Type{i}(j)});
+                  else
+                     fwrite(fid,length(Data{i}{j}{k}),'uchar');
                      fwrite(fid,Data{i}{j}{k},FWriteTypeNames{Type{i}(j)-9});
                   end
-					end
-	         end
+               end
+            end
          end
       end
    end
