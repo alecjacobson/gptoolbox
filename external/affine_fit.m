@@ -1,4 +1,4 @@
-function [n,V,p] = affine_fit(X)
+function [n,V,p] = affine_fit(X,W)
     %Computes the plane that fits best (lest square of the normal distance
     %to the plane) a set of sample points.
     %INPUTS:
@@ -15,12 +15,17 @@ function [n,V,p] = affine_fit(X)
     %NB: this code actually works in any dimension (2,3,4,...)
     %Author: Adrien Leygue
     %Date: August 30 2013
+
+    if nargin<2
+      W = 1/size(X,1)*ones(size(X,1),1);
+    end
+    W = W(:)./sum(W);
     
     %the mean of the samples belongs to the plane
-    p = mean(X,1);
+    p = sum(bsxfun(@times,W,X));
     
     %The samples are reduced:
-    R = bsxfun(@minus,X,p);
+    R = bsxfun(@times,bsxfun(@minus,X,p),W);
     %Computation of the principal directions if the samples cloud
     [V,D] = eig(R'*R);
     %Extract the output from the eigenvectors

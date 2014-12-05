@@ -814,7 +814,12 @@ classdef deform < handle
       % pose positions of control points
       this.new_C = this.C;
       % rotations (angles) stored at each control point
-      this.R = zeros(this.np,1);
+      switch size(this.V,2)
+      case 2
+        this.R = zeros(this.np,1);
+      case 3
+        this.R = repmat(eye(3,3),[1 1 this.np]);
+      end
 
       if isempty(this.W)
         this.W = shepard(this.V,this.C,this.P,this.BE,[]);
@@ -970,7 +975,7 @@ classdef deform < handle
         % clicking on mesh counts as clicking on handle
         click_on_mesh = true;
         if click_on_mesh
-          set(this.tsh,'ButtonDownFcn',{@oncontrolsdown,this});
+          set(this.tsh,'ButtonDownFcn',@this.oncontrolsdown);
         end
         if(this.color_by_groups)
           set(this.tsh,'EdgeColor','interp');
@@ -1054,7 +1059,7 @@ classdef deform < handle
           0.1+0*this.C([this.interpolated() this.free_bone_endpoint_indices()],1), ... 
           'o','MarkerFaceColor',[0.9 0.8 0.1], 'MarkerEdgeColor','k',...
           'LineWidth',2,'SizeData',500, ...
-          'ButtonDownFcn',{@oncontrolsdown,this});
+          'ButtonDownFcn',@this.oncontrolsdown);
 
       else
         this.ch = scatter3( ...
@@ -1063,14 +1068,14 @@ classdef deform < handle
           this.C([this.interpolated() this.free_bone_endpoint_indices()],3), ... 
           'o','MarkerFaceColor',[0.9 0.8 0.1], 'MarkerEdgeColor','k',...
           'LineWidth',2,'SizeData',100, ...
-          'ButtonDownFcn',{@oncontrolsdown,this});
+          'ButtonDownFcn',@this.oncontrolsdown);
       end
       %this.fch = scatter3( ...
       %  this.C(this.free,1),this.C(this.free,2),0.1+0*this.C(this.free,1), ... 
       %  'o','MarkerFaceColor',[0.95 0.9 0.5], ...
       %  'MarkerEdgeColor',[0.2 0.2 0.2], ...
       %  'LineWidth',2,'SizeData',100, ...
-      %  'ButtonDownFcn',{@oncontrolsdown,this});
+      %  'ButtonDownFcn',@this.oncontrolsdown);
       hold off;
 
       switch this.color_scheme
@@ -1131,12 +1136,12 @@ classdef deform < handle
     end
 
     % Callback for mouse down on controls points
-    function oncontrolsdown(src,ev,this)
+    function oncontrolsdown(this,src,ev)
       this.is_down = true;
       % tell window that drag and up events should be handled by controls
-      set(gcf,'windowbuttonmotionfcn',{@oncontrolsdrag,this});
-      set(gcf,'windowbuttonupfcn',    {@oncontrolsup  ,this});
-      set(gcf,'KeyPressFcn',          {@onkeypress    ,this});
+      set(gcf,'windowbuttonmotionfcn',@this.oncontrolsdrag);
+      set(gcf,'windowbuttonupfcn',    @this.oncontrolsup  );
+      set(gcf,'KeyPressFcn',          @this.onkeypress    );
       % gather type of click
       if(strcmp('normal',get(gcf,'SelectionType')))
         % left-click
@@ -1166,7 +1171,6 @@ classdef deform < handle
       this.last_drag_pos = this.down_pos;
       % initialize drag position to down position
       this.drag_pos = this.down_pos;
-
       % keep track of control point positions at mouse down
       if size(this.V,2) == 2
         this.new_C([this.interpolated() this.free_bone_endpoint_indices()],:) = ...
@@ -1183,11 +1187,10 @@ classdef deform < handle
           repmat(middle_down_pos,size(this.new_C,1),1)).^2,2));
       this.ci = [this.ci;setdiff(find(this.CG == this.CG(this.ci)),this.ci)];
       this = this.update_visualizations();
-
     end
 
     % Callback for mouse drag on control points
-    function oncontrolsdrag(src,ev,this)
+    function oncontrolsdrag(this,src,ev)
       % keep last drag position
       this.last_drag_pos = this.drag_pos;
       % get current mouse position
@@ -1212,15 +1215,22 @@ classdef deform < handle
         % store rotation at *point* handle if selected
         [found, iP] = ismember(this.ci,this.P);
         if(found)
-          this.R(iP) = ...
-            this.R(iP) + 2*pi*(this.drag_pos(1)-this.last_drag_pos(1))/100;
+          x_extent = max(this.V(:,1))-min(this.V(:,1));
+          angle = 2*pi*(this.drag_pos(1)-this.last_drag_pos(1))/x_extent;
+          switch size(this.V,2)
+          case 2
+            this.R(iP) = this.R(iP) + angle;
+          case 3
+            this.R(:,:,iP) = ...
+              this.R(:,:,iP) * axisangle2matrix(drag_axis_depth,angle);
+          end
         end
       end
       this = this.update_positions();
     end
 
     % Callback for mouse release of control points
-    function oncontrolsup(src,ev,this)
+    function oncontrolsup(this,src,ev)
       % Tell window to handle drag and up events itself
       set(gcf,'windowbuttonmotionfcn','');
       set(gcf,'windowbuttonupfcn','');
@@ -1228,14 +1238,19 @@ classdef deform < handle
       this.is_down = false;
     end
 
-    function onkeypress(src,ev,this)
+    function onkeypress(this,src,ev)
       % default is to not update on keystrok
       need_to_update = false;
       switch ev.Character
       case 'r'
         % reset to bind positions, identity rotations
         this.new_C = this.C;
-        this.R = zeros(this.np,1);
+        switch size(this.V,2)
+        case 2 
+          this.R = zeros(this.np,1);
+        case 3
+          this.R = repmat(eye(3,3),[1 1 this.np]);
+        end
         need_to_update = true;
       case 'u'
         % force update
@@ -1321,7 +1336,12 @@ classdef deform < handle
           X = [X zeros(m,1)];
           RX = [RX zeros(m,1)];
           [AX,AN] = axisanglebetween(X,RX,[0 0 1]);
-          this.R = this.R + AX(1:this.np,3).*AN(1:this.np);
+          switch size(this.V,2)
+          case 2
+            this.R = this.R + AX(1:this.np,3).*AN(1:this.np);
+          case 3
+            error('Not supported');
+          end
         end
 
         % convert angles around z-axis to quaternions
@@ -1432,12 +1452,18 @@ classdef deform < handle
         this.TR(:,:,1:(this.np+this.nb)) = ...
           permute(reshape(this.L,[this.np+this.nb dim dim+1]),[2 3 1]);
       case 'pseudoedges'
+        switch size(this.V,2)
+        case 2
+          Q = axisangle2quat(repmat([0 0 1],this.np,1),this.R);
+        case 3
+          Q = dcm2quat(this.R);
+        end
         % compute rotations using pseudoedges
         this.TR(:,:,1:this.np) = ...
           pseudoedge_dof( ...
             this.C(this.P,:), ...
             this.PE,this.new_C(this.P,:)-this.C(this.P,:), ...
-            axisangle2quat(repmat([0 0 1],this.np,1),this.R));
+            Q);
       case 'none'
         % do nothing
       otherwise
@@ -1558,9 +1584,15 @@ classdef deform < handle
               % controls
               % Only control as many handles of slave as possible
               nc = min(size(this.new_C,1),size(that.new_C,1));
-              nr = min(size(this.R,1),    size(that.R,1));
+              switch size(this.V,2)
+              case 2
+                nr = min(size(this.R,1),    size(that.R,1));
+                that.R(1:nr) = this.R(1:nr);
+              case 3
+                nr = min(size(this.R,3),    size(that.R,3));
+                that.R(:,:,1:nr) = this.R(:,:,1:nr);
+              end
               that.new_C(1:nc,:) = this.new_C(1:nc,:);
-              that.R(1:nr) = this.R(1:nr);
               that.update_positions();
             end
           end
