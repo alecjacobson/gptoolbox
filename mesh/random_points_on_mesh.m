@@ -1,8 +1,8 @@
-function [N,I,B] = random_points_on_mesh(V,F,n,varargin)
+function [N,I,B,r] = random_points_on_mesh(V,F,n,varargin)
   % RANDOM_POINTS_ON_MESH Uniform random sampling of a mesh.
   %
   % N = random_points_on_mesh(V,F,n)
-  % [N,I,B] = random_points_on_mesh(V,F,n,'ParameterName',parameter_value,...)
+  % [N,I,B,r] = random_points_on_mesh(V,F,n,'ParameterName',parameter_value,...)
   %
   % Inputs:
   %   V  #V by dim list of vertex positions
@@ -26,6 +26,7 @@ function [N,I,B] = random_points_on_mesh(V,F,n,varargin)
   %       bsxfun(@times,B(:,1),V(F(I,1),:)) +  ...
   %       bsxfun(@times,B(:,2),V(F(I,2),:)) +  ...
   %       bsxfun(@times,B(:,3),V(F(I,3),:));
+  %   r  radius used for blue noise sampling
   %
 
   % default values
@@ -86,7 +87,8 @@ function [N,I,B] = random_points_on_mesh(V,F,n,varargin)
     % Expected radius
     [~,D] = knnsearch(BN,BN,'K',2);
     D = D(:,2);
-    rad = mean(D);
+    %r = mean(D);
+    r = mean(D)*sqrt(2);
 
     for iter = 1:max_iter
       % Maybe `rangesearch` would be faster
@@ -97,11 +99,16 @@ function [N,I,B] = random_points_on_mesh(V,F,n,varargin)
       kI = kI(:,2);
       D = D(:,2);
       % Find darts to rethrow, first of each pair with small distance
-      rethrow = kI( kI>(1:numel(kI))' & D<rad);
+      rethrow = unique(kI( kI>(1:numel(kI))' & D<r));
+      fprintf('iter: %d, #rethrow: %d\n',iter,numel(rethrow));
       if numel(rethrow) == 0
         break;
       end
       [N(rethrow,:),I(rethrow),B(rethrow,:)] = randsample(numel(rethrow));
+      keep = setdiff(1:n,rethrow);
+      N = N([keep(:);rethrow(:)],:);
+      I = I([keep(:);rethrow(:)],:);
+      B = B([keep(:);rethrow(:)],:);
       BN = embed(N,I,B);
       if iter == max_iter
         warning('Max iteration (%d) reach without convergence',max_iter);

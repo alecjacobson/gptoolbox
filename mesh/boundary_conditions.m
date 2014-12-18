@@ -75,12 +75,16 @@ function [b,bc] = boundary_conditions(V,F,C,P,E,CE)
   % number of control vertices
   c = size(C,1);
 
-  % compute distance from every vertex in the mesh to every control vertex
-  D = permute(sum((repmat(V,[1,1,c]) - ...
-    permute(repmat(C,[1,1,n]),[3,2,1])).^2,2),[1,3,2]);
-  % use distances to determine closest mesh vertex to each control vertex
-  % Cv(i) is closest vertex in V to ith control vertex in C
-  [minD,Cv] = min(D);
+  if size(C,1) < 100
+    %% compute distance from every vertex in the mesh to every control vertex
+    % use distances to determine closest mesh vertex to each control vertex
+    D = pdist2(V,C);
+    % Cv(i) is closest vertex in V to ith control vertex in C
+    [minD,Cv] = min(D);
+  else
+    % Hmmm, this is actually slower for a smaller number of handles 
+    Cv = knnsearch(V,C,'K',1);
+  end
 
   % if number of unique closest mesh vertices is less than total number, then
   % we have contradictory boundary conditions

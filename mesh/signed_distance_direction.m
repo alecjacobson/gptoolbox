@@ -1,8 +1,8 @@
-function [D,S] = signed_distance_direction(P,V,F)
+function [D,S,C] = signed_distance_direction(P,V,F)
   % SIGNED_DISTANCE_DIRECTION Compute a direction which decreases signed
   % distance with respect to an input mesh (V,F) at a set of points P.
   %
-  % D = signed_distance_direction(P,V,F)
+  % [D,S,C] = signed_distance_direction(P,V,F)
   %
   % Inputs:
   %   P  #P by dim list of query points
@@ -11,6 +11,7 @@ function [D,S] = signed_distance_direction(P,V,F)
   % Outputs:
   %   D  #P by dim list of normalized directions
   %   S  #P signed distances
+  %   C  #P by dim list of closest points
   %
 
   [S,I,C,N] = signed_distance(P,V,F);

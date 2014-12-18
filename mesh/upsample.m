@@ -2,7 +2,7 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   % UPSAMPLE Upsample a mesh by adding vertices on existing edges/faces
   %
   % [VV,FF] = upsample(V,F)
-  % [VV,FF] = upsample(V,F,'ParameterName',ParameterValue, ...)
+  % [VV,FF,FO] = upsample(V,F,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
   %   V  #V by dim list of vertex positions

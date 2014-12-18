@@ -381,7 +381,9 @@ classdef deform < handle
         cur_V; ...
         this.new_C([this.interpolated() this.free_bone_endpoint_indices()],:)]);
       this.win_max(this.win_min==this.win_max) = this.win_max(this.win_min==this.win_max)+eps;
+      [az,el]= view(this.ah);
       axis(this.ah,reshape([this.win_min;this.win_max],1,2*size(cur_V,2)));
+      view(this.ah,az,el);
 
       % update slave deform objects
       if this.is_down
@@ -1287,7 +1289,9 @@ classdef deform < handle
             V = get(this.wvsh,'Vertices');
             V(:,3) = max(max(V(:,1:2))-min(V(:,1:2))).*this.WVW(:,iP);
             set(this.wvsh,'Vertices',V);
+            [az,el]= view(get(this.wvsh,'Parent'));
             axis(get(this.wvsh,'Parent'),'tight');
+            view(az,el);
           end
         end
       end
@@ -1447,7 +1451,7 @@ classdef deform < handle
              'Fixed',this.fixed,this.TR(:,:,this.fixed), ...
              'Tol', this.tol, ...
              'MaxIter', this.max_iterations);
-        dim = 2;
+        dim = size(this.V,2);
         % place L into TR in appropriate place
         this.TR(:,:,1:(this.np+this.nb)) = ...
           permute(reshape(this.L,[this.np+this.nb dim dim+1]),[2 3 1]);
