@@ -38,5 +38,4 @@ function [RV,IM] = remove_unreferenced(V,F)
   RV(IM,:) = V;
   % Remove unreferenced
   RV = RV(1:max(IM(F(:))),:);
-
 end
