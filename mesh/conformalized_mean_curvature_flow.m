@@ -10,6 +10,11 @@ function U = conformalized_mean_curvature_flow(V,F,varargin)
   %     'delta' followed by delta value, should roughly be in range
   %       [1e-13,1e13] {1}
   %     'LaplacianType' followed by 'cotangent' of 'uniform'.
+  %     'V0' followed by #V by 3 mesh positions to treat as initial mesh (to
+  %       build laplacian from)
+  %     'RescaleOutput' followed by whether to scale output to match input
+  %       (otherwise scaled to unit surface area and moved to origin for
+  %       numerical robustness) {false}
   % Outputs:
   %   U  #V by dim list of new vertex positions
   %
@@ -18,10 +23,12 @@ function U = conformalized_mean_curvature_flow(V,F,varargin)
   delta = 1;
   max_iter = 100;
   laplacian_type = 'cotangent';
+  V0 = V;
+  rescale_output = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'MaxIter','delta','LaplacianType'}, ...
-    {'max_iter','delta','laplacian_type'});
+    {'MaxIter','delta','LaplacianType','V0','RescaleOutput'}, ...
+    {'max_iter','delta','laplacian_type','V0','rescale_output'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -65,7 +72,7 @@ function U = conformalized_mean_curvature_flow(V,F,varargin)
       break;
     end
     % Volume of unit area sphere: pi^-0.5/6
-    [c,vol] = centroid(U,F);
+    %[c,vol] = centroid(U,F);
     %tsurf(F,U);
     %%[vol pi^-0.5/6]
     %title(sprintf('%g',sum(doublearea(U,F)*0.5)));
@@ -75,4 +82,12 @@ function U = conformalized_mean_curvature_flow(V,F,varargin)
     end
     iter = iter + 1;
   end
+
+  if rescale_output
+    area = sum(doublearea(V,F)*0.5);
+    c = sum(bsxfun(@times,0.5*doublearea(V,F)/area,barycenter(V,F)));
+    U = U*sqrt(area);
+    U = bsxfun(@plus,U,c);
+  end
+
 end

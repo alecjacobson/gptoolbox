@@ -71,11 +71,11 @@ function [V,F] = readOBJfast(filename,varargin)
   end
   while(true)
     F = fscanf(fp,format,inf);
-    if(prod(size(F)) > 0)
+    if(numel(F) > 0)
       break;
     else
       line = fgets(fp);
-      if(prod(size(line)) == 0)
+      if(numel(line) == 0)
         fclose(fp);
         error('Bad format... Try readOBJ...');
       end
@@ -85,6 +85,9 @@ function [V,F] = readOBJfast(filename,varargin)
     F = reshape(F,4,size(F,1)/4)';
   else
     F = reshape(F,3,size(F,1)/3)';
+  end
+  if ~feof(fp)
+    error('Bad format... Try readOBJ...');
   end
   fclose(fp);
 end

@@ -32,10 +32,11 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
   min_delta_angle = pi-1e-5;
   %min_delta_angle = pi-1e-3;
   min_size = 4;
+  triangle_flags = '';
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Force','MinSize','MinDeltaAngle'}, ...
-    {'force_remesh','min_size','min_delta_angle'});
+    {'Force','MinSize','MinDeltaAngle','TriangleFlags'}, ...
+    {'force_remesh','min_size','min_delta_angle','triangle_flags'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -117,11 +118,11 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
       % DT.Constraints = E;
       % Gc = DT.ConnectivityList;
       % Triangle is way faster...
-      [Wuo,Gc] = triangle(Vuo,E,[],'Quiet');
+      [Wuo,Gc] = triangle(Vuo,E,[],'Quiet','Flags',triangle_flags);
       %tsurf(Gc,Wuo);
       %input('');
       assert(size(Gc,1) >= 1);
-      assert(size(Wuo,1) == size(Vuo,1));
+      assert(size(Wuo,1) >= size(Vuo,1));
       % easier to remove holes post hoc than pass hole positions to triangle
       AE = adjacency_matrix(E);
       [~,CE] = graphconncomp(AE);
@@ -133,10 +134,29 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
 
 
       % remap Gc to V
+      uo = [uo;(size(W,1)+(1:(size(Wuo,1)-size(Vuo,1))))'];
+      Wnew = Wuo((size(Vuo,1)+1):end,:);
+      VA = V*A;
+      tsurf(Fc,VA);
+      hold on;
+      scatter(Wnew(:,1),Wnew(:,2));
+      hold off;
+      pause
+      I = in_element(VA,Fc,Wnew);
+      [~,I] = find(I);
+      assert(numel(I) == size(Wnew,1));
+      B = barycentric_coordinates( ...
+        Wnew,VA((Fc(I,1)),:),VA((Fc(I,2)),:),VA((Fc(I,3)),:));
+      Wnew = sum(bsxfun(@times, permute(B,[1 3 2]), ...
+        cat(3,V(Fc(I,1),:),V(Fc(I,2),:),V(Fc(I,3),:))),3);
+      W = [W;Wnew];
       Gc = uo(Gc);
+      
+      tsurf(Gc,W);
+      pause
       % old mean normal
       oldN = mean(normalizerow(normals(V,Fc)));
-      N = mean(normalizerow(normals(V,Gc)));
+      N = mean(normalizerow(normals(W,Gc)));
       flip  = dot(oldN,N) < 0;
       if flip
         Gc = fliplr(Gc);
@@ -144,6 +164,7 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
       %tsurf(Gc,W);
       %input('');
       G = [G;Gc];
+      assert(max(G(:))<=size(W,1));
     end
   end
 
