@@ -18,7 +18,7 @@
  * Modified from code by: 
  *    Jesus Mena
  *
- * mex -o ray_mesh_intersect ray_mesh_intersect.cpp
+ * mex ray_mesh_intersect.cpp
  * 
  */
 
