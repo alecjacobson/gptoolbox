@@ -28,7 +28,7 @@ void parse_rhs(
   using namespace std;
   using namespace igl;
   using namespace Eigen;
-  mexErrMsgTxt(nrhs >= 2, "The number of input arguments must be >=5.");
+  mexErrMsgTxt(nrhs >= 2, "The number of input arguments must be >=2.");
 
   const auto & parse_mesh = [](
     const mxArray *prhs[], 

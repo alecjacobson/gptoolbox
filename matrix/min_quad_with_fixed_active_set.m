@@ -23,6 +23,7 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
   %     lx n by 1 list of lower bounds [] implies -Inf
   %     ux n by 1 list of upper bounds [] implies Inf
   %     F  see output
+  %     'Quiet' followed by whether to suppress output
   %     'MaxIter' followed by maximum number of iterations {100}
   %     'ActiveThreshold' followed by threshold to determine whether constraint
   %       needs to be activated (smaller and negative means more
@@ -103,14 +104,15 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
   inactive_threshold = eps;
   stop_threshold = eps;
   active_threshold = eps;
+  quiet = false;
 
   % solve equality problem
-  force_Aeq_li = false;
+  force_Aeq_li = [];
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'MaxIter','ForceAeqLI','InactiveThreshold','StopThreshold','ActiveThreshold'}, ...
-    {'max_iter','force_Aeq_li','inactive_threshold','stop_threshold','active_threshold'});
+    {'Quiet','MaxIter','ForceAeqLI','InactiveThreshold','StopThreshold','ActiveThreshold'}, ...
+    {'quiet','max_iter','force_Aeq_li','inactive_threshold','stop_threshold','active_threshold'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -314,8 +316,10 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
     F.as_ieq = F.as_ieq(Lambda_ieq > inactive_threshold);
 
     if F.iter == max_iter
-      warning( ...
-        sprintf('Max iterations %d reached without convergence',max_iter));
+      if ~quiet
+        warning( ...
+          sprintf('Max iterations %d reached without convergence',max_iter));
+      end
       break
     end
     F.iter = F.iter + 1;

@@ -27,7 +27,7 @@ function varargout = plot_edges(V,E,varargin)
     error('Unsupported dimension: %d',size(V,2));
   end
   
-  if nargout>1
+  if nargout >= 1
     varargout{1} = p;
   end
 

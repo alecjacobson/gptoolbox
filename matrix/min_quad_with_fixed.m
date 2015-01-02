@@ -200,7 +200,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     A_sparse = issparse(A);
 
     % Determine number of linearly independent constraints
-    if neq > 0 && ~(isfield(F,'force_Aeq_li') && F.force_Aeq_li)
+    if neq > 0 && ~(isfield(F,'force_Aeq_li') && ~isempty(F.force_Aeq_li)&& F.force_Aeq_li)
       %tic;
       % Null space substitution with QR
       [AeqTQ,AeqTR,AeqTE] = qr(Aeq(:,F.unknown)');
@@ -214,7 +214,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     else
       F.Aeq_li = true;
     end
-    if neq > 0 && isfield(F,'force_Aeq_li')
+    if neq > 0 && isfield(F,'force_Aeq_li') && ~isempty(F.force_Aeq_li)
       F.Aeq_li = F.force_Aeq_li;
     end
 
