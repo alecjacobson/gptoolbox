@@ -4,7 +4,6 @@
 //       -lCGAL -lCGAL_Core -lgmp -lmpfr ...
 //       -lboost_thread-mt -lboost_system-mt
 // 
-// Use header only so that asserts get guarded.
 #ifdef MEX
 #  include <mex.h>
 #  undef assert
