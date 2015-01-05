@@ -14,7 +14,7 @@ function E = arap_energy(V,F,U,R,L)
   %
 
   % Should take optional 'Energy' parameter like arap.m
-  assert(false)
+  assert(false,'Use arap_gradient instead')
 
   % fit rotations if not given
   if ~exist('R','var')
