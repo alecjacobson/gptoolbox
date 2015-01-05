@@ -1,12 +1,16 @@
-function [V,F,b,bc] = triangulate_diffusion_curves(P)
-  % TRIANGULATE_DIFFUSION_CURVES  Construct a (properly slitted) mesh for a given set of curves and
+function [V,F,b,bc] = triangulate_curves(P,varargin)
+  % TRIANGULATE_CURVES Construct a (properly slitted) mesh for a given set of curves and
   % determine corresponding boundary conditions for solving diffusion curves.
   % 
+  % [V,F,b,bc] = triangulate_curves(P,varargin)
+  %
   % Inputs:
   %   P  #P by 2 list of curve points
   %    or
   %      #curve by 1 list of lists of curve points
   %  Optional:
+  %    'BoundingBox' followed by whether to include bounding box (otherwise
+  %    there better be an outer loop.
   %
   % Example:
   %     clf;
@@ -27,7 +31,7 @@ function [V,F,b,bc] = triangulate_diffusion_curves(P)
   %     for c = 1:numel(Praw)
   %       P{c} = dpsimplify(Praw{c},0.001);
   %     end
-  %     [V,F,b,bc] = triangulate_diffusion_curves(P);
+  %     [V,F,b,bc] = triangulate_curves(P);
   %     W = harmonic(V,F,b,bc);
   %     colors = random_color(4*numel(P));
   %     RGB = W * colors;
