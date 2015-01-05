@@ -8,7 +8,10 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
   %   F  #F by simplex-size list of simplex indices into V
   %   Optional:
   %     'Energy' followed by 'spokes','spokes-and-rims',or {'elements'}
+  % Outputs:
+  %   H  #V*dim by #V*dim 
   % 
+
   %Q = [repdiag(L,dim) BT';BT CC];
 
   energy = 'spokes-and-rims';
