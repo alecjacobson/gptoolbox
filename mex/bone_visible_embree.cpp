@@ -8,7 +8,7 @@
 //   -L/usr/local/igl/libigl/external/embree/build -lembree -lsys ...
 #include <igl/embree/bone_visible.h>
 
-#include <igl/matlab/mexStream.h>
+#include <igl/matlab/MexStream.h>
 
 #include <mex.h>
 #include <Eigen/Dense>
@@ -117,7 +117,7 @@ void mexFunction(
   using namespace Eigen;
   using namespace igl;
 
-  igl::mexStream mout;        
+  igl::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 

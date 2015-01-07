@@ -58,18 +58,18 @@
 // 
 #ifdef MEX
 #  include <mex.h>
+#  include <igl/C_STR.h>
 #  undef assert
 #  define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
-#endif
-
+#else
 #include <igl/read_triangle_mesh.h>
 #include <igl/pathinfo.h>
 #include <igl/writeOFF.h>
 #include <igl/writeOBJ.h>
-#include <igl/doublearea.h>
 #include <igl/writeDMAT.h>
+#endif
+#include <igl/doublearea.h>
 #include <igl/unique_simplices.h>
-#include <igl/C_STR.h>
 #ifdef MEX
 #  define IGL_REDRUM_NOOP
 #endif
