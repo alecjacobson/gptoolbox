@@ -17,9 +17,14 @@
 %   end
 % end
 
+
 lastworkspace = '/var/tmp/lastworkspace.mat';
-disp(['Saving workspace data to ' lastworkspace]);
-save(lastworkspace);
+if fileattrib(lastworkspace,'-w')
+  disp(['Saving workspace data to ' lastworkspace]);
+  save(lastworkspace);
+else
+  warning('Workspace recovery location not writable');
+end
 
 if usejava('desktop')
   setpref('StartupDirectory','LastWorkingDirectory',pwd) 
@@ -31,4 +36,3 @@ if usejava('desktop')
       return 
   end
 end
-
