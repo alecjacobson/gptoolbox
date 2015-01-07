@@ -105,7 +105,7 @@ function [b,K] = arap_rhs(varargin)
     % collect rotations into a single column
     Rcol = reshape(permute(R,[3 1 2]),nr*dim*dim,1);
     b = K * Rcol;
-    b = reshape(b,[size(V,1) 2]);
+    b = reshape(b,[size(V,1) dim]);
   else
     b = [];
   end

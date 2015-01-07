@@ -8,13 +8,45 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
   %   F  #F by simplex-size list of simplex indices into V
   %   Optional:
   %     'Energy' followed by 'spokes','spokes-and-rims',or {'elements'}
+  %     'EvaluationPoint' followed by U  #V by dim list of current positions
+  %     'Rotations' followed by best fit rotations R  dim by dim #R
+  %       corresponding to U {compute using `fit_rotations`}
+  % Outputs:
+  %   H  #V*dim by #V*dim 
+  %
+  % See also: arap, arap_gradient
   % 
+  % Example:
+  % % Given a mesh (V,F) and deformed positions U0, flow to energy minimum
+  % % using Newton's method.
+  % clf;
+  % hold on;
+  %   tsurf(F,V,'FaceAlpha',0.2,'EdgeAlpha',0.2,'FaceColor','r');
+  %   t = tsurf(F,U0,'FaceAlpha',0.2,'EdgeAlpha',0.2,'FaceColor','b');
+  % hold off;
+  % axis equal;
+  % U = U0;
+  % delta_t = 1;
+  % while true
+  %   [G,E,R] = arap_gradient(V,F,U);
+  %   H = arap_hessian(V,F,'EvaluationPoint',U,'Rotations',R);
+  %   U = U - reshape(delta_t * (H \ G(:)),size(U));
+  %   U = bsxfun(@plus,U,mean(V)-mean(U));
+  %   t.Vertices = U;
+  %   title(sprintf('E = %g\n',E),'FontSize',20);
+  %   drawnow;
+  % end
+  %
+
   %Q = [repdiag(L,dim) BT';BT CC];
 
   energy = 'spokes-and-rims';
+  U = [];
+  R = [];
   % default values
   % Map of parameter names to variable names
-  params_to_variables = containers.Map( {'Energy'},{'energy'});
+  params_to_variables = containers.Map( ...
+    {'Energy','EvaluationPoint','Rotations'},{'energy','U','R'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -70,13 +102,23 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
   CSM = covariance_scatter_matrix(V,F,'Energy',energy);
   % Number of rotations
   nr = size(CSM,1)/dim;
-  S = CSM*repmat(V,dim,1);
-  SS = permute(reshape(S,[size(CSM,1)/dim dim dim]),[2 3 1]);
+  if isempty(U)
+    % #R*dim by dim
+    S = CSM*repmat(V,dim,1);
+  else
+    S = CSM*repmat(U,dim,1);
+    SS = permute(reshape(S,[nr dim dim]),[2 3 1]);
+    % S(:,:,r) := R(:,:,r) * S(:,:,r)
+    if isempty(R)
+      R = fit_rotations(SS);
+    end
+    RSS = zeros(size(R));
+    for j = 1:dim
+      RSS = RSS + bsxfun(@times,R(:,j,:),SS(j,:,:));
+    end
+    S = reshape(permute(RSS,[3 1 2]),[nr*dim dim]);
+  end
   %S = reshape(permute(reshape(S,[],2,dim),[3 2 1]),dim,[])';
-  CI = repmat(1:nr*dim,dim,1)';
-  CJ = repmat(reshape(1:nr*dim,nr,dim),dim,1);
-  CC = -3*sparse(CI,CJ,S,nr*dim,nr*dim);
-  CC = CC-diag(sparse(repmat(sum(reshape(diag(CC),nr,dim),2),dim,1)));
 
   X = cell(3,1);
   for d = 1:dim
@@ -87,9 +129,33 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
            X{3}     Z -X{1}; ...
           -X{2}  X{1}     Z];
 
-  % Inverting CC explicitly is also possible (and fast if done correctly) but
-  % `chol` seems to be pretty fast.
-  [LCC,p]=chol(CC);
-  BCBT = BT'*(LCC\(LCC'\BT));
+  CI = repmat(1:nr*dim,dim,1)';
+  CJ = repmat(reshape(1:nr*dim,nr,dim),dim,1);
+  CC = -3*sparse(CI,CJ,S,nr*dim,nr*dim);
+  CC = CC-diag(sparse(repmat(sum(reshape(diag(CC),nr,dim),2),dim,1)));
+
+    % A X = B
+    % But P' A P is easier to invert
+    % P' A X = P' B
+    % Let P Y = X --> Y = P' X
+    % P' A P Y = P' B
+    % Y = (P' A P) \ P' B
+    % P' X  = (P' A P) \ P' B
+    % X  = P (P' A P) \ P' B
+    % inv(A) = P * inv(P' A P) P'
+
+  %BCBT    = BT'*(CC\BT);
+  P = sparse(1:nr*dim,reshape(1:nr*dim,dim,nr)',1);
+  function X = chol_solve(A,B)
+    [csL,p,csS] = chol(A);
+    if p ~= 0
+      warning('arap_hessian: chol failed');
+      X = A \ B;
+    else
+      X = csS*(csL\(csL'\(csS'*B)));
+    end
+  end
+  BCBT = BT'*(P*chol_solve(P'*CC*P,P'*BT));
+
   H = repdiag(L,dim) - BCBT;
 end

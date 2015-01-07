@@ -21,7 +21,7 @@
 lastworkspace = '/var/tmp/lastworkspace.mat';
 if fileattrib(lastworkspace,'-w')
   disp(['Saving workspace data to ' lastworkspace]);
-  save(lastworkspace)
+  save(lastworkspace);
 else
   warning('Workspace recovery location not writable');
 end
@@ -36,4 +36,3 @@ if usejava('desktop')
       return 
   end
 end
-  
