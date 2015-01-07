@@ -122,7 +122,7 @@ int main(int argc, char * argv[])
   //
   // Load mesh
   string filenameA(argv[1]);
-  if(!read(filenameA,V,F))
+  if(!read_triangle_mesh(filenameA,V,F))
   {
     //cout<<REDRUM("Reading "<<filename<<" failed.")<<endl;
     return false;
@@ -130,7 +130,7 @@ int main(int argc, char * argv[])
   cout<<GREENGIN("Read "<<filenameA<<" successfully.")<<endl;
 
   string filenameB(argv[2]);
-  if(!read(filenameB,U,G))
+  if(!read_triangle_mesh(filenameB,U,G))
   {
     //cout<<REDRUM("Reading "<<filename<<" failed.")<<endl;
     return false;
