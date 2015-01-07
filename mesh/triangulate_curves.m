@@ -5,9 +5,7 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
   % [V,F,b,bc] = triangulate_curves(P,varargin)
   %
   % Inputs:
-  %   P  #P by 2 list of curve points
-  %    or
-  %      #curve by 1 list of lists of curve points
+  %    #curve by 1 list of lists of curve points
   %  Optional:
   %    'BoundingBox' followed by whether to include bounding box (otherwise
   %    there better be an outer loop.
@@ -38,7 +36,25 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
   %     tsurf(F,[V W(:,4)],'FaceVertexCData',clamp(RGB),fphong,'EdgeColor','none');axis equal;view(2)
   %
 
-
+  % default values
+  use_bounding_box = true;
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'BoundingBox'}, ...
+    {'use_bounding_box'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace 
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
 
   E = [];
   % list of all points
@@ -47,14 +63,19 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
   % from
   curve_pos_ind = 0;
   for c = 1:numel(P)
-    Pc = P{c};
-    l = sqrt(sum((Pc(1:end,:) - Pc([2:end 1],:)).^2,2));
-    Ec = [1:size(Pc,1)-1;2:size(Pc,1)]';
+    if isstruct(P{c})
+      Pc = P{c}.P;
+      Ec = P{c}.E;
+    else
+      Pc = P{c};
+      Ec = [1:size(Pc,1)-1;2:size(Pc,1)]';
+    end
     % inefficient appending
     curve_pos_ind = [curve_pos_ind curve_pos_ind(end)+size(Ec,1)];
     E = [E;size(PP,1)+Ec];
     PP = [PP;Pc];
   end
+  l = normrow(PP(E(:,1),:)-PP(E(:,2),:));
 
   Facets = [];
   Facets.facets = mat2cell(E,ones(size(E,1),1),2);
@@ -65,23 +86,27 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
   max_area = min(l)^2;
   for pass = 1:2
     prefix = tempprefix();
-    BB = bounding_box(PP);
-    BB = bsxfun(@plus,1.1*bsxfun(@minus,BB,mean(BB)),mean(BB));
+    if use_bounding_box
+      BB = bounding_box(PP);
+      BB = bsxfun(@plus,1.1*bsxfun(@minus,BB,mean(BB)),mean(BB));
+      bb_flag = 'c';
+    else 
+      BB = [];
+      bb_flag = '';
+    end
     writePOLY_triangle([prefix '.poly'],[PP;BB],Facets,[]);
     % Careful, triangle does not understand scientific notation
-    flags = sprintf('-q33pa%0.17fc',max_area);
+    flags = sprintf('-q33pa%0.17f%s',max_area,bb_flag);
     %flags = '-cp';
     command = [path_to_triangle ' ' flags ' ' prefix];
     [status, result] = system( command );
     if(status ~= 0)
        error(result);
     end
-
     [V,I] = readNODE([prefix '.1.node']);
     F = readELE([prefix '.1.ele']);
     max_area = mean(doublearea(V,F))*2;
   end
-
   [~,BE,BM] = readPOLY_triangle([prefix '.1.poly']);
   BE = BE(BM>1,:);
   BM = BM(BM>1,:)-1;
@@ -218,9 +243,6 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
   % remap left/right
   b_left = I(b_left);
   b_right = I(b_right);
-
-
-
 
   % Let shared vertices---internal curve endpoints---"float"
   % But really this should be left up to implementation

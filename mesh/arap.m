@@ -1,4 +1,4 @@
-function [U,CSM,SS,R] = arap(varargin)
+function [U,data,SS,R] = arap(varargin)
   % ARAP Solve for the as-rigid-as-possible deformation according to various
   % manifestations including:
   %   (1) "As-rigid-as-possible Surface Modeling" by [Sorkine and Alexa 2007]
@@ -39,8 +39,7 @@ function [U,CSM,SS,R] = arap(varargin)
   %     'V0' #V by dim list of initial guess positions
   %       dim by dim by #C list of linear transformations initial guesses,
   %       optional (default is to use identity transformations)
-  %     'CovarianceScatterMatrix'
-  %       followed by CSM a dim*n by dim*n sparse matrix, see Outputs
+  %     'Data' see output
   %     'Groups'
   %       followed by #V list of group indices (1 to k) for each vertex, such 
   %       that vertex i is assigned to group G(i)
@@ -64,10 +63,11 @@ function [U,CSM,SS,R] = arap(varargin)
   %       arbitrary point at the origin and another along the x-axis {false}
   % Outputs:
   %   U  #V by dim list of new positions
-  %   CSM dim*n by dim*n sparse matrix containing special laplacians along the
-  %     diagonal so that when multiplied by repmat(U,dim,1) gives covariance 
-  %     matrix elements, can be used to speed up next time this function is
-  %     called, see function definitions
+  %   data  struct of reusable data
+  %     .CSM dim*n by dim*n sparse matrix containing special laplacians along the
+  %       diagonal so that when multiplied by repmat(U,dim,1) gives covariance
+  %       matrix elements, can be used to speed up next time this function is
+  %       called, see function definitions
   %
   % Known issues: 'Flat',true + 'Energy','elements' should only need a 2D
   % rotation fit, but this does 3D to stay general (e.g. if one were to use
@@ -88,12 +88,16 @@ function [U,CSM,SS,R] = arap(varargin)
   assert(isempty(b) || max(b) <= n);
   assert(isempty(b) || min(b) >= 1);
 
+  indices = 1:n;
+  max_iterations = 100;
+  tol = 0.001;
+  interior = indices(~ismember(indices,b));
+  U = [];
+  Vm1 = [];
   % default is Sorkine and Alexa style local rigidity energy
   energy = 'spokes';
-  % default is no dynamics
-  dynamic = false;
   % default is no external forces
-  fext = zeros(size(V));
+  fext = [];
   % defaults is unit time step
   h = 1;
   % Tikhonov regularization alpha
@@ -102,72 +106,43 @@ function [U,CSM,SS,R] = arap(varargin)
   flat = false;
   % remove rigid transformation invariance
   remove_rigid = false;
+  G = [];
+  debug = false;
+  data = [];
 
-  ii = 5;
-  while(ii <= nargin)
-    switch varargin{ii}
-    case 'Energy'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      energy = varargin{ii};
-    case 'V0'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      U = varargin{ii};
-    case 'CovarianceScatterMatrix'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      if ~isempty(varargin{ii})
-        CSM = varargin{ii};
-      end
-    case 'Tikhonov'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      alpha_tik = varargin{ii};
-    case 'Groups'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      G = varargin{ii};
-      if isempty(G)
-        k = n;
-      else
-        k = max(G);
-      end
-    case 'Tol'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      tol = varargin{ii};
-    case 'MaxIter'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      max_iterations = varargin{ii};
-    case 'Dynamic'
-      ii = ii + 1;
-      dynamic = true;
-      assert(ii<=nargin);
-      fext = varargin{ii};
-    case 'TimeStep'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      h = varargin{ii};
-    case 'Vm1'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      Vm1 = varargin{ii};
-    case 'Flat'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      flat = varargin{ii};
-    case 'RemoveRigid'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      remove_rigid = varargin{ii};
-    otherwise
-      error(['Unsupported parameter: ' varargin{ii}]);
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Energy','V0','Data','Tikhonov','Groups','Tol', ...
+     'MaxIter','Dynamic','TimeStep','Vm1','Flat','RemoveRigid','Debug'}, ...
+    {'energy','U','data','alpha_tik','G','tol','max_iterations','fext', ...
+    'h','Vm1','flat','remove_rigid','debug'});
+  v = 5;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace 
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
     end
-    ii = ii + 1;
+    v=v+1;
   end
 
+  if isempty(fext)
+    dynamic = false;
+    fext = zeros(size(V));
+  else
+    dynamic = true;
+  end
+
+
+  if isempty(G)
+    k = n;
+  else
+    k = max(G);
+  end
   if flat
     [ref_V,ref_F,ref_map] = plane_project(V,F);
     assert(strcmp(energy,'elements'),'flat only makes sense with elements');
@@ -177,13 +152,13 @@ function [U,CSM,SS,R] = arap(varargin)
     ref_F = F;
   end
   dim = size(ref_V,2);
-
   if isempty(bc)
     bc = sparse(0,dim);
   end
+
   assert(dim == size(bc,2));
 
-  if(~exist('U','var') || isempty(U))
+  if isempty(U)
     if(dim == 2) 
       U = laplacian_mesh_editing(V,F,b,bc);
     else
@@ -196,7 +171,7 @@ function [U,CSM,SS,R] = arap(varargin)
 
   if dynamic
     V0 = U(:,1:dim);
-    if ~exist('Vm1','var')
+    if isempty(Vm1)
       Vm1 = V0;
     end
     M = massmatrix(V,F,'voronoi');
@@ -209,19 +184,28 @@ function [U,CSM,SS,R] = arap(varargin)
     Dl = sparse(size(V,1),dim);
   end
 
-  if(~exist('L','var'))
-    if(size(F,2) == 3)
-      L = cotmatrix(V,F);
-    elseif(size(F,2) == 4)
-      L = cotmatrix3(V,F);
-    else
+  if ~isfield(data,'L') || isempty(data.L)
+    switch size(F,2)
+    case 3
+      data.L = cotmatrix(V,F);
+    case 4
+      data.L = cotmatrix3(V,F);
+    otherwise
       error('Invalid face list');
     end
   end
 
   rr.b = cell(dim,1);
   rr.bc = cell(dim,1);
-  rr.preF = cell(dim,1);
+  if ~isfield(data,'rr')
+    data.rr = [];
+    if ~isfield(data.rr,'preF')
+      data.rr.preF = cell(dim,1);
+    end
+  end
+  if ~isfield(data,'preF')
+    data.preF = [];
+  end
   if remove_rigid
     if ~isempty(b)
       warning('RemoveRigid`s constraints are not typically wanted if |b|>0');
@@ -260,10 +244,6 @@ function [U,CSM,SS,R] = arap(varargin)
     end
   end
 
-  if(~exist('interior','var'))
-    indices = 1:n;
-    interior = indices(~ismember(indices,b));
-  end
   all = [interior b];
 
   % cholesky factorization
@@ -272,23 +252,18 @@ function [U,CSM,SS,R] = arap(varargin)
   %[luL,luU,luP,luQ,luR] = lu(-L(interior,interior));
 
   %R = repmat(eye(dim,dim),[1 1 n]);
-  if(~exist('max_iterations','var'))
-    max_iterations = 100;
-  end
 
-  ae = avgedge(V,F);
-  if(~exist('tol','var'))
-    tol = 0.001;
+  if ~isfield(data,'ae') || isempty(data.ae)
+    data.ae = avgedge(V,F);
   end
-
 
   % build covariance scatter matrix used to build covariance matrices we'll
   % later fit rotations to
-  if(~exist('CSM','var'))
+  if ~isfield(data,'CSM') || isempty(data.CSM)
     assert(size(ref_V,2) == dim);
-    CSM = covariance_scatter_matrix(ref_V,ref_F,'Energy',energy);
+    data.CSM = covariance_scatter_matrix(ref_V,ref_F,'Energy',energy);
     if flat
-      CSM = CSM * repdiag(ref_map',dim);
+      data.CSM = data.CSM * repdiag(ref_map',dim);
     end
     
     % if there are groups then condense scatter matrix to only build
@@ -300,23 +275,47 @@ function [U,CSM,SS,R] = arap(varargin)
       end
       G_sum = group_sum_matrix(G,k);
       %CSM = [G_sum sparse(k,n); sparse(k,n) G_sum] * CSM;
-      CSM = repdiag(G_sum,dim) * CSM;
+      data.CSM = repdiag(G_sum,dim) * data.CSM;
     end
   end
 
   % precompute rhs premultiplier
-  [~,K] = arap_rhs(ref_V,ref_F,[],'Energy',energy);
-  if flat
-    K = repdiag(ref_map,dim) * K;
+  if ~isfield(data,'K') || isempty(data.K)
+    [~,data.K] = arap_rhs(ref_V,ref_F,[],'Energy',energy);
+    if flat
+      data.K = repdiag(ref_map,dim) * data.K;
+    end
   end
 
   % initialize rotations with identies (not necessary)
-  R = repmat(eye(dim,dim),[1 1 size(CSM,1)/dim]);
+  R = repmat(eye(dim,dim),[1 1 size(data.CSM,1)/dim]);
 
   iteration = 0;
   U_prev = V;
-  preF = [];
-  while( iteration < max_iterations && (iteration == 0 || max(abs(U(:)-U_prev(:)))>tol*ae))
+  data.energy = inf;
+  while true
+
+    if iteration > max_iterations
+      if debug
+        fprintf('arap: Iter (%d) > max_iterations (%d)\n',iteration,max_iterations);
+      end
+      break;
+    end
+
+    if iteration > 0
+      change = max(abs(U(:)-U_prev(:)));
+      if debug
+        fprintf('arap: iter: %d, change: %g, energy: %g\n', ...
+          iteration,change,data.energy);
+      end
+      if change <tol*data.ae
+        if debug
+          fprintf('arap: change (%g) < tol*ae (%g * %g)\n',change,tol,data.ae);
+        end
+        break;
+      end
+    end
+
     U_prev = U;
 
     % energy after last global step
@@ -325,12 +324,12 @@ function [U,CSM,SS,R] = arap(varargin)
     %[1 E]
 
     % compute covariance matrix elements
-    S = zeros(size(CSM,1),dim);
-    S(:,1:dim) = CSM*repmat(U,dim,1);
+    S = zeros(size(data.CSM,1),dim);
+    S(:,1:dim) = data.CSM*repmat(U,dim,1);
     % dim by dim by n list of covariance matrices
-    SS = permute(reshape(S,[size(CSM,1)/dim dim dim]),[2 3 1]);
+    SS = permute(reshape(S,[size(data.CSM,1)/dim dim dim]),[2 3 1]);
     % fit rotations to each deformed vertex
-    R = fit_rotations(SS);
+    R = fit_rotations(SS,'SinglePrecision',true);
 
     % energy after last local step
     U(b,:) = bc;
@@ -350,8 +349,8 @@ function [U,CSM,SS,R] = arap(varargin)
     U(b,:) = bc;
 
     %B = arap_rhs(V,F,R);
-    Rcol = reshape(permute(R,[3 1 2]),size(K,2),1);
-    Bcol = K * Rcol;
+    Rcol = reshape(permute(R,[3 1 2]),size(data.K,2),1);
+    Bcol = data.K * Rcol;
     B = reshape(Bcol,[size(Bcol,1)/dim dim]);
 
     % RemoveRigid requires to solve each indepently
@@ -359,15 +358,24 @@ function [U,CSM,SS,R] = arap(varargin)
       for c = 1:dim
         eff_b = [b rr.b{c}];
         eff_bc = [bc(:,c);rr.bc{c}];
-        [U(:,c),rr.preF{c}] = min_quad_with_fixed( ...
-          -0.5*L+DQ+alpha_tik*speye(size(L)), ...
-          -B(:,c)+Dl(:,c),eff_b,eff_bc,[],[],rr.preF{c});
+        [U(:,c),data.rr.preF{c}] = min_quad_with_fixed( ...
+          -0.5*data.L+DQ+alpha_tik*speye(size(data.L)), ...
+          -B(:,c)+Dl(:,c),eff_b,eff_bc,[],[],data.rr.preF{c});
       end
     else 
-      [U,preF] = min_quad_with_fixed( ...
-        -0.5*L+DQ+alpha_tik*speye(size(L)),-B+Dl,b,bc,[],[],preF);
+      [U,data.preF] = min_quad_with_fixed( ...
+        -0.5*data.L+DQ+alpha_tik*speye(size(data.L)), ...
+        -B+Dl,b,bc,[],[],data.preF);
     end
-    energy = trace(U'*(-0.5*L)*U+U'*(-B))
+    energy_prev = data.energy;
+    data.energy = trace(U'*(-0.5*data.L)*U+U'*(-B)+V'*(-0.5*data.L*V));
+    if data.energy > energy_prev
+      if debug
+        fprintf('arap: energy (%g) increasing (over %g)\n', ...
+          data.energy,energy_prev);
+      end
+      break;
+    end
     %U(interior,:) = -L(interior,interior) \ (B(interior,:) + L(interior,b)*bc);
     %U(interior,:) = -L(interior,all)*L(all,interior) \ (L(interior,all)*B(all,:) + L(interior,all)*L(all,b)*bc);
     %U(interior,:) = luQ*(luU\(luL\(luP*(luR\(B(interior,:)+L(interior,b)*bc)))));

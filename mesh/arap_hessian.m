@@ -118,12 +118,7 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
     end
     S = reshape(permute(RSS,[3 1 2]),[nr*dim dim]);
   end
-
   %S = reshape(permute(reshape(S,[],2,dim),[3 2 1]),dim,[])';
-  CI = repmat(1:nr*dim,dim,1)';
-  CJ = repmat(reshape(1:nr*dim,nr,dim),dim,1);
-  CC = -3*sparse(CI,CJ,S,nr*dim,nr*dim);
-  CC = CC-diag(sparse(repmat(sum(reshape(diag(CC),nr,dim),2),dim,1)));
 
   X = cell(3,1);
   for d = 1:dim
@@ -134,11 +129,33 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
            X{3}     Z -X{1}; ...
           -X{2}  X{1}     Z];
 
-  % Inverting CC explicitly is also possible (and fast if done correctly) but
-  % `chol` seems to be pretty fast.
-  [LCC,p,SCC]=chol(CC);
-  BCBT = BT'*(SCC*(LCC\(LCC'\(SCC'*BT))));
-  %BCBT = BT'*(CC\BT);
+  CI = repmat(1:nr*dim,dim,1)';
+  CJ = repmat(reshape(1:nr*dim,nr,dim),dim,1);
+  CC = -3*sparse(CI,CJ,S,nr*dim,nr*dim);
+  CC = CC-diag(sparse(repmat(sum(reshape(diag(CC),nr,dim),2),dim,1)));
+
+    % A X = B
+    % But P' A P is easier to invert
+    % P' A X = P' B
+    % Let P Y = X --> Y = P' X
+    % P' A P Y = P' B
+    % Y = (P' A P) \ P' B
+    % P' X  = (P' A P) \ P' B
+    % X  = P (P' A P) \ P' B
+    % inv(A) = P * inv(P' A P) P'
+
+  %BCBT    = BT'*(CC\BT);
+  P = sparse(1:nr*dim,reshape(1:nr*dim,dim,nr)',1);
+  function X = chol_solve(A,B)
+    [csL,p,csS] = chol(A);
+    if p ~= 0
+      warning('arap_hessian: chol failed');
+      X = A \ B;
+    else
+      X = csS*(csL\(csL'\(csS'*B)));
+    end
+  end
+  BCBT = BT'*(P*chol_solve(P'*CC*P,P'*BT));
 
   H = repdiag(L,dim) - BCBT;
 end

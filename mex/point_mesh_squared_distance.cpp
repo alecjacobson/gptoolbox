@@ -6,10 +6,6 @@
 //       -lCGAL -lCGAL_Core -lgmp -lmpfr ...
 //       -lboost_thread-mt -lboost_system-mt
 // 
-// Use header only so that asserts get guarded.
-#ifndef IGL_HEADER_ONLY
-#  define IGL_HEADER_ONLY
-#endif
 #include <mex.h>
 #undef assert
 #define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )

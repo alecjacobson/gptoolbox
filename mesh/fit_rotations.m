@@ -1,4 +1,4 @@
-function [R,SS] = fit_rotations(varargin)
+function [R,SS] = fit_rotations(S,varargin)
   % FIT_ROTATIONS Given an input mesh and new positions find rotations for
   % every vertex that best maps its one ring to the new one ring
   % 
@@ -15,15 +15,24 @@ function [R,SS] = fit_rotations(varargin)
   %   SS  dim by dim by #rotations list of svd diagonals
   %
 
+  % Even faster way to check if mex exists
+  if fit_rotations_mex
+    nr = size(S,3);
+    dim = size(S,1);
+    SS = reshape(permute(S,[3 1 2]),[nr*dim dim]);
+    R = fit_rotations_mex(SS,varargin{:});
+    R = reshape(R,[dim dim nr]);
+    return;
+  end
 
-  S = varargin{1};
+
   dim = size(S,1);
   assert(dim == size(S,2));
-  ii = 2;
   nr = size(S,3);
-
   allow_flips = false;
-  while(ii<=nargin)
+
+  ii = 1;
+  while(ii<=numel(varargin))
     switch varargin{ii}
     case 'AllowFlips'
       if( (ii+1)<=nargin && ~ischar(varargin{ii+1}))
