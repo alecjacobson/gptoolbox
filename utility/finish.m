@@ -17,9 +17,8 @@
 %   end
 % end
 
-
 lastworkspace = '/var/tmp/lastworkspace.mat';
-if fileattrib(lastworkspace,'-w')
+if is_writable(lastworkspace)
   disp(['Saving workspace data to ' lastworkspace]);
   save(lastworkspace);
 else
