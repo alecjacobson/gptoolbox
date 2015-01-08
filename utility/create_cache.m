@@ -9,9 +9,12 @@ function create_cache(cache_name)
   %
   % See also: find_cache
 
-  % get a list of current variables in this scope, this is the input "state"
-  variables = evalin('caller','who');
-  variable_names = sprintf('^%s$|',variables{:});
-  save_cmd = sprintf('save(''%s'',''-regexp'',''%s'');',cache_name,variable_names);
-  evalin('caller',save_cmd);
+  % Something's not working correctly on linux
+  if ismac
+    % get a list of current variables in this scope, this is the input "state"
+    variables = evalin('caller','who');
+    variable_names = sprintf('^%s$|',variables{:});
+    save_cmd = sprintf('save(''%s'',''-regexp'',''%s'');',cache_name,variable_names);
+    evalin('caller',save_cmd);
+  end
 end

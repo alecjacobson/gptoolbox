@@ -14,6 +14,12 @@ function [cache_exists,cache_name] = find_cache()
   %   
   % See also: create_cache
 
+  % Something's not working correctly on linux
+  if ~ismac
+    cache_exists = false;
+    cache_name = '';
+  end
+
   S = dbstack(1);
   caller_name = S.name;
   % get a list of current variables in this scope, this is the input "state"
@@ -21,7 +27,6 @@ function [cache_exists,cache_name] = find_cache()
   % get a temporary file's name
   tmpf = [tempname('.') '.mat'];
 
-  tmpf = '2.mat';
   variable_names = sprintf('^%s$|',variables{:});
   save_cmd = sprintf('save(''%s'',''-regexp'',''%s'');',tmpf,variable_names);
   % save the "state" of the caller to file, so we can get a md5 checksum

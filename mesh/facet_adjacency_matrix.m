@@ -11,6 +11,8 @@ function [A,uE2F,uE] = facet_adjacency_matrix(F)
   %
   % See also: adjacency_matrix
 
+  ss = size(F,2);
+  assert(ss==3,'Facets should be triangles');
   % List of all "half"-edges: 3*#F by 2
   allE = [F(:,[2 3]); F(:,[3 1]); F(:,[1 2])];
   % Sort each row
