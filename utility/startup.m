@@ -19,5 +19,6 @@ if ispref('StartupDirectory','LastWorkingDirectory')
         disp(lwd)
     end;
 end;
+com.mathworks.mde.desk.MLDesktop.getInstance.restoreLayout('figure-command-history');
 clear lwd;
 format short g;
