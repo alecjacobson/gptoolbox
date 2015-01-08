@@ -14,8 +14,9 @@ function [cache_exists,cache_name] = find_cache()
   %   
   % See also: create_cache
 
-  % Something's not working correctly on linux
-  if ~ismac
+
+  %if ~ismac
+  if ~isunix
     cache_exists = false;
     cache_name = '';
   end
@@ -34,8 +35,22 @@ function [cache_exists,cache_name] = find_cache()
 
   % get md5 checksum on input "state", we append .cache.mat to the check sum
   % because we'll use the checksum as the cache file name
-  [s,cache_name] = system(['tail -c +117 ' tmpf ...
-    ' | md5 -r | awk ''{printf ".' caller_name '.cache."$1".mat"}''']);
+  if ismac
+    md5_cmd = 'md5 -r';
+  elseif isunix
+    md5_cmd = 'md5sum';
+  else
+    assert(false,'What OS is this?')
+  end
+  [s,md5_res] = system(sprintf('tail -c +117 %s | %s',tmpf,md5_cmd));
+  if s~=0
+    cache_exists = false;
+    cache_name = '';
+    return;
+  end
+  md5_res = sscanf(md5_res,'%s',1);
+  cache_name = sprintf('.%s.cache.%s.mat',caller_name,md5_res);
+
   % clean up
   delete(tmpf);
   clear s tmpf variables;

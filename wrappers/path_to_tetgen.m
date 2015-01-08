@@ -14,8 +14,19 @@ function s = path_to_tetgen()
     s = 'c:/prg/lib/tetgen/Release/tetgen.exe';
   elseif ismac
     s = '/usr/local/bin/tetgen';
-  elseif isunix 
+  elseif isunix
     % I guess this means linux
-    s = '/usr/local/bin/tetgen';
+    [~,s] = system('which tetgen');
+    s = strtrim(s);
+    if isempty(s)
+      guesses = { ...
+        '/usr/local/bin/tetgen', ...
+        '/opt/local/bin/tetgen', ...
+        '/usr/local/igl/libigl/external/tetgen/tetgen', ...
+        '/usr/local/libigl/external/tetgen/tetgen'};
+      s = ...
+        guesses{find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first')};
+      assert(~isempty(s),'Could not find tetgen');
+    end
   end
 end

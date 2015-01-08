@@ -31,20 +31,23 @@ function [R,SS] = fit_rotations(S,varargin)
   nr = size(S,3);
   allow_flips = false;
 
-  ii = 1;
-  while(ii<=numel(varargin))
-    switch varargin{ii}
-    case 'AllowFlips'
-      if( (ii+1)<=nargin && ~ischar(varargin{ii+1}))
-        ii = ii + 1;
-        allow_flips = varargin{ii};
-      else
-        allow_flips = true;
-      end
-    otherwise
-      error('Invalid parameter');
+  single_precision = true;
+  % default values
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( {'AllowFlips','SinglePrecision'}, ...
+    {'allow_flips','single_precision'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
     end
-    ii = ii+1
+    v=v+1;
   end
 
   %R = cellfun(@fit_rotation,S,'UniformOutput',false);

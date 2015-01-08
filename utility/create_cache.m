@@ -9,8 +9,7 @@ function create_cache(cache_name)
   %
   % See also: find_cache
 
-  % Something's not working correctly on linux
-  if ismac
+  if isunix
     % get a list of current variables in this scope, this is the input "state"
     variables = evalin('caller','who');
     variable_names = sprintf('^%s$|',variables{:});
