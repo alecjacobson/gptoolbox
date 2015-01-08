@@ -14,6 +14,7 @@ function [A] = adjacency_matrix(E)
   % Outputs:
   %   A  #V by #V adjacency matrix (#V = max(E(:)))
   %    
+  % See also: facet_adjacency_matrix
   %
 
   if(size(E,2)>2)
