@@ -23,7 +23,7 @@ function s = path_to_meshfix()
         '/usr/local/igl/libigl/external/MeshFix/meshfix', ...
         '/usr/local/libigl/external/MeshFix/meshfix'};
       s = ...
-        guesses(find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first'));
+        guesses{find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first')};
       assert(~isempty(s),'Could not find meshfix');
     end
   end
