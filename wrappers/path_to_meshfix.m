@@ -12,10 +12,19 @@ function s = path_to_meshfix()
       'Could you put meshfix there and change this accordingly?' ...
       'Thanks, Alec']);
     s = 'c:/prg/lib/meshfix/Release/meshfix.exe';
-  elseif ismac
-    s = '/usr/local/igl/libigl/external/MeshFix/meshfix';
-  elseif isunix 
+  elseif isunix || ismac
     % I guess this means linux
-    s = '/usr/local/bin/meshfix';
+    [status, s] = system('which meshfix');
+    s = strtrim(s);
+    if isempty(s)
+      guesses = { ...
+        '/usr/local/bin/meshfix', ...
+        '/opt/local/bin/meshfix', ...
+        '/usr/local/igl/libigl/external/MeshFix/meshfix', ...
+        '/usr/local/libigl/external/MeshFix/meshfix'};
+      s = ...
+        guesses(find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first'));
+      assert(~isempty(s),'Could not find meshfix');
+    end
   end
 end
