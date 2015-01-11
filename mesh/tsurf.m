@@ -96,15 +96,23 @@ function t = tsurf(F,V,varargin)
     view(2);
   end
 
-  if(vertex_indices==1)
-    text(V(:,1),V(:,2),V(:,3),num2str((1:n)'),'BackgroundColor',[.8 .8 .8]);
-  elseif(vertex_indices)
-    text(V(:,1),V(:,2),V(:,3),num2str((1:n)'));
+  if vertex_indices
+    visible = reshape(unique(F),[],1);
+    if(vertex_indices==1)
+      text(V(visible,1),V(visible,2),V(visible,3),num2str(visible),'BackgroundColor',[.8 .8 .8]);
+    elseif(vertex_indices)
+      text(V(visible,1),V(visible,2),V(visible,3),num2str(visible));
+    end
   end
   % uncomment these to switch to a better 3d surface viewing mode
   %axis equal; axis vis3d;
   %axis(reshape([min(V(:,1:dim));max(V(:,1:dim))],1,dim*2));
-  axis tight;
+  if ...
+    strcmp(get(gca,'XLimMode'),'auto') && ...
+    strcmp(get(gca,'YLimMode'),'auto') && ...
+    strcmp(get(gca,'ZLimMode'),'auto')
+    axis tight;
+  end
 
   if v<=numel(varargin)
     set(t_copy,varargin{v:end});
