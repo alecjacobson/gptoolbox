@@ -17,6 +17,6 @@ function C = connected_components(F)
 
   % build adjacency list
   A = adjacency_matrix(F);
-  [~,C] = graphconncomp(A);
+  [~,C] = conncomp(A);
 
 end

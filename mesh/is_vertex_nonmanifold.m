@@ -47,7 +47,7 @@ function N = is_vertex_nonmanifold(F)
     U = U & (UV*UV')>0;
     % U(i,j) = 1 means unique face-for-vertex i comes from same vertex AND shares
     % edge with face-for-vertex j
-    [~,C] = graphconncomp(U);
+    [~,C] = conncomp(U);
     % V2C(i,j) = 1 means vertex i is in component j
     V2C = sparse(I,C,1,n,max(C))>0;
     N = sum(V2C,2)~=1;
@@ -65,7 +65,7 @@ function N = is_vertex_nonmanifold(F)
       IM = sparse(U,1,1:numel(U));
       Ff = reshape(IM(Ff),size(Ff));
       Av = face_adjacency(Ff);
-      N(v) = graphconncomp(Av)~=1;
+      N(v) = conncomp(Av)~=1;
     end
   end
 end

@@ -217,7 +217,7 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
     [~,uE2Fv,uE] = edge_adjacency_matrix(Fv);
     isBE = ismember(uE,uBE,'rows');
     A = uE2Fv(~isBE,:)' * uE2Fv(~isBE,:);
-    [~,C] = graphconncomp(A);
+    [~,C] = conncomp(A);
     % loop over components
     for c = 1:max(C)
       min_fv = find(C==c,1);

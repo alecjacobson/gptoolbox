@@ -22,7 +22,6 @@ function [C,A,uE2F,uE] = manifold_patches(F)
 
   [A,uE2F,uE] = facet_adjacency_matrix(F);
   % Connected components are patches
-  %C = components(A); % alternative to graphconncomp from matlab_bgl
-  [~,C] = graphconncomp(A);
+  [~,C] = conncomp(A);
 
 end

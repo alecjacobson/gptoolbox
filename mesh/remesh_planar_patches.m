@@ -62,7 +62,7 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
   UA = pi*(A~=0)-abs(pi*(A~=0)-A);
   AF = UA>=min_delta_angle;
   % get connected components
-  [~,C] = graphconncomp(AF);
+  [~,C] = conncomp(AF);
   %tsurf(F,V,'CData',randcycle(C))
 
   [UC,~,ic] = unique(C);

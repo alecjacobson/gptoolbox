@@ -127,7 +127,7 @@ function S = statistics(V,F,varargin)
 
   S.num_nonmanifold_vertices = sum(is_vertex_nonmanifold(F));
 
-  [~,BC] = graphconncomp( (DA==1)+(DA==1)' );
+  [~,BC] = conncomp( (DA==1)+(DA==1)' );
   S.num_boundary_loops = sum(sparse(BC,1,1)>1);
 
   S.euler_characteristic = S.num_vertices - S.num_edges + S.num_faces;
