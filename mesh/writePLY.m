@@ -6,11 +6,15 @@ function writePLY(filename,V,F,mode)
   %   V  #V by 3 list of mesh vertex positions
   %   F  #F by 3 list of mesh triangle indices
   %   mode  followed by
-  %      {'ascii'}                ASCII text data
-  %      'binary_little_endian'   binary data, little endian
+  %      'ascii'                ASCII text data
+  %      {'binary_little_endian'}   binary data, little endian
   %      'binary_big_endian'      binary data, big endian
   %
   %
+  
+  if nargin < 4
+    mode = 'binary_little_endian';
+  end
 
   fid = fopen(filename,'wt');
   fprintf(fid,'ply\nformat %s 1.0\n',mode);
