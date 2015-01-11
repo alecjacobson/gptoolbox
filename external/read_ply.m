@@ -20,7 +20,7 @@ nf = length(vi);
 lengths = cellfun('length',vi);
 maxLength=max(lengths);
 if all(maxLength == lengths)
-  face = cell2mat(vi);
+  face = cell2mat(vi)+1;
 else
   face = cell2mat( ...
     cellfun( ...
