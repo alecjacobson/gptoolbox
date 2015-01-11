@@ -4,7 +4,7 @@ function [O] = outline(F)
   % [O] = outline(F)
   % 
   % Input:
-  %  F  #F by 3 face list of indices
+  %  F  #F by polysize face list of indices
   % Output:
   %  O  #O by 2 list of outline edges
   %
@@ -42,7 +42,7 @@ function [O] = outline(F)
   %O = u(counts==1,:);
 
   % build directed adjacency matrix
-  A = sparse(F,F(:,[2 3 1]),1);
+  A = sparse(F,F(:,[2:end 1]),1);
   % Find single occurance edges
   [OI,OJ,OV] = find(A-A');
   % Maintain direction

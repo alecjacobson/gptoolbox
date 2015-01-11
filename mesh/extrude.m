@@ -39,7 +39,7 @@ function [VV,FF] = extrude(V,F,varargin)
   %% Copy top and bottom
   %  VV = [V 1+0*V(:,1);V 0*V(:,1)];
   switch size(F,2)
-  case 3
+  case {3,4}
     % connect boundaries
     O = outline(F);
   case 2
@@ -64,7 +64,7 @@ function [VV,FF] = extrude(V,F,varargin)
   else
     VV = [VB ones(n,1);VL];
   end
-  FO = ones(2*size(OB,1)*levels,3);
+  FO = ones(2*size(OB,1)*levels,size(F,2));
   for level = 1:levels
     if level == 1
       off_t = 0;
@@ -72,9 +72,15 @@ function [VV,FF] = extrude(V,F,varargin)
       off_t = n+(level-2)*no;
     end
     off_b = n+(level-1)*no;
-    FO((level-1)*2*size(OB,1)+(1:size(OB,1)*2),:) = [ ...
-      off_b+OB(:,1) off_t+OB(:,[2 1]); ...
-      off_t+OB(:,2) off_b+OB(:,1:2)];
+    switch size(F,2)
+    case 4
+      FO((level-1)*size(OB,1)+(1:size(OB,1)),:) = [ ...
+        off_t+OB(:,[2 1]) off_b+OB(:,1:2)];
+    case 3
+      FO((level-1)*2*size(OB,1)+(1:size(OB,1)*2),:) = [ ...
+        off_b+OB(:,1) off_t+OB(:,[2 1]); ...
+        off_t+OB(:,2) off_b+OB(:,1:2)];
+    end
   end
   
   % remap so that faces on planes are consistent with input

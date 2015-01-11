@@ -82,7 +82,7 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
           if(numv>size(V,1))
             V = cat(1,V,zeros(10000,3));
           end
-          V(numv,:) = [v'];
+          V(numv,:) = [v(1:3)'];
       elseif strcmp( type, 'vt')
           v = sscanf( line, '%f %f %f' );
           numuv = numuv+1;
