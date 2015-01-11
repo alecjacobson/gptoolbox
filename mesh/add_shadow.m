@@ -72,6 +72,7 @@ function [h,L,M] = add_shadow(T,L,varargin)
   h = [];
   M = [];
   for t = T'
+    V = t.Vertices;
     for l = L'
       % plane equation
       % 0 = ax + by + cz + d
@@ -84,8 +85,10 @@ function [h,L,M] = add_shadow(T,L,varargin)
       U = bsxfun(@rdivide,U(:,1:3),U(:,4));
     
       hold on;
-      tsh = tsurf(t.Faces,U(:,1:3), ...
-        'FaceColor',[0.7 0.7 0.7],'DiffuseStrength',0,'SpecularStrength',0, ...
+      tsh = trisurf(t.Faces,U(:,1),U(:,2),U(:,3), ...
+        'FaceColor',[0.21 0.21 0.21], ...
+        'DiffuseStrength',0,'SpecularStrength',0, ...
+        'AmbientStrength',1, ...
         'EdgeColor','none');
       hold off;
       h = [h;tsh];
