@@ -7,19 +7,27 @@ function [vertex,face] = read_ply(filename)
 %   'vertex' is a 'nb.vert x 3' array specifying the position of the vertices.
 %   'face' is a 'nb.face x 3' array specifying the connectivity of the mesh.
 %
-%   IMPORTANT: works only for triangular meshes.
 %
-%   Copyright (c) 2003 Gabriel Peyré
+%   Copyright (c) 2003 Gabriel Peyr?
 
 [d,c] = plyread(filename);
 
 vi = d.face.vertex_indices;
 nf = length(vi);
-face = zeros(nf,3);
-for i=1:nf
-    face(i,:) = vi{i}+1;
+% http://stackoverflow.com/a/6210539/148668
+% This is slow...
+%lengths = cellfun(@(x)numel(x),vi);
+lengths = cellfun('length',vi);
+maxLength=max(lengths);
+if all(maxLength == lengths)
+  face = cell2mat(vi);
+else
+  face = cell2mat( ...
+    cellfun( ...
+      @(x)cat(2,x,zeros(1,maxLength-length(x))), ...
+      vi, ...
+      'UniformOutput',false))+1;
 end
-
 vertex = [d.vertex.x, d.vertex.y, d.vertex.z];
 
 
