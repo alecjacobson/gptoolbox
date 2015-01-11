@@ -56,7 +56,8 @@ function [G,E,R,data] = arap_gradient(V,F,U,varargin)
   data = [];
   % default values
   % Map of parameter names to variable names
-  params_to_variables = containers.Map( {'Energy','Rotations','Data','SinglePrecision'}, ...
+  params_to_variables = containers.Map( ...
+    {'Energy','Rotations','Data','SinglePrecision'}, ...
     {'energy','R','data','single_precision'});
   v = 1;
   while v <= numel(varargin)
