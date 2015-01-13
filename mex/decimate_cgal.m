@@ -12,3 +12,5 @@
 %   W  #W by 3 list of output mesh vertex positions
 %   G  #G by 3 list of triangles indices into W
 %
+% See also: reducepatch
+%
