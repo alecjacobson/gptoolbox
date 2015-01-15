@@ -42,9 +42,10 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   %   [W,BC] = voxelize(V,F,50,'Pad',1);
   %   % Use matlab's isosurface to extract surface as triangle mesh
   %   BC = reshape(BC,[size(W) 3]);
-  %   surf = isosurface(BC3(:,:,:,1),BC3(:,:,:,2),BC3(:,:,:,3),W,0.5);
+  %   surf = isosurface(BC(:,:,:,1),BC(:,:,:,2),BC(:,:,:,3),W,0.5);
+  %   DV = bsxfun(@plus,bsxfun(@times,bsxfun(@rdivide,surf.vertices-1, ...
+  %     [size(W,2) size(W,1) size(W,3)]-1),max(BC)-min(BC)),min(BC));
   %   DF = surf.faces;
-  %   DV = surf.vertices;
   % 
   %
   % See also: bwboundaries, isosurface
@@ -72,45 +73,12 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   end
 
 
-  NV = min(V);
-  XV = max(V);
 
-  switch numel(side)
-  case 3
-    side_x = side(1);
-    side_y = side(2);
-    side_z = side(3);
-  case 1
-    % Enclose bounding box in regular mesh
-    side_x = side(1);
-    side_y = round(side_x * (XV(2)-NV(2))/(XV(1)-NV(1)));
-    side_z = round(side_x * (XV(3)-NV(3))/(XV(1)-NV(1)));
-  otherwise
-    error('side should be scalar or triplet');
-  end
-  assert(all(side==ceil(side)),'All side values should be integer');
-
-  pad_count = 0;
-  pad_count = 1;
-  pad_length = pad_count*(XV(1)-NV(1))/(side_x-2*pad_count);
-  NV = NV-pad_length;
-  XV = XV+pad_length;
-
-  [X,Y,Z] = meshgrid( ...
-    NV(1)+linspace(0,1,side_x)*(XV(1)-NV(1)), ...
-    NV(2)+linspace(0,1,side_y)*(XV(2)-NV(2)), ...
-    NV(3)+linspace(0,1,side_z)*(XV(3)-NV(3)));
-  % indices of cells
-  I = reshape(1:numel(X),[side_y side_x side_z]);
-  % barycenters of cells
-  BC = [X(:) Y(:) Z(:)];
-  r = [max(V)-min(V)]./([side_x side_y side_z] - 1);
-  [X,Y,Z] = meshgrid( ...
-    (NV(1)-0.5*r(1))+linspace(0,1,side_x+1)*(XV(1)-NV(1)+r(1)), ...
-    (NV(2)-0.5*r(2))+linspace(0,1,side_y+1)*(XV(2)-NV(2)+r(2)), ...
-    (NV(3)-0.5*r(3))+linspace(0,1,side_z+1)*(XV(3)-NV(3)+r(3)));
-  % corners of cells
-  DV = [X(:) Y(:) Z(:)];
+  [BC,side,r] = voxel_grid(V,side,'Pad',pad_count);
+  NV = min(BC);
+  XV = max(BC);
+  W = zeros([side(2) side(1) side(3)]);
+  [DV,~,QT,QF,QL] = voxel_surface(W,'Centers',BC);
 
   if with_interior
     % Winding number is a heavy handed way of determining inside/outside for a
@@ -118,8 +86,8 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
     % this should be floodfilling instead.
 
     %W = winding_number(V,F,BC);
-    WDV = reshape(winding_number(V,F,DV),[side_y side_x side_z]+1);
-    WDV = WDV >= 0.5;
+    WDV = reshape(winding_number(V,F,DV),[side(2) side(1) side(3)]+1);
+    WDV = abs(WDV) >= 0.5;
     W = ( ...
       WDV(1:end-1,1:end-1,1:end-1) | ...
       WDV(1:end-1,1:end-1,2:end) | ...
@@ -129,43 +97,16 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
       WDV(  2:end,1:end-1,2:end) | ...
       WDV(  2:end,  2:end,1:end-1) | ...
       WDV(  2:end,  2:end,2:end));
-  else
-    W = zeros(size(BC));
   end
 
+  Q = [QT;QF;QL];
+    
   if with_boundary
-    % This is a very stupid way to implement this. The correct thing to do is
-    % to _rasterize_ each triangle. Instead this is building a list of all
-    % interfaces in the voxel mesh and literally checking intersections against
-    % the input mesh.
-    [II,JJ,KK] = ind2sub([side_y side_x side_z]+1,reshape(1:size(DV,1),[side_y side_x side_z]+1));
-
-    QF = [ ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(1:end-1,1:end-1,1:end),JJ(1:end-1,1:end-1,1:end),KK(1:end-1,1:end-1,1:end)),[],1) ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(  2:end,1:end-1,1:end),JJ(  2:end,1:end-1,1:end),KK(  2:end,1:end-1,1:end)),[],1) ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(  2:end,  2:end,1:end),JJ(  2:end,  2:end,1:end),KK(  2:end,  2:end,1:end)),[],1) ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(1:end-1,  2:end,1:end),JJ(1:end-1,  2:end,1:end),KK(1:end-1,  2:end,1:end)),[],1) ...
-      ];
-
-    QL = fliplr([ ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(1:end-1,1:end,1:end-1),JJ(1:end-1,1:end,1:end-1),KK(1:end-1,1:end,1:end-1)),[],1) ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(  2:end,1:end,1:end-1),JJ(  2:end,1:end,1:end-1),KK(  2:end,1:end,1:end-1)),[],1) ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(  2:end,1:end,  2:end),JJ(  2:end,1:end,  2:end),KK(  2:end,1:end,  2:end)),[],1) ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(1:end-1,1:end,  2:end),JJ(1:end-1,1:end,  2:end),KK(1:end-1,1:end,  2:end)),[],1) ...
-      ]);
-
-    QT = [ ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(1:end,1:end-1,1:end-1),JJ(1:end,1:end-1,1:end-1),KK(1:end,1:end-1,1:end-1)),[],1) ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(1:end,  2:end,1:end-1),JJ(1:end,  2:end,1:end-1),KK(1:end,  2:end,1:end-1)),[],1) ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(1:end,  2:end,  2:end),JJ(1:end,  2:end,  2:end),KK(1:end,  2:end,  2:end)),[],1) ...
-      reshape(sub2ind([side_y side_x side_z]+1,II(1:end,1:end-1,  2:end),JJ(1:end,1:end-1,  2:end),KK(1:end,1:end-1,  2:end)),[],1) ...
-      ];
-    Q = [QT;QF;QL];
     % TODO: Could at least ignore already-inside cells.
     DF = [Q(:,[3 2 1]);Q(:,[4 3 1])];
     IF = intersect_other(V,F,DV,DF);
     IF = mod(IF(:,2)-1,size(Q,1))+1;
-    W = reshape(W,[side_y side_x side_z]);
+    W = reshape(W,[side(2) side(1) side(3)]);
     % Force winding number to mark voxels intersecting boundary as inside
     % (This should just be replaced with rasterizing the surface)
     iQT = IF(IF<=size(QT,1));
@@ -174,41 +115,41 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
     %W(:) = 0;
     %warning('winding number = 0');
 
-    [II,JJ,KK] = ind2sub([side_y+1 side_x   side_z  ],iQT);
-    KK = KK(II<=side_y);
-    JJ = JJ(II<=side_y);
-    II = II(II<=side_y);
-    W(sub2ind([side_y side_x side_z],II,JJ,KK)) = 1;
-    [II,JJ,KK] = ind2sub([side_y+1 side_x   side_z  ],iQT);
+    [II,JJ,KK] = ind2sub([side(2)+1 side(1)   side(3)  ],iQT);
+    KK = KK(II<=side(2));
+    JJ = JJ(II<=side(2));
+    II = II(II<=side(2));
+    W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
+    [II,JJ,KK] = ind2sub([side(2)+1 side(1)   side(3)  ],iQT);
     II = II-1;
-    KK = KK(II<=side_y);
-    JJ = JJ(II<=side_y);
-    II = II(II<=side_y);
-    W(sub2ind([side_y side_x side_z],II,JJ,KK)) = 1;
+    KK = KK(II<=side(2));
+    JJ = JJ(II<=side(2));
+    II = II(II<=side(2));
+    W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
 
-    [II,JJ,KK] = ind2sub([side_y   side_x+1 side_z  ],iQL);
-    II = II(JJ<=side_x);
-    KK = KK(JJ<=side_x);
-    JJ = JJ(JJ<=side_x);
-    W(sub2ind([side_y side_x side_z],II,JJ,KK)) = 1;
-    [II,JJ,KK] = ind2sub([side_y   side_x+1 side_z  ],iQL);
+    [II,JJ,KK] = ind2sub([side(2)   side(1)+1 side(3)  ],iQL);
+    II = II(JJ<=side(1));
+    KK = KK(JJ<=side(1));
+    JJ = JJ(JJ<=side(1));
+    W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
+    [II,JJ,KK] = ind2sub([side(2)   side(1)+1 side(3)  ],iQL);
     JJ = JJ-1;
-    II = II(JJ<=side_x);
-    KK = KK(JJ<=side_x);
-    JJ = JJ(JJ<=side_x);
-    W(sub2ind([side_y side_x side_z],II,JJ,KK)) = 1;
+    II = II(JJ<=side(1));
+    KK = KK(JJ<=side(1));
+    JJ = JJ(JJ<=side(1));
+    W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
 
-    [II,JJ,KK] = ind2sub([side_y   side_x   side_z+1],iQF);
-    II = II(KK<=side_z);
-    JJ = JJ(KK<=side_z);
-    KK = KK(KK<=side_z);
-    W(sub2ind([side_y side_x side_z],II,JJ,KK)) = 1;
-    [II,JJ,KK] = ind2sub([side_y   side_x   side_z+1],iQF);
+    [II,JJ,KK] = ind2sub([side(2)   side(1)   side(3)+1],iQF);
+    II = II(KK<=side(3));
+    JJ = JJ(KK<=side(3));
+    KK = KK(KK<=side(3));
+    W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
+    [II,JJ,KK] = ind2sub([side(2)   side(1)   side(3)+1],iQF);
     KK = KK-1;
-    II = II(KK<=side_z);
-    JJ = JJ(KK<=side_z);
-    KK = KK(KK<=side_z);
-    W(sub2ind([side_y side_x side_z],II,JJ,KK)) = 1;
+    II = II(KK<=side(3));
+    JJ = JJ(KK<=side(3));
+    KK = KK(KK<=side(3));
+    W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
   end
 
   %trisurf(Q(IF,:),DV(:,1),DV(:,2),DV(:,3),'FaceColor','r');
@@ -217,14 +158,14 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   %hold off;
 
   %% From cells to faces:
-  %[II,JJ,KK] = ind2sub([side_y side_x side_z],find(abs(W)>0.5));
+  %[II,JJ,KK] = ind2sub([side(2) side(1) side(3)],find(abs(W)>0.5));
   %Q = [ ...
-  %  QT(sub2ind([side_y+1 side_x   side_z  ],II+1,JJ,KK),:); ...
-  %  QT(sub2ind([side_y+1 side_x   side_z  ],II+0,JJ,KK),:); ...
-  %  QF(sub2ind([side_y   side_x   side_z+1],II,JJ,KK+1),:); ...
-  %  QF(sub2ind([side_y   side_x   side_z+1],II,JJ,KK+0),:); ...
-  %  QL(sub2ind([side_y   side_x+1 side_z  ],II,JJ+1,KK),:); ...
-  %  QL(sub2ind([side_y   side_x+1 side_z  ],II,JJ+0,KK),:); ...
+  %  QT(sub2ind([side(2)+1 side(1)   side(3)  ],II+1,JJ,KK),:); ...
+  %  QT(sub2ind([side(2)+1 side(1)   side(3)  ],II+0,JJ,KK),:); ...
+  %  QF(sub2ind([side(2)   side(1)   side(3)+1],II,JJ,KK+1),:); ...
+  %  QF(sub2ind([side(2)   side(1)   side(3)+1],II,JJ,KK+0),:); ...
+  %  QL(sub2ind([side(2)   side(1)+1 side(3)  ],II,JJ+1,KK),:); ...
+  %  QL(sub2ind([side(2)   side(1)+1 side(3)  ],II,JJ+0,KK),:); ...
   %  ];
   %trisurf(Q,DV(:,1),DV(:,2),DV(:,3),'FaceAlpha',0.5,'EdgeAlpha',0.5);
   %hold on;

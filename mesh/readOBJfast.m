@@ -25,6 +25,91 @@ function [V,F] = readOBJfast(filename,varargin)
   % See also readOBJ
   %
 
+  function file_wrangler()
+    error_handler = @final_error;
+    if isunix()
+      % try to make the file easier to read
+      tmpf = tempname();
+      cmd = sprintf( ...
+        ['echo -e "$(grep "^v " %s) \\n$(grep "^f " %s | ' ...
+        'sed -e "s/\\([0-9]*\\)\\(\\/[0-9]*\\)*/\\1/g")" >%s'], ...
+        filename,filename,tmpf);
+      s = system(cmd);
+      if s==0
+        readOBJfast_helper(filename);
+        % Alec: Want to know if this is ever used...
+        warning('file_wrangler succeeded');
+        delete(tmpf);
+        return;
+      end
+    end
+    final_error();
+  end
+
+  function final_error()
+    error('Bad format. Try readOBJ...\n');
+  end
+
+  function readOBJfast_helper(filename)
+    fp = fopen(filename);
+    % read in vertices
+    V = [];
+    while(true)
+      V = fscanf(fp,' v %lg %lg %lg ',inf);
+      if(prod(size(V)) > 0)
+        break;
+      else
+        line = fgets(fp);
+        if(prod(size(line)) == 0)
+          fclose(fp);
+          error_handler();
+          return;
+        end
+      end
+    end
+    V = reshape(V,3,size(V,1)/3)';
+    % read in faces
+    F = [];
+    if quads
+      format = ' f %d %d %d %d ';
+    else
+      format = ' f %d %d %d ';
+    end
+    while(true)
+      F = fscanf(fp,format,inf);
+      if(numel(F) > 0)
+        break;
+      else
+        line = fgets(fp);
+        if(numel(line) == 0)
+          fclose(fp);
+          error_handler();
+          return;
+        end
+      end
+    end
+    if quads
+      if mod(size(F,1),4) ~= 0
+        fclose(fp);
+        error_handler();
+        return;
+      end
+      F = reshape(F,4,size(F,1)/4)';
+    else
+      if mod(size(F,1),3) ~= 0
+        fclose(fp);
+        error_handler();
+        return;
+      end
+      F = reshape(F,3,size(F,1)/3)';
+    end
+    if ~feof(fp)
+      fclose(fp);
+      error_handler();
+      return;
+    end
+    fclose(fp);
+  end
 
   % default values
   quads = false;
@@ -46,48 +131,6 @@ function [V,F] = readOBJfast(filename,varargin)
     v=v+1;
   end
 
-  fp = fopen(filename);
-  % read in vertices
-  V = [];
-  while(true)
-    V = fscanf(fp,' v %lg %lg %lg ',inf);
-    if(prod(size(V)) > 0)
-      break;
-    else
-      line = fgets(fp);
-      if(prod(size(line)) == 0)
-        fclose(fp);
-        error('Bad format... Try readOBJ...');
-      end
-    end
-  end
-  V = reshape(V,3,size(V,1)/3)';
-  % read in faces
-  F = [];
-  if quads
-    format = ' f %d %d %d %d ';
-  else
-    format = ' f %d %d %d ';
-  end
-  while(true)
-    F = fscanf(fp,format,inf);
-    if(numel(F) > 0)
-      break;
-    else
-      line = fgets(fp);
-      if(numel(line) == 0)
-        fclose(fp);
-        error('Bad format... Try readOBJ...');
-      end
-    end
-  end
-  if quads
-    F = reshape(F,4,size(F,1)/4)';
-  else
-    F = reshape(F,3,size(F,1)/3)';
-  end
-  if ~feof(fp)
-    error('Bad format... Try readOBJ...');
-  end
-  fclose(fp);
+  error_handler = @file_wrangler;
+  readOBJfast_helper(filename)
 end

@@ -33,20 +33,10 @@ function [B,EV,ED] = biharmonic_embedding(V,F,dim,p);
   end
 
   % get cotangent matrix
-  switch size(F,2)
-  case 3
-    L = cotmatrix(V,F);
-    % get mass matrix
-    % This should be better, but yaron seemed to use barycentric
-    %M = massmatrix(V,F,'voronoi');
-    M = massmatrix(V,F,'barycentric');
-  case 4
-    L = cotmatrix3(V,F);
-    % get mass matrix
-    M = massmatrix3(V,F,'barycentric');
-  otherwise
-    error(['Unsupported simplex size ' size(F,2)]);
-  end
+  L = cotmatrix(V,F);
+  % This should be better, but yaron seemed to use barycentric
+  %M = massmatrix(V,F);
+  M = massmatrix(V,F,'barycentric');
 
   % get dim+1 smallest magnitude eigenvalues and corresponding vectors
   [EV,ED] = eigs(L,M,dim+1,'sm');

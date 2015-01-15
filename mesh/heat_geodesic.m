@@ -116,17 +116,10 @@ function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
   % Algorithm 1 using a single backward Euler step"
 
 
-  switch ss
-  case 3
-    L = cotmatrix(V,F);
-    % "where ???????? is one third the area of all triangles incident on vertex ...
-    % where ???? ??? R|????|??|????| is a diagonal matrix containing the vertex areas"
-    M = massmatrix(V,F,'barycentric');
-  case 4
-    L = cotmatrix3(V,F);
-    M = massmatrix3(V,F,'barycentric');
-    %M = M./max(M(:));
-  end
+  % "where ???????? is one third the area of all triangles incident on vertex ...
+  % where ???? ??? R|????|??|????| is a diagonal matrix containing the vertex areas"
+  L = cotmatrix(V,F);
+  M = massmatrix(V,F,'barycentric');
 
   % "... with initial conditions u0 = ??(x)"
   % "Note that a Dirac delta appears as a literal one in this system since we

@@ -185,14 +185,7 @@ function [U,data,SS,R] = arap(varargin)
   end
 
   if ~isfield(data,'L') || isempty(data.L)
-    switch size(F,2)
-    case 3
-      data.L = cotmatrix(V,F);
-    case 4
-      data.L = cotmatrix3(V,F);
-    otherwise
-      error('Invalid face list');
-    end
+    data.L = cotmatrix(V,F);
   end
 
   rr.b = cell(dim,1);

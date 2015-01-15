@@ -10,7 +10,7 @@ function G = grad3(V,T)
   %   G  #elements*dim by #V Gradient operator
   %
   % Example:
-  %   L = cotmatrix3(V,T);
+  %   L = cotmatrix(V,T);
   %   G  = grad3(V,T);
   %   vol = volume(V,T);
   %   GMG = -G'*repdiag(diag(sparse(vol)),3)*G;

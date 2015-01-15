@@ -82,15 +82,7 @@ function [G,E,R,data] = arap_gradient(V,F,U,varargin)
 
   if isempty(data)
     ss = size(F,2);
-    switch ss
-    case 3
-      data.L = cotmatrix(V,F);
-    case 4
-      data.L = cotmatrix3(V,F);
-    otherwise
-      error('F must be #F by 3 or #F by 4');
-    end
-
+    data.L = cotmatrix(V,F);
     if isempty(R)
       data.CSM = covariance_scatter_matrix(ref_V,ref_F,'Energy',energy);
     end

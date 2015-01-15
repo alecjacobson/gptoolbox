@@ -83,12 +83,7 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
   % Number of simplices
   m = size(F,1);
 
-  switch ss
-  case 3
-    L = -3*cotmatrix(V,F);
-  case 4
-    L = -3*cotmatrix3(V,F);
-  end
+  L = -3*cotmatrix(V,F);
 
   % A(i,j) = w~=0 means that rotation edge set i contains edge allE(j,:) with
   % weight w

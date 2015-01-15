@@ -129,16 +129,8 @@ function W = biharmonic_bounded(varargin)
   end
 
   % Build discrete laplacian and mass matrices used by all handles' solves
-  if(size(F,2)==4)
-    fprintf('Solving over volume...\n');
-    L = cotmatrix3(V,F);
-    M = massmatrix3(V,F,'barycentric');
-  else
-    %L = cotmatrix(V,F);
-    %M = massmatrix(V,F,'voronoi');
-    L = cotmatrix_embedded(V,F);
-    M = massmatrix_embedded(V,F,'voronoi');
-  end
+  L = cotmatrix(V,F);
+  M = massmatrix(V,F);
   % NORMALIZE MASSMATRIX (THIS IS IMPORTANT!!)
   M = M./max(abs(diag(M)));
 

@@ -28,33 +28,6 @@ function K = cotmatrix3(V,T)
   %
   % See also cotmatrix
   %
-
-  if(size(T,1) == 4 && size(T,2) ~=4)
-    warning('T seems to be 4 by #T, it should be #T by 4');
-  end
-  % number of mesh vertices
-  n = size(V,1);
-  % cotangents of dihedral angles
-  C = cotangent(V,T);
-  %% TODO: fix cotangent to have better accuracy so this isn't necessary
-  %% Zero-out almost zeros to help sparsity
-  %C(abs(C)<10*eps) = 0;
-  % add to entries
-  K = sparse(T(:,[2 3 1 4 4 4]),T(:,[3 1 2 1 2 3]),C,n,n);
-  % add in other direction
-  K = K + K';
-  % diagonal is minus sum of offdiagonal entries
-  K = K - diag(sum(K,2));
-  %% divide by factor so that regular grid laplacian matches finite-difference
-  %% laplacian in interior
-  %K = K./(4+2/3*sqrt(3));
-  %% multiply by factor so that matches legacy laplacian in sign and
-  %% "off-by-factor-of-two-ness"
-  %K = K*0.5;
-  % flip sign to match cotmatix.m
-  if(all(diag(K)>0))
-    warning('Flipping sign of cotmatrix3, so that diag is negative');
-    K = -K;
-  end
+  warning('Deprecated. Call cotmatrix directly.');
+  K = cotmatrix(V,T);
 end
-

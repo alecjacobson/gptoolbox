@@ -27,7 +27,7 @@ function C = cotangent(V,F,varargin)
   %       WRONG: columns correspond to edges 23,31,12,41,42,43 
   %       RIGHT: columns correspond to *faces* 23,31,12,41,42,43
   %
-  % See also: cotmatrix, cotmatrix3
+  % See also: cotmatrix
   %
   % Copyright 2013, Alec Jacobson (jacobson@inf.ethz.ch)
   %

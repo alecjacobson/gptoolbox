@@ -103,13 +103,7 @@ function [Kd] = arap_linear_block(varargin)
     A = A-A';
     % Multiply with cotangent weights (don't worry about diagonal begin wrong
     % since in A it's all zeros
-    if(size(F,2) == 3)
-      L = cotmatrix(V,F);
-    elseif(size(F,2) == 4)
-      L = cotmatrix3(V,F);
-    else
-      error('Invalid face list');
-    end
+    L = cotmatrix(V,F);
     K = L.*A;
     % correct the diagonal (notice that the sign is positive
     K = K + diag(sum(K,2));
