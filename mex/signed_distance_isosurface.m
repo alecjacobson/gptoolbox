@@ -2,7 +2,7 @@
 % signed distance field to a given mesh.
 %
 % [V,F] = signed_distance_isosurface(IV,IF);
-% [V,F] = signed_distance_isosurface(IV,IF,'ParameterName',parameter_value, ...);
+% [V,F] = signed_distance_isosurface(IV,IF,'ParameterName',parameter_value, ...)
 %
 % Inputs:
 %   IV  #IV by 3 list of input mesh vertex positions
