@@ -30,7 +30,7 @@ function Q = planarize(V,F,varargin)
     if isKey(params_to_variables,param_name)
       assert(v+1<=numel(varargin));
       v = v+1;
-      % Trick: use feval on anonymous function to use assignin to this workspace 
+      % Trick: use feval on anonymous function to use assignin to this workspace
       feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
     else
       error('Unsupported parameter: %s',varargin{v});
