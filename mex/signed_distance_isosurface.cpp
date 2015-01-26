@@ -77,7 +77,7 @@ void parse_rhs(
         [](const int i, const mxArray * prhs[], const char * name)
       {
         mexErrMsgTxt(mxIsDouble(prhs[i]),
-          C_STR("Parameter '"<<name<<"' requires Logical argument"));
+          C_STR("Parameter '"<<name<<"' requires Double argument"));
       };
       const auto validate_scalar = 
         [](const int i, const mxArray * prhs[], const char * name)
