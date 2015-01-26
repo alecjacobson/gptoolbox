@@ -63,7 +63,7 @@ function [DV,DT,DF,b,bc] = encage(V,CV,CF,varargin)
   if status ~= 0
     fprintf(fid,'%s',result);
   else
-    if strfind(result,'Jettisoning redundants points.')
+    if strfind(result,'Jettisoning redundant points.')
       fprintf(fid,'%s',result);
       warning('Tetgen removed duplicate points');
     end
@@ -81,6 +81,8 @@ function [DV,DT,DF,b,bc] = encage(V,CV,CF,varargin)
   case 6
   % close input facets
     error('Input error. Check yo` input');
+  case 134
+    error('Non-planar facets?');
   otherwise
     error('Tetgen returned status %d != 0',status);
   end
@@ -117,5 +119,7 @@ function [DV,DT,DF,b,bc] = encage(V,CV,CF,varargin)
       error('bc not supported for non-triangle mesh cages');
     end
   end
+  % Faces are flipped
+  DF = fliplr(DF);
 
 end
