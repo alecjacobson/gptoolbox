@@ -1,4 +1,4 @@
-function [D,u,X,div_X,phi,pre] = heat_geodesic(varargin)
+function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   % HEAT_GEODESIC  geodesic distance approximation following the method of
   % "Geodesics in Heat" [Krane et al. 2013] D from all points V in the domain
   % (V,F) to a source point/set of points, gamma. The method is motivated by
