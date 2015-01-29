@@ -48,7 +48,7 @@ function M = massmatrix(V,F, type)
     % renaming indices of vertices of triangles for convenience
     i1 = F(1,:); i2 = F(2,:); i3 = F(3,:); 
     % #F x 3 matrices of triangle edge vectors, named after opposite vertices
-    v1 = V(i3,:) - V(i2,:);  v2 = V(i1,:) - V(i3,:); v3 = V(i2,:) - V(i1,:);
+    v1 = V(i3,:) - V(i2,:);  v2 = V(i1,:) - V(i3,:); % v3 = V(i2,:) - V(i1,:);
     % computing the areas
     if size(V,2) == 2
     % 2d vertex data
@@ -113,17 +113,17 @@ function M = massmatrix(V,F, type)
     case 'full'
       error('full not supported yet...')
     case 'barycentric'
-      %a = V(F(:,1),:);
-      %b = V(F(:,2),:);
-      %c = V(F(:,3),:);
-      %d = V(F(:,4),:);
+      a = V(F(:,1),:);
+      b = V(F(:,2),:);
+      c = V(F(:,3),:);
+      d = V(F(:,4),:);
       %% http://en.wikipedia.org/wiki/Tetrahedron#Volume
       %% volume for each tetrahedron
-      %v = repmat(abs(dot((a-d),cross2(b-d,c-d),2))./6./4,1,4);
-      v = repmat(abs(volume(V,F)),1,4);
+      v = repmat(abs(dot((a-d),cross2(b-d,c-d),2))./6./4,1,4);
+      % v = repmat(abs(volume(V,F)),1,4);
   
       % only diagonal elements
-      i = F;
+      % i = F;
       M = sparse(F(:),F(:),v,size(V,1),size(V,1));
     case 'voronoi'
       pa = V(F(:,1),:);

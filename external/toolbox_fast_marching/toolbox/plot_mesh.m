@@ -70,7 +70,8 @@ else
     end
     h = patch('vertices',vertex,'faces',face,'FaceVertexCData',face_vertex_color, 'FaceColor',shading_type);
 end
-colormap gray(256);
+% colormap gray(256);
+colormap jet(256);
 lighting phong;
 camlight infinite; 
 camproj('perspective');
@@ -84,6 +85,6 @@ if ~isempty(normal)
     hold off;
 end
 
-axis tight;
+% axis tight;
 axis equal;
 cameramenu;
