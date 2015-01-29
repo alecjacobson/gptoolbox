@@ -1,5 +1,6 @@
 function writeSTL(filename, V,F)
-  % WRITESTL writes an STL file with vertex/face information
+  % WRITESTL writes an STL file with vertex/face information. Uses single
+  % precision.
   %
   % writeSTL(filename,V,F)
   %
