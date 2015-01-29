@@ -123,8 +123,7 @@ function M = massmatrix(V,F, type)
       v = repmat(abs(volume(V,F)),1,4);
   
       % only diagonal elements
-      i = F;
-      M = sparse(F(:),F(:),v,size(V,1),size(V,1));
+      M = sparse(F(:),F(:),v/4,size(V,1),size(V,1));
     case 'voronoi'
       pa = V(F(:,1),:);
       pb = V(F(:,2),:);
