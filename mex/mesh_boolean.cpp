@@ -45,7 +45,9 @@ void parse_rhs(
   Eigen::MatrixXd & VB,
   Eigen::MatrixXi & FB,
   igl::MeshBooleanType & type,
-  BooleanLibType & boolean_lib)
+  BooleanLibType & boolean_lib,
+  bool & debug
+  )
 {
   using namespace std;
   using namespace igl;
@@ -108,6 +110,18 @@ void parse_rhs(
         mexErrMsgTxt(mxIsChar(prhs[i]),
           C_STR("Parameter '"<<name<<"' requires char argument"));
       };
+      const auto validate_logical= 
+        [](const int i, const mxArray * prhs[], const char * name)
+      {
+        mexErrMsgTxt(mxIsLogical(prhs[i]),
+          C_STR("Parameter '"<<name<<"' requires Logical argument"));
+      };
+      const auto validate_scalar = 
+        [](const int i, const mxArray * prhs[], const char * name)
+      {
+        mexErrMsgTxt(mxGetN(prhs[i])==1 && mxGetM(prhs[i])==1,
+          C_STR("Parameter '"<<name<<"' requires scalar argument"));
+      };
       if(strcmp("BooleanLib",name) == 0)
       {
         requires_arg(i,nrhs,name);
@@ -127,6 +141,13 @@ void parse_rhs(
         {
           mexErrMsgTxt(false,C_STR("Unknown BooleanLib: "<<type_name));
         }
+      }else if(strcmp("Debug",name) == 0)
+      {
+        requires_arg(i,nrhs,name);
+        i++;
+        validate_logical(i,prhs,name);
+        validate_scalar(i,prhs,name);
+        debug = (bool)*mxGetLogicals(prhs[i]);
       }else
       {
         mexErrMsgTxt(false,"Unknown parameter");
@@ -153,7 +174,12 @@ void mexFunction(
   VectorXi J;
   MeshBooleanType type;
   BooleanLibType boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL;
-  parse_rhs(nrhs,prhs,VA,FA,VB,FB,type,boolean_lib);
+  bool debug = false;
+  parse_rhs(nrhs,prhs,VA,FA,VB,FB,type,boolean_lib,debug);
+  if(debug)
+  {
+    cout<<"parsed input."<<endl;
+  }
   switch(boolean_lib)
   {
     case BOOLEAN_LIB_TYPE_LIBIGL:
@@ -242,7 +268,10 @@ void mexFunction(
       assert(false && "Unknown boolean lib");
       break;
   }
-
+  if(debug)
+  {
+    cout<<"Computed boolean."<<endl;
+  }
   switch(nlhs)
   {
     default:

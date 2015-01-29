@@ -174,7 +174,7 @@ function [U,data,SS,R] = arap(varargin)
     if isempty(Vm1)
       Vm1 = V0;
     end
-    M = massmatrix(V,F,'voronoi');
+    M = massmatrix(V,F);
     DQ = 0.5*1/h^2*M;
     vel = (V0-Vm1)/h;
     Dl = 1/(h^2)*M*(-V0 - h*vel) - fext;
