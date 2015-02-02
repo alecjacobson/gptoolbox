@@ -1,11 +1,17 @@
-function [U,G,BC] = slice_tets(V,T,plane)
+function [U,G,BC] = slice_tets(V,T,plane,varargin)
   % SLICE_TETS Slice through a tet mesh (V,T) along a given plane (via its
   % implicit equation).
+  %
+  % [U,G] = slice_tets(V,T,plane)
+  % [U,G,BC] = slice_tets(V,T,plane,'ParameterName',parameter_value, ...)
   %
   % Inputs:
   %   V  #V by 3 list of tet mesh vertices
   %   T  #T by 4 list of tet indices into V 
   %   plane  list of 4 coefficients in the plane equation: [x y z 1]'*plane = 0
+  %   Optional:
+  %     'Manifold' followed by whether to stitch together triangles into a
+  %       manifold mesh {true}: results in more compact U but slightly slower.
   % Outputs:
   %   U  #U by 3 list of triangle mesh vertices along slice
   %   G  #G by 3 list of triangles indices into U
@@ -78,6 +84,26 @@ function [U,G,BC] = slice_tets(V,T,plane)
       bsxfun(@plus,1:size(sT,1),[0;3;2]*size(sT,1))'];
   end
 
+  % default values
+  manifold = true;
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Manifold'}, ...
+    {'manifold'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace 
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
   % Homogeneous coordinates
   IV = sum(bsxfun(@times,[V ones(size(V,1),1)],plane),2);
   IT = IV(T);
@@ -97,8 +123,10 @@ function [U,G,BC] = slice_tets(V,T,plane)
   flip = sum(bsxfun(@times,N,plane(1:3)),2)<0;
   G(flip,:) = fliplr(G(flip,:));
 
-  [U,I,IM] = remove_duplicate_vertices(U,1e-14);
-  BC = BC(I,:);
-  G = IM(G);
+  if manifold
+    [U,I,IM] = remove_duplicate_vertices(U,1e-14);
+    BC = BC(I,:);
+    G = IM(G);
+  end
 
 end
