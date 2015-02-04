@@ -206,87 +206,90 @@ int main(int argc, char * argv[])
     }
   }
 #endif
-  // Check that there aren't any combinatorially or geometrically degenerate triangles
-  VectorXd A;
-  doublearea(V,F,A);
-  if(A.minCoeff()<=0)
-  {
-#ifdef MEX
-    mexErrMsgTxt("Geometrically degenerate face found.");
-#else
-    cerr<<"Geometrically degenerate face found."<<endl;
-    return 1;
-#endif
-  }
-  VectorXi F12,F23,F31;
-  F12 = F.col(0)-F.col(1);
-  F23 = F.col(1)-F.col(2);
-  F31 = F.col(2)-F.col(0);
-  if(
-    F12.minCoeff() == 0 || 
-    F23.minCoeff() == 0 || 
-    F31.minCoeff() == 0)
-  {
-#ifdef MEX
-    mexErrMsgTxt("Combinatorially degenerate face found.");
-#else
-    cerr<<"Geometrically degenerate face found."<<endl;
-    return 1;
-#endif
-  }
-
-  // Now mesh self intersections
   MatrixXi IF;
   VectorXi J,IM;
+  if(F.rows()>0)
   {
-    MatrixXd tempV;
-    MatrixXi tempF;
-    remesh_self_intersections(V,F,params,tempV,tempF,IF,J,IM);
-    //cout<<BLUEGIN("Found and meshed "<<IF.rows()<<" pair"<<(IF.rows()==1?"":"s")
-    //  <<" of self-intersecting triangles.")<<endl;
-    V=tempV;
-    F=tempF;
-#ifndef MEX
-    cout<<"writing pair list to "<<(prefix+"-IF.dmat")<<endl;
-    writeDMAT((prefix+"-IF.dmat").c_str(),IF);
-    cout<<"writing map to F list to "<<(prefix+"-J.dmat")<<endl;
-    writeDMAT((prefix+"-J.dmat").c_str(),J);
-    cout<<"writing duplicat index map to "<<(prefix+"-IM.dmat")<<endl;
-    writeDMAT((prefix+"-IM.dmat").c_str(),IM);
-    if(!params.detect_only)
+    // Check that there aren't any combinatorially or geometrically degenerate triangles
+    VectorXd A;
+    doublearea(V,F,A);
+    if(A.minCoeff()<=0)
     {
-      if(use_obj_format)
-      {
-        cout<<"writing mesh to "<<(prefix+"-selfintersect.obj")<<endl;
-        writeOBJ(prefix+"-selfintersect.obj",V,F);
-      }else
-      {
-        cout<<"writing mesh to "<<(prefix+"-selfintersect.off")<<endl;
-        writeOFF(prefix+"-selfintersect.off",V,F);
-      }
-    }
+#ifdef MEX
+      mexErrMsgTxt("Geometrically degenerate face found.");
+#else
+      cerr<<"Geometrically degenerate face found."<<endl;
+      return 1;
 #endif
-  }
+    }
+    VectorXi F12,F23,F31;
+    F12 = F.col(0)-F.col(1);
+    F23 = F.col(1)-F.col(2);
+    F31 = F.col(2)-F.col(0);
+    if(
+      F12.minCoeff() == 0 || 
+      F23.minCoeff() == 0 || 
+      F31.minCoeff() == 0)
+    {
+#ifdef MEX
+      mexErrMsgTxt("Combinatorially degenerate face found.");
+#else
+      cerr<<"Geometrically degenerate face found."<<endl;
+      return 1;
+#endif
+    }
+
+    // Now mesh self intersections
+    {
+      MatrixXd tempV;
+      MatrixXi tempF;
+      remesh_self_intersections(V,F,params,tempV,tempF,IF,J,IM);
+      //cout<<BLUEGIN("Found and meshed "<<IF.rows()<<" pair"<<(IF.rows()==1?"":"s")
+      //  <<" of self-intersecting triangles.")<<endl;
+      V=tempV;
+      F=tempF;
+#ifndef MEX
+      cout<<"writing pair list to "<<(prefix+"-IF.dmat")<<endl;
+      writeDMAT((prefix+"-IF.dmat").c_str(),IF);
+      cout<<"writing map to F list to "<<(prefix+"-J.dmat")<<endl;
+      writeDMAT((prefix+"-J.dmat").c_str(),J);
+      cout<<"writing duplicat index map to "<<(prefix+"-IM.dmat")<<endl;
+      writeDMAT((prefix+"-IM.dmat").c_str(),IM);
+      if(!params.detect_only)
+      {
+        if(use_obj_format)
+        {
+          cout<<"writing mesh to "<<(prefix+"-selfintersect.obj")<<endl;
+          writeOBJ(prefix+"-selfintersect.obj",V,F);
+        }else
+        {
+          cout<<"writing mesh to "<<(prefix+"-selfintersect.off")<<endl;
+          writeOFF(prefix+"-selfintersect.off",V,F);
+        }
+      }
+#endif
+    }
 
   // Double-check output
 
 #ifdef DEBUG
-  // There should be *no* combinatorial duplicates
-  {
-    MatrixXi tempF;
-    unique_simplices(F,tempF);
-    if(tempF.rows() < F.rows())
+    // There should be *no* combinatorial duplicates
     {
-      cout<<REDRUM("Error: selfintersect created "<<
-        F.rows()-tempF.rows()<<" combinatorially duplicate faces")<<endl;
-    }else
-    {
-      assert(tempF.rows() == F.rows());
-      cout<<GREENGIN("selfintersect created no duplicate faces")<<endl;
+      MatrixXi tempF;
+      unique_simplices(F,tempF);
+      if(tempF.rows() < F.rows())
+      {
+        cout<<REDRUM("Error: selfintersect created "<<
+          F.rows()-tempF.rows()<<" combinatorially duplicate faces")<<endl;
+      }else
+      {
+        assert(tempF.rows() == F.rows());
+        cout<<GREENGIN("selfintersect created no duplicate faces")<<endl;
+      }
+      F = tempF;
     }
-    F = tempF;
-  }
 #endif
+  }
 
 #ifdef MEX
   // Prepare left-hand side
