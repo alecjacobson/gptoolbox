@@ -1,9 +1,9 @@
-function [U,G,BC] = slice_tets(V,T,plane,varargin)
+function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   % SLICE_TETS Slice through a tet mesh (V,T) along a given plane (via its
   % implicit equation).
   %
   % [U,G] = slice_tets(V,T,plane)
-  % [U,G,BC] = slice_tets(V,T,plane,'ParameterName',parameter_value, ...)
+  % [U,G,J,BC] = slice_tets(V,T,plane,'ParameterName',parameter_value, ...)
   %
   % Inputs:
   %   V  #V by 3 list of tet mesh vertices
@@ -15,6 +15,7 @@ function [U,G,BC] = slice_tets(V,T,plane,varargin)
   % Outputs:
   %   U  #U by 3 list of triangle mesh vertices along slice
   %   G  #G by 3 list of triangles indices into U
+  %   J  #G list of indices into T revealing which tet this face came from
   %   BC  #U by #V list of barycentric coordinates (or more generally: linear
   %     interpolation coordinates) so that U = BC*V
   % 
@@ -67,7 +68,6 @@ function [U,G,BC] = slice_tets(V,T,plane,varargin)
 
   function [U,G,BC] = two_below(V,T,IT)
     [sIT,sJ] = sort(IT,2);
-
     sT = T(sub2ind(size(T),repmat(1:size(T,1),size(T,2),1)',sJ));
     lambda = sIT(:,3:4)./bsxfun(@minus,sIT(:,3:4),sIT(:,1));
     gamma  = sIT(:,3:4)./bsxfun(@minus,sIT(:,3:4),sIT(:,2));
@@ -94,7 +94,7 @@ function [U,G,BC] = slice_tets(V,T,plane,varargin)
 
   % default values
   manifold = true;
-  construct_BC = nargout >= 3;
+  construct_BC = nargout >= 4;
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
@@ -132,6 +132,7 @@ function [U,G,BC] = slice_tets(V,T,plane,varargin)
     BC = [BC13;BC31;BC22];
   end
   G = [G13;size(U13,1)+[G31;size(U31,1)+[G22;]]];
+  J = [find(I13);find(I31);repmat(find(I22),2,1)];
   N = normals(U,G);
   flip = sum(bsxfun(@times,N,plane(1:3)),2)<0;
   G(flip,:) = fliplr(G(flip,:));
