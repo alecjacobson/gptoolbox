@@ -73,18 +73,31 @@ function [SV,SF] = linear_sweep(V,F,sweep)
     SFF = IM(SFF);
     [SVV,IM] = remove_unreferenced(SVV,SFF);
     SFF = IM(SFF);
-    %statistics(SVV,SFF)
-    [TV,TT,TF] = tetgen(SVV,SFF,'Flags','-YT1e-16');
-    % (self-intersecting) boundary Sweep
-    WF = [Fm;n+Fp;Fpw];
-    WV = [V;U];
-    BC = barycenter(TV,TT);
-    % Classify interior elements with winding number
-    w = winding_number(WV,WF,BC);
-    % Extract boundary of w~=0 part
-    SF = boundary_faces(TT(round(w)~=0,:));
-    [SV,IM] = remove_unreferenced(TV,SF);
-    SF = IM(SF);
+
+    % Can do this all using "peeling" like booleans. For now just do single
+    % outer-layer in easy case.
+
+    % check if bounding boxes overlap
+    [BV,BF] = bounding_box(V);
+    BU = bsxfun(@plus,BV,sweep);
+    if all(round(winding_number(BV,BF,BU))==0)
+      SF = outer_hull(SVV,SFF);
+      [SV,IM] = remove_unreferenced(SVV,SF);
+      SF = IM(SF);
+    else
+      %statistics(SVV,SFF)
+      [TV,TT,TF] = tetgen(SVV,SFF,'Flags','-YT1e-16');
+      % (self-intersecting) boundary Sweep
+      WF = [Fm;n+Fp;Fpw];
+      WV = [V;U];
+      BC = barycenter(TV,TT);
+      % Classify interior elements with winding number
+      w = winding_number(WV,WF,BC);
+      % Extract boundary of w~=0 part
+      SF = boundary_faces(TT(round(w)~=0,:));
+      [SV,IM] = remove_unreferenced(TV,SF);
+      SF = IM(SF);
+    end
   end
 
 end
