@@ -12,16 +12,18 @@
 %     'AngleBound' followed by lower bound on triangle angles (mesh quality)
 %       {28}
 %     'RadiusBound' followed by upper bound on triangle size (mesh density?)
-%       as fraction of bounding box diagonal {0.02} 
+%       as fraction of bounding box diagonal {0.02}  (scale independent)
 %     'DistanceBound' followed by cgal mysterious parameter (mesh density?)
-%       as fraction of bounding box diagonal {0.02} 
+%       as fraction of bounding box diagonal {0.02}  (scale independent)
 %     'SignedDistanceType' followed by
 %       'winding_number' use winding number (continuous sign value for
-%         non-watertight)
+%         non-watertight, but usually much slower)
 %       'pseudonormal'  use pseudo-normal, binary scale (but not robust for
 %         non-watertight meshes.
 % Outputs:
 %   V  #V by 3 list of output mesh positions
 %   F  #F by 3 list of output triangle indices into V
 %
+% Known issues: When using 'SignedDistanceType','pseudonormal' it's very
+% important that (V,F) is truly watertight
 
