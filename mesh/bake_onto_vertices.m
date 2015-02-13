@@ -1,6 +1,7 @@
 function Z = bake_onto_vertices(S,B,V,F)
   % BAKE_ONTO_VERTICES "Bake" a continuous function S evaulated on a mesh (V,F)
-  % at barycentric coordinates B onto vertex values Z.
+  % at barycentric coordinates B onto vertex values Z. Similar to "Least
+  % Squares Vertex Baking" [Kavan et al. 2011]
   %
   % Z = bake_onto_vertices(S,B,V,F)
   %
