@@ -38,7 +38,10 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
     else
       if size(C,2) == 1
         CI = floor((C-CA(1))/(CA(2)-CA(1))*size(CM,1))+1;
+        % maintain nans
+        Cnan = isnan(C);
         C = squeeze(ind2rgb(CI,CM));
+        C(Cnan,:) = nan;
       end
       if strcmp(t.FaceColor,'flat') && size(C,1) == size(V,1)
         C = C(F(:,1),:);
