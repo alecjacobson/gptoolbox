@@ -28,6 +28,8 @@ function [N,I,B,r] = random_points_on_mesh(V,F,n,varargin)
   %       bsxfun(@times,B(:,3),V(F(I,3),:));
   %   r  radius used for blue noise sampling
   %
+  % See also: farthest_points
+  %
 
   % default values
   color = 'white';
