@@ -1,5 +1,15 @@
 function S = snf(D)
-  % SNF Smith normal form
+  % SNF Smith normal form. This is the straight forward O(m*n*n)
+  % implementation.
+  %
+  % S = snf(D)
+  %
+  % Inputs:
+  %   D  m by n boundary operator matrix
+  % Outputs:
+  %   S  m by n Smith Normal Form matrix
+  %
+
   function S = swap_rows(S,x,k)
     temp = S(x,:);
     S(x,:) = S(k,:);
