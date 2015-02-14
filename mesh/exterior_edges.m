@@ -1,5 +1,6 @@
 function [E,C,aC] = exterior_edges(F)
-  % EXTERIOR_EDGES List of exterior (boundary of manifold patch) edges
+  % EXTERIOR_EDGES List of exterior (boundary of manifold patch) edges. Note:
+  % this is---in general---not the same as the _open boundary_ of the mesh.
   %
   % Inputs:
   %   F  #F by dim=3 list of facet indices
@@ -7,6 +8,8 @@ function [E,C,aC] = exterior_edges(F)
   %   E  #E by 2 list of exterior edges
   %   C  #E by 1 list of signed Counts
   %   aC  #E by 1 list of unsigned Counts
+  %
+  % See also: outline
   %
 
   switch size(F,2)
