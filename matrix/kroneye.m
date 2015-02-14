@@ -17,6 +17,14 @@ function K = kroneye(A,n)
   %% http://www.mathworks.com/matlabcentral/newsreader/view_thread/17046
   %K(1:m+1:m^2,:) = repmat(A(:).',n,1);
   %K = reshape(permute(reshape(K,[m n size(A)]),[1 3 2 4]),[m*size(A,1) n*size(A,2)]);
+  if ~issparse(A)
+    A = sparse(A);
+  end
+  
+  if n >10*size(A,1)
+    K = kron(A,speye(n));
+    return;
+  end
 
   % Compute kron(speye(n,n),A) in a fast way
   C = cell(n,1);
