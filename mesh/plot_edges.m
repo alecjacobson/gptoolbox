@@ -10,6 +10,9 @@ function varargout = plot_edges(V,E,varargin)
   % Outputs:
   %   p  plot handle
   %
+  if isempty(E)
+    return;
+  end
 
   switch size(V,2)
   case 2
