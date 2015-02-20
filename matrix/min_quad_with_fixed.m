@@ -78,10 +78,6 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
   % Setting that to zero and moving the knowns to the right hand side we get:
   % [A Aeq';Aeq Z] * [x; lambda] = -0.5 * [B; -2*Beq]
   
-  % treat empty B as column of zeros to match A
-  if isempty(B)
-    B = zeros(size(A,1),1);
-  end
   if nargin < 4
     Y = [];
     known = [];
@@ -353,10 +349,23 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
       'Number of knowns (%d) != rows in known values (%d)',kr, size(Y,1));
     if isempty(Y)
       % use linear coefficients to determine cols
-      cols = size(B,2);
+      if isempty(B)
+        if isempty(Beq)
+          cols = 1;
+          Beq = zeros(0,cols);
+        else
+          cols = size(Beq,2);
+        end
+        B = zeros(F.n,cols);
+      else
+        cols = size(B,2);
+      end
       Y = zeros(0,cols);
     else
       cols = size(Y,2);
+      if isempty(B)
+        B = zeros(F.n,cols);
+      end
     end
 
     if any(F.blank_eq)
@@ -372,7 +381,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
         assert(isempty(Beq),'Constraint right-hand sides should not be empty');
         Beq = zeros(0,1);
       end
-      
+
       NB = ...
         bsxfun(@plus, ...
           bsxfun(@plus,  ...
@@ -382,7 +391,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
           
 
       % prepare solution
-      Z = zeros(F.n,cols);
+      Z = zeros(F.n+neq,cols);
       Z(F.known,:) = Y;
 
       if F.ldl
