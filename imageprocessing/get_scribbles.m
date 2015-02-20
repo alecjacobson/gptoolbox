@@ -1,10 +1,12 @@
-function [SI,S,C] = get_scribbles(im)
+function [SI,S,C] = get_scribbles(im,varargin)
   % Display an image and ask the user to draw scribbles then hit enter
   %
   % [SI,S,C] = get_scribbles(im)
   %
   % Inputs:
   %   im  w by h by channels image
+  %   Optional:
+  %     'LineWidth' followed by line width of brush
   % Outputs:
   %   SI  w by h scribbles mask (0 no scribble, otherwise scribble id)
   %   S  w by h scribbles mask in RGB
@@ -14,10 +16,29 @@ function [SI,S,C] = get_scribbles(im)
   f = gcf;
   h = imshow(im);
 
+  line_width = 10;
+  % default values
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'LineWidth'},{'line_width'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
   rotate3d off;
   set(h,'ButtonDownFcn',@ondown);
   set(gcf,'keypressfcn',        @onkeypress);
-  title('Draw scribbles, then hit ENTER');
+  t = title('Draw scribbles, then hit ENTER');
 
   P = {};
   p = {};
@@ -28,32 +49,27 @@ function [SI,S,C] = get_scribbles(im)
     drawnow;
   end
   
+  %set(h,'CData',0*get(h,'CData'));
+  %f_pos = get(gcf,'Position');
+  %f_pos(3:4) = [size(im,2) size(im,1)];
+  %set(gcf,'Position',f_pos);
+  %set(gcf,'Color', [0,0,0]);
+  %set(gca,'visible', 'off');
+  %set(gca,'Position',[0 0 1 1]);
+  old_color = get(gcf,'Color');
   set(h,'CData',0*get(h,'CData'));
+  set(t,'Visible','off');
+  set(gcf,'Color',[1 0 1]);
+  old_aa = get(gcf,'GraphicsSmoothing');
+  set(gcf,'GraphicsSmoothing','off')
   drawnow;
-  waitfor(h,'CData',0*get(h,'CData'));
-  f_pos = get(gcf,'Position');
-  f_pos(3:4) = [size(im,2) size(im,1)];
-  set(gcf,'Position',f_pos);
-  drawnow;
-  set(gcf, 'Color', [0,0,0]);
-  drawnow;
-  waitfor(gcf, 'Color', [0,0,0]);
-  set(gca, 'visible', 'off');
-  drawnow;
-  waitfor(gca, 'visible', 'off');
-  set(gca,'Position',[0 0 1 1]);
-  drawnow;
-  waitfor(gca,'Position',[0 0 1 1]);
-  drawnow;
-  F = getframe(gca);
-  drawnow;
-  F = getframe(gca);
-  drawnow;
-  F = getframe(gca);
+  F = getframe(gcf);
   S = F.cdata;
-  S = S(1:size(im,1),1:size(im,2),:);
-  [~,~,SI] = unique([0;reshape(rgb2gray(S),[],1)]);
-  SI = reshape(SI(2:end)-1,size(S,1),size(S,2));
+  S = imresize(imtrim(im2double(S)),[size(im,1) size(im,2)],'nearest');
+  set(gcf,'Color',old_color);
+  set(gcf,'GraphicsSmoothing',old_aa);
+  %S = S(1:size(im,1),1:size(im,2),:);
+  SI = rgb2ind(S,pc+1);
   if(numel(unique(SI(:))) ~= pc+1)
     warning(['IDs not right']);
   end
@@ -122,7 +138,7 @@ function [SI,S,C] = get_scribbles(im)
     P{pc} = [P{pc};cp(1,:)];
     if pc > numel(p) || isempty(p{pc})
       hold on;
-      p{pc} = plot(P{pc}(:,1),P{pc}(:,2),'LineWidth',2,'Color',next_color);
+      p{pc} = plot(P{pc}(:,1),P{pc}(:,2),'LineWidth',line_width,'Color',next_color);
       hold off;
     else
       set(p{pc},'Xdata',P{pc}(:,1),'Ydata',P{pc}(:,2));
