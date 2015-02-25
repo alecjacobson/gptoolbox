@@ -22,6 +22,10 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   %   E  #E by 2 list of boundary edge indices into V
   %   H  #H by 2 list of hole indicator point positions
   %
+  % Known issues: this does _not_ trace the boundary of pixels but rather
+  % connects the centers of boundary pixels. Therefore it struggles if there
+  % are very thin (1px wide) features/holes. 
+  %
 
   if ischar(A)
     % read alpha channel
@@ -54,6 +58,7 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   % B contains list of boundary loops then hole loops, N number of outer
   % boundaries (as opposed to hole boundaries)
   [B,~,N] = bwboundaries(A>0.5);
+
   V = [];
   E = [];
   H = [];
@@ -71,7 +76,8 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
         Vb = Vb(1:end-1,:);
       end
       % don't consider degenerate boundaries
-      if size(Vb,1)>2
+      area = sum(prod(Vb([2:end 1],:)+Vb*[-1 0;0 1],2))/2;
+      if size(unique(Vb,'rows'),1)>2 && area>eps
         Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
         E = [E;size(V,1)+Eb];
         V = [V;Vb];
@@ -81,6 +87,7 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
       end
     end
   end
+  fprintf('triangle...\n');
   if isempty(triangle_flags)
     % triangulate the polygon
     % get average squared edge length as a guess at the maximum area constraint
