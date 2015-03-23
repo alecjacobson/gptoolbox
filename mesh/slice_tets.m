@@ -138,6 +138,7 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   G(flip,:) = fliplr(G(flip,:));
 
   if manifold
+    % should be able to do this combinatorially
     [U,I,IM] = remove_duplicate_vertices(U,1e-14);
     if construct_BC
       BC = BC(I,:);
