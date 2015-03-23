@@ -100,7 +100,7 @@ function S = statistics(V,F,varargin)
   S.num_combinatorially_duplicate_faces = ...
     S.num_faces - size(unique(sort(F,2),'rows'),1);
   S.num_duplicate_vertices = ...
-    S.num_vertices - size(remove_duplicate_vertices(V),1);
+    S.num_vertices - size(remove_duplicate_vertices(V,0),1);
 
   C = zeros(size(V,1),1);
   C(1:max(F(:)),:) = connected_components(F);
