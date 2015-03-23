@@ -2,12 +2,13 @@ function [q] = project_point_to_line_segment(A,B,p)
   % PROJECT_POINT_TO_LINE_SEGMENT Project a point p onto a line segment AB.
   %
   % Inputs:
-  %   A  #A by dim list of soruce points
-  %   B  #A by dim list of soruce points
+  %   A  #A by dim list of source points
+  %   B  #A by dim list of dest points
   %   p  point in dim-space
   % Output:
   %   q  closest point to p on the line segment from A to B in dim-space
   %
+  warning('Deprecated. Call project_to_lines');
 
   % vector from A to B
   AB = (B-A);
