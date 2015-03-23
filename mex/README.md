@@ -8,6 +8,26 @@ returns something useful).
 
 ## Compiling (mexing)
 
+I haven't invested too much time trying to be sure these functions compile
+anywhere. They should. Why not? All compilers are perfectly standard, right?
+
+### Experimental
+
+I've tried to gather the compilation of all these mex functions into a script.
+To attempt to compile all mex functions in this directory, issue:
+
+
+```matlab
+compile_gptoolbox_mex
+```
+
+I'll try to keep this up to date. We'll see how that goes.
+
+### One-by-one
+
+These mex functions do not depend on eachother, so if you just need a certain
+function, you can compile it alone directly.
+
 Open `myfunc.cpp` and look for an example `mex` call in the header comments.
 Something as simple as:
 
@@ -36,8 +56,11 @@ Some of these functions depend on:
    - VS2012 or newer (windows users only)
  - Eigen
  - libigl
+ - Embree
+ - Cork
  - CGAL
    - boost
+ - Mac OS X Foundation and AppKit frameworks
 
 ### libigl
 

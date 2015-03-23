@@ -21,7 +21,7 @@
 //     -frounding-math flag to your CFLAGS and CXXFLAGS
 // 
 //     I also found it best to change CC and CXX to point to a g++-4.7 (or
-//     g++-mp-4.7)
+//     g++-mp-4.7), but clang should also work.
 // 
 //   To mex on a mac, open up matlab and issue:
 // 
