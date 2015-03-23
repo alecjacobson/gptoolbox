@@ -64,7 +64,6 @@ function interior_point = point_inside_polygon(V)
     valid_second_hits(distance_to_first_hit>EPSILON,:);
   distance_to_first_hit = ...
     distance_to_first_hit(distance_to_first_hit>EPSILON,:);
-  
 
   second_hit = valid_second_hits(...
     distance_to_first_hit == min(distance_to_first_hit),:);
