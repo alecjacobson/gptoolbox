@@ -14,13 +14,33 @@ function [D,S,C] = signed_distance_direction(P,V,F)
   %   C  #P by dim list of closest points
   %
 
-  [S,I,C,N] = signed_distance(P,V,F);
-  D = normalizerow(C-P);
-  D = bsxfun(@times,sign(S),D);
-  min_dist = 1e-5;
-  too_close = abs(S) < min_dist;
-  % Normals always point outside regardless of the eval point.
-  D(too_close,:) = -N(too_close,:);
+  dim = size(F,2);
+  switch dim
+  case 2 
+    % Facets are really edges
+    E = F;
+    % O(n*m) too slow...
+    [T,sqrD] = project_to_lines(P,V(E(:,1),:),V(E(:,2),:),'Segments',true);
+    % snap to line segment
+    [~,J] = min(sqrD,[],2);
+    T = T(sub2ind(size(T),1:size(P,1),J'))';
+    C = V(E(J,1),:) + bsxfun(@times,T,(V(E(J,2),:)-V(E(J,1),:)));
+    % sign: bug in winding number...
+    s = -2*(-winding_number(V,E,P))+1;
+    vec = C-P;
+    % signed distance direction
+    D = bsxfun(@times,s,normalizerow(vec));
+    % signed distance
+    S = s.*normrow(D);
+  case 3 
+    [S,I,C,N] = signed_distance(P,V,F,'SignedDistanceType','pseudonormal');
+    D = normalizerow(C-P);
+    D = bsxfun(@times,sign(S),D);
+    min_dist = 1e-5;
+    too_close = abs(S) < min_dist;
+    % Normals always point outside regardless of the eval point.
+    D(too_close,:) = -N(too_close,:);
+  end
 
   %% Find closest points
   %[sqrD,I,C] = point_mesh_squared_distance(P,V,F);
