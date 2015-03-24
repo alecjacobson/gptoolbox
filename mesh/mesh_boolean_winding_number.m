@@ -1,4 +1,4 @@
-function [W,H] = mesh_boolean_winding_number(V,F,U,G,operation,varargin)
+function [W,H,J] = mesh_boolean_winding_number(V,F,U,G,operation,varargin)
   % MESH_BOOLEAN_WINDING_NUMBER Compute boolean csg operations on oriented
   % meshes. Uses winding number to determine boolean extraction. This is
   % theoretically prone to errors for "bad" intersections, but will handle
@@ -13,9 +13,15 @@ function [W,H] = mesh_boolean_winding_number(V,F,U,G,operation,varargin)
   %   G  #G by 3 list of triangle indices into U
   %   operation  followed by operation to perform as a string, one of: 'union',
   %     'intersect', 'minus', 'xor', or 'resolve'
+  %     Optional:
+  %       'Thresholds' 2-long list of winding number cut offs to use to
+  %         determine inside/outside: all faces of F (after intersection) with
+  %         winding number w.r.t. (U,G) less than thresholds(1) are considered
+  %         inside.
   % Outputs:
   %   W  #W by 3 list of vertex positions of boolean result mesh
   %   H  #H by 3 list of triangle indices into W
+  %   J  #H list of indices into [FA;FB] of facet birth parents
   %    
   % See also: mesh_boolean
   %
@@ -25,7 +31,9 @@ function [W,H] = mesh_boolean_winding_number(V,F,U,G,operation,varargin)
   [W,SFG,~,J,IM] = selfintersect(VU,FG);
   [W,UIM] = remove_unreferenced(W,IM(SFG));
   SF = IM(SFG(J<=size(F,1),:));
+  JF = J(J<=size(F,1));
   SG = IM(SFG(J>size(F,1),:));
+  JG = J(J>size(F,1),:);
   SF = UIM(SF);
   SG = UIM(SG);
 
@@ -55,15 +63,23 @@ function [W,H] = mesh_boolean_winding_number(V,F,U,G,operation,varargin)
   case 'union'
     SF = SF(wUGA<th(1),:);
     SG = SG(wVFB<th(2),:);
+    JF = JF(wUGA<th(1),:);
+    JG = JG(wVFB<th(2),:);
   case 'intersect'
     SF = SF(wUGA>=th(1),:);
     SG = SG(wVFB>=th(2),:);
+    JF = JF(wUGA>=th(1),:);
+    JG = JG(wVFB>=th(2),:);
   case 'minus'
     SF = SF(wUGA<th(1),:);
     SG = fliplr(SG(wVFB>=th(2),:));
+    JF = JF(wUGA<th(1),:);
+    JG = JG(wVFB>=th(2),:);
   case 'xor'
     SF = [SF(wUGA<th(1),:); fliplr(SF(wUGA>=th(1),:))];
     SG = [SG(wVFB<th(2),:); fliplr(SG(wVFB>=th(2),:))];
+    JF = [JF(wUGA<th(1),:); JF(wUGA>=th(1),:)];
+    JG = [JG(wVFB<th(2),:); JG(wVFB>=th(2),:)];
   case 'resolve'
     % Don't do anyting. Just snap vertices...
   otherwise
@@ -71,6 +87,7 @@ function [W,H] = mesh_boolean_winding_number(V,F,U,G,operation,varargin)
   end
   % Combine meshes and map to unique vertices
   H = [SF;SG];
+  J = [JF;JG];
   [W,IM] = remove_unreferenced(W,H);
   H = IM(H);
 end

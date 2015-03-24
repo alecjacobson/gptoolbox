@@ -30,15 +30,14 @@ function [V,F] = readOBJfast(filename,varargin)
     if isunix()
       % try to make the file easier to read
       tmpf = tempname();
+      escaped_filename = strrep(filename,' ','\ ');
       cmd = sprintf( ...
         ['echo -e "$(grep "^v " %s) \\n$(grep "^f " %s | ' ...
         'sed -e "s/\\([0-9]*\\)\\(\\/[0-9]*\\)*/\\1/g")" >%s'], ...
-        filename,filename,tmpf);
+        escaped_filename,escaped_filename,tmpf);
       s = system(cmd);
       if s==0
-        readOBJfast_helper(filename);
-        % Alec: Want to know if this is ever used...
-        warning('file_wrangler succeeded');
+        readOBJfast_helper(tmpf);
         delete(tmpf);
         return;
       end

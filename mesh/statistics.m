@@ -138,7 +138,10 @@ function S = statistics(V,F,varargin)
   % 2-b-X  = 2g
   % g = (2-b-X)/2
   % http://sketchesoftopology.wordpress.com/2008/02/04/genus-euler-characteristic-boundary-components/
-  S.num_handles = (2-S.num_boundary_loops-S.euler_characteristic)/2;
+  S.num_handles = ...
+    (2*S.num_connected_components - ...
+    S.num_boundary_loops - ...
+    S.euler_characteristic)/2;
 
   dblA = doublearea(V,F);
   S.num_geometrically_degenerate_faces = sum(dblA==0);
