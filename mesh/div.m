@@ -48,7 +48,13 @@ function [D] = div(V,F)
 
   % This seems to be identical to:
   G = grad(V,F); 
-  TA = repdiag(diag(sparse(doublearea(V,F))),size(V,2));
+  switch size(F,2)
+  case 3
+    dblvol = doublearea(V,F);
+  case 4
+    dblvol = 2*volume(V,F);
+  end
+  TA = repdiag(diag(sparse(dblvol)),size(V,2));
   D = -0.25*G'*TA;
   %DX = D*X(:);
 end

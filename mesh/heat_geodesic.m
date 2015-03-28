@@ -10,6 +10,8 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   % Inputs:
   %   V  #V by 3 set of vertex positions 
   %   F  #F by 3 set of face indices
+  %     or 
+  %      #T by 4 set of tetrahedra indices
   %   gamma  #gamma list of vertex indices of source points
   %   t  time parameter
   %   Optional:
@@ -172,6 +174,25 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
       end
     end
 
+    if strcmp(bc_type,'natural')
+      K = keenan(V,F);
+      Q = M - t*K;
+      B = M*u0;
+      G = grad(V,F);
+      switch size(F,2)
+      case 4
+        vol = volume(V,F);
+      case 3
+        vol = doublearea(V,F);
+      end
+      vol = vol/sum(vol);
+      % kill off affine functions
+      A = [
+        sum(M)/sum(M(:)); ...
+        kron(speye(size(V,2)),vol)'*G];
+      uT = min_quad_with_fixed(Q,B,[],[],A,[0;zeros(size(V,2),1)]);
+    end
+
     switch bc_type
     case 'dirichlet'
       u = uD;
@@ -182,20 +203,16 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
       % the mean of the Neumann solution uN and the Dirichlet solution uD, i.e.,
       % u = 0.5*(uN + uD)"
       u = 0.5*(uN+uD);
+    case 'natural'
+      u = uT;
     otherwise
       error(['Unsupported BoundaryCondtions value: ' bc_type]);
     end
   end
 
   % Evaluate the vector field X
-  switch ss
-  case 3
-    G = grad(V,F);
-    Div = div(V,F);
-  case 4
-    G = grad3(V,F);
-    Div = div3(V,F);
-  end
+  G = grad(V,F);
+  Div = div(V,F);
   grad_u = reshape(G*u,size(F,1),size(V,2));
   grad_u_norm = sqrt(sum(grad_u.^2,2));
   % normalize grad_u

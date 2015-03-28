@@ -10,9 +10,12 @@ function [D] = div3(V,T)
   %   D  #vertices by #elements*3 divergence operator
   %
 
-  G = grad3(V,T); 
-  vol = volume(V,T);
-  % Off by a factor 2?
-  D = -G'*repdiag(diag(sparse(vol)),3);
+  warning('Deprecated. Call grad directly.');
+  D = div(V,T);
+
+  %G = grad3(V,T); 
+  %vol = volume(V,T);
+  %% Off by a factor 2?
+  %D = -G'*repdiag(diag(sparse(vol)),3);
 end
 
