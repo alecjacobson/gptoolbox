@@ -91,7 +91,6 @@ function [U,G,J,BC,SU] = slice_isolines(V,F,SV,val,varargin)
     [U,G,J,BC,SU] = single_val(U,G,SU,val(v));
     J = prev_J(J);
   end
-    spy(BC)
 
   if manifold
     % should be able to do this combinatorially
