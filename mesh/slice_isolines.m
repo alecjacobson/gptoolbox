@@ -94,7 +94,8 @@ function [U,G,J,BC,SU] = slice_isolines(V,F,SV,val,varargin)
 
   if manifold
     % should be able to do this combinatorially
-    [U,I,IM] = remove_duplicate_vertices(U,1e-14);
+    bbd = normrow(max(V)-min(V));
+    [U,I,IM] = remove_duplicate_vertices(U,1e-14*bbd);
     BC = BC(I,:);
     SU = SU(I,:);
     G = IM(G);

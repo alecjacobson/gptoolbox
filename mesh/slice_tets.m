@@ -139,7 +139,8 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
 
   if manifold
     % should be able to do this combinatorially
-    [U,I,IM] = remove_duplicate_vertices(U,1e-14);
+    bbd = normrow(max(V)-min(V));
+    [U,I,IM] = remove_duplicate_vertices(U,1e-14*bbd);
     if construct_BC
       BC = BC(I,:);
     end
