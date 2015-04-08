@@ -150,6 +150,9 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
       X = csS*(csL\(csL'\(csS'*B)));
     end
   end
+  % TODO: is P'*CC*P always block diagonal?
+  % yes, but extracting these blocks using a for loop is waaaay slower than
+  % this:
   BCBT = BT'*(P*chol_solve(P'*CC*P,P'*BT));
 
   H = repdiag(L,dim) - BCBT;
