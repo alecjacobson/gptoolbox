@@ -45,6 +45,7 @@ function [D,allE] = is_delaunay(V,F,varargin)
 
   % [Fisher et al. 2007]
   allE = [F(:,[2 3]);F(:,[3 1]);F(:,[1 2])];
+  % Is this _really_ the same as checking if α_left + α_right >= π ?
   D = full(reshape(L(sub2ind(size(L),allE(:,1),allE(:,2)))>=-abs(tol),size(F)));
 
   if boundary_default
