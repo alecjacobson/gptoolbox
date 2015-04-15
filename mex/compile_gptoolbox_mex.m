@@ -49,12 +49,12 @@ CORK=[path_to_libigl '/external/cork'];
 CORK_INC=sprintf('-I%s/include',CORK);
 CORK_LIB=strsplit(sprintf('-L%s/lib -lcork',CORK));
 
-CGAL='/opt/local/'
+CGAL='/opt/local/';
 CGAL_INC=sprintf('-I%s/include',CGAL);
 CGAL_LIB=strsplit(sprintf('-L%s/lib -lCGAL -lCGAL_Core -lgmp -lmpfr',CGAL));
 CGAL_FLAGS='CXXFLAGS=\$CXXFLAGS -frounding-math';
 
-BOOST='/opt/local/'
+BOOST='/opt/local/';
 BOOST_INC=sprintf('-I%s/include',BOOST);
 BOOST_LIB=strsplit(sprintf('-L%s/lib -lboost_thread-mt -lboost_system-mt',BOOST));
 
