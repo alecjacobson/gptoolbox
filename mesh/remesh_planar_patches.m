@@ -137,11 +137,12 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
       uo = [uo;(size(W,1)+(1:(size(Wuo,1)-size(Vuo,1))))'];
       Wnew = Wuo((size(Vuo,1)+1):end,:);
       VA = V*A;
-      tsurf(Fc,VA);
-      hold on;
-      scatter(Wnew(:,1),Wnew(:,2));
-      hold off;
-      pause
+      %tsurf(Fc,VA);
+      %hold on;
+      %scatter(Wnew(:,1),Wnew(:,2));
+      %hold off;
+      %pause
+
       I = in_element(VA,Fc,Wnew);
       [~,I] = find(I);
       assert(numel(I) == size(Wnew,1));
@@ -152,8 +153,8 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
       W = [W;Wnew];
       Gc = uo(Gc);
       
-      tsurf(Gc,W);
-      pause
+      %tsurf(Gc,W);
+      %pause
       % old mean normal
       oldN = mean(normalizerow(normals(V,Fc)));
       N = mean(normalizerow(normals(W,Gc)));

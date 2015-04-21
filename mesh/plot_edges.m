@@ -13,6 +13,7 @@ function varargout = plot_edges(V,E,varargin)
   if isempty(E)
     return;
   end
+  size(E)
 
   switch size(V,2)
   case 2

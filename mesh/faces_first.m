@@ -24,8 +24,8 @@ function [RV,RT,RF,IM] = faces_first(V,T,F)
 
   % reorder vertices
   RV(IM,:) = V;
-  % reindex faces
-  RF = IM(F);
+  % reindex faces: reshape is necessary for #F = 1
+  RF = reshape(IM(F),size(F));
   % reindex tetrahedra
-  RT = IM(T);
+  RT = reshape(IM(T),size(T));
 end
