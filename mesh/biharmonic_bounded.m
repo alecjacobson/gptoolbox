@@ -1,4 +1,4 @@
-function W = biharmonic_bounded(varargin)
+function W = biharmonic_bounded(V,F,b,bc,varargin)
   % BIHARMONIC_BOUNDED Compute biharmonic bounded coordinates, using quadratic
   % optimizer
   %
@@ -36,11 +36,6 @@ function W = biharmonic_bounded(varargin)
   % See also: boundary_conditions
   %
 
-  V = varargin{1};
-  F = varargin{2};
-  b = varargin{3};
-  bc = varargin{4};
-
   % number of vertices
   n = size(V,1);
   % number of handles
@@ -62,71 +57,29 @@ function W = biharmonic_bounded(varargin)
   up = 1;
   R = sparse(n,1);
 
-  % parse optional inputs
-  ii = 5;
-  while(ii <= nargin)
-    switch varargin{ii}
-    case 'W0'
-        ii = ii + 1;
-        assert(ii<=nargin);
-        W0 = varargin{ii};
-    case 'k'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      k = varargin{ii};
-      if k > 2
-          opt_type = 'quad';
-      end
-    case 'QuadProgParam'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      param = varargin{ii};
-    case 'Low'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      low = varargin{ii};
-    case 'Up'
-      ii = ii + 1;
-    case 'POU'
-      if (ii+1)<=nargin && islogical(varargin{ii+1})
-        ii = ii + 1;
-        assert(ii<=nargin);
-        pou = varargin{ii};
-      else
-        pou = true;
-      end
-    case 'k'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      k = varargin{ii};
-      if k > 2
-          opt_type = 'quad';
-      end
-    case 'QuadProgParam'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      param = varargin{ii};
-    case 'Low'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      low = varargin{ii};
-    case 'Up'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      up = varargin{ii};
-    case 'OptType'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      opt_type = varargin{ii};
-    case 'ShapePreserving'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      R = varargin{ii};
-    otherwise
-      error(['Unsupported parameter: ' varargin{ii}]);
+
+
+  % default values
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'W0','k','QuadProgParam','Low','Up','POU','OptType','ShapePreserving'}, ...
+    {'W0','k','param','low','up','pou','opt_type','R'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
     end
-    ii = ii+1;
+    v=v+1;
   end
+
+  assert(k <= 2 || strcmp(opt_type,'quad'), ...
+    'For large k, OptType should be quad.');
 
   % Build discrete laplacian and mass matrices used by all handles' solves
   L = cotmatrix(V,F);
@@ -151,13 +104,18 @@ function W = biharmonic_bounded(varargin)
   E = edges(F);
   ne = size(E,1);
   % Build gradient
-  G = sparse( ...
-    [1:ne 1:ne]', ...
-    [E(:,1);E(:,2)], ...
-    shape_preserving_weight*[mean(R(E),2);-mean(R(E),2)], ...
-    ne, ...
-    n);
-  Lsp = G' * G;
+  if any(R(:))
+    G = sparse( ...
+      [1:ne 1:ne]', ...
+      [E(:,1);E(:,2)], ...
+      shape_preserving_weight*[mean(R(E),2);-mean(R(E),2)], ...
+      ne, ...
+      n);
+    Lsp = G' * G;
+  else
+    G = sparse(0,n);
+    Lsp = sparse(n,n);
+  end
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % SET UP PROBLEM AND SOLVE
@@ -231,6 +189,7 @@ function W = biharmonic_bounded(varargin)
       if k>=3
         Q = (Q + Q')*0.5;
       end
+      Q = Q + Lsp;
       % set bounds
       ux = up.*ones(n,1);
       lx = low.*ones(n,1);
@@ -241,7 +200,7 @@ function W = biharmonic_bounded(varargin)
       Z = sparse(n,n);
       Q = [Z,Z;Z,I];
       assert(k == 2);
-      F = sqrt(M)\L;
+      F = [sqrt(M)\L;G];
       c = zeros(n,1);
       B = [F,-I];
       ux = [up.*ones(n,1) ;  Inf*ones(n,1)];
