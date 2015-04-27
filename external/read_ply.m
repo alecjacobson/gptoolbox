@@ -11,7 +11,6 @@ function [vertex,face] = read_ply(filename)
 %   Copyright (c) 2003 Gabriel Peyr?
 
 [d,c] = plyread(filename);
-
 vi = d.face.vertex_indices;
 nf = length(vi);
 % http://stackoverflow.com/a/6210539/148668
@@ -24,7 +23,7 @@ if all(maxLength == lengths)
 else
   face = cell2mat( ...
     cellfun( ...
-      @(x)cat(2,x,zeros(1,maxLength-length(x))), ...
+      @(x)cat(2,x,-ones(1,maxLength-length(x))), ...
       vi, ...
       'UniformOutput',false))+1;
 end
@@ -315,10 +314,10 @@ for i = 1:NumElements
                   Type{j} = MatlabTypeNames{tmp};
                   TypeSize2(j) = SizeOf(tmp2);
                   Type2{j} = MatlabTypeNames{tmp2};
-	   	      else
-   	   	      fclose(fid);
-               	error(['Unknown property data type, ''list ',Token{2},' ',Token{3},''', in ', ...
-                        ElementNames{i},'.',CurPropertyNames{j},'.']);
+	       else
+   	   	 fclose(fid);
+               	 error(['Unknown property data type, ''list ',Token{2},' ',Token{3},''', in ', ...
+                   ElementNames{i},'.',CurPropertyNames{j},'.']);
                end
             else
                fclose(fid);
@@ -326,7 +325,7 @@ for i = 1:NumElements
             end
          end
       end
-      
+
       % read file
       if ~ListFlag
          if SameFlag
@@ -374,13 +373,19 @@ for i = 1:NumElements
                   BufSize = floor(1.5*BufSize);
                else
                   if Miss(1) > 1									% some counts are SkipNum
-                     Buf2 = fread(fid,[SkipNum,Miss(1)-1],[int2str(SkipNum),'*',Type2{1}],TypeSize(1))';                     
+                     [Buf2,cc] = fread(fid,[SkipNum,Miss(1)-1],[int2str(SkipNum),'*',Type2{1}],TypeSize(1));                     
+                     Buf2 = Buf2';
                      
                      for k = 1:Miss(1)-1
                         ListData{1}{j+k} = Buf2(k,:);
                      end
                      
                      j = j + k;
+                  end
+                  % Alec: check if done and rewind one step
+                  if j >= ElementCount(i)
+                    fseek(fid,-1,0);
+                    break;
                   end
                   
                   % read in the list with the missed count
