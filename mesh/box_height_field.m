@@ -65,8 +65,12 @@ function [V,F] = box_height_field(im)
   V = [VLR;VTB];
   F = [FLR;size(VLR,1)+FTB];
 
-  [V,F] = clean(V,F,'MinDist',eps,'MinArea',0,'MinAngle',0, ...
-       'SelfIntersections','mesh','SmallTriangles','remove');
+  [V,~,IM] = remove_duplicate_vertices(V,eps);
+  F = IM(F);
+  [V,IM] = remove_unreferenced(V,F);
+  F = IM(F);
+  %[V,F] = clean(V,F,'MinDist',eps,'MinArea',0,'MinAngle',0, ...
+  %     'SelfIntersections','mesh','SmallTriangles','remove');
   % This can result in a non-manifold mesh if there is every a neighborhood of
   % 4 pixels creating a "saddle" at a corner. For example,
   %
