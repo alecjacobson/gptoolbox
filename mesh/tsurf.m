@@ -130,7 +130,7 @@ function t = tsurf(F,V,varargin)
 
   
   function ondown(src,ev)
-    if exist('point_mesh_squared_distance','file')
+    if exist('point_mesh_squared_distance','file')==3
       [~,ci,C] = point_mesh_squared_distance(ev.IntersectionPoint,V,F);
       warning off;
         B = barycentric_coordinates(C,V(F(ci,1),:),V(F(ci,2),:),V(F(ci,3),:));

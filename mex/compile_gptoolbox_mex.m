@@ -5,9 +5,13 @@ warning([ ...
 input('Hit any key to continue...');
 
 MEXOPTS={'-v','-largeArrayDims','-DMEX'};
-MSSE42='CXXFLAGS=\$CXXFLAGS -msse4.2';
-STDCPP11='CXXFLAGS=\$CXXFLAGS -std=c++11';
-EIGEN_INC='-I/opt/local/include/eigen3';
+MSSE42='CXXFLAGS=$CXXFLAGS -msse4.2';
+STDCPP11='CXXFLAGS=$CXXFLAGS -std=c++11';
+if exist('/usr/local/include/eigen3')
+  EIGEN_INC='-I/usr/local/include/eigen3';
+elseif exist('/opt/local/include/eigen3')
+  EIGEN_INC='-I/opt/local/include/eigen3';
+end
 CLANG={'CXX=/usr/bin/clang++','LD=/usr/bin/clang++'};
 FRAMEWORK_LDFLAGS='LDFLAGS=\$LDFLAGS -framework Foundation -framework AppKit';
 NOOPT_LDOPTIMFLAGS='LDOPTIMFLAGS="-O "';
@@ -28,14 +32,15 @@ if use_libigl_static_library
   LIBIGL_LIBBOOLEAN='-liglboolean';
   LIBIGL_LIBSVD3X3='-liglsvd3x3';
 else
-  % `mex` has a silly requirement that arguments be non-empty, hence the spaces
-  LIBIGL_FLAGS=' ';
-  LIBIGL_LIB=' ';
-  LIBIGL_LIBMATLAB=' ';
-  LIBIGL_LIBEMBREE=' ';
-  LIBIGL_LIBCGAL=' ';
-  LIBIGL_LIBBOOLEAN=' ';
-  LIBIGL_LIBSVD3X3=' ';
+  % `mex` has a silly requirement that arguments be non-empty, hence the NOOP
+  % defines
+  LIBIGL_FLAGS='-DIGL_SKIP';
+  LIBIGL_LIB='-DIGL_SKIP';
+  LIBIGL_LIBMATLAB='-DIGL_SKIP';
+  LIBIGL_LIBEMBREE='-DIGL_SKIP';
+  LIBIGL_LIBCGAL='-DIGL_SKIP';
+  LIBIGL_LIBBOOLEAN='-DIGL_SKIP';
+  LIBIGL_LIBSVD3X3='-DIGL_SKIP';
 end
 LIBIGL_BASE={LIBIGL_INC,LIBIGL_FLAGS,LIBIGL_LIB,LIBIGL_LIBMATLAB};
 
@@ -49,7 +54,11 @@ CORK=[path_to_libigl '/external/cork'];
 CORK_INC=sprintf('-I%s/include',CORK);
 CORK_LIB=strsplit(sprintf('-L%s/lib -lcork',CORK));
 
-CGAL='/opt/local/';
+if exist('/usr/local/include/CGAL')
+  CGAL='/usr/local/';
+elseif exist('/opt/local/include/CGAL')
+  CGAL='/opt/local/';
+end
 CGAL_INC=sprintf('-I%s/include',CGAL);
 CGAL_LIB=strsplit(sprintf('-L%s/lib -lCGAL -lCGAL_Core -lgmp -lmpfr',CGAL));
 CGAL_FLAGS='CXXFLAGS=\$CXXFLAGS -frounding-math';
@@ -66,7 +75,7 @@ mex( ...
   EMBREE_INC{:}, EMBREE_LIB{:}, LIBIGL_LIBEMBREE, ...
   'ambient_occlusion.cpp');
 
-mex(MEXOPTS{:},'-o','bone_visible_mex','bone_visible.cpp');
+mex(MEXOPTS{:},'-output','bone_visible_mex','bone_visible.cpp');
 
 mex( ...
   MEXOPTS{:},...
@@ -100,7 +109,7 @@ if ismac
   mex( ...
     MEXOPTS{:}, MSSE42, STDCPP11, ...
     CLANG{:},NOOPT_LDOPTIMFLAGS,FRAMEWORK_LDFLAGS, ...
-    '-o','impaste','impaste.cpp','paste.mm');
+    '-output','impaste','impaste.cpp','paste.mm');
 end
 
 mex( ...
