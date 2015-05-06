@@ -59,20 +59,32 @@ function [V,F] = box_height_field(im)
 
   % left-right strips
   [VLR,FLR] = strips(X,Y,Z);
+  % top-bottom strips
   [VTB,FTB] = strips(Y',X',Z');
   VTB = VTB(:,[2 1 3]);
   FTB = fliplr(FTB);
   V = [VLR;VTB];
   F = [FLR;size(VLR,1)+FTB];
 
+  % clean up
   [V,~,IM] = remove_duplicate_vertices(V,eps);
+  F = IM(F);
+  [~,I] = unique(sort(F,2),'rows');
+  F = F(I,:);
+  F = F(doublearea(V,F)>0,:);
+
+  [V,IM] = remove_unreferenced(V,F);
+  F = IM(F);
+
+  % neighboring strips don't agree on vertex placement, mesh them
+  [V,F,~,J,IM] = selfintersect(V,F);
   F = IM(F);
   [V,IM] = remove_unreferenced(V,F);
   F = IM(F);
-  %[V,F] = clean(V,F,'MinDist',eps,'MinArea',0,'MinAngle',0, ...
-  %     'SelfIntersections','mesh','SmallTriangles','remove');
-  % This can result in a non-manifold mesh if there is every a neighborhood of
-  % 4 pixels creating a "saddle" at a corner. For example,
+
+
+  % This can still result in a non-manifold mesh if there is every a
+  % neighborhood of 4 pixels creating a "saddle" at a corner. For example,
   %
   %  0 1
   %  1 0
