@@ -43,7 +43,7 @@ bool paste(unsigned char *& IM,size_t & h, size_t & w, size_t & c)
     }
   }
 
-  [image release];
+  //[image release];
   return true;
 }
 
