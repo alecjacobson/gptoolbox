@@ -78,7 +78,7 @@ function [FF,I,l] = flip_edges(F,E,varargin)
     % "perfect matching")
     % Should be done in reduced graph of just vertices incident on E
     ne = size(E,1);
-    C = components(adjacency_matrix(E));
+    C = connected_components(E);
     C = C(E(:,1));
     % Use reverse order so we can take max
     E2C = sparse(1:ne,C,ne-(1:ne)+1,ne,max(C));
