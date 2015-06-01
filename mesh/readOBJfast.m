@@ -38,7 +38,7 @@ function [V,F] = readOBJfast(filename,varargin)
       s = system(cmd);
       if s==0
         readOBJfast_helper(tmpf);
-        delete(tmpf);
+        %delete(tmpf);
         return;
       end
     end
@@ -80,7 +80,7 @@ function [V,F] = readOBJfast(filename,varargin)
         break;
       else
         line = fgets(fp);
-        if(numel(line) == 0)
+        if(numel(line) == 0 || (isnumeric(line) && line == -1))
           fclose(fp);
           error_handler();
           return;
