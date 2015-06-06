@@ -57,6 +57,9 @@ function [T,sqrD] = project_to_lines(P,S,D,varargin)
     DmS = D-S;
     v_sqrlen = sum((DmS).^2,2);
     T = - sum((S-P).*(DmS)) ./ v_sqrlen;
+    if segments
+      T = min(max(T,0),1);
+    end
     if(nargout > 1)
       sqrD = sum((P - ( (1-T) .* S + T .* D)).^2);
     end
@@ -81,7 +84,6 @@ function [T,sqrD] = project_to_lines(P,S,D,varargin)
     if segments
       T = min(max(T,0),1);
     end
-  
     if(nargout > 1)
       % t seen by each coordinate
       Tdim = repmat(T,[1 1 dim]);
