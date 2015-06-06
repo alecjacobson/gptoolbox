@@ -13,11 +13,21 @@ function s = path_to_triangle()
       'Could you put triangle there and change this accordingly?' ...
       'Thanks, Alec']);
     s = 'c:/prg/lib/triangle/Release/triangle.exe';
-  elseif ismac
-    s = '/opt/local/bin/triangle';
-  elseif isunix 
+  elseif isunix || ismac
     % I guess this means linux
-    s = '/usr/local/bin/triangle';
+    [status, s] = system('which triangle');
+    s = strtrim(s);
+    if isempty(s)
+      guesses = { ...
+        '/usr/local/bin/triangle', ...
+        '/opt/local/bin/triangle'};
+    found = find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first');
+    if found
+      s = ...
+        guesses{find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first')};
+    end
+      assert(~isempty(s),'Could not find triangle');
+    end
   end
 end
 

@@ -22,8 +22,11 @@ function s = path_to_meshfix()
         '/opt/local/bin/meshfix', ...
         '/usr/local/igl/libigl/external/MeshFix/meshfix', ...
         '/usr/local/libigl/external/MeshFix/meshfix'};
+    found = find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first');
+    if found
       s = ...
         guesses{find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first')};
+    end
       assert(~isempty(s),'Could not find meshfix');
     end
   end
