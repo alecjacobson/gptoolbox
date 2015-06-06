@@ -30,21 +30,6 @@ function [V,F] = delaunayize(V,F,varargin)
     param_name = varargin{v};
     if isKey(params_to_variables,param_name)
       assert(v+1<=numel(varargin));
-  %
-
-  tol= 1e-7;
-  vis = false;
-  keep_E = zeros(0,2);
-  split_edges = false;
-  % Map of parameter names to variable names
-  params_to_variables = containers.Map( ...
-    {'Tol','Visualize','Keep','SplitEdges'}, ...
-    {'tol','vis','keep_E','split_edges'});
-  v = 1;
-  while v <= numel(varargin)
-    param_name = varargin{v};
-    if isKey(params_to_variables,param_name)
-      assert(v+1<=numel(varargin));
       v = v+1;
       % Trick: use feval on anonymous function to use assignin to this workspace 
       feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));

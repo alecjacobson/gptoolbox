@@ -17,7 +17,7 @@ function [A] = adjacency_matrix(E)
   % See also: facet_adjacency_matrix
   %
 
-  if(size(E,2)>2)
+  if size(E,2)>2
     F = E;
     E = edges(F);
   end

@@ -8,6 +8,9 @@ if     ((~isempty(findstr(type,'.off'))) && (direct))
 elseif ((~isempty(findstr(type,'.obj'))) && (direct))
 elseif ((~isempty(findstr(type,'.mesh'))) && (direct))
 elseif ((~isempty(findstr(type,'.dmat'))) && (direct))
+elseif ((~isempty(findstr(type,'.ply'))) && (direct))
+elseif ((~isempty(findstr(type,'.stl'))) && (direct))
+elseif ((~isempty(findstr(type,'.wrl'))) && (direct))
     %-------------------------------------------------
     % Your function that will open/run this file type
     %-------------------------------------------------

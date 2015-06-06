@@ -45,9 +45,13 @@ function [E,RP,RD] = readEDGE(edge_file_name)
   while(true)
     % read next whole line
     line = fscanf(edge_file_handle,' %[^\n]s');
-    [e,count] = sscanf(line,'%d %d %d %g %g',5);
+    [e,count] = sscanf(line,'%d %d %d %g %g %g',6);
     if(count == 3)
       E = [E;e(2) e(3)];
+    elseif(count == 6)
+      assert(e(3) == -1);
+      RP = [RP; e(2)];
+      RD = [RD; e(4) e(5) e(6)];
     elseif(count == 5)
       assert(e(3) == -1);
       RP = [RP; e(2)];
