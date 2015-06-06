@@ -13,7 +13,7 @@
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/parse_rhs.h>
-#include <igl/cgal/point_mesh_squared_distance.h>
+#include <igl/point_mesh_squared_distance.h>
 
 #ifdef MEX
 #  include "mex.h"
@@ -49,8 +49,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
   mexErrMsgTxt(F.cols()==3,"F must be #F by 3");
 
-
-  point_mesh_squared_distance<CGAL::Simple_cartesian<double> >(P,V,F,sqrD,I,C);
+  point_mesh_squared_distance(P,V,F,sqrD,I,C);
   // Prepare left-hand side
   switch(nlhs)
   {

@@ -4,8 +4,6 @@
 //   -I/opt/local/include/eigen3 ...
 //   -I/opt/local/include ...
 //   -L/opt/local/lib ...
-//   -lCGAL -lCGAL_Core -lgmp -lmpfr ...
-//   -lboost_thread-mt -lboost_system-mt ...
 //   signed_distance.cpp
 
 #include <mex.h>
@@ -15,9 +13,8 @@
 #define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
 #include <igl/matlab/MexStream.h>
 
-#include <igl/cgal/signed_distance.h>
-#include <igl/cgal/point_mesh_squared_distance.h>
 #include <igl/per_vertex_normals.h>
+#include <igl/signed_distance.h>
 #include <igl/per_edge_normals.h>
 #include <igl/per_face_normals.h>
 #include <igl/WindingNumberAABB.h>
@@ -101,15 +98,6 @@ void parse_rhs(
   }
 }
 
-typedef CGAL::Simple_cartesian<double> Kernel;
-typedef 
-  CGAL::AABB_tree<
-  CGAL::AABB_traits<Kernel, 
-    CGAL::AABB_triangle_primitive<Kernel, 
-      std::vector<CGAL::Triangle_3<Kernel> >::iterator
-    > > > 
-  Tree;
-
 //void precompute(
 //  const Eigen::MatrixXd & V,
 //  const Eigen::MatrixXi & F,
@@ -126,8 +114,7 @@ typedef
   static Eigen::MatrixXi g_F;
   static igl::SignedDistanceType g_sign_type = 
     igl::NUM_SIGNED_DISTANCE_TYPE;
-  static Tree g_tree;
-  static std::vector<CGAL::Triangle_3<Kernel> > g_T;
+  static igl::AABB<Eigen::MatrixXd,3> g_tree;
   static igl::WindingNumberAABB<Eigen::Vector3d> g_hier;
   static Eigen::MatrixXd g_FN,g_VN,g_EN;
   static Eigen::MatrixXi g_E;
@@ -157,12 +144,11 @@ void mexFunction(
     g_V = V;
     g_F = F;
     g_sign_type = type;
-    // THIS IS SUPER IMPORTANT, otherwise matlab crashes kabooom.
-    g_tree.clear();
-    g_T.clear();
+    // Clear the tree
+    g_tree.deinit();
 
     // Prepare distance computation
-    point_mesh_squared_distance_precompute(V,F,g_tree,g_T);
+    g_tree.init(V,F);
     switch(type)
     {
       default:
@@ -191,40 +177,31 @@ void mexFunction(
   C.resize(P.rows(),3);
   for(int p = 0;p<P.rows();p++)
   {
-    typedef typename Kernel::FT FT;
-    typedef typename Kernel::Point_3 Point_3;
-    typedef typename CGAL::Triangle_3<Kernel> Triangle_3;
-    typedef typename std::vector<Triangle_3>::iterator Iterator;
-    typedef typename CGAL::AABB_triangle_primitive<Kernel, Iterator> Primitive;
-    typedef typename CGAL::AABB_traits<Kernel, Primitive> AABB_triangle_traits;
-    typedef typename CGAL::AABB_tree<AABB_triangle_traits> Tree;
-    typedef typename Tree::Point_and_primitive_id Point_and_primitive_id;
-    const Point_3 q(P(p,0),P(p,1),P(p,2));
+    const Eigen::RowVector3d q(P(p,0),P(p,1),P(p,2));
     double s,sqrd;
-    Point_and_primitive_id pp;
+    Eigen::RowVector3d c;
+    int i;
     switch(type)
     {
       default:
         assert(false && "Unknown SignedDistanceType");
       case SIGNED_DISTANCE_TYPE_DEFAULT:
       case SIGNED_DISTANCE_TYPE_WINDING_NUMBER:
-        signed_distance_winding_number(g_tree,g_hier,q,s,sqrd,pp);
+        signed_distance_winding_number(g_tree,g_V,g_F,g_hier,q,s,sqrd,i,c);
         break;
       case SIGNED_DISTANCE_TYPE_PSEUDONORMAL:
       {
-        Vector3d n(0,0,0);
+        RowVector3d n(0,0,0);
         signed_distance_pseudonormal(
-          g_tree,g_T,g_F,g_FN,g_VN,g_EN,g_EMAP,
-          q,s,sqrd,pp,n);
+          g_tree,g_V,g_F,g_FN,g_VN,g_EN,g_EMAP,
+          q,s,sqrd,i,c,n);
         N.row(p) = n;
         break;
       }
     }
-    I(p) = pp.second - g_T.begin();
+    I(p) = i;
     S(p) = s*sqrt(sqrd);
-    C(p,0) = pp.first.x();
-    C(p,1) = pp.first.y();
-    C(p,2) = pp.first.z();
+    C.row(p) = c;
   }
 
   switch(nlhs)
