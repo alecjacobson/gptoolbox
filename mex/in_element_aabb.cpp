@@ -4,7 +4,7 @@
 //   -I/opt/local/include/eigen3 ...
 //   in_element_aabb.cpp
 
-#include <igl/InElementAABB.h>
+#include <igl/AABB.h>
 #include <igl/in_element.h>
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -88,12 +88,33 @@ void mexFunction(
   parse_rhs(nrhs,prhs,V,Ele,Q,bb_mins,bb_maxs,elements);
   bool was_serialized = bb_mins.size()>0;
 
-  InElementAABB aabb;
-  aabb.init(V,Ele,bb_mins,bb_maxs,elements);
-  in_element(V,Ele,Q,aabb,I);
-  if(nlhs>1 && !was_serialized)
+  switch(V.cols())
   {
-    aabb.serialize(bb_mins,bb_maxs,elements);
+    default:
+      mexErrMsgTxt(false,"Un-supported dimension.");
+      break;
+    case 3:
+    {
+      AABB<MatrixXd,3> aabb;
+      aabb.init(V,Ele,bb_mins,bb_maxs,elements);
+      in_element(V,Ele,Q,aabb,I);
+      if(nlhs>1 && !was_serialized)
+      {
+        aabb.serialize(bb_mins,bb_maxs,elements);
+      }
+      break;
+    }
+    case 2:
+    {
+      AABB<MatrixXd,2> aabb;
+      aabb.init(V,Ele,bb_mins,bb_maxs,elements);
+      in_element(V,Ele,Q,aabb,I);
+      if(nlhs>1 && !was_serialized)
+      {
+        aabb.serialize(bb_mins,bb_maxs,elements);
+      }
+      break;
+    }
   }
 
   switch(nlhs)

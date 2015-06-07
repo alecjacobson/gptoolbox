@@ -5,13 +5,13 @@
 % Inputs:
 %   P  #P by 3 list of query point positions
 %   V  #V by 3 list of vertex positions
-%   F  #F by 3 list of triangle indices
+%   F  #F by (3|2|1) list of triangle|edge|point indices
 % Outputs:
 %   sqrD  #P list of smallest squared distances
 %   I  #P list of facet indices corresponding to smallest distances
 %   C  #P by 3 list of closest points
 %
-% Known bugs: This only computes distances to triangles. So unreferenced
+% Known bugs: This only computes distances to given primitives. So unreferenced
 % vertices are ignored.
 %
 % Examples:

@@ -41,9 +41,6 @@ void parse_rhs(
   mexErrMsgTxt(dim == 3,
     "Mesh vertex list must be #V by 3 list of vertex positions");
 
-  mexErrMsgTxt(dim == mxGetN(prhs[1]),
-    "Mesh \"face\" simplex size must equal dimension");
-
   parse_rhs_double(prhs,IV);
   parse_rhs_index(prhs+1,IF);
 
@@ -131,6 +128,12 @@ void parse_rhs(
         }else if(strcmp("winding_number",type_name)==0)
         {
           type = igl::SIGNED_DISTANCE_TYPE_WINDING_NUMBER;
+        }else if(strcmp("default",type_name)==0)
+        {
+          type = igl::SIGNED_DISTANCE_TYPE_DEFAULT;
+        }else if(strcmp("unsigned",type_name)==0)
+        {
+          type = igl::SIGNED_DISTANCE_TYPE_UNSIGNED;
         }else
         {
           mexErrMsgTxt(false,C_STR("Unknown SignedDistanceType: "<<type_name));
@@ -141,6 +144,12 @@ void parse_rhs(
       }
       i++;
     }
+  }
+
+  if(type != igl::SIGNED_DISTANCE_TYPE_UNSIGNED)
+  {
+    mexErrMsgTxt(dim == mxGetN(prhs[1]),
+      "Mesh \"face\" simplex size must equal dimension");
   }
 }
 

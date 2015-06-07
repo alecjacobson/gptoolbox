@@ -5,7 +5,7 @@
 //   -I/opt/local/include ...
 //   outer_hull.cpp
 
-#include <igl/outer_hull.h>
+#include <igl/cgal/outer_hull.h>
 
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>

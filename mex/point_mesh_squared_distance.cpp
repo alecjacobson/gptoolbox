@@ -1,10 +1,7 @@
 // 
 //     mex -v -DMEX point_mesh_squared_distance.cpp ...
 //       -Isrc -I/opt/local/include/ -I/opt/local/include/eigen3 ...
-//       -I/usr/local/igl/libigl/include ...
-//       -L/opt/local/lib ...
-//       -lCGAL -lCGAL_Core -lgmp -lmpfr ...
-//       -lboost_thread-mt -lboost_system-mt
+//       -I/usr/local/igl/libigl/include 
 // 
 #include <mex.h>
 #undef assert
@@ -47,7 +44,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   parse_rhs_index(prhs+2,F);
   mexErrMsgTxt(P.cols()==3,"P must be #P by 3");
   mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
-  mexErrMsgTxt(F.cols()==3,"F must be #F by 3");
+  mexErrMsgTxt(F.cols()==3 || F.cols()==2 || F.cols()==1,"F must be #F by (3|2|1)");
 
   point_mesh_squared_distance(P,V,F,sqrD,I,C);
   // Prepare left-hand side
