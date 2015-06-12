@@ -2,7 +2,7 @@ function [P,PI] = farthest_points(V,k,varargin)
   % FARTHEST_POINTS Use an iterative heuristic to sample a discrete set of
   % points so that minimum pairwise distances for each point are maximized:
   %
-  % maximize ∑_i min_j(‖pi-pj‖)
+  % maximize ???_i min_j(???pi-pj???)
   %
   % [P,PI] = farthest_points(V,k)
   % [P,PI] = farthest_points(V,k,'ParameterName',ParameterValue, ...)
@@ -76,7 +76,7 @@ function [P,PI] = farthest_points(V,k,varargin)
   iter = 1;
   while true
     change = false;
-    progressbar(iter-1,max_iter-1,30);
+    %progressbar(iter-1,max_iter-1,30);
     for pi = 1:numel(PI)
       old_PI_pi = PI(pi);
       % other points

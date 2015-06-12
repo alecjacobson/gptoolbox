@@ -12,6 +12,7 @@ function progressbar(n,N,w)
 % TODO: should start at 0
 %
 % See also: waitbar
+error
 
 if nargin<3
     w = 20;
