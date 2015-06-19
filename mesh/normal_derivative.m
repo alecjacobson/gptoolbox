@@ -1,5 +1,6 @@
-function [DD,E,UEVperp] = edge_directional_derivative(V,F)
-  % EDGE_DIRECTIONAL_DERIVATIVE
+function [DD,E,UEVperp] = normal_derivative(V,F)
+  % NORMAL_DERIVATIVE Computes the directional derivative **normal** to **all**
+  % (half-)edges of a triangle mesh (not just boundary edges).
   %
   % DD = edge_directional_derivative(V,F)
   % [DD,E,UEVperp] = edge_directional_derivative(V,F)
@@ -8,9 +9,9 @@ function [DD,E,UEVperp] = edge_directional_derivative(V,F)
   %   V  #V by dim list of mesh vertex positions
   %   F  #F by 3 list of triangle indices into V
   % Outputs:
-  %   DD  #F*3 by #V sparse matrix representing operator to comput directional
-  %     derivative with respect to each edge of each face. All edges 23 then
-  %     all 31 then all 12
+  %   DD  #F*3 by #V sparse matrix representing operator to compute directional
+  %     derivative with respect to each edge of each face. All edges 23 then all
+  %     31 then all 12
   %   E  #F*3 by 2 list of edge vectors matching DD and UEVperp
   %   UEVperp  #F*3 by dim  Unit vectors perpendicular to edge vectors
   %
@@ -63,3 +64,4 @@ function [DD,E,UEVperp] = edge_directional_derivative(V,F)
     UEVperp(:), ...
     size(E,1), ...
     size(F,1)*dim) * G;
+end
