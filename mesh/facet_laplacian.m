@@ -30,7 +30,7 @@ function [L,E] = facet_laplacian(V,F)
   %   % mesh in (V,F)
   %   [Le] = facet_laplacian(V,F);
   %   [Lcr,E,EMAP] = crouzeix_raviart_cotmatrix(V,F);
-  %   V2E = sparse(E(:),repmat(1:size(E,1),1,2)',1,size(V,1),size(E,1))';
+  %   V2E = sparse(E(:),repmat(1:size(E,1),1,size(E,2))',1,size(V,1),size(E,1))';
   %   V2E = bsxfun(@rdivide,V2E,sum(V2E,2));
   %   LcrV2E = Lcr*V2E;
   %   max(max(abs(LcrV2E--2*Le)))
@@ -87,13 +87,14 @@ function [L,E] = facet_laplacian(V,F)
     % Q: What's going on for boundary edges?
     % A: Interior edges are integrating around butterly. Boundary edges are only
     % integrating around half what would be their butterfly. They "should" also
-    % integrate along themselves to enclose an area. Since they don't they amount
-    % to computing minus the normal derivative.
+    % integrate along themselves to enclose an area. Since they don't they
+    % amount to computing minus the normal derivative.
   case 4
     [Lcr,E] = crouzeix_raviart_cotmatrix(V,F); 
     A = sparse(E(:),repmat(1:size(E,1),1,3)',1,size(V,1),size(E,1))';
     Df = diag(sparse(sum(A,2)));
-    L = 3*Lcr*(Df\A);
+    % Legacy factor of 2 to match triangle version
+    L = 0.5*3*Lcr*(Df\A);
     % Lv == 0.5*A'*Lf;
   end
 
