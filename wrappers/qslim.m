@@ -51,7 +51,7 @@ function [C,W,G,V2W] = qslim(V,F,t,varargin)
   try
     % prepare command string
     command = sprintf('%s -t %d -M log -q %s %s >%s', ...
-      path_to_qslim,t,input,qslim_flags,output);
+      path_to_qslim,t,qslim_flags,input,output);
     [status,result] = system(command);
     if status ~= 0
       error(result);
