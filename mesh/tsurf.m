@@ -69,16 +69,9 @@ function t = tsurf(F,V,varargin)
     return;
   end
 
-  switch size(F,2)
-  case 3
-    t_copy = trisurf(F,V(:,1),V(:,2),V(:,3));
-    FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:))./3;
-    if(face_indices==1)
-      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
-    elseif(face_indices)
-      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
-    end
-  case 4
+  tets = size(F,2) ==4 && (size(F,1)*4 > 1.01*size(boundary_faces(F),1));
+
+  if tets
     t_copy = tetramesh(F,V,'FaceAlpha',0.5);
     FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:)+V(F(:,4),:))./3;
     if(face_indices==1)
@@ -87,8 +80,14 @@ function t = tsurf(F,V,varargin)
       text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
     end
     set(gcf,'Renderer','OpenGL');
-  otherwise
-    error(['Unsupported simplex size: size(F,2) = ' num2str(size(F,2))]);  
+  else
+    t_copy = trisurf(F,V(:,1),V(:,2),V(:,3));
+    FC = barycenter(V,F);
+    if(face_indices==1)
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
+    elseif(face_indices)
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
+    end
   end
   
   % if 2d then set to view (x,y) plane
