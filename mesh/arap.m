@@ -175,9 +175,12 @@ function [U,data,SS,R] = arap(varargin)
       Vm1 = V0;
     end
     M = massmatrix(V,F);
-    DQ = 0.5*1/h^2*M;
+    M = M/max(M(:));
+    % Larger is more dynamic, smaller is more rigid.
+    dw = 5e-2*h^2;
+    DQ = dw * 0.5*1/h^2*M;
     vel = (V0-Vm1)/h;
-    Dl = 1/(h^2)*M*(-V0 - h*vel) - fext;
+    Dl = dw * (1/(h^2)*M*(-V0 - h*vel) - fext);
     %Dl = 1/h^3*M*(-2*V0 + Vm1) - fext;
   else
     DQ = sparse(size(V,1),size(V,1));
@@ -322,7 +325,7 @@ function [U,data,SS,R] = arap(varargin)
     % dim by dim by n list of covariance matrices
     SS = permute(reshape(S,[size(data.CSM,1)/dim dim dim]),[2 3 1]);
     % fit rotations to each deformed vertex
-    R = fit_rotations(SS,'SinglePrecision',true);
+    R = fit_rotations(SS,'SinglePrecision',false);
 
     % energy after last local step
     U(b,:) = bc;

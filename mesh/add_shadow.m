@@ -77,9 +77,7 @@ function [h,L,M] = add_shadow(T,L,varargin)
       % plane equation
       % 0 = ax + by + cz + d
       light_pos = [l.Position strcmp(l.Style,'local')];
-
       d = ground * light_pos';
-    
       shadow_mat = d*eye(4) - light_pos'*ground;
       U = [V ones(size(V,1),1)]*shadow_mat';
       U = bsxfun(@rdivide,U(:,1:3),U(:,4));
