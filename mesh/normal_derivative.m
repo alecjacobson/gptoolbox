@@ -48,12 +48,15 @@ function [DD,E,N] = normal_derivative(V,F)
     % 23,31,12,41,42,43
     C = cotangent(V,T);
     % -1/1 point to/from vertex on "this edge"
-    F = [T(:,[2 3 4]);T(:,[3 4 1]);T(:,[4 1 2]);T(:,[1 2 3])];
+    F = [T(:,[2 3 4]);T(:,[1 4 3]);T(:,[1 2 4]);T(:,[1 3 2])];
+    m = size(T,1);
     DD = 2*sparse( ...
-      repmat(1:4*size(T,1),6,1)', ...
+      reshape(bsxfun(@plus,repmat(1:m,1,6)',m*(0:4-1)),m,6*4), ...
       T(:,[2 1 3 1 4 1,3 2 4 2 1 2,4 3 1 3 2 3,1 4 2 4 3 4]), ...
       C(:,[3 3 2 2 4 4,1 1 5 5 3 3,6 6 2 2 1 1,4 4 5 5 6 6])* ...
-        diag([1 -1 1 -1 1 -1]));
+        diag(repmat([1,-1],1,3*4)), ...
+        m*4,size(V,1));
+    E = F;
     %% REFERENCE VERSION:
     %% gradient for each tetrahedron
     %G = grad(V,F);
@@ -71,20 +74,22 @@ function [DD,E,N] = normal_derivative(V,F)
     %  size(E,1), ...
     %  size(F,1)*dim)/3 * G;
   case 3
+    % edges
+    E = [F(:,2) F(:,3)
+         F(:,3) F(:,1)
+         F(:,1) F(:,2)];
     % Could replace with:
     C = cotangent(V,F);
     % -1/1 point to/from vertex on "this edge"
+    m = size(F,1);
     DD = 2*sparse( ...
-      repmat(1:3*size(F,1),4,1)', ...
+      reshape(bsxfun(@plus,repmat(1:m,1,4)',m*(0:3-1)),m,4*3), ...
       F(:,[3 1 2 1,1 2 3 2,2 3 1 3]), ...
-      C(:,[2 2 3 3,3 3 1 1,1 1 2 2])*diag([1 -1 1 -1]));
+      C(:,[2 2 3 3,3 3 1 1,1 1 2 2])*diag(repmat([1,-1],1,2*3)), ...
+      m*3,size(V,1));
     %% REFERENCE VERSION:
     %% gradient for each triangle
     %G = grad(V,F);
-    %% edges
-    %E = [F(:,2) F(:,3)
-    %     F(:,3) F(:,1)
-    %     F(:,1) F(:,2)];
     %% edge vectors
     %EV = V(E(:,2),:) - V(E(:,1),:);
     %% unit (normalized) normals
