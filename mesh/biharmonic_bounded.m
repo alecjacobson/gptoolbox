@@ -282,22 +282,6 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
             ]);
         end
 
-        prob = [];
-        [prob.qosubi,prob.qosubj,prob.qoval] = find(tril(Q));
-        prob.c = zeros(n,1);
-        prob.a = sparse(0,n);
-        prob.blc = sparse(0,1);
-        prob.buc = sparse(0,1);
-        prob.blx = lx;
-        prob.bux = ux;
-        % Enforce fixed values
-        prob.bux(b) = bc(:,i);
-        prob.blx(b) = bc(:,i);
-        quiet = '';
-        fprintf('Quadratic optimization using mosek...\n');
-        [r,res]=mosekopt(['minimize' quiet],prob,param);
-        report_mosek_error(r,res);
-
       case 'least-squares'
         % enforce boundary conditions via lower and upper bounds
         lx(b) = bc(:,i);
