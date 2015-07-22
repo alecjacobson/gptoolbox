@@ -94,7 +94,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 {
   // This is useful for debugging whether Matlab is caching the mex binary
   //mexPrintf("%s %s\n",__TIME__,__DATE__);
-  igl::MexStream mout;
+  igl::matlab::MexStream mout;
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
 
 #else
@@ -104,10 +104,12 @@ int main(int argc, char * argv[])
   using namespace std;
   using namespace Eigen;
   using namespace igl;
+  using namespace igl::matlab;
+  using namespace igl::cgal;
 
   MatrixXd V;
   MatrixXi F;
-  RemeshSelfIntersectionsParam params;
+  igl::cgal::RemeshSelfIntersectionsParam params;
 
   string prefix;
   bool use_obj_format = false;

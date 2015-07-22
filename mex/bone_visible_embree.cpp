@@ -117,7 +117,7 @@ void mexFunction(
   using namespace Eigen;
   using namespace igl;
 
-  igl::MexStream mout;        
+  igl::matlab::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 
@@ -134,7 +134,7 @@ void mexFunction(
 
   // List of flag
   Matrix<bool,Dynamic,1> flag;
-  bone_visible(V,F,s,d,flag);
+  igl::embree::bone_visible(V,F,s,d,flag);
 
   nlhs = 1;
   plhs[0] = mxCreateLogicalMatrix(V.rows(),1);

@@ -21,6 +21,7 @@ void parse_rhs(
   using namespace std;
   using namespace igl;
   using namespace Eigen;
+  using namespace igl::matlab;
   mexErrMsgTxt(nrhs >= 3, "The number of input arguments must be >=3.");
 
   const int dim = mxGetN(prhs[0]);
@@ -38,7 +39,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   using namespace std;
   using namespace igl;
-  igl::MexStream mout;        
+  using namespace igl::matlab;
+  igl::matlab::MexStream mout;        
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
   MatrixX3d V0,V1,U;
   MatrixX3i F,G;

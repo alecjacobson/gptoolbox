@@ -90,7 +90,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 {
   // This is useful for debugging whether Matlab is caching the mex binary
   //mexPrintf("%s %s\n",__TIME__,__DATE__);
-  igl::MexStream mout;
+  igl::matlab::MexStream mout;
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
   using namespace std;
   using namespace Eigen;
@@ -102,7 +102,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   parse_rhs(nrhs,prhs,V,F,P,N,num_samples);
   // Prepare left-hand side
   nlhs = 1;
-  ambient_occlusion(V,F,P,N,num_samples,S);
+  igl::embree::ambient_occlusion(V,F,P,N,num_samples,S);
   plhs[0] = mxCreateDoubleMatrix(S.rows(),S.cols(), mxREAL);
   copy(S.data(),S.data()+S.size(),mxGetPr(plhs[0]));
   // Restore the std stream buffer Important!

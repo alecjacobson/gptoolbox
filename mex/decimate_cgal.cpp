@@ -130,11 +130,13 @@ void mexFunction(
          )
 {
   using namespace igl;
+  using namespace igl::matlab;
+  using namespace igl::cgal;
   using namespace Eigen;
   MatrixXd V,W;
   MatrixXi F,G;
 
-  igl::MexStream mout;        
+  igl::matlab::MexStream mout;        
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
 
   mexErrMsgTxt(nrhs<=3,"nrhs should be <= 3");

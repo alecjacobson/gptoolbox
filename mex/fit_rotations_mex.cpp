@@ -16,7 +16,7 @@
 #  include <igl/matlab/mexErrMsgTxt.h>
 #  include <igl/matlab/parse_rhs.h>
 #endif
-#include <igl/svd3x3/fit_rotations.h>
+#include <igl/fit_rotations.h>
 
 #include <iostream>
 #include <string>
@@ -27,12 +27,13 @@ void mexFunction(int nlhs, mxArray *plhs[],
 {
   // This is useful for debugging whether Matlab is caching the mex binary
   //mexPrintf("%s %s\n",__TIME__,__DATE__);
-  igl::MexStream mout;
+  igl::matlab::MexStream mout;
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
 
   using namespace std;
   using namespace Eigen;
   using namespace igl;
+  using namespace igl::matlab;
 
   // If no args then assume we're checking whether function exists, return true
   if(nrhs == 0)

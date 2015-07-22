@@ -24,12 +24,13 @@ void mexFunction(int nlhs, mxArray *plhs[],
 {
   // This is useful for debugging whether Matlab is caching the mex binary
   //mexPrintf("%s %s\n",__TIME__,__DATE__);
-  igl::MexStream mout;
+  igl::matlab::MexStream mout;
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
 
   using namespace std;
   using namespace Eigen;
   using namespace igl;
+  using namespace igl::matlab;
 
   MatrixXd P,V,C;
   VectorXi I;

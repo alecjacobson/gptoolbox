@@ -44,13 +44,16 @@ void parse_rhs(
   Eigen::MatrixXi & FA,
   Eigen::MatrixXd & VB,
   Eigen::MatrixXi & FB,
-  igl::MeshBooleanType & type,
+  igl::boolean::MeshBooleanType & type,
   BooleanLibType & boolean_lib,
   bool & debug
   )
 {
   using namespace std;
   using namespace igl;
+  using namespace igl::boolean;
+  using namespace igl::matlab;
+  using namespace igl::cgal;
   using namespace Eigen;
   mexErrMsgTxt(nrhs >= 5, "The number of input arguments must be >=5.");
 
@@ -164,8 +167,10 @@ void mexFunction(
   using namespace std;
   using namespace Eigen;
   using namespace igl;
+  using namespace igl::matlab;
+  using namespace igl::boolean;
 
-  igl::MexStream mout;        
+  igl::matlab::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 
@@ -233,7 +238,7 @@ void mexFunction(
           MatrixX3I SF;
           MatrixX2I SIF;
           VectorXI SIM,UIM;
-          RemeshSelfIntersectionsParam params;
+          igl::cgal::RemeshSelfIntersectionsParam params;
           remesh_self_intersections(V,F,params,SV,SF,SIF,J,SIM);
           for_each(SF.data(),SF.data()+SF.size(),[&SIM](int & a){a=SIM(a);});
           {
@@ -247,7 +252,7 @@ void mexFunction(
           MatrixX3I SF;
           MatrixX2I SIF;
           VectorXI SJ,SIM,UIM;
-          RemeshSelfIntersectionsParam params;
+          igl::cgal::RemeshSelfIntersectionsParam params;
           params.detect_only = true;
           params.first_only = true;
           remesh_self_intersections(V,F,params,SV,SF,SIF,SJ,SIM);

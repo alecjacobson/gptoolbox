@@ -40,7 +40,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     mexErrMsgTxt("The number of input arguments must be 2 or 3.");
   }
   //mexPrintf("%s %s\n",__TIME__,__DATE__);
-  igl::MexStream mout;
+  igl::matlab::MexStream mout;
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
 
 #else
@@ -50,6 +50,7 @@ int main(int argc, char * argv[])
   using namespace std;
   using namespace Eigen;
   using namespace igl;
+  using namespace igl::matlab;
 
   MatrixXd V;
   MatrixXi F;
@@ -62,8 +63,8 @@ int main(int argc, char * argv[])
   // This parses first two arguements
   parse_rhs_double(prhs,V);
   parse_rhs_index(prhs+1,F);
-  mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
-  mexErrMsgTxt(F.cols()==3,"F must be #F by 3");
+  igl::matlab::mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
+  igl::matlab::mexErrMsgTxt(F.cols()==3,"F must be #F by 3");
 
   if(nrhs==3)
   {

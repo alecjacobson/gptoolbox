@@ -98,7 +98,7 @@ void mexFunction(
   using namespace Eigen;
   using namespace igl;
 
-  igl::MexStream mout;        
+  igl::matlab::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 
@@ -163,7 +163,7 @@ void mexFunction(
     per_face_normals(MV,MF,N);
     //cout<<"Initializing Embree..."<<endl;
     // Initialize intersector
-    EmbreeIntersector ei;
+    igl::embree::EmbreeIntersector ei;
     ei.init(MV.cast<float>(),FF);
 
     // loop over origins
@@ -195,7 +195,7 @@ void mexFunction(
 
 
 #else
-    mexErrMsgTxt(false,"Recompile with WITH_EMBREE defined");
+    igl::matlab::mexErrMsgTxt(false,"Recompile with WITH_EMBREE defined");
 #endif
   }else
   {

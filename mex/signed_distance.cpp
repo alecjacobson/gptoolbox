@@ -35,6 +35,7 @@ void parse_rhs(
 {
   using namespace std;
   using namespace igl;
+  using namespace igl::matlab;
   using namespace Eigen;
   mexErrMsgTxt(nrhs >= 3, "The number of input arguments must be >=3.");
 
@@ -63,14 +64,14 @@ void parse_rhs(
         [](const int i, const int nrhs, const char * name)
       {
         // Windows doesn't find igl::mexErrMsgTxt overload
-        igl::mexErrMsgTxt((i+1)<nrhs,
+        igl::matlab::mexErrMsgTxt((i+1)<nrhs,
           C_STR("Parameter '"<<name<<"' requires argument"));
       };
       const auto validate_char = 
         [](const int i, const mxArray * prhs[], const char * name)
       {
         // Windows doesn't find igl::mexErrMsgTxt overload
-        igl::mexErrMsgTxt(mxIsChar(prhs[i]),
+        igl::matlab::mexErrMsgTxt(mxIsChar(prhs[i]),
           C_STR("Parameter '"<<name<<"' requires char argument"));
       };
       if(strcmp("SignedDistanceType",name) == 0)
@@ -127,8 +128,9 @@ void mexFunction(
   using namespace std;
   using namespace Eigen;
   using namespace igl;
+  using namespace igl::matlab;
 
-  igl::MexStream mout;        
+  igl::matlab::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 
