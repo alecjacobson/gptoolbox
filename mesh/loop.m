@@ -1,14 +1,15 @@
-function [VV,FF] = loop(V,F,iter)
+function [VV,FF,S] = loop(V,F,iter)
 % LOOP perform loop subdivision
 %
 % [VV,FF] = loop(V,F)
 %
 % Inputs:
-%   V  #vertices by 3 list of vertex positions
-%   F  #faces by 3 list of face indices
+%   V  #V by 3 list of vertex positions
+%   F  #F by 3 list of face indices
 % Outpus:
-%   VV new vertex positions
-%   FF new list of face indices
+%   VV #VV by 3 new vertex positions
+%   FF #FF by 3 list of face indices
+%   S #VV by #V matrix computing VV = S *V 
 %
 % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
 %
@@ -130,8 +131,6 @@ for i=1:iter
     % rows should sum to one
     assert(all(sum(Sodd,2) == 1))
     
-    VVeven = Seven*VV;
-    
     % indices of new points as if we really added a new point for each half edge
     i3 = n     + (1:nf)';
     i1 = n+nf  + (1:nf)';
@@ -144,9 +143,8 @@ for i=1:iter
     % reindex faces
     FF = FE2E(FEF);
     
-    VVodd = Sodd*VV;
-    
-    VV = [VVeven; VVodd];
+    S = [Seven;Sodd];
+    VV = S*V;
     
     %trisurf(F,V(:,1),V(:,2),V(:,3),'FaceAlpha',0.1,'FaceColor','r','EdgeColor',[0.3 0 0]);
     %hold on;
