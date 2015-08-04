@@ -142,7 +142,7 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
       % This is a bullshit hack way of determining which edges were subdivided
       % A better way is using boundary markers in triangle like in
       % diffcurves_test.m
-
+      if nargout>=3
       % First determine which edges were not subdivided
       E_indices = 1:size(E,1);
       [maintained] = ismember(sort(E,2),sort(edges(TT),2),'rows');
@@ -183,6 +183,7 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
       end
       % rename to match output
       FF = EE;
+      end
       if nargout >= 5
         IFF = IEE;
       end
@@ -425,9 +426,11 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
       error(sprintf('Unsupported dimension (%d)',dim));
     end
 
+    if nargout>=3
     [IN] = in_elements(FF,TT);
     if ~all(IN)
        warning('%d faces not in elements',sum(~IN));
+    end
     end
 
     % get list of variables present in this scope at finish of function code,
