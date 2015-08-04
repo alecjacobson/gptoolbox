@@ -13,7 +13,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   %   E  #E by 2 list of constraint edge indices
   %   H  #H by 2 hole points
   %   options
-  %     'Quiet' Don't display command/output {false}
+  %     'Quiet' Don't display command/output {true}
   %     'Quality'  Quality mesh generation with no angles smaller than 20
   %       degrees. An alternate minimum angle may be specified after the `q'.
   %     'MaxArea'  Imposes a maximum triangle area constraint. A fixed area 
@@ -54,7 +54,7 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   no_boundary_steiners = false;
   no_edge_steiners = false;
   max_steiners = -1;
-  quiet = false;
+  quiet = true;
   % possible actions are:
   %   'TriangulatePoly'
   %   'RefineMesh'
