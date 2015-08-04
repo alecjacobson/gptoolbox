@@ -1,3 +1,0 @@
-LIBRARY perform_front_propagation_3d.dll
-EXPORTS
-	mexFunction

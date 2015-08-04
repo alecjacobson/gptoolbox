@@ -25,8 +25,8 @@ function [UV,F, res, edge_norms] = ...
 %  tsurf(F,V); axis equal;
 %
 
-if (nargin<3) wrapX=0; end
-if (nargin<4) wrapY=0; end
+if (nargin<3) xWrap=0; end
+if (nargin<4) yWrap=0; end
 if (nargin<5) overlap=0; end
 
 %res = [yRes, xRes];
