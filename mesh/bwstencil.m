@@ -12,14 +12,14 @@ function [V,F] = bwstencil(im,varargin)
   %   bottom layer
   % 
   % Example:
-  %   % Read in image, convert to binary, shrink
-  %   im = imresize(im2bw(imread('hans-hass.jpg')),0.25);
+  %   % Read in image, convert to binary, shrink, invert
+  %   im = ~imresize(im2bw(imread('hans-hass.jpg')),0.25);
   %   % Pad image to create boundary frame
   %   im = padarray(im,ceil(max(size(im))*0.125*[1;1]));
   %   % Generate stencil of thickness = 1px
   %   [V,F] = bwstencil(im,'Tol',1.5,'SmoothingIters',50);
-  %   % Change thickness to 10% size of image
-  %   V(:,3) = V(:,3) * 0.1*max(size(im));
+  %   % Change thickness to 2.5% size of image
+  %   V(:,3) = V(:,3) * 0.025*max(size(im));
   %   % render result:
   %   subplot(2,1,1);
   %   imshow(im);

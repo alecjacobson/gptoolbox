@@ -223,11 +223,15 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   % read outputs from files
   [TV,I] = readNODE([prefix '.1.node']);
   TF = readELE([prefix '.1.ele']);
-  % Triangle likes to use 1-indexed though .ele reader is 0-indexed
-  if(( min(TF(:)) > 1) && (max(TF(:)) > size(TV,1)))
-    TF = TF-1;
-  elseif min(TF(:)) == 0 && max(TF(:)) < size(TV,1)
-    TF = TF+1;
+  if isempty(TF)
+    TF = [];
+  else
+    % Triangle likes to use 1-indexed though .ele reader is 0-indexed
+    if(( min(TF(:)) > 1) && (max(TF(:)) > size(TV,1)))
+      TF = TF-1;
+    elseif min(TF(:)) == 0 && max(TF(:)) < size(TV,1)
+      TF = TF+1;
+    end
   end
 
   if isempty(TF) && ~quiet

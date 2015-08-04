@@ -68,11 +68,12 @@ function [V,T,F] = tetgen(SV,SF,varargin)
   %end
   % call tetgen
   command = [path_to_tetgen ' ' mesh_flags ' ' flags ' ' poly_filename];
-  %fprintf(command);
+  fprintf(command);
   [status, result] = system(command);
   if status~=0
     error(result)
   end
+  fprintf(result);
   % tetgen always writes output to file:
   %   xxxx.1.ele  tetrahedra
   %   xxxx.1.node tetrahedra vertices

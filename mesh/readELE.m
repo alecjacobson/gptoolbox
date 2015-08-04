@@ -51,7 +51,11 @@ function [E,A] = readELE(ele_file_name)
   if offset
     warning('Offseting indices by %d',offset);
   end
-  E = E(:,1+(1:size_e))+offset;
-  A = E(:,(1+size_e)+1:num_a);
+  if isempty(E)
+    A = [];
+  else
+    E = E(:,1+(1:size_e))+offset;
+    A = E(:,(1+size_e)+1:num_a);
+  end
 end
 

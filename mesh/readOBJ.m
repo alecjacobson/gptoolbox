@@ -134,9 +134,45 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
             triangulated = true;
           end
           j = 2;
+          i = 1;
+          %Vt = V(t,:);
+          %[~,A] = affine_fit(Vt);
+          %VtA = Vt*A;
+          %VtA0 = Vt*A;
+          %[~,alpha] = curvature(VtA);
+          %flip = -sign(sum(alpha));
+          %E = [1:size(VtA,1);2:size(VtA,1) 1]';
+          %[dV,dF] = triangle(VtA,E,[]);
+          %if size(dF,1)>2
+          %  tsurf(dF,dV);
+          %  hold on;
+          %  plot(VtA0([1:end 1],1),VtA0([1:end 1],2),'LineWidth',3);
+          %  hold off
+          %  pause
+          %end
           while true
             if numel(t) > ss
-              corners = [1 j j+1];
+              corners = [1 2 3];
+
+              %plot(VtA0([1:end 1],1),VtA0([1:end 1],2));
+              %hold on;
+              %plot(VtA([1:3],1),VtA([1:3],2),'LineWidth',3);
+              %hold off;
+              %expand_axis(2);
+              %pause;
+
+              %[~,alpha] = curvature(VtA,[1 2;2 3]);
+              %alpha = flip * alpha(2);
+              %others = VtA(setdiff(1:end,corners),:);
+              %these = VtA(corners,:);
+              %w = inpolygon(others(:,1),others(:,2),these(:,1),these(:,2));
+              %alpha
+              %if alpha>=0 && ~any(w)
+              %  % lazy
+              %  t = t([2:end 1]);
+              %  VtA = VtA([2:end 1],:);
+              %  continue;
+              %end
             else
               if all_ss && numel(t)<ss
                 warning('Small degree facet found');
@@ -162,8 +198,9 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
             if numel(t) <= ss
               break;
             end
-            j = j+1;
-            if j>numel(t)-1
+            t = t([1 3:end]);
+            %VtA = VtA([1 3:end],:);
+            if numel(t) < 3
               break;
             end
           end
