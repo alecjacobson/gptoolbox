@@ -77,13 +77,16 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
   end
   l = normrow(PP(E(:,1),:)-PP(E(:,2),:));
 
+  [PP,~,J] = remove_duplicate_vertices(PP,0);
+  E = J(E);
   Facets = [];
   Facets.facets = mat2cell(E,ones(size(E,1),1),2);
   Facets.boundary_marker = (1:size(E,1))'+1;
 
   % need unique set of points
-  assert(size(PP,1) == size(unique(PP,'rows'),1));
-  max_area = min(l)^2;
+  %assert(size(PP,1) == size(unique(PP,'rows'),1));
+
+  max_area = 1e16;min(l)^2;
   for pass = 1:2
     prefix = tempprefix();
     if use_bounding_box
@@ -96,9 +99,10 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
     end
     writePOLY_triangle([prefix '.poly'],[PP;BB],Facets,[]);
     % Careful, triangle does not understand scientific notation
-    flags = sprintf('-q33pa%0.17f%s',max_area,bb_flag);
+    flags = sprintf('-q30pa%0.17f%s',max_area,bb_flag);
     %flags = '-cp';
     command = [path_to_triangle ' ' flags ' ' prefix];
+    command
     [status, result] = system( command );
     if(status ~= 0)
        error(result);
