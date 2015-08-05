@@ -68,14 +68,36 @@ function [V,T,F] = regular_tetrahedral_mesh(varargin)
   %end
   %T = delaunayn(V);
 
-  % lazy way of getting boundary faces, procedurally generating  them is
-  % certainly faster as it would be O( nu * nv) where nu and nv are the largest
-  % and second largest dimension. The following implementation is probably
-  % O(m log m) where m is size(T,1) because of sort()  ... or O(nu * nv * m)
-  % because of ismember ... or even O(m*m) because of unqiue
-
+  % Much faster (~17x) than calling boundary_faces
   if nargout>2
-    F = boundary_faces(T);
+    I = bsxfun(@plus,1:ny,(0:nx*ny:(nx*ny*(nz-1)))');
+    ISE = I(1:end-1,1:end-1);
+    INE = I(1:end-1,2:end);
+    ISW = I(2:end,1:end-1);
+    INW = I(2:end,2:end);
+    F1 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
+    F1 = [F1;fliplr(F1)+ny*(nx-1)];
+
+    I = bsxfun(@plus,1:ny:(nx-1)*ny+1,(0:nx*ny:(nx*ny*(nz-1)))');
+    ISE = I(1:end-1,1:end-1);
+    INE = I(1:end-1,2:end);
+    ISW = I(2:end,1:end-1);
+    INW = I(2:end,2:end);
+    F2 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
+    F2 = [F2;fliplr(F2)+(ny-1)];
+
+    I = bsxfun(@plus,1:ny:(nx-1)*ny+1,(0:ny-1)');
+    ISE = I(1:end-1,1:end-1);
+    INE = I(1:end-1,2:end);
+    ISW = I(2:end,1:end-1);
+    INW = I(2:end,2:end);
+    F3 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
+    F3 = [F3;fliplr(F3)+nx*ny*(nz-1)];
+
+    F = [F1;F2;F3];
+    %BF = boundary_faces(T);
+    %setdiff(sort(F,2),sort(BF,2),'rows')
+    %setdiff(sort(BF,2),sort(F,2),'rows')
   end
 
   % determine neighbors using fact that vertices are in order
