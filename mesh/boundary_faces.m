@@ -19,6 +19,20 @@ function [F,J,K] = boundary_faces(T)
     T(:,[1 3 2])];
   % sort rows so that faces are reorder in ascending order of indices
   sortedF = sort(allF,2);
+
+  % This is a wild hack but shaves nearly a 2x speed up. Convert the rows to
+  % integers before calling unique
+  if all(sortedF(:))>=0
+    sortedF = uint64(sortedF);
+    max_f = max(sortedF(:))+1;
+    max_value = intmax('uint64');
+    if max_f*max_f*max_f < max_value;
+      sortedF = [sortedF(:,1)+sortedF(:,2)*max_f+sortedF(:,3)*max_f^2];
+    elseif max_f*max_f < max_value
+      sortedF = [sortedF(:,1)+sortedF(:,2)*max_f sortedF(:,3)];
+    end
+  end
+
   % determine uniqueness of faces
   [u,m,n] = unique(sortedF,'rows');
   % determine counts for each unique face
