@@ -24,11 +24,8 @@ function [F,J,K] = boundary_faces(T)
   % determine counts for each unique face
   counts = accumarray(n(:), 1);
   % extract faces that only occurred once
-  sorted_exteriorF = u(counts == 1,:);
-  sorted_exteriorJ = m(counts == 1,:);
-  % find in original faces so that ordering of indices is correct
-  [I,J] = ismember(sortedF,sorted_exteriorF,'rows');
-  L = sorted_exteriorJ(J(I))-1;
+  I = m(counts == 1);
+  L = I-1;
   J = mod(L,size(T,1))+1;
   K = floor(L/size(T,1))+1;
   F = allF(I,:);
