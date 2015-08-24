@@ -22,7 +22,7 @@
 %   IF  #intersecting face pairs by 2  list of intersecting face pairs,
 %     indexing F
 %   J   #FF list of indices into F of birth parents
-%   IM  #VV list of indices into VV of unique verticse
+%   IM  #VV list of indices into VV of unique vertices
 %
 % Example:
 %   [SV,SF,~,~,IM] = selfintersect(V,F);
