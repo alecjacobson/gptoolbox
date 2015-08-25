@@ -43,8 +43,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
   parse_rhs_double(prhs,P);
   parse_rhs_double(prhs+1,V);
   parse_rhs_index(prhs+2,F);
-  mexErrMsgTxt(P.cols()==3,"P must be #P by 3");
-  mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
+  mexErrMsgTxt(P.cols()==3 || P.cols()==2,"P must be #P by (3|2)");
+  mexErrMsgTxt(V.cols()==3 || V.cols()==2,"V must be #V by (3|2)");
+  mexErrMsgTxt(V.cols()==P.cols(),"dim(V) must be dim(P)");
   mexErrMsgTxt(F.cols()==3 || F.cols()==2 || F.cols()==1,"F must be #F by (3|2|1)");
 
   point_mesh_squared_distance(P,V,F,sqrD,I,C);
