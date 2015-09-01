@@ -157,6 +157,7 @@ function S = statistics(V,F,varargin)
     V3 = V;
     V3(:,end+1:3) = 0;
     Fnd = F(doublearea(V,F)>0,:);
+    [~,~,IF] = selfintersect(V3,Fnd,'DetectOnly',true);
     S.num_selfintersecting_pairs = size(IF,1);
   end
 
