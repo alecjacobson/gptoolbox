@@ -17,6 +17,7 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
   %       remeshing {4}
   %     'MinDeltaAngle' followd by minimum change in angle between neighboring
   %     facets to be considered co-planar {pi-1e-5}
+  %     'Except' followed by list of faces not to remesh
   %
   % Outputs:
   %   W  #W by 3 list of output mesh positions
@@ -33,10 +34,11 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
   %min_delta_angle = pi-1e-3;
   min_size = 4;
   triangle_flags = '';
+  except = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Force','MinSize','MinDeltaAngle','TriangleFlags'}, ...
-    {'force_remesh','min_size','min_delta_angle','triangle_flags'});
+    {'Force','MinSize','MinDeltaAngle','TriangleFlags','Except'}, ...
+    {'force_remesh','min_size','min_delta_angle','triangle_flags','except'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -61,6 +63,8 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
   % Adjacency matrix of nearly coplanar neighbors
   UA = pi*(A~=0)-abs(pi*(A~=0)-A);
   AF = UA>=min_delta_angle;
+  AF(except,:) = 0;
+  AF(:,except) = 0;
   % get connected components
   [~,C] = conncomp(AF);
   %tsurf(F,V,'CData',randcycle(C))

@@ -40,17 +40,16 @@ void parse_rhs(
   mexErrMsgTxt(nrhs >= 3, "The number of input arguments must be >=3.");
 
   const int dim = mxGetN(prhs[0]);
-  mexErrMsgTxt(dim == 3,
-    "Mesh vertex list must be #P by 3 list of vertex positions");
-  mexErrMsgTxt(mxGetN(prhs[1]) == 3,
-    "Mesh vertex list must be #V by 3 list of vertex positions");
 
-  mexErrMsgTxt(dim == mxGetN(prhs[2]),
-    "Mesh \"face\" simplex size must equal dimension");
 
   parse_rhs_double(prhs,P);
   parse_rhs_double(prhs+1,V);
   parse_rhs_index(prhs+2,F);
+
+  mexErrMsgTxt(P.cols()==3 || P.cols()==2,"P must be #P by (3|2)");
+  mexErrMsgTxt(V.cols()==3 || V.cols()==2,"V must be #V by (3|2)");
+  mexErrMsgTxt(V.cols()==P.cols(),"dim(V) must be dim(P)");
+  mexErrMsgTxt(F.cols()==V.cols(),"F must be #F by dim(V)");
 
   type = SIGNED_DISTANCE_TYPE_PSEUDONORMAL;
   {
@@ -141,69 +140,82 @@ void mexFunction(
   SignedDistanceType type;
   parse_rhs(nrhs,prhs,P,V,F,type);
 
-  if(g_sign_type != type || g_V != V || g_F != F)
+  switch(V.cols())
   {
-    g_V = V;
-    g_F = F;
-    g_sign_type = type;
-    // Clear the tree
-    g_tree.deinit();
-
-    // Prepare distance computation
-    g_tree.init(V,F);
-    switch(type)
+    case 2:
     {
-      default:
-        assert(false && "Unknown SignedDistanceType");
-      case SIGNED_DISTANCE_TYPE_DEFAULT:
-      case SIGNED_DISTANCE_TYPE_WINDING_NUMBER:
-        g_hier.set_mesh(V,F);
-        g_hier.grow();
-        break;
-      case SIGNED_DISTANCE_TYPE_PSEUDONORMAL:
-        // "Signed Distance Computation Using the Angle Weighted Pseudonormal"
-        // [Bærentzen & Aanæs 2005]
-        per_face_normals(V,F,g_FN);
-        per_vertex_normals(V,F,PER_VERTEX_NORMALS_WEIGHTING_TYPE_ANGLE,
-          g_FN,g_VN);
-        per_edge_normals(
-          V,F,PER_EDGE_NORMALS_WEIGHTING_TYPE_UNIFORM,
-          g_FN,g_EN,g_E,g_EMAP);
-        break;
+      // Persistent data not supported for 2D
+      signed_distance(P,V,F,type,S,I,C,N);
+      break;
     }
-  }
-
-  N.resize(P.rows(),3);
-  S.resize(P.rows(),1);
-  I.resize(P.rows(),1);
-  C.resize(P.rows(),3);
-  for(int p = 0;p<P.rows();p++)
-  {
-    const Eigen::RowVector3d q(P(p,0),P(p,1),P(p,2));
-    double s,sqrd;
-    Eigen::RowVector3d c;
-    int i;
-    switch(type)
+    case 3:
     {
-      default:
-        assert(false && "Unknown SignedDistanceType");
-      case SIGNED_DISTANCE_TYPE_DEFAULT:
-      case SIGNED_DISTANCE_TYPE_WINDING_NUMBER:
-        signed_distance_winding_number(g_tree,g_V,g_F,g_hier,q,s,sqrd,i,c);
-        break;
-      case SIGNED_DISTANCE_TYPE_PSEUDONORMAL:
+      if(g_sign_type != type || g_V != V || g_F != F)
       {
-        RowVector3d n(0,0,0);
-        signed_distance_pseudonormal(
-          g_tree,g_V,g_F,g_FN,g_VN,g_EN,g_EMAP,
-          q,s,sqrd,i,c,n);
-        N.row(p) = n;
-        break;
+        g_V = V;
+        g_F = F;
+        g_sign_type = type;
+        // Clear the tree
+        g_tree.deinit();
+
+        // Prepare distance computation
+        g_tree.init(V,F);
+        switch(type)
+        {
+          default:
+            assert(false && "Unknown SignedDistanceType");
+          case SIGNED_DISTANCE_TYPE_DEFAULT:
+          case SIGNED_DISTANCE_TYPE_WINDING_NUMBER:
+            g_hier.set_mesh(V,F);
+            g_hier.grow();
+            break;
+          case SIGNED_DISTANCE_TYPE_PSEUDONORMAL:
+            // "Signed Distance Computation Using the Angle Weighted Pseudonormal"
+            // [Bærentzen & Aanæs 2005]
+            per_face_normals(V,F,g_FN);
+            per_vertex_normals(V,F,PER_VERTEX_NORMALS_WEIGHTING_TYPE_ANGLE,
+              g_FN,g_VN);
+            per_edge_normals(
+              V,F,PER_EDGE_NORMALS_WEIGHTING_TYPE_UNIFORM,
+              g_FN,g_EN,g_E,g_EMAP);
+            break;
+        }
       }
+
+      N.resize(P.rows(),3);
+      S.resize(P.rows(),1);
+      I.resize(P.rows(),1);
+      C.resize(P.rows(),3);
+      for(int p = 0;p<P.rows();p++)
+      {
+        const Eigen::RowVector3d q(P(p,0),P(p,1),P(p,2));
+        double s,sqrd;
+        Eigen::RowVector3d c;
+        int i;
+        switch(type)
+        {
+          default:
+            assert(false && "Unknown SignedDistanceType");
+          case SIGNED_DISTANCE_TYPE_DEFAULT:
+          case SIGNED_DISTANCE_TYPE_WINDING_NUMBER:
+            signed_distance_winding_number(g_tree,g_V,g_F,g_hier,q,s,sqrd,i,c);
+            break;
+          case SIGNED_DISTANCE_TYPE_PSEUDONORMAL:
+          {
+            RowVector3d n(0,0,0);
+            signed_distance_pseudonormal(
+              g_tree,g_V,g_F,g_FN,g_VN,g_EN,g_EMAP,
+              q,s,sqrd,i,c,n);
+            N.row(p) = n;
+            break;
+          }
+        }
+        I(p) = i;
+        S(p) = s*sqrt(sqrd);
+        C.row(p) = c;
+      }
+      break;
     }
-    I(p) = i;
-    S(p) = s*sqrt(sqrd);
-    C.row(p) = c;
   }
 
   switch(nlhs)
