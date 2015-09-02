@@ -47,9 +47,9 @@ function [C,vol] = centroid(V,F,varargin)
     % http://www2.imperial.ac.uk/~rn/centroid.pdf
 
     % Rename corners
-    A = V(F(:,1,:),:);
-    B = V(F(:,2,:),:);
-    C = V(F(:,3,:),:);
+    A = V(F(:,1),:);
+    B = V(F(:,2),:);
+    C = V(F(:,3),:);
     % Needs to be **unnormalized** normals
     N = cross(B-A,C-A,2);
     % total volume via divergence theorem: ∫ 1
