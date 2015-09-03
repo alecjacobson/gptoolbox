@@ -26,8 +26,10 @@
 #  include <igl/matlab/MexStream.h>
 #  include <igl/matlab/mexErrMsgTxt.h>
 #  include <igl/matlab/parse_rhs.h>
+#  include <igl/matlab/prepare_lhs.h>
 #endif
 #include <igl/cgal/intersect_other.h>
+#include <igl/cgal/RemeshSelfIntersectionsParam.h>
 
 #ifdef MEX
 #  include "mex.h"
@@ -54,10 +56,10 @@ int main(int argc, char * argv[])
   using namespace igl;
   using namespace igl::matlab;
   using namespace igl::cgal;
+  igl::cgal::RemeshSelfIntersectionsParam params = {nlhs<=1,false};
 
-  MatrixXd V,U;
-  MatrixXi F,G;
-  bool first_only = false;
+  MatrixXd VA,VB;
+  MatrixXi FA,FB;
 
   string prefix;
   bool use_obj_format = false;
@@ -77,8 +79,8 @@ int main(int argc, char * argv[])
     mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
     mexErrMsgTxt(F.cols()==3,"F must be #F by 3");
   };
-  parse_mesh(prhs,V,F);
-  parse_mesh(prhs+2,U,G);
+  parse_mesh(prhs,VA,FA);
+  parse_mesh(prhs+2,VB,FB);
 
   if(nrhs>NUM_REQ)
   {
@@ -103,7 +105,7 @@ int main(int argc, char * argv[])
           mexErrMsgTxt(C_STR("Parameter '"<<name<<"' requires Logical arg"));
         }
         mxLogical * v = (mxLogical *)mxGetData(prhs[i]);
-        first_only = *v;
+        params.first_only = *v;
       }else
       {
         mexErrMsgTxt(C_STR("Unsupported parameter: "<<name));
@@ -160,7 +162,7 @@ int main(int argc, char * argv[])
       cerr<<"first only param should be 0 or 1"<<endl;
     }else
     {
-      first_only = d!=0;
+      params.first_only = d!=0;
     }
   }
 #endif
@@ -197,7 +199,7 @@ int main(int argc, char * argv[])
     return true;
   };
 
-  if(!validate(V,F) || !validate(U,G))
+  if(!validate(VA,FA) || !validate(VB,FB))
   {
 #ifndef MEX
     // Otherwise should have called mexErr
@@ -206,9 +208,12 @@ int main(int argc, char * argv[])
   }
 
   // Now mesh self intersections
-  MatrixXi IF;
+  Eigen::MatrixXd VVA,VVB;
+  Eigen::MatrixXi FFA,FFB,IF;
+  Eigen::VectorXi JA,JB,IMA,IMB;
   {
-    intersect_other(V,F,U,G,first_only,IF);
+    igl::cgal::intersect_other(
+      VA,FA,VB,FB,params,IF,VVA,FFA,JA,IMA,VVB,FFB,JB,IMB);
 #ifndef MEX
     cout<<"writing pair list to "<<(prefix+"-IF.dmat")<<endl;
     writeDMAT((prefix+"-IF.dmat").c_str(),IF);
@@ -216,14 +221,62 @@ int main(int argc, char * argv[])
   }
 
 #ifdef MEX
-  // Prepare left-hand side
-  nlhs = 1;
+  switch(nlhs)
+  {
+    default:
+    {
+      mexErrMsgTxt(false,"Too many output parameters.");
+    }
 
-  // Treat indices as reals
-  plhs[0] = mxCreateDoubleMatrix(IF.rows(),IF.cols(), mxREAL);
-  double * IFp = mxGetPr(plhs[0]);
-  MatrixXd IFd = (IF.cast<double>().array()+1).matrix();
-  copy(&IFd.data()[0],&IFd.data()[0]+IFd.size(),IFp);
+    case 9:
+    {
+      prepare_lhs_index(IMB,plhs+8);
+      // Fall through
+    }
+    case 8:
+    {
+      prepare_lhs_index(JB,plhs+7);
+      // Fall through
+    }
+    case 7:
+    {
+      prepare_lhs_index(FFB,plhs+6);
+      // Fall through
+    }
+    case 6:
+    {
+      prepare_lhs_double(VVB,plhs+5);
+      // Fall through
+    }
+
+    case 5:
+    {
+      prepare_lhs_index(IMA,plhs+4);
+      // Fall through
+    }
+    case 4:
+    {
+      prepare_lhs_index(JA,plhs+3);
+      // Fall through
+    }
+    case 3:
+    {
+      prepare_lhs_index(FFA,plhs+2);
+      // Fall through
+    }
+    case 2:
+    {
+      prepare_lhs_double(VVA,plhs+1);
+      // Fall through
+    }
+
+    case 1:
+    {
+      prepare_lhs_index(IF,plhs+0);
+      // Fall through
+    }
+    case 0: break;
+  }
 
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
