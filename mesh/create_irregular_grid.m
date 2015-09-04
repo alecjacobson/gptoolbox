@@ -36,8 +36,8 @@ function [UV,F, res, edge_norms] = create_irregular_grid( xRes, yRes, varargin)
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'NumDarts','xWrap','yWrap','NoInterior','DartThreshold','TriangleFlags'}, ...
-    {'n','xWrap','yWrap','no_interior','dart_threshold','triangle_flags'});
+    {'NumDarts','xWrap','yWrap','NoInterior','DartThreshold','TriangleFlags','MinAngle'}, ...
+    {'n','xWrap','yWrap','no_interior','dart_threshold','triangle_flags','min_angle'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -86,7 +86,8 @@ function [UV,F, res, edge_norms] = create_irregular_grid( xRes, yRes, varargin)
 
   uv = uvR + uvB;
   nUV = size(uv,1);
-  nX = round(sqrt(n)*xRes); nY = round(sqrt(n)*xRes);
+  nX = round(sqrt(n)*xRes); 
+  nY = round(sqrt(n)*yRes);
 
   % regularly place points on the boundaries
   xBorder = linspace(0.0,1.0,nX+1)';
