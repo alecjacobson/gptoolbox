@@ -1,4 +1,4 @@
-function [h,L,M] = add_shadow(T,L,varargin)
+function [h,L,M,ground] = add_shadow(T,L,varargin)
   % ADD_SHADOW  Add a shadow for plotted mesh (t) according to light (l)
   %
   % h = add_shadow()  % Apply to all 
@@ -11,6 +11,7 @@ function [h,L,M] = add_shadow(T,L,varargin)
   %   L  #L list of lights {[] --> find all light in `gca`}
   %   Optional:
   %     'Ground'  ground plane equation {[0 0 -1 min(Z)]}
+  %     'Nudge'  nudge the ground plane down a bit
   % Outputs:
   %   h  #T*#L list of output shadow trisurf handles
   %   L  #L list of lights
@@ -29,10 +30,13 @@ function [h,L,M] = add_shadow(T,L,varargin)
 
   % default values
   ground = [];
+  nudge = 0;
+  color = [0.21 0.21 0.21];
+  fade = 'none';
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Ground'}, ...
-    {'ground'});
+    {'Ground','Nudge','Color','Fade'}, ...
+    {'ground','nudge','color','fade'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -66,11 +70,12 @@ function [h,L,M] = add_shadow(T,L,varargin)
       V = t.Vertices;
       minZ = min([V(:,3);minZ]);
     end
-    ground = [0 0 -1 minZ];
+    ground = [0 0 -1 minZ-nudge];
   end
 
   h = [];
-  M = [];
+  % need to specify that there are 0 "tubes"
+  M = zeros([0,0,0]);
   for t = T'
     V = t.Vertices;
     for l = L'
@@ -84,11 +89,23 @@ function [h,L,M] = add_shadow(T,L,varargin)
     
       hold on;
       tsh = trisurf(t.Faces,U(:,1),U(:,2),U(:,3), ...
-        'FaceColor',[0.21 0.21 0.21], ...
+        'FaceColor',color, ...
         'DiffuseStrength',0,'SpecularStrength',0, ...
         'AmbientStrength',1, ...
         'EdgeColor','none');
       hold off;
+      switch fade
+      case {'local','infinite'}
+        D = matrixnormalize( ...
+          sum(bsxfun(@times,tsh.Vertices(:,1:2),l.Position(1:2)),2));
+        switch fade
+        case 'infinite'
+          D = 1.0-D;
+        end
+        tsh.FaceVertexCData = ...
+          bsxfun(@plus,color,bsxfun(@times,D,[1 1 1]-color));
+        tsh.FaceColor = 'interp';
+      end
       h = [h;tsh];
       M(:,:,end+1) = shadow_mat;
     end
