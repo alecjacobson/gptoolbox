@@ -12,6 +12,12 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
   %   Optional:
   %     'Ground'  ground plane equation {[0 0 -1 min(Z)]}
   %     'Nudge'  nudge the ground plane down a bit
+  %     'Color' followed by 3-vector color {[0.21 0.21 0.21]}
+  %     'Fade'  followed by:
+  %        'none' constant shadow color
+  %        'local' fade darker away from contact with ground (ape a spotlight)
+  %        'infinite' fade lighter away from contact ground (ape infinite
+  %          light)
   % Outputs:
   %   h  #T*#L list of output shadow trisurf handles
   %   L  #L list of lights
