@@ -9,7 +9,8 @@ function [ N ] = normals(V,F,varargin)
   %  F  #F x 3  matrix of indices of triangle corners
   %  Optional:
   %    'Stable' followed by whether to compute normals in a way stable with
-  %    respect to vertex order: constant factor more expensive {false}
+  %      respect to vertex order: constant factor more expensive {false}
+  %    'UseSVD' followed by whether to use SVD, slow {false}
   % Output:
   %  N  #F x 3 list of face normals
   %
@@ -26,10 +27,11 @@ function [ N ] = normals(V,F,varargin)
   end
 
   stable = false;
+  use_svd = false;
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Stable'},{'stable'});
+    {'Stable','UseSVD'},{'stable','use_svd'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -48,15 +50,27 @@ function [ N ] = normals(V,F,varargin)
   p2 = V(F(:,2),:);
   p3 = V(F(:,3),:);
   
-  % ,2 is necessary because this will produce the wrong result if there are
-  % exactly 3 faces
-  N1 = cross(p2 - p1, p3 - p1,2);
-  if stable
-    N2 = cross(p3 - p2, p1 - p2,2);
-    N3 = cross(p1 - p3, p2 - p3,2);
-    N = sum3(N1,N2,N3)/3;
+  if use_svd
+    N = zeros(size(F,1),3);
+    BC = barycenter(V,F);
+    for f = 1:size(F,1)
+      Uf = bsxfun(@minus,V(F(f,:),:),BC(f,:));
+      [~,~,sV] = svd(Uf);
+      N(f,:) = sV(:,3);
+    end
+    NN = normals(V,F,'UseSVD',false);
+    N(sum(N.*NN,2)<0,:) = N(sum(N.*NN,2)<0,:)*-1;
   else
-    N = N1;
+    % ,2 is necessary because this will produce the wrong result if there are
+    % exactly 3 faces
+    N1 = cross(p2 - p1, p3 - p1,2);
+    if stable
+      N2 = cross(p3 - p2, p1 - p2,2);
+      N3 = cross(p1 - p3, p2 - p3,2);
+      N = sum3(N1,N2,N3)/3;
+    else
+      N = N1;
+    end
   end
 
 
