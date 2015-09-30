@@ -5,9 +5,6 @@ function [colormap]=cbrewer(cname, ncol, interp_method)
 % http://colorbrewer2.org/
 %
 % [colormap]=cbrewer(cname, ncol, interp_method)
-% 
-% The tables were generated from an MS-Excel file provided on the website
-% http://www.personal.psu.edu/cab38/ColorBrewer/ColorBrewer_updates.html
 %
 % INPUT:
 %  cname  name of colortable. One of the following
@@ -58,17 +55,16 @@ function [colormap]=cbrewer(cname, ncol, interp_method)
 % originally given, an interpolation routine is called (interp1) to produce 
 % the "extended" colormaps.
 %
-% Example:  To produce a colortable CT of ncol X 3 entries (RGB) of 
-%           sequential type and named 'Blues' with 8 colors:
-%                   CT=cbrewer('Blues', 8);
-%           To use this colortable as colormap, simply call:
-%                   colormap(CT)
-% 
-%           To see the various colormaps available according to their types and
-%           names, simply call: cbrewer()
+% See also: plot_brewer_cmap
 %
-%  This product includes color specifications and designs developed by
-%  Cynthia Brewer (http://colorbrewer.org/).
+
+% 
+% The tables were generated from an MS-Excel file provided on the website
+% http://www.personal.psu.edu/cab38/ColorBrewer/ColorBrewer_updates.html
+%
+% This product includes color specifications and designs developed by
+% Cynthia Brewer (http://colorbrewer.org/).
+% 
 %
 % Author: Charles Robert
 % email: tannoudji@hotmail.com
