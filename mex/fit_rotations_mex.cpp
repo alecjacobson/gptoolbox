@@ -13,6 +13,7 @@
 
 #ifdef MEX
 #  include <igl/matlab/MexStream.h>
+#  include <igl/matlab/validate_arg.h>
 #  include <igl/matlab/mexErrMsgTxt.h>
 #  include <igl/matlab/parse_rhs.h>
 #endif
@@ -69,30 +70,16 @@ void mexFunction(int nlhs, mxArray *plhs[],
       const char * name = mxArrayToString(prhs[i]);
       if(strcmp("AllowFlips",name) == 0)
       {
-        if((i+1)>=nrhs)
-        {
-          mexErrMsgTxt(C_STR("Parameter '"<<name<<"' requires argument"));
-        }
-        i++;
-        if(!mxIsLogical(prhs[i]))
-        {
-          mexErrMsgTxt(C_STR("Parameter '"<<name<<"' requires Logical arg"));
-        }
-        mxLogical * v = (mxLogical *)mxGetData(prhs[i]);
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        mxLogical * v = (mxLogical *)mxGetData(prhs[++i]);
         allow_flips = *v;
       }
       if(strcmp("SinglePrecision",name) == 0)
       {
-        if((i+1)>=nrhs)
-        {
-          mexErrMsgTxt(C_STR("Parameter '"<<name<<"' requires argument"));
-        }
-        i++;
-        if(!mxIsLogical(prhs[i]))
-        {
-          mexErrMsgTxt(C_STR("Parameter '"<<name<<"' requires Logical arg"));
-        }
-        mxLogical * v = (mxLogical *)mxGetData(prhs[i]);
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        mxLogical * v = (mxLogical *)mxGetData(prhs[++i]);
         single_precision = *v;
       }else
       {

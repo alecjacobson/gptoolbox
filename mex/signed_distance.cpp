@@ -16,6 +16,7 @@
 #include <igl/per_vertex_normals.h>
 #include <igl/signed_distance.h>
 #include <igl/per_edge_normals.h>
+#include <igl/matlab/validate_arg.h>
 #include <igl/per_face_normals.h>
 #include <igl/WindingNumberAABB.h>
 #include <igl/matlab/prepare_lhs.h>
@@ -59,26 +60,10 @@ void parse_rhs(
       mexErrMsgTxt(mxIsChar(prhs[i]),"Parameter names should be strings");
       // Cast to char
       const char * name = mxArrayToString(prhs[i]);
-      const auto requires_arg = 
-        [](const int i, const int nrhs, const char * name)
-      {
-        // Windows doesn't find igl::mexErrMsgTxt overload
-        igl::matlab::mexErrMsgTxt((i+1)<nrhs,
-          C_STR("Parameter '"<<name<<"' requires argument"));
-      };
-      const auto validate_char = 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        // Windows doesn't find igl::mexErrMsgTxt overload
-        igl::matlab::mexErrMsgTxt(mxIsChar(prhs[i]),
-          C_STR("Parameter '"<<name<<"' requires char argument"));
-      };
       if(strcmp("SignedDistanceType",name) == 0)
       {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_char(i,prhs,name);
-        const char * type_name = mxArrayToString(prhs[i]);
+        validate_arg_char(i,nrhs,prhs,name);
+        const char * type_name = mxArrayToString(prhs[++i]);
         if(strcmp("pseudonormal",type_name)==0)
         {
           type = igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL;

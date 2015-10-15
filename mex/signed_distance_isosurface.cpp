@@ -9,6 +9,7 @@
 //   signed_distance_isosurface.cpp
 
 #include <igl/cgal/signed_distance_isosurface.h>
+#include <igl/matlab/validate_arg.h>
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/prepare_lhs.h>
@@ -65,64 +66,30 @@ void parse_rhs(
       mexErrMsgTxt(mxIsChar(prhs[i]),"Parameter names should be strings");
       // Cast to char
       const char * name = mxArrayToString(prhs[i]);
-      const auto requires_arg = 
-        [](const int i, const int nrhs, const char * name)
-      {
-        mexErrMsgTxt((i+1)<nrhs,
-          C_STR("Parameter '"<<name<<"' requires argument"));
-      };
-      const auto validate_double = 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxIsDouble(prhs[i]),
-          C_STR("Parameter '"<<name<<"' requires Double argument"));
-      };
-      const auto validate_scalar = 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxGetN(prhs[i])==1 && mxGetM(prhs[i])==1,
-          C_STR("Parameter '"<<name<<"' requires scalar argument"));
-      };
-      const auto validate_char = 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxIsChar(prhs[i]),
-          C_STR("Parameter '"<<name<<"' requires char argument"));
-      };
       if(strcmp("Level",name) == 0)
       {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_double(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        level = (double)*mxGetPr(prhs[i]);
+        validate_arg_double(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        level = (double)*mxGetPr(prhs[++i]);
       }else if(strcmp("AngleBound",name) == 0)
       {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_double(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        angle_bound = (double)*mxGetPr(prhs[i]);
+        validate_arg_double(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        angle_bound = (double)*mxGetPr(prhs[++i]);
       }else if(strcmp("RadiusBound",name) == 0)
       {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_double(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        radius_bound = ((double)*mxGetPr(prhs[i])) * bbd;
+        validate_arg_double(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        radius_bound = ((double)*mxGetPr(prhs[++i])) * bbd;
       }else if(strcmp("DistanceBound",name) == 0)
       {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_double(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        distance_bound = ((double)*mxGetPr(prhs[i])) * bbd;
+        validate_arg_double(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        distance_bound = ((double)*mxGetPr(prhs[++i])) * bbd;
       }else if(strcmp("SignedDistanceType",name) == 0)
       {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_char(i,prhs,name);
-        const char * type_name = mxArrayToString(prhs[i]);
+        validate_arg_char(i,nrhs,prhs,name);
+        const char * type_name = mxArrayToString(prhs[++i]);
         if(strcmp("pseudonormal",type_name)==0)
         {
           type = igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL;

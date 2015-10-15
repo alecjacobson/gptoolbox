@@ -16,11 +16,13 @@
 #include <igl/cgal/remesh_self_intersections.h>
 #include <igl/remove_unreferenced.h>
 #include <igl/boolean/mesh_boolean_cork.h>
+#include <igl/boolean/string_to_mesh_boolean_type.h>
 
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/prepare_lhs.h>
 #include <igl/matlab/parse_rhs.h>
+#include <igl/matlab/validate_arg.h>
 #include <igl/C_STR.h>
 
 #include <mex.h>
@@ -74,25 +76,8 @@ void parse_rhs(
   parse_mesh(prhs+2,VB,FB);
   mexErrMsgTxt(mxIsChar(prhs[4]), C_STR("Type should be char"));
   const char * type_str = mxArrayToString(prhs[4]);
-  if(strcmp(type_str,"union")==0)
-  {
-    type = MESH_BOOLEAN_TYPE_UNION;
-  }else if(strcmp(type_str,"intersect")==0)
-  {
-    type = MESH_BOOLEAN_TYPE_INTERSECT;
-  }else if(strcmp(type_str,"minus")==0)
-  {
-    type = MESH_BOOLEAN_TYPE_MINUS;
-  }else if(strcmp(type_str,"xor")==0)
-  {
-    type = MESH_BOOLEAN_TYPE_XOR;
-  }else if(strcmp(type_str,"resolve")==0)
-  {
-    type = MESH_BOOLEAN_TYPE_RESOLVE;
-  }else
-  {
-    mexErrMsgTxt(false,"Unknown type");
-  }
+  mexErrMsgTxt(string_to_mesh_boolean_type(type_str,type),
+    C_STR(type_str << " is not a known boolean operation"));
 
   {
     int i = 5;
@@ -101,36 +86,10 @@ void parse_rhs(
       mexErrMsgTxt(mxIsChar(prhs[i]),"Parameter names should be strings");
       // Cast to char
       const char * name = mxArrayToString(prhs[i]);
-      const auto requires_arg = 
-        [](const int i, const int nrhs, const char * name)
-      {
-        mexErrMsgTxt((i+1)<nrhs,
-          C_STR("Parameter '"<<name<<"' requires argument"));
-      };
-      const auto validate_char = 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxIsChar(prhs[i]),
-          C_STR("Parameter '"<<name<<"' requires char argument"));
-      };
-      const auto validate_logical= 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxIsLogical(prhs[i]),
-          C_STR("Parameter '"<<name<<"' requires Logical argument"));
-      };
-      const auto validate_scalar = 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxGetN(prhs[i])==1 && mxGetM(prhs[i])==1,
-          C_STR("Parameter '"<<name<<"' requires scalar argument"));
-      };
       if(strcmp("BooleanLib",name) == 0)
       {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_char(i,prhs,name);
-        const char * type_name = mxArrayToString(prhs[i]);
+        validate_arg_char(i,nrhs,prhs,name);
+        const char * type_name = mxArrayToString(prhs[++i]);
         if(strcmp("libigl",type_name)==0)
         {
           boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL;
@@ -146,11 +105,9 @@ void parse_rhs(
         }
       }else if(strcmp("Debug",name) == 0)
       {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_logical(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        debug = (bool)*mxGetLogicals(prhs[i]);
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        debug = (bool)*mxGetLogicals(prhs[++i]);
       }else
       {
         mexErrMsgTxt(false,"Unknown parameter");
@@ -176,7 +133,7 @@ void mexFunction(
 
   MatrixXd VA,VB,VC;
   MatrixXi FA,FB,FC;
-  VectorXi J;
+  VectorXi J,I;
   MeshBooleanType type;
   BooleanLibType boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL;
   bool debug = false;
@@ -188,7 +145,7 @@ void mexFunction(
   switch(boolean_lib)
   {
     case BOOLEAN_LIB_TYPE_LIBIGL:
-      mesh_boolean(VA,FA,VB,FB,type,VC,FC,J);
+      mesh_boolean(VA,FA,VB,FB,type,VC,FC,J,I);
       break;
     case BOOLEAN_LIB_TYPE_CORK:
       mesh_boolean_cork(VA,FA,VB,FB,type,VC,FC);
@@ -202,13 +159,15 @@ void mexFunction(
           const Eigen::Matrix<int, -1, 3>&, 
           Eigen::Matrix<double, -1, 3>&, 
           Eigen::Matrix<int, -1, 3>&, 
+          Eigen::Matrix<int, -1, 1>&,
           Eigen::Matrix<int, -1, 1>&)> &
         try_cork_resolve = [](
           const Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> & V,
           const Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> & F,
                 Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> & CV,
                 Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> & CF,
-                Eigen::Matrix<Eigen::VectorXi::Scalar,Eigen::Dynamic,1> & J)
+                Eigen::Matrix<Eigen::VectorXi::Scalar,Eigen::Dynamic,1> & J,
+                Eigen::Matrix<Eigen::VectorXi::Scalar,Eigen::Dynamic,1> & I)
       {
         typedef Matrix<MatrixXd::Scalar,Dynamic,3> MatrixX3S;
         typedef Matrix<MatrixXi::Scalar,Dynamic,3> MatrixX3I;
@@ -219,7 +178,8 @@ void mexFunction(
           const MatrixX3I &F, 
           MatrixX3S &CV, 
           MatrixX3I &CF,
-          VectorXI &/*J*/)
+          VectorXI &/*J*/,
+          VectorXI &/*I*/)
         {
           Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> _1;
           Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> _2;
@@ -231,18 +191,20 @@ void mexFunction(
           const MatrixX3I &F, 
           MatrixX3S &CV, 
           MatrixX3I &CF,
-          VectorXI &J)
+          VectorXI &J,
+          VectorXI &I)
         {
           using namespace Eigen;
           MatrixX3S SV;
           MatrixX3I SF;
           MatrixX2I SIF;
-          VectorXI SIM,UIM;
           igl::cgal::RemeshSelfIntersectionsParam params;
-          remesh_self_intersections(V,F,params,SV,SF,SIF,J,SIM);
-          for_each(SF.data(),SF.data()+SF.size(),[&SIM](int & a){a=SIM(a);});
+          remesh_self_intersections(V,F,params,SV,SF,SIF,J,I);
+          for_each(SF.data(),SF.data()+SF.size(),[&I](int & a){a=I(a);});
           {
+            VectorXI UIM;
             remove_unreferenced(SV,SF,CV,CF,UIM);
+            for_each(I.data(),I.data()+I.size(),[&UIM](int & a){a=UIM(a);});
           }
         };
         const auto & validate = [](
@@ -258,15 +220,16 @@ void mexFunction(
           remesh_self_intersections(V,F,params,SV,SF,SIF,SJ,SIM);
           return SIM.size() == 0;
         };
-        cork_resolve(V,F,CV,CF,J);
+        cork_resolve(V,F,CV,CF,J,I);
         if(!validate(CV,CF))
         {
-          libigl_resolve(CV,CF,CV,CF,J);
+          libigl_resolve(CV,CF,CV,CF,J,I);
         }
         // Cork does not keep track of birth parents (to my knowledge)
         J.setConstant(CF.rows(),1,-1);
+        I.setConstant(V.rows(),1,-1);
       };
-      //mesh_boolean(VA,FA,VB,FB,type,try_cork_resolve,VC,FC,J);
+      mesh_boolean(VA,FA,VB,FB,type,try_cork_resolve,VC,FC,J,I);
       break;
     }
     default:
@@ -282,6 +245,11 @@ void mexFunction(
     default:
     {
       mexErrMsgTxt(false,"Too many output parameters.");
+    }
+    case 4:
+    {
+      prepare_lhs_index(I,plhs+3);
+      // Fall through
     }
     case 3:
     {

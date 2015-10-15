@@ -25,6 +25,7 @@
 #ifdef MEX
 #  include <igl/matlab/MexStream.h>
 #  include <igl/matlab/mexErrMsgTxt.h>
+#  include <igl/matlab/validate_arg.h>
 #  include <igl/matlab/parse_rhs.h>
 #  include <igl/matlab/prepare_lhs.h>
 #endif
@@ -95,16 +96,9 @@ int main(int argc, char * argv[])
       const char * name = mxArrayToString(prhs[i]);
       if(strcmp("FirstOnly",name) == 0)
       {
-        if((i+1)>=nrhs)
-        {
-          mexErrMsgTxt(C_STR("Parameter '"<<name<<"' requires argument"));
-        }
-        i++;
-        if(!mxIsLogical(prhs[i]))
-        {
-          mexErrMsgTxt(C_STR("Parameter '"<<name<<"' requires Logical arg"));
-        }
-        mxLogical * v = (mxLogical *)mxGetData(prhs[i]);
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        mxLogical * v = (mxLogical *)mxGetData(prhs[++i]);
         params.first_only = *v;
       }else
       {

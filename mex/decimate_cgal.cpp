@@ -15,6 +15,7 @@
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/parse_rhs.h>
 #include <igl/matlab/prepare_lhs.h>
+#include <igl/matlab/validate_arg.h>
 #include <igl/cgal/mesh_to_polyhedron.h>
 #include <igl/cgal/polyhedron_to_mesh.h>
 
@@ -157,31 +158,11 @@ void mexFunction(
       mexErrMsgTxt(mxIsChar(prhs[i]),"Parameter names should be strings");
       // Cast to char
       const char * name = mxArrayToString(prhs[i]);
-      const auto requires_arg = 
-        [](const int i, const int nrhs, const char * name)
-      {
-        mexErrMsgTxt((i+1)<nrhs,
-          C_STR("Parameter '"<<name<<"' requires argument"));
-      };
-      const auto validate_scalar = 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxGetN(prhs[i])==1 && mxGetM(prhs[i])==1,
-          C_STR("Parameter '"<<name<<"' requires scalar argument"));
-      };
-      const auto validate_logical= 
-        [](const int i, const mxArray * prhs[], const char * name)
-      {
-        mexErrMsgTxt(mxIsLogical(prhs[i]),
-          C_STR("Parameter '"<<name<<"' requires Logical argument"));
-      };
       if(strcmp("Adaptive",name) == 0)
       {
-        requires_arg(i,nrhs,name);
-        i++;
-        validate_logical(i,prhs,name);
-        validate_scalar(i,prhs,name);
-        adaptive = (bool)*mxGetLogicals(prhs[i]);
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        adaptive = (bool)*mxGetLogicals(prhs[++i]);
       }else
       {
         mexErrMsgTxt(false,"Unknown parameter");
