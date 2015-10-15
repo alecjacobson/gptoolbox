@@ -10,6 +10,7 @@ function [V,T,F] = tetgen(SV,SF,varargin)
   %   SF  list of surface face indices of exterior triangle mesh, # faces by 3
   %   Optional:
   %     'Flags'  followed by tetgen flags {'-q100'}
+  %     'Verbose'  followed by whether to print command and result {false}
   % Outputs:
   %   V  list of tetrahedra vertices
   %   T  list of tetrahedra indices
@@ -24,9 +25,10 @@ function [V,T,F] = tetgen(SV,SF,varargin)
 
   % default values
   flags = '-q100';
+  verbose = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Flags'}, {'flags'});
+    {'Flags','Verbose'}, {'flags','verbose'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -68,12 +70,15 @@ function [V,T,F] = tetgen(SV,SF,varargin)
   %end
   % call tetgen
   command = [path_to_tetgen ' ' mesh_flags ' ' flags ' ' poly_filename];
-  fprintf(command);
+  if verbose
+    fprintf('%s\n',command);
+  end
   [status, result] = system(command);
   if status~=0
     error(result)
+  elseif verbose
+    fprintf('%s\n',result);
   end
-  fprintf(result);
   % tetgen always writes output to file:
   %   xxxx.1.ele  tetrahedra
   %   xxxx.1.node tetrahedra vertices
