@@ -1,4 +1,4 @@
-function [BC,side,r,DV] = voxel_grid(V,side,varargin)
+function [BC,side,r] = voxel_grid(V,side,varargin)
   % VOXEL_GRID Prepare a voxel grid around a set of points V
   % 
   % Inputs:
@@ -16,7 +16,6 @@ function [BC,side,r,DV] = voxel_grid(V,side,varargin)
   %   BC  prod(side+2*pad_count) by 3 list of cell centers
   %   side  number of cells on each side: side+2*pad_count
   %   r  size of step in each direciton
-  %   DV  cell corners
   pad_count = 0;
   % default values
   % Map of parameter names to variable names
@@ -38,6 +37,8 @@ function [BC,side,r,DV] = voxel_grid(V,side,varargin)
   end
 
 
+
+  assert(side>(pad_count*2+1),'side should  be > 2*pad_count+1');
   side = side-pad_count*2;
   switch numel(side)
   case 3
@@ -72,6 +73,7 @@ function [BC,side,r,DV] = voxel_grid(V,side,varargin)
   cen = 0.5*(XV + NV);
   XV = XV + old_cen - cen;
   NV = NV + old_cen - cen;
+
   r = (XV-NV)./(side-1);
 
   [X,Y,Z] = meshgrid( ...
