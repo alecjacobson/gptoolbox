@@ -2,9 +2,12 @@ function varargout = imgrid(im,varargin)
   % IMGRID Display an image with a overlay grid.
   %
   % t = imgrid(im)
+  % t = imgrid(im,'ParameterName',ParamaterValue, ...)
   %
   % Inputs:
   %   im  h by w by channels list of colors/values
+  %     Optional:
+  %       'ShowValues' followed by whether to show values (text) {false}
   % Outputs:
   %   t  handle to surface with colored faces
   %
