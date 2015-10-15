@@ -10,6 +10,8 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   %   t  handle to a `trisurf` or `patch` object
   %   Optional:
   %     'AO' followed by previously computed ambient occlusion values {[]}
+  %     'AOFactor' followed by a scaler between [0,1] determining how much to
+  %       to modulate by ambient occlusion {1}
   %     'AddLights' followed by whether to add lights {true}
   %     'SoftLighting' followed by whether to soft lighting {true}
   %     'Samples' followed by the number of samples to use when computing
@@ -21,7 +23,7 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   %   AO  #V by 1 list of ambient occlusion values
   %   l  #l list of light handles
 
-  function [AO,C] = apply_ambient_occlusion_helper(t,AO,C)
+  function [AO,C] = apply_ambient_occlusion_helper(t,AO,C,factor)
     V = t.Vertices;
     Poly = t.Faces;
     % triangulate high order facets
@@ -73,10 +75,11 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
     if isempty(AO)
       AO = ambient_occlusion(V,F,O,N,samples);
     end
-    t.FaceVertexCData = bsxfun(@times,C,1-AO);
+    t.FaceVertexCData = bsxfun(@plus,(1-factor)*C,factor*bsxfun(@times,C,1-AO));
   end 
 
   AO = [];
+  factor = 1;
   CM = [];
   CA = [];
   C = [];
@@ -86,8 +89,8 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   samples = 1000;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'AO','AddLights','SoftLighting','Samples','ColorMap','CAxis','Colors'}, ...
-    {'AO','add_lights','soft_lighting','samples','CM','CA','C'});
+    {'AO', 'AddLights','Factor','SoftLighting','Samples','ColorMap','CAxis','Colors'}, ...
+    {'AO','add_lights','factor','soft_lighting','samples','CM','CA','C'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -137,7 +140,7 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
     end
 
     tii = t(ii);
-    [AOii,Cii] = apply_ambient_occlusion_helper(tii,AOii,Cii);
+    [AOii,Cii] = apply_ambient_occlusion_helper(tii,AOii,Cii,factor);
     if numel(t) == 1
       AO = AOii;
       C = Cii;
