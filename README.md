@@ -98,7 +98,9 @@ the Mosek toolbox has been installed, but should also work with the `quadprog`
 in MATLAB's Optimization Toolbox.
 
 Mex files may have other external dependencies (e.g. CGAL, Eigen, libigl). See
-their respective READMEs for more information.
+their respective READMEs for more information. When installing mex libraries, 
+you may need to modify the files in `wrappers/` (such as `path_to_libigl.m`) so 
+`gptoolbox` knows where to look.
 
 ## Attribution
 If you use gptoolbox in your academic projects, please cite the papers we
