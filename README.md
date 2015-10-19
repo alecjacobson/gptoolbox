@@ -100,8 +100,22 @@ in MATLAB's Optimization Toolbox.
 Mex files may have other external dependencies (e.g. CGAL, Eigen, libigl). See
 their respective READMEs for more information.
 
+## Attribution
+If you use gptoolbox in your academic projects, please cite the papers we
+implement as appropriate. To cite the library in general, you could use this
+BibTeX entry:
+
+```bibtex
+@misc{gptoolbox,
+  title = {{gptoolbox}: Geometry Processing Toolbox},
+  author = {Alec Jacobson and others},
+  note = {http://github.com/alecjacobson/gptoolbox},
+  year = {2015},
+}
+```
+
 ## License ##
-Unless marked otherwise, all code is Copyright Alec Jacobson 2014.
+Unless marked otherwise, all code is Copyright Alec Jacobson 2015.
 
 We will probably switch to a MPL2 license in the near future.
 
