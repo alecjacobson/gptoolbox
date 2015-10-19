@@ -33,10 +33,10 @@ function [tf,te,to,sc] = tsurf_cad(F,V,varargin)
   l = light('Position',[1 4 5.0],'Style','infinite');
   [h,~,~,g] = add_shadow(tf,l,'Nudge',2e-3,'Fade','local','Color',[0.8 0.8 0.8]);
   % faint amient occlusion
-  AO = ambient_occlusion(W,G,W,per_vertex_normals(W,G),1000);
-  AO = AO*0.27;
-  tf.FaceVertexCData = bsxfun(@times,tf.FaceVertexCData,1-AO);
-  hold off;
+  %AO = ambient_occlusion(W,G,W,per_vertex_normals(W,G),1000);
+  %AO = AO*0.27;
+  %tf.FaceVertexCData = bsxfun(@times,tf.FaceVertexCData,1-AO);
+  %hold off;
 
 
   % floor board
@@ -73,15 +73,17 @@ function [tf,te,to,sc] = tsurf_cad(F,V,varargin)
     set(h,'FaceAlpha',0.5*(g*[campos 1]'<0)) | ...
     set(sc,'FaceAlpha',1.0*(g*[campos 1]'<0));
   up();
-  down = @() set(to,'Faces',[]);
+  down = @() ...
+    (exist('to','var') && ishandle(to) && isempty(set(to,'Faces',[]))) || ...
+    isempty(set(rotate3d,'ActionPostCallback',[],'ActionPreCallback',[]));
   set(rotate3d,'ActionPostCallback',@(src,obj) up());
   set(rotate3d,'ActionPreCallback',@(src,obj) down());
 
-  for t = linspace(0,-360,60)
-    view(64+t,20);
-    up();
-    drawnow;
-    filename = 'tsurf-cad.gif';
-    figgif(filename,'nodither');
-  end
+  %for t = linspace(0,-360,60)
+  %  view(64+t,20);
+  %  up();
+  %  drawnow;
+  %  filename = 'tsurf-cad.gif';
+  %  figgif(filename,'nodither');
+  %end
 end
