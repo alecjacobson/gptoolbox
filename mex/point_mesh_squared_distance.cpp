@@ -1,8 +1,3 @@
-// 
-//     mex -v -DMEX point_mesh_squared_distance.cpp ...
-//       -Isrc -I/opt/local/include/ -I/opt/local/include/eigen3 ...
-//       -I/usr/local/igl/libigl/include 
-// 
 #include <mex.h>
 #undef assert
 #define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )

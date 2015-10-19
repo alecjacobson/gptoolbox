@@ -1,6 +1,3 @@
-//     mex -v -DMEX  ...
-//       collapse_small_triangles.cpp  ...
-//       -I/opt/local/include/eigen3 -I/usr/local/igl/libigl/include
 // 
 //   V2 = [0 0 0;1 0 0;0 1 0;0 1.004 0];
 //   F2 = [1 2 3;3 2 4];

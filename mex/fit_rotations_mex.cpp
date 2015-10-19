@@ -1,9 +1,3 @@
-// 
-//     mex -v -DMEX fit_rotations_mex.cpp ...
-//       -Isrc -I/opt/local/include/ -I/opt/local/include/eigen3 ...
-//       -I/usr/local/igl/libigl/include ...
-//       -I/usr/local/igl/libigl/external/Singular_Value_Decomposition/
-// 
 #ifdef MEX
 #  include <mex.h>
 #include <igl/C_STR.h>

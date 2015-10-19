@@ -1,5 +1,3 @@
-// mex -o solid_angle solid_angle.cpp
-
 #include "mex.h"
 #include <cmath>
 #include <iostream>
