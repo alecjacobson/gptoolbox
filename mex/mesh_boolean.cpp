@@ -1,21 +1,11 @@
 #ifdef MEX
-// mex -v -largeArrayDims -DMEX ...
-//   -I/usr/local/igl/libigl/include ...
-//   -DIGL_STATIC_LIBRARY ...
-//   -I/opt/local/include/eigen3 ...
-//   -I/opt/local/include ...
-//   -L/opt/local/lib ...
-//   -I/usr/local/igl/libigl/external/cork/include ...
-//   -L/usr/local/igl/libigl/lib -ligl -liglmatlab -liglboolean -liglcgal ...
-//   -L/usr/local/igl/libigl/external/cork/lib -lcork ...
-//   -lCGAL -lCGAL_Core -lgmp -lmpfr ...
-//   -lboost_thread-mt -lboost_system-mt ...
-//   mesh_boolean.cpp
 
 #include <igl/boolean/mesh_boolean.h>
 #include <igl/cgal/remesh_self_intersections.h>
 #include <igl/remove_unreferenced.h>
-#include <igl/boolean/mesh_boolean_cork.h>
+#ifndef IGL_NO_CORK
+#  include <igl/boolean/mesh_boolean_cork.h>
+#endif
 #include <igl/boolean/string_to_mesh_boolean_type.h>
 
 #include <igl/matlab/MexStream.h>
@@ -93,12 +83,14 @@ void parse_rhs(
         if(strcmp("libigl",type_name)==0)
         {
           boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL;
+#ifndef IGL_NO_CORK
         }else if(strcmp("cork",type_name)==0)
         {
           boolean_lib = BOOLEAN_LIB_TYPE_CORK;
         }else if(strcmp("libigl-try-cork-resolve",type_name)==0)
         {
           boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL_TRY_CORK_RESOLVE;
+#endif
         }else
         {
           mexErrMsgTxt(false,C_STR("Unknown BooleanLib: "<<type_name));
@@ -147,6 +139,7 @@ void mexFunction(
     case BOOLEAN_LIB_TYPE_LIBIGL:
       mesh_boolean(VA,FA,VB,FB,type,VC,FC,J,I);
       break;
+#ifndef IGL_NO_CORK
     case BOOLEAN_LIB_TYPE_CORK:
       mesh_boolean_cork(VA,FA,VB,FB,type,VC,FC);
       break;
@@ -232,6 +225,7 @@ void mexFunction(
       mesh_boolean(VA,FA,VB,FB,type,try_cork_resolve,VC,FC,J,I);
       break;
     }
+#endif
     default:
       assert(false && "Unknown boolean lib");
       break;
