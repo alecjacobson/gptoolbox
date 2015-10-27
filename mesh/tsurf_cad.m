@@ -1,16 +1,21 @@
 %[V,F] = load_mesh('~/Dropbox/models/fandisk.off');
 %V = V*axisangle2matrix([1 0 0],pi);
 %[V,F] = load_mesh('~/Dropbox/models/bunny.off');
-function [tf,te,to,sc] = tsurf_cad(F,V,varargin)
+function [tf,te,to,sc,I] = tsurf_cad(F,V,varargin)
   V = V*axisangle2matrix([1 0 0],-pi/2);
   N = normals(V,F);
   BC = barycenter(V,F);
 
   % sharp edges
   [A,C] = adjacency_dihedral_angle_matrix(V,F);
-  A(1&A) = abs(A(1&A)-pi)>pi*0.11;
+  %% This is much much slower
+  %A(1&A) = abs(A(1&A)-pi)>pi*0.11;
+  [AI,AJ,AV] = find(A);
+  keep = abs(AV-pi)>(pi*0.11) & ~isnan(AV);
+  A = sparse(AI(keep),AJ(keep),1,size(A,1),size(A,2));
   [CI,~,CV] = find(C.*A);
-  E = F([CI+mod(CV,3)*size(F,1) CI+mod(CV+1,3)*size(F,1)]);
+  II = [CI+mod(CV,3)*size(F,1) CI+mod(CV+1,3)*size(F,1)];
+  E = F(II);
 
   % cut mesh at sharp edges to get crisp normals
   [G,I] = cut_edges(F,E);
@@ -20,7 +25,7 @@ function [tf,te,to,sc] = tsurf_cad(F,V,varargin)
   hold on;
   blue = [0.2 0.3 0.8];
   tf = tsurf(G,W, ...
-    'FaceVertexCData',repmat(blue,size(W,1),1), ...
+    ... % 'FaceVertexCData',repmat(blue,size(W,1),1), ...
     'SpecularStrength',0, ...
     'DiffuseStrength',0.1, ...
     'AmbientStrength',1.0, ...
