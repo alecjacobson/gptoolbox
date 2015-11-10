@@ -1,4 +1,4 @@
-function [VV,FF,S] = loop(V,F,iter)
+function [VV,FF,SS] = loop(V,F,iter)
 % LOOP perform loop subdivision
 %
 % [VV,FF] = loop(V,F)
@@ -9,7 +9,7 @@ function [VV,FF,S] = loop(V,F,iter)
 % Outpus:
 %   VV #VV by 3 new vertex positions
 %   FF #FF by 3 list of face indices
-%   S #VV by #V matrix computing VV = S *V 
+%   SS #VV by #V matrix computing VV = SS *V 
 %
 % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
 %
@@ -18,6 +18,7 @@ if (~exist('iter','var'))
     iter = 1;
 end
 VV = V;
+SS = speye(size(V,1));
 FF = F;
 
 for i=1:iter
@@ -144,7 +145,8 @@ for i=1:iter
     FF = FE2E(FEF);
     
     S = [Seven;Sodd];
-    VV = S*V;
+    VV = S*VV;
+    SS = S*SS;
     
     %trisurf(F,V(:,1),V(:,2),V(:,3),'FaceAlpha',0.1,'FaceColor','r','EdgeColor',[0.3 0 0]);
     %hold on;
