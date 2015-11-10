@@ -30,5 +30,7 @@ function [V,F] = cube(x,y,z)
   % Should be able to do this procedurally
   [V,~,J] = remove_duplicate_vertices(V,1e-12);
   F = J(F);
+  % oops inside out
+  F = fliplr(F);
 
 end
