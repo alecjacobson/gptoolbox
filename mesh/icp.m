@@ -10,8 +10,8 @@ function [R,t,BRt,e,KDTA,KDTB] = icp(A,B,varargin)
   %   B  #B by dim list of points
   %   Optional:
   %     'MaxIter' followed by maximum number of iterations {inf}
-  %     'MaxRNorm'  followed by minimum norm on diff entries of R {1e-5}
-  %     'MaxTNorm'  followed by minimum norm on diff entries of t {1e-5}
+  %     'MinRNorm'  followed by minimum norm on diff entries of R {1e-5}
+  %     'MinTNorm'  followed by minimum norm on diff entries of t {1e-5}
   %     'MaxSamples'  followed by number of random samples to use from each
   %       point set {inf --> #A,#B}
   %     'KDTreeA'  followed by kdtree on A (see output)
