@@ -1,12 +1,12 @@
 #ifdef MEX
 
-#include <igl/boolean/mesh_boolean.h>
-#include <igl/cgal/remesh_self_intersections.h>
+#include <igl/copyleft/boolean/mesh_boolean.h>
+#include <igl/copyleft/cgal/remesh_self_intersections.h>
 #include <igl/remove_unreferenced.h>
 #ifndef IGL_NO_CORK
-#  include <igl/boolean/mesh_boolean_cork.h>
+#  include <igl/copyleft/boolean/mesh_boolean_cork.h>
 #endif
-#include <igl/boolean/string_to_mesh_boolean_type.h>
+#include <igl/copyleft/boolean/string_to_mesh_boolean_type.h>
 
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -25,8 +25,7 @@ enum BooleanLibType
 {
   BOOLEAN_LIB_TYPE_LIBIGL = 0,
   BOOLEAN_LIB_TYPE_CORK = 1,
-  BOOLEAN_LIB_TYPE_LIBIGL_TRY_CORK_RESOLVE = 2,
-  NUM_BOOLEAN_LIB_TYPES = 3
+  NUM_BOOLEAN_LIB_TYPES = 2
 };
 
 void parse_rhs(
@@ -36,16 +35,16 @@ void parse_rhs(
   Eigen::MatrixXi & FA,
   Eigen::MatrixXd & VB,
   Eigen::MatrixXi & FB,
-  igl::boolean::MeshBooleanType & type,
+  igl::copyleft::boolean::MeshBooleanType & type,
   BooleanLibType & boolean_lib,
   bool & debug
   )
 {
   using namespace std;
   using namespace igl;
-  using namespace igl::boolean;
+  using namespace igl::copyleft::boolean;
   using namespace igl::matlab;
-  using namespace igl::cgal;
+  using namespace igl::copyleft::cgal;
   using namespace Eigen;
   mexErrMsgTxt(nrhs >= 5, "The number of input arguments must be >=5.");
 
@@ -87,9 +86,6 @@ void parse_rhs(
         }else if(strcmp("cork",type_name)==0)
         {
           boolean_lib = BOOLEAN_LIB_TYPE_CORK;
-        }else if(strcmp("libigl-try-cork-resolve",type_name)==0)
-        {
-          boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL_TRY_CORK_RESOLVE;
 #endif
         }else
         {
@@ -117,7 +113,7 @@ void mexFunction(
   using namespace Eigen;
   using namespace igl;
   using namespace igl::matlab;
-  using namespace igl::boolean;
+  using namespace igl::copyleft::boolean;
 
   igl::matlab::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
@@ -125,7 +121,7 @@ void mexFunction(
 
   MatrixXd VA,VB,VC;
   MatrixXi FA,FB,FC;
-  VectorXi J,I;
+  VectorXi J;
   MeshBooleanType type;
   BooleanLibType boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL;
   bool debug = false;
@@ -137,94 +133,12 @@ void mexFunction(
   switch(boolean_lib)
   {
     case BOOLEAN_LIB_TYPE_LIBIGL:
-      mesh_boolean(VA,FA,VB,FB,type,VC,FC,J,I);
+      mesh_boolean(VA,FA,VB,FB,type,VC,FC,J);
       break;
 #ifndef IGL_NO_CORK
     case BOOLEAN_LIB_TYPE_CORK:
       mesh_boolean_cork(VA,FA,VB,FB,type,VC,FC);
       break;
-    case BOOLEAN_LIB_TYPE_LIBIGL_TRY_CORK_RESOLVE:
-    {
-      // gcc needs an explicit type here, const auto & fails to reveal template
-      // in mesh_boolean call (clang relizes it though)
-      const std::function<void(
-          const Eigen::Matrix<double, -1, 3>&, 
-          const Eigen::Matrix<int, -1, 3>&, 
-          Eigen::Matrix<double, -1, 3>&, 
-          Eigen::Matrix<int, -1, 3>&, 
-          Eigen::Matrix<int, -1, 1>&,
-          Eigen::Matrix<int, -1, 1>&)> &
-        try_cork_resolve = [](
-          const Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> & V,
-          const Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> & F,
-                Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> & CV,
-                Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> & CF,
-                Eigen::Matrix<Eigen::VectorXi::Scalar,Eigen::Dynamic,1> & J,
-                Eigen::Matrix<Eigen::VectorXi::Scalar,Eigen::Dynamic,1> & I)
-      {
-        typedef Matrix<MatrixXd::Scalar,Dynamic,3> MatrixX3S;
-        typedef Matrix<MatrixXi::Scalar,Dynamic,3> MatrixX3I;
-        typedef Matrix<MatrixXi::Scalar,Dynamic,2> MatrixX2I;
-        typedef Matrix<MatrixXi::Scalar,Dynamic,1> VectorXI;
-        const auto & cork_resolve = [](
-          const MatrixX3S &V, 
-          const MatrixX3I &F, 
-          MatrixX3S &CV, 
-          MatrixX3I &CF,
-          VectorXI &/*J*/,
-          VectorXI &/*I*/)
-        {
-          Eigen::Matrix<Eigen::MatrixXd::Scalar,Eigen::Dynamic,3> _1;
-          Eigen::Matrix<Eigen::MatrixXi::Scalar,Eigen::Dynamic,3> _2;
-          mesh_boolean_cork(V,F,_1,_2,MESH_BOOLEAN_TYPE_RESOLVE,CV,CF);
-        };
-        // OK if &(CV,CF) = &(V,F)
-        const auto & libigl_resolve = [](
-          const MatrixX3S &V, 
-          const MatrixX3I &F, 
-          MatrixX3S &CV, 
-          MatrixX3I &CF,
-          VectorXI &J,
-          VectorXI &I)
-        {
-          using namespace Eigen;
-          MatrixX3S SV;
-          MatrixX3I SF;
-          MatrixX2I SIF;
-          igl::cgal::RemeshSelfIntersectionsParam params;
-          remesh_self_intersections(V,F,params,SV,SF,SIF,J,I);
-          for_each(SF.data(),SF.data()+SF.size(),[&I](int & a){a=I(a);});
-          {
-            VectorXI UIM;
-            remove_unreferenced(SV,SF,CV,CF,UIM);
-            for_each(I.data(),I.data()+I.size(),[&UIM](int & a){a=UIM(a);});
-          }
-        };
-        const auto & validate = [](
-          const MatrixX3S &V, const MatrixX3I &F)->bool
-        {
-          MatrixX3S SV;
-          MatrixX3I SF;
-          MatrixX2I SIF;
-          VectorXI SJ,SIM,UIM;
-          igl::cgal::RemeshSelfIntersectionsParam params;
-          params.detect_only = true;
-          params.first_only = true;
-          remesh_self_intersections(V,F,params,SV,SF,SIF,SJ,SIM);
-          return SIM.size() == 0;
-        };
-        cork_resolve(V,F,CV,CF,J,I);
-        if(!validate(CV,CF))
-        {
-          libigl_resolve(CV,CF,CV,CF,J,I);
-        }
-        // Cork does not keep track of birth parents (to my knowledge)
-        J.setConstant(CF.rows(),1,-1);
-        I.setConstant(V.rows(),1,-1);
-      };
-      mesh_boolean(VA,FA,VB,FB,type,try_cork_resolve,VC,FC,J,I);
-      break;
-    }
 #endif
     default:
       assert(false && "Unknown boolean lib");
@@ -239,11 +153,6 @@ void mexFunction(
     default:
     {
       mexErrMsgTxt(false,"Too many output parameters.");
-    }
-    case 4:
-    {
-      prepare_lhs_index(I,plhs+3);
-      // Fall through
     }
     case 3:
     {

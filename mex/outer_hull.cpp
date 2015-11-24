@@ -1,6 +1,6 @@
 #ifdef MEX
 
-#include <igl/cgal/outer_hull.h>
+#include <igl/copyleft/cgal/outer_hull.h>
 
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -50,7 +50,7 @@ void mexFunction(
   using namespace Eigen;
   using namespace igl;
   using namespace igl::matlab;
-  using namespace igl::cgal;
+  using namespace igl::copyleft::cgal;
 
   igl::matlab::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);

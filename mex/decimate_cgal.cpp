@@ -10,8 +10,8 @@
 #include <igl/matlab/parse_rhs.h>
 #include <igl/matlab/prepare_lhs.h>
 #include <igl/matlab/validate_arg.h>
-#include <igl/cgal/mesh_to_polyhedron.h>
-#include <igl/cgal/polyhedron_to_mesh.h>
+#include <igl/copyleft/cgal/mesh_to_polyhedron.h>
+#include <igl/copyleft/cgal/polyhedron_to_mesh.h>
 
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
@@ -126,7 +126,7 @@ void mexFunction(
 {
   using namespace igl;
   using namespace igl::matlab;
-  using namespace igl::cgal;
+  using namespace igl::copyleft::cgal;
   using namespace Eigen;
   MatrixXd V,W;
   MatrixXi F,G;

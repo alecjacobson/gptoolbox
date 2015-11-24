@@ -22,7 +22,7 @@
 #  include <igl/matlab/validate_arg.h>
 #  include <igl/matlab/parse_rhs.h>
 #endif
-#include <igl/cgal/remesh_self_intersections.h>
+#include <igl/copyleft/cgal/remesh_self_intersections.h>
 
 #ifdef MEX
 #  include "mex.h"
@@ -48,11 +48,11 @@ int main(int argc, char * argv[])
   using namespace Eigen;
   using namespace igl;
   using namespace igl::matlab;
-  using namespace igl::cgal;
+  using namespace igl::copyleft::cgal;
 
   MatrixXd V;
   MatrixXi F;
-  igl::cgal::RemeshSelfIntersectionsParam params;
+  igl::copyleft::cgal::RemeshSelfIntersectionsParam params;
 
   string prefix;
   bool use_obj_format = false;
