@@ -1,12 +1,13 @@
 #ifdef MEX
 
-#include <igl/boolean/mesh_boolean.h>
-#include <igl/cgal/remesh_self_intersections.h>
+#include <igl/copyleft/boolean/mesh_boolean.h>
+#include <igl/copyleft/cgal/remesh_self_intersections.h>
 #include <igl/remove_unreferenced.h>
+#define IGL_NO_CORK
 #ifndef IGL_NO_CORK
-#  include <igl/boolean/mesh_boolean_cork.h>
+#  include <igl/copyleft/boolean/mesh_boolean_cork.h>
 #endif
-#include <igl/boolean/string_to_mesh_boolean_type.h>
+#include <igl/copyleft/boolean/string_to_mesh_boolean_type.h>
 
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -36,16 +37,16 @@ void parse_rhs(
   Eigen::MatrixXi & FA,
   Eigen::MatrixXd & VB,
   Eigen::MatrixXi & FB,
-  igl::boolean::MeshBooleanType & type,
+  igl::copyleft::boolean::MeshBooleanType & type,
   BooleanLibType & boolean_lib,
   bool & debug
   )
 {
   using namespace std;
   using namespace igl;
-  using namespace igl::boolean;
+  using namespace igl::copyleft::boolean;
   using namespace igl::matlab;
-  using namespace igl::cgal;
+  using namespace igl::copyleft::cgal;
   using namespace Eigen;
   mexErrMsgTxt(nrhs >= 5, "The number of input arguments must be >=5.");
 
@@ -117,7 +118,7 @@ void mexFunction(
   using namespace Eigen;
   using namespace igl;
   using namespace igl::matlab;
-  using namespace igl::boolean;
+  using namespace igl::copyleft::boolean;
 
   igl::matlab::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
@@ -191,7 +192,7 @@ void mexFunction(
           MatrixX3S SV;
           MatrixX3I SF;
           MatrixX2I SIF;
-          igl::cgal::RemeshSelfIntersectionsParam params;
+          igl::copyleft::cgal::RemeshSelfIntersectionsParam params;
           remesh_self_intersections(V,F,params,SV,SF,SIF,J,I);
           for_each(SF.data(),SF.data()+SF.size(),[&I](int & a){a=I(a);});
           {
@@ -207,7 +208,7 @@ void mexFunction(
           MatrixX3I SF;
           MatrixX2I SIF;
           VectorXI SJ,SIM,UIM;
-          igl::cgal::RemeshSelfIntersectionsParam params;
+          igl::copyleft::cgal::RemeshSelfIntersectionsParam params;
           params.detect_only = true;
           params.first_only = true;
           remesh_self_intersections(V,F,params,SV,SF,SIF,SJ,SIM);

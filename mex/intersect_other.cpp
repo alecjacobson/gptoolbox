@@ -23,8 +23,8 @@
 #  include <igl/matlab/parse_rhs.h>
 #  include <igl/matlab/prepare_lhs.h>
 #endif
-#include <igl/cgal/intersect_other.h>
-#include <igl/cgal/RemeshSelfIntersectionsParam.h>
+#include <igl/copyleft/cgal/intersect_other.h>
+#include <igl/copyleft/cgal/RemeshSelfIntersectionsParam.h>
 
 #ifdef MEX
 #  include "mex.h"
@@ -50,8 +50,8 @@ int main(int argc, char * argv[])
   using namespace Eigen;
   using namespace igl;
   using namespace igl::matlab;
-  using namespace igl::cgal;
-  igl::cgal::RemeshSelfIntersectionsParam params = {nlhs<=1,false};
+  using namespace igl::copyleft::cgal;
+  igl::copyleft::cgal::RemeshSelfIntersectionsParam params = {nlhs<=1,false};
 
   MatrixXd VA,VB;
   MatrixXi FA,FB;
@@ -200,7 +200,7 @@ int main(int argc, char * argv[])
   Eigen::MatrixXi FFA,FFB,IF;
   Eigen::VectorXi JA,JB,IMA,IMB;
   {
-    igl::cgal::intersect_other(
+    igl::copyleft::cgal::intersect_other(
       VA,FA,VB,FB,params,IF,VVA,FFA,JA,IMA,VVB,FFB,JB,IMB);
 #ifndef MEX
     cout<<"writing pair list to "<<(prefix+"-IF.dmat")<<endl;
