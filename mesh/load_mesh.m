@@ -36,6 +36,8 @@ function [V,F] = load_mesh(filename,varargin)
   [~,~,ext] = fileparts(filename);
   ext = lower(ext);
   switch ext
+  case '.3ds'
+    [V,F] = read3DS(filename);
   case '.off'
     [V,F] = readOFF(filename);
   case '.ply'
