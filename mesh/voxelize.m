@@ -19,6 +19,8 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   %       mesh as inside {true}.
   %     'Interior'  followed by whether to consider any cell full inside the
   %        mesh as inside {true}
+  %     'Closed'  followed by whether to assume mesh is closed when determining
+  %       interior (avoid winding number computation, use flood filling)
   % Outputs:
   %   W  side(1) by side(2) by side(3) matrix with W(i,j,k) ~= if location
   %     cell centered at BC(i,j,k) overlaps with the volume of (V,F)
@@ -53,11 +55,12 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   with_boundary = true;
   with_interior = true;
   pad_count = 0;
+  closed = [];
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Boundary','Interior','Pad'}, ...
-    {'with_boundary','with_interior','pad_count'});
+    {'Boundary','Interior','Pad','Closed'}, ...
+    {'with_boundary','with_interior','pad_count','closed'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -71,6 +74,9 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
     end
     v=v+1;
   end
+  if isempty(closed)
+    closed = isempty(outline(F));
+  end
 
 
 
@@ -80,7 +86,7 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   W = zeros([side(2) side(1) side(3)]);
   [DV,~,QT,QF,QL] = voxel_surface(W,'Centers',BC);
 
-  if with_interior
+  if with_interior && ~closed
     % Winding number is a heavy handed way of determining inside/outside for a
     % simple closed polyhedron.  If the boundary has already been detected then
     % this should be floodfilling instead.
@@ -150,6 +156,10 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
     JJ = JJ(KK<=side(3));
     KK = KK(KK<=side(3));
     W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
+  end
+
+  if with_interior && closed
+    W = imfill(W,'holes');
   end
 
   %trisurf(Q(IF,:),DV(:,1),DV(:,2),DV(:,3),'FaceColor','r');
