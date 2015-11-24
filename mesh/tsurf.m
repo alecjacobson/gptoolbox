@@ -69,11 +69,24 @@ function t = tsurf(F,V,varargin)
     return;
   end
 
-  tets = size(F,2) ==4 && (size(F,1)*4 > 1.01*size(boundary_faces(F),1));
+  %tets = size(F,2) ==4 && (size(F,1)*4 > 1.01*size(boundary_faces(F),1));
+  tets = false;
+  if size(F,2) == 4
+    VV = bsxfun(@minus,V,min(V))*max(max(V)-min(V));
+    tets = sum(volume(VV,F))>1e-10;
+    if ~tets
+      Ftri = [F(:,[1 2 3]);F(:,[1 3 4])];
+      Itri = repmat(1:size(F,1),1,2);
+    end
+  else
+    tets = false;
+    Ftri = F;
+    Itri = 1:size(F,1);
+  end
 
   if tets
     t_copy = tetramesh(F,V,'FaceAlpha',0.5);
-    FC = (V(F(:,1),:)+V(F(:,2),:)+V(F(:,3),:)+V(F(:,4),:))./3;
+    FC = barycenter(V,F);
     if(face_indices==1)
       text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
     elseif(face_indices)
@@ -130,17 +143,19 @@ function t = tsurf(F,V,varargin)
   
   function ondown(src,ev)
     if exist('point_mesh_squared_distance','file')==3
-      [~,ci,C] = point_mesh_squared_distance(ev.IntersectionPoint,V,F);
+      [~,ci,C] = point_mesh_squared_distance(ev.IntersectionPoint,V,Ftri);
       warning off;
-        B = barycentric_coordinates(C,V(F(ci,1),:),V(F(ci,2),:),V(F(ci,3),:));
+        B = barycentric_coordinates(C,V(Ftri(ci,1),:),V(Ftri(ci,2),:),V(Ftri(ci,3),:));
       warning on;
       on_vertex = sum(B<0.15)==2;
       color = [.7 .5 .5];
-      C = FC(ci,:);
       if on_vertex
-        ci = F(ci,max(B)==B);
+        ci = Ftri(ci,max(B)==B);
         color = [.5 .5 .7];
         C = V(ci,:);
+      else
+        ci = Itri(ci);
+        C = FC(ci,:);
       end
       text_h = text(C(:,1),C(:,2),C(:,3),num2str(ci),'BackgroundColor',color);
     end
