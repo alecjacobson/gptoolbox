@@ -1,7 +1,7 @@
 %[V,F] = load_mesh('~/Dropbox/models/fandisk.off');
 %V = V*axisangle2matrix([1 0 0],pi);
 %[V,F] = load_mesh('~/Dropbox/models/bunny.off');
-function [tf,te,to,sc,I] = tsurf_cad(F,V,varargin)
+function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
   V = V*axisangle2matrix([1 0 0],-pi/2);
   N = normals(V,F);
   BC = barycenter(V,F);
@@ -36,17 +36,26 @@ function [tf,te,to,sc,I] = tsurf_cad(F,V,varargin)
   view(130,38);
   axis equal;
   l = light('Position',[1 4 5.0],'Style','infinite');
-  [h,~,~,g] = add_shadow(tf,l,'Nudge',2e-3,'Fade','local','Color',[0.8 0.8 0.8]);
+  [h,~,M,g] = add_shadow(tf,l,'Ground',[0 0 -1 min(V(:,3))-2e-3],'Fade','local','Color',[0.8 0.8 0.8]);
   % faint amient occlusion
   %AO = ambient_occlusion(W,G,W,per_vertex_normals(W,G),1000);
   %AO = AO*0.27;
   %tf.FaceVertexCData = bsxfun(@times,tf.FaceVertexCData,1-AO);
   %hold off;
 
+  
+  % Hack so that axis doesn't change if V contains unreferenced points and
+  % doesn't change.
+  [BB,BF] = bounding_box(V);
+  hold on;
+  bf = trisurf(BF,BB(:,1),BB(:,2),BB(:,3),'CData',nan*BB(:,1),'EdgeColor','none');
+  hold off;
 
   % floor board
-  SV = h.Vertices;
-  BB = bounding_box(SV(:,1:2));
+  SV = [V ones(size(V,1),1)]*M';
+  SV = bsxfun(@rdivide,SV(:,1:3),SV(:,4));
+
+  [BB,BF] = bounding_box(SV(:,1:2));
   M = mean(bounding_box(V(:,1:2)));
   BBmM = bsxfun(@minus,BB,M);
   BB = bsxfun(@plus,sign(BBmM)*max(abs(BBmM(:))),M);
