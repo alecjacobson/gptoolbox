@@ -21,6 +21,8 @@ function [V,F] = box_height_field(im,varargin)
     function [V,F] = strips(X,Y,Z,tops)
       h = size(X,1);
       w = size(X,2);
+      h
+      w
       % reserve space
       F = zeros(h*w*6,3);
       V = zeros(h*w*10,3);
@@ -130,7 +132,9 @@ function [V,F] = box_height_field(im,varargin)
     end
   
     w = size(im,2);
+    w
     h = size(im,1);
+    h
     [X,Y] = meshgrid(1:w,1:h);
     Z = im;
     [VLR,FLR] = strips(X,Y,Z,true);
@@ -237,6 +241,10 @@ function [V,F] = box_height_field(im,varargin)
       error('Unsupported parameter: %s',varargin{v});
     end
     v=v+1;
+  end
+  
+  if ~isfloat(im)
+    im = double(im);
   end
 
   if closed
