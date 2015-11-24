@@ -13,7 +13,7 @@ function [U,G,J,BC,SU] = slice_isolines(V,F,SV,val,varargin)
   %   val  #val list of isolines values
   %   Optional:
   %     'Manifold' followed by whether to stitch together triangles into a
-  %       manifold mesh {true}: results in more compact U but slightly slower.
+  %       manifold mesh {false}: results in more compact U but slightly slower.
   % Outputs:
   %   U  #U by 3 list of triangle mesh vertices along slice
   %   G  #G by 3 list of triangles indices into U
@@ -95,7 +95,9 @@ function [U,G,J,BC,SU] = slice_isolines(V,F,SV,val,varargin)
   if manifold
     % should be able to do this combinatorially
     bbd = normrow(max(V)-min(V));
-    [U,I,IM] = remove_duplicate_vertices(U,1e-14*bbd);
+    flag = [(1:size(V,1))';ones(size(U,1)-size(V,1),1)];
+    [U,I,IM] = remove_duplicate_vertices([U flag],1e-14*bbd);
+    U = U(:,1:3);
     BC = BC(I,:);
     SU = SU(I,:);
     G = IM(G);
