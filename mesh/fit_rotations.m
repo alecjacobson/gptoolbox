@@ -10,6 +10,7 @@ function [R,SS] = fit_rotations(S,varargin)
   %   Optional parameters
   %     'AllowFlips'  optionally followed by true or false, find best fitting
   %       rotation OR reflection
+  %     'SinglePrecision'  use single precision if available.
   % Outputs:
   %   R  dim by dim by #F list of rotations
   %   SS  dim by dim by #rotations list of svd diagonals
