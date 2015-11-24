@@ -13,6 +13,8 @@ function [VV,FF] = remove_degenerate_faces(V,F)
   %   FF  #FF by 3 list of face indices into VV
   %
 
+  iter=1;
+  max_iter = 20;
   while true
     % Snap exactly duplicate vertices
     [V,~,J] = remove_duplicate_vertices(V,0);
@@ -34,6 +36,10 @@ function [VV,FF] = remove_degenerate_faces(V,F)
     to_flip = allE((1:size(FD,1))'+size(FD,1)*(longest-1),:);
     to_flip = unique(sort(allE((1:size(FD,1))'+size(FD,1)*(longest-1),:),2),'rows');
     F = flip_edges(F,to_flip);
+    if iter == max_iter
+      error('Maximum iterations reached');
+    end
+    iter = iter + 1;
   end
 
   VV = V;
