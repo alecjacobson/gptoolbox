@@ -1,4 +1,4 @@
-function [SV,SF,VV,FF] = linear_sweep(V,F,sweep)
+function [SV,SF,J] = linear_sweep(V,F,sweep)
   % LINEAR_SWEEP Compute the surface of the solid sweep of a surface mesh (V,F)
   % along a vector (sweep): i.e. the Minkowski sum of (V,F) and the line
   % segment (0,0)-->(sweep) 
@@ -12,6 +12,7 @@ function [SV,SF,VV,FF] = linear_sweep(V,F,sweep)
   % Outputs:
   %   SV  #SV by dim list of vertex positions
   %   SF  #F by dim list of facet indices into SV
+  %   J  #F list of indices into [F;F+v;sweep] revealing birth parents 
   %
 
   dim = size(V,2);
@@ -57,68 +58,58 @@ function [SV,SF,VV,FF] = linear_sweep(V,F,sweep)
     % output names
     SF =SE;
   case 3
-    % normals
-    N = normalizerow(normals(V,F));
-    % dot product with sweep direction
-    D = sum(bsxfun(@times,N,sweep),2);
-    % faces with positive and negative dot product with sweep
-    Fp = F(D>0,:);
-    Fm = F(D<=0,:);
-    O = outline(Fp);
-    Fpw = [O(:,[1 2]) n+O(:,2);n+O(:,[2 1]) O(:,1)];
-
-    VV = [V;U];
-    FFp = [fliplr(Fp);Fpw;n+Fp];
-    FFm = [Fm;Fpw;n+fliplr(Fm)];
-
-    [VVp,IM] = remove_unreferenced(VV,FFp);
-    FFp = IM(FFp);
-    [VVm,IM] = remove_unreferenced(VV,FFm);
-    FFm = IM(FFm);
-    writePLY('front.ply',VVp,FFp);
-    writePLY('back.ply',VVm,FFm);
-    statistics(VVp,FFp)
-    statistics(VVm,FFm)
-    [SV,SF] = mesh_boolean(VVp,FFp,VVm,FFm,'union');
-
-    %% (self-intersecting) boundary Sweep
-    %FF = [Fm;n+Fp;Fpw];
-    %VV = [V;U];
-
-    %%% Self-union: this doesn't work... Non-manifold edges in Fpw? Yes, this is
-    %%% possible (folded Y case), but why is it a problem?
-    %%warning('experimental. not working.');
-    %%[SV,SF] = mesh_boolean(VV,FF,[],[],'union');
-    %%return;
-
-    %% Tesselated interior
-    %[SVV,SFF,~,~,IM] = selfintersect(VV,FF);
-    %SFF = IM(SFF);
-    %[SVV,IM] = remove_unreferenced(SVV,SFF);
-    %SFF = IM(SFF);
-
-    %% Can do this all using "peeling" like booleans. For now just do single
-    %% outer-layer in easy case.
-
-    %% check if bounding boxes overlap
-    %[BV,BF] = bounding_box(V);
-    %BU = bsxfun(@plus,BV,sweep);
-    %if false && all(round(winding_number(BV,BF,BU))==0)
-    %  SF = outer_hull(SVV,SFF);
-    %  [SV,IM] = remove_unreferenced(SVV,SF);
-    %  SF = IM(SF);
-    %else
-    %  %statistics(SVV,SFF)
-    %  [TV,TT,TF] = tetgen(SVV,SFF,'Flags','-YT1e-16');
-    %  BC = barycenter(TV,TT);
-    %  % Classify interior elements with winding number
-    %  w = winding_number(VV,FF,BC);
-    %  numel(w(abs(w-round(w))>1e-7))
-    %  % Extract boundary of w~=0 part
-    %  SF = boundary_faces(TT(round(w)~=0,:));
-    %  [SV,IM] = remove_unreferenced(TV,SF);
-    %  SF = IM(SF);
-    %end
+    % Flip so all are facing along with v
+    B = F;
+    % number of triangles
+    m = size(F,1);
+    %% unzip mesh
+    %W = V(B,:);
+    %B = [1:m;m+[1:m;m+(1:m)]]';
+    W = V;
+    B = F;
+    N = normals(W,B);
+    DT = sum(bsxfun(@times,N,sweep),2);
+    if any(DT==0)
+      warning('faces parallel to sweep not well supported');
+    end
+    A = DT>0;
+    BA = B;
+    BA(A,:) = fliplr(BA(A,:));
+    % number of vertices
+    n = size(W,1);
+    % duplicate
+    W = [W;bsxfun(@plus,W,sweep)];
+    %% Prism for each triangle
+    %GT = [ ...
+    %  % Original source
+    %  B; ...
+    %  % Original dest
+    %  n+B; ...
+    %  % Bottom
+    %  BA; ...
+    %  % Top
+    %  n+fliplr(BA); ...
+    %  ];
+    %[S,GT] = total_signed_occurrences(GT);
+    %GT = [GT(S==2,:);fliplr(GT(S==-2,:))];
+    % Or equivalently 
+    JB = (1:m)';
+    GT = [B(~A,:); n+B(A,:);];
+    JT = [JB(~A); m+JB(A);];
+    % This is more general for the case that (V,F) is already non-manifold
+    GQ = [ ...
+      % Sides
+      BA(:,[2 1]) n+BA(:,[1 2]); ...
+      BA(:,[3 2]) n+BA(:,[2 3]); ...
+      BA(:,[1 3]) n+BA(:,[3 1]); ...
+      ];
+    [S,GQ] = total_signed_occurrences(GQ);
+    GQ = [GQ(S==2,:);fliplr(GQ(S==-2,:))];
+    % triangulate
+    G = [GT;GQ(:,[1 2 3]);GQ(:,[1 3 4])];
+    J = [JT;2*m+ones(2*size(GQ,1),1)];
+    [SV,SF,SJ] = mesh_boolean(W,G,[],[],'union');
+    J = J(SJ);
   end
 
 end
