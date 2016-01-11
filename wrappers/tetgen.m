@@ -24,7 +24,7 @@ function [V,T,F] = tetgen(SV,SF,varargin)
   end
 
   % default values
-  flags = '-q100';
+  flags = '-q2';
   verbose = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
@@ -87,9 +87,11 @@ function [V,T,F] = tetgen(SV,SF,varargin)
   face_filename = [prefix '.1.face'];
   node_filename = [prefix '.1.node'];
 
-  F = readFACE(face_filename);
-  % reverse faces because tetgen uses backwards order
-  F = fliplr(F);
+  if exist(face_filename,'file')
+    F = readFACE(face_filename);
+    % reverse faces because tetgen uses backwards order
+    F = fliplr(F);
+  end
   % I guess this is 1-indexed because we're using a .off file rather than a
   % .poly file
   T = readELE(ele_filename);
@@ -107,7 +109,9 @@ function [V,T,F] = tetgen(SV,SF,varargin)
   %  delete(inode_filename);
   %end
   delete(ele_filename);
-  delete(face_filename);
+  if exist(face_filename,'file')
+    delete(face_filename);
+  end
   delete(node_filename);
 
 end
