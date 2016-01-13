@@ -2,30 +2,30 @@
 %V = V*axisangle2matrix([1 0 0],pi);
 %[V,F] = load_mesh('~/Dropbox/models/bunny.off');
 function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
-  V = V*axisangle2matrix([1 0 0],-pi/2);
+  function set_hold(v)
+    if v
+      hold on;
+    else 
+      hold off;
+    end
+  end
+  old_hold = ishold;
+  %V = V*axisangle2matrix([1 0 0],-pi/2);
   N = normals(V,F);
   BC = barycenter(V,F);
 
-  % sharp edges
-  [A,C] = adjacency_dihedral_angle_matrix(V,F);
-  %% This is much much slower
-  %A(1&A) = abs(A(1&A)-pi)>pi*0.11;
-  [AI,AJ,AV] = find(A);
-  keep = abs(AV-pi)>(pi*0.11) & ~isnan(AV);
-  A = sparse(AI(keep),AJ(keep),1,size(A,1),size(A,2));
-  [CI,~,CV] = find(C.*A);
-  II = [CI+mod(CV,3)*size(F,1) CI+mod(CV+1,3)*size(F,1)];
-  E = F(II);
+  E = sharp_edges(V,F);
 
   % cut mesh at sharp edges to get crisp normals
   [G,I] = cut_edges(F,E);
   W = V(I,:);
 
-  clf;
+  if ~old_hold
+    clf;
+  end
   hold on;
-  blue = [0.2 0.3 0.8];
   tf = tsurf(G,W, ...
-    ... % 'FaceVertexCData',repmat(blue,size(W,1),1), ...
+    'FaceVertexCData',repmat(blue,size(W,1),1), ...
     'SpecularStrength',0, ...
     'DiffuseStrength',0.1, ...
     'AmbientStrength',1.0, ...
@@ -38,10 +38,10 @@ function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
   l = light('Position',[1 4 5.0],'Style','infinite');
   [h,~,M,g] = add_shadow(tf,l,'Ground',[0 0 -1 min(V(:,3))-2e-3],'Fade','local','Color',[0.8 0.8 0.8]);
   % faint amient occlusion
-  %AO = ambient_occlusion(W,G,W,per_vertex_normals(W,G),1000);
-  %AO = AO*0.27;
-  %tf.FaceVertexCData = bsxfun(@times,tf.FaceVertexCData,1-AO);
-  %hold off;
+  AO = ambient_occlusion(W,G,W,per_vertex_normals(W,G),1000);
+  AO = AO*0.27;
+  tf.FaceVertexCData = bsxfun(@times,tf.FaceVertexCData,1-AO);
+  %set_hold(old_hold);
 
   
   % Hack so that axis doesn't change if V contains unreferenced points and
@@ -49,7 +49,7 @@ function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
   [BB,BF] = bounding_box(V);
   hold on;
   bf = trisurf(BF,BB(:,1),BB(:,2),BB(:,3),'CData',nan*BB(:,1),'EdgeColor','none');
-  hold off;
+  set_hold(old_hold);
 
   % floor board
   SV = [V ones(size(V,1),1)]*M';
@@ -72,7 +72,7 @@ function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
   sc = surf(BB(:,:,1),BB(:,:,2),BB(:,:,3), ...
     'CData',ch,'FaceColor','texturemap', ...
     'SpecularStrength',0, 'DiffuseStrength',0, 'AmbientStrength',1);
-  hold off;
+  set_hold(old_hold);
 
   axis vis3d;
   camproj('persp');
