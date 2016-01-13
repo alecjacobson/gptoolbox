@@ -38,14 +38,6 @@ function [V,F] = load_mesh(filename,varargin)
   switch ext
   case '.3ds'
     [V,F] = read3DS(filename);
-  case '.off'
-    [V,F] = readOFF(filename);
-  case '.ply'
-    [V,F] = readPLY(filename);
-  case '.stl'
-    [V,F] = readSTL(filename);
-  case '.wrl'
-    [V,F] = readWRL(filename);
   case '.obj'
     try
       [V,F] = readOBJfast(filename);
@@ -55,6 +47,16 @@ function [V,F] = load_mesh(filename,varargin)
       end
       [V,F] = readOBJ(filename);
     end
+  case '.off'
+    [V,F] = readOFF(filename);
+  case '.ply'
+    [V,F] = readPLY(filename);
+  case '.stl'
+    [V,F] = readSTL(filename);
+  case '.wrl'
+    [V,F] = readWRL(filename);
+  case '.xml'
+    [V,F] = read_mesh_from_xml(filename);
   otherwise
     error('Unknown mesh format: %s',ext);
   end
