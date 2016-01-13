@@ -1,19 +1,44 @@
-function [SV,SF,J] = linear_sweep(V,F,sweep)
+function [SV,SF,J,DT] = linear_sweep(V,F,sweep,varargin)
   % LINEAR_SWEEP Compute the surface of the solid sweep of a surface mesh (V,F)
   % along a vector (sweep): i.e. the Minkowski sum of (V,F) and the line
   % segment (0,0)-->(sweep) 
   %
   % [SV,SF] = linear_sweep(V,F,sweep)
+  % [SV,SF] = linear_sweep(V,F,sweep,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
   %   V  #V by dim list of vertex positions
   %   F  #F by dim list of facet indices into V
   %   sweep  1 by dim vector defining sweep direction and distance
+  %   Optional:
+  %     'SelfUnion' followed by whether to resolve intersections and extract
+  %       the self union of the result. Only relevant in 3D. Faster if `false`
+  %       but result will be self-intersecting for non-convex inputs {true}.
   % Outputs:
   %   SV  #SV by dim list of vertex positions
   %   SF  #F by dim list of facet indices into SV
   %   J  #F list of indices into [F;F+v;sweep] revealing birth parents 
   %
+
+  % default values
+  self_union = true;
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'SelfUnion'}, ...
+    {'self_union'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
 
   dim = size(V,2);
   assert(dim == size(F,2),'Facet degree should equal dim');
@@ -108,8 +133,13 @@ function [SV,SF,J] = linear_sweep(V,F,sweep)
     % triangulate
     G = [GT;GQ(:,[1 2 3]);GQ(:,[1 3 4])];
     J = [JT;2*m+ones(2*size(GQ,1),1)];
-    [SV,SF,SJ] = mesh_boolean(W,G,[],[],'union');
-    J = J(SJ);
+    if self_union
+      [SV,SF,SJ] = mesh_boolean(W,G,[],[],'union');
+      J = J(SJ);
+    else
+      SV = W;
+      SF = G;
+    end
   end
 
 end

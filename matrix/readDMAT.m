@@ -42,7 +42,7 @@ function [W] = readDMAT(filename)
 
   % size should match header
   if(~all(size_W == size(W)))
-    error('Size in header did not match size of data in file');
+    error('Size in header (%d,%d) did not match size of data (%d,%d) in file',size_W,size(W));
   end
 
 end

@@ -5,6 +5,7 @@
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/prepare_lhs.h>
+#include <igl/matlab/validate_arg.h>
 #include <igl/matlab/parse_rhs.h>
 #include <igl/C_STR.h>
 
@@ -18,7 +19,8 @@ void parse_rhs(
   const int nrhs, 
   const mxArray *prhs[], 
   Eigen::MatrixXd & V,
-  Eigen::MatrixXi & F)
+  Eigen::MatrixXi & F,
+  bool & legacy)
 {
   using namespace std;
   using namespace igl;
@@ -40,6 +42,25 @@ void parse_rhs(
     parse_rhs_index(prhs+1,F);
   };
   parse_mesh(prhs,V,F);
+  {
+    int i = 3;
+    while(i<nrhs)
+    {
+      mexErrMsgTxt(mxIsChar(prhs[i]),"Parameter names should be strings");
+      // Cast to char
+      const char * name = mxArrayToString(prhs[i]);
+      if(strcmp("Legacy",name) == 0)
+      {
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        legacy = (bool)*mxGetLogicals(prhs[++i]);
+      }else
+      {
+        mexErrMsgTxt(false,"Unknown parameter");
+      }
+      i++;
+    }
+  }
 }
 
 void mexFunction(
@@ -56,13 +77,21 @@ void mexFunction(
   std::streambuf *outbuf = cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 
-  MatrixXd V;
+  MatrixXd V,HV;
   MatrixXi F,G;
   VectorXi J,flip;
-  parse_rhs(nrhs,prhs,V,F);
-  outer_hull(V,F,G,J,flip);
+  bool legacy = false;
+  parse_rhs(nrhs,prhs,V,F,legacy);
+  if(legacy)
+  {
+    outer_hull_legacy(V,F,G,J,flip);
+  }else
+  {
+    outer_hull(V,F,HV,G,J,flip);
+  }
 
-  switch(nlhs)
+  int offset = (legacy?0:1);
+  switch(nlhs-offset)
   {
     default:
     {
@@ -70,20 +99,32 @@ void mexFunction(
     }
     case 3:
     {
-      prepare_lhs_logical(flip,plhs+2);
+      prepare_lhs_logical(flip,plhs+2+offset);
       // Fall through
     }
     case 2:
     {
-      prepare_lhs_index(J,plhs+1);
+      prepare_lhs_index(J,plhs+1+offset);
       // Fall through
     }
     case 1:
     {
-      prepare_lhs_index(G,plhs+0);
+      prepare_lhs_index(G,plhs+0+offset);
       // Fall through
     }
-    case 0: break;
+    case 0: 
+    {
+      if(!legacy)
+      {
+        prepare_lhs_double(HV,plhs);
+      }
+      break;
+    }
+    case -1:
+    {
+      assert(!legacy);
+      break;
+    }
   }
 
   // Restore the std stream buffer Important!
@@ -91,5 +132,3 @@ void mexFunction(
 }
 
 #endif
-
-
