@@ -1,4 +1,4 @@
-function [VV,FF,SS] = loop(V,F,iter)
+function [VV,FF,SS,J] = loop(V,F,iter)
 % LOOP perform loop subdivision
 %
 % [VV,FF] = loop(V,F)
@@ -10,6 +10,7 @@ function [VV,FF,SS] = loop(V,F,iter)
 %   VV #VV by 3 new vertex positions
 %   FF #FF by 3 list of face indices
 %   SS #VV by #V matrix computing VV = SS *V 
+%   J  #FF list of indices into F
 %
 % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
 %
@@ -20,6 +21,7 @@ end
 VV = V;
 SS = speye(size(V,1));
 FF = F;
+J = (1:size(F,1))';
 
 for i=1:iter
     
@@ -139,6 +141,7 @@ for i=1:iter
     % new face indices, 4 new faces for each original face. As if we simply
     % ignored the duplicates in m and had appended m to V
     FEF = [ FF(:,1) i3 i2 ; FF(:,2) i1 i3 ; FF(:,3) i2 i1 ; i1 i2 i3];
+    J = [J;J;J;J];
     % reindex map from duplicate midpoint indices to unique midpoint indices
     FE2E = [(1:n)';FE2E+n];
     % reindex faces
