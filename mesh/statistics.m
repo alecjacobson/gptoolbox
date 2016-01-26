@@ -125,7 +125,8 @@ function S = statistics(V,F,varargin)
   % could feasibly be oriented (a meshed self-intersection).
   S.num_conflictingly_oriented_edges = nnz(OA);
 
-  S.num_nonmanifold_vertices = sum(is_vertex_nonmanifold(F));
+  S.num_nonmanifold_vertices = sum(is_vertex_nonmanifold(F)) - ...
+    S.num_unreferenced_vertices;
 
   [~,BC] = conncomp( (DA==1)+(DA==1)' );
   S.num_boundary_loops = sum(sparse(BC,1,1)>1);
@@ -139,9 +140,10 @@ function S = statistics(V,F,varargin)
   % g = (2-b-X)/2
   % http://sketchesoftopology.wordpress.com/2008/02/04/genus-euler-characteristic-boundary-components/
   S.num_handles = ...
-    (2*S.num_connected_components - ...
+    (2* ...
+      (S.num_connected_components-S.num_unreferenced_vertices) - ...
     S.num_boundary_loops - ...
-    S.euler_characteristic)/2;
+    (S.euler_characteristic-S.num_unreferenced_vertices))/2 ;
 
   dblA = doublearea(V,F);
   S.num_geometrically_degenerate_faces = sum(dblA==0);

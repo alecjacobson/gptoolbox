@@ -99,7 +99,13 @@ function [TV,TF,TN,VV,VE,VRP,VRD] = triangle(varargin)
   while(ii <= nargin)
     switch varargin{ii}
     case 'Quiet'
-      quiet = true;
+      if( (ii+1)<=nargin && ~ischar(varargin{ii+1}))
+        ii = ii + 1;
+        assert(ii <= nargin);
+        quiet = varargin{ii};
+      else
+        quiet = true;
+      end
     case 'Quality'
       if( (ii+1)<=nargin && ~ischar(varargin{ii+1}))
         ii = ii + 1;

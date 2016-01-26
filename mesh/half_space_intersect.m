@@ -1,4 +1,4 @@
-function [VV,FF,birth] = half_space_intersect(V,F,p,n,varargin)
+function [VV,FF,birth,UT,E] = half_space_intersect(V,F,p,n,varargin)
   % HALF_SPACE_INTERSECT Intersect a closed mesh (V,F) with a half space
   % defined by a point on a plane the plane's normal.
   %
@@ -70,44 +70,34 @@ function [VV,FF,birth] = half_space_intersect(V,F,p,n,varargin)
   switch method
   case 'exact'
     bbd = sqrt(sum((max(V)-min(V)).^2,2));
-    % row vectors
-    n = reshape(n,1,[]);
-    p = reshape(p,1,[]);
-    N = null(n)';
-    CV = bsxfun(@plus,p,bbd*[1 1;1 -1;-1 -1;-1 1]*N);
-    CF = [1 2 3;1 3 4];
-  
-    VCV = [V;CV];
-    FCF = [F;size(V,1)+CF];
-    [VV,FF,~,J,IM] = selfintersect(VCV,FCF);
-  
-    if cap
-      CF = FF(J>size(F,1),:);
-      BC = barycenter(VV,CF);
-      w = winding_number(V,F,BC);
-      CF = CF(w>0.5,:);
-    else
-      CF = [];
+    [CV,CF] = cube(2,2,2);
+    R = vrrotvec2mat(vrrotvec(n,[0 0 1]));
+    % project vertex mean onto plane
+    pp = mean(V) - ((mean(V)-p)*n')*n;
+    % rotate box around projected mean
+    CV = bsxfun(@plus,bsxfun(@minus,CV,[0.5 0.5 0])*diag([2 2 1])*bbd*R,pp);
+
+    [VV,FF,J] = mesh_boolean(V,F,CV,CF,'intersect');
+    if ~cap
+      FF = FF(J<=size(F,1),:);
+      [VV,IM] = remove_unreferenced(VV,FF);
+      FF = IM(FF);
+    elseif remesh_cap
+      VA = VV;
+      FA = FF(J<=size(F,1),:);
+      JA = J(J<=size(F,1));
+      VB = VV;
+      FB = FF(J>size(F,1),:);
+      [VB,FB] = remesh_planar_patches( ...
+        VB,FB,'MinSize',4,'Force',true,'TriangleFlags','-q32Y');
+      VV = [VA;VB];
+      FF = [FA;size(VA,1)+FB];
+      J = [JA;size(FA,1)+ones(size(FB,1),1)];
+      [VV,~,IM] = remove_duplicate_vertices(VV,0);
+      FF = IM(FF);
     end
-  
-    F = FF(J<=size(F,1),:);
-    birth = J(J<=size(F,1));
-    BC = barycenter(VV,F);
-    above = sum(bsxfun(@times,bsxfun(@minus,BC,p),n),2)>=0;
-    F = F(above,:);
-    birth = birth(above);
-    FF = [F;CF];
-    birth = [birth;zeros(size(CF,1),1)];
-    [VV,~,J] = remove_duplicate_vertices(VV,1e-10);
-    FF = J(FF);
-    [VV,J] = remove_unreferenced(VV,FF);
-    FF = J(FF);
-    if remesh_cap && cap
-      [VV,FF] = remesh_planar_patches(VV,FF,'MinSize',4,'Force',true, ...
-        'Except',1:size(F,1));
-      % better have only remeshed on cap.
-      birth = [birth(1:size(F,1));zeros(size(FF,1)-size(F,1),1)];
-    end
+    birth = J;
+    birth(birth>size(F,1)) = 0;
   case 'fast'
     plane = [n(:)' -dot(p,n)];
 
@@ -123,7 +113,7 @@ function [VV,FF,birth] = half_space_intersect(V,F,p,n,varargin)
     [U,E31,F31below,F31above,BC31] = one_below(U,F(I31,:),-IF(I31,:));
 
     VV = U;
-    above = all(IF>0,2);
+    above = all(IF>=0,2);
     FF = [F(above,:);F13above;F31below];
     birth = [find(above);repmat(find(I13),2,1);find(I31)];
     E = [E13;E31];
@@ -145,13 +135,23 @@ function [VV,FF,birth] = half_space_intersect(V,F,p,n,varargin)
       % mesh of cap
       % compute transformation taking plane to (XY)-plane
       un  = plane(1:3)/norm(plane(1:3));
-      v = cross(un,[0 0 1]);
-      c = dot(un,[0 0 1]);
-      s = norm(v);
-      cp = @(v) [0 -v(3) v(2);v(3) 0 -v(1);-v(2) v(1) 0];
-      R = eye(3) + cp(v) + cp(v)*cp(v)*(1-c)/s^2;
-      T = [R [0;0;R(3,:)*(un'/norm(plane(1:3))*plane(4))]];
-      [~,SF] = triangle(U*T(1:2,1:3)',E,[],'Flags','-Y');
+      z = [0 0 1];
+      c = dot(un,z);
+      if abs(1-c)>eps
+        v = cross(un,z);
+        s = norm(v);
+        cp = @(v) [0 -v(3) v(2);v(3) 0 -v(1);-v(2) v(1) 0];
+        R = eye(3) + cp(v) + cp(v)*cp(v)*(1-c)/s^2;
+        T = [R [0;0;R(3,:)*(un'/norm(plane(1:3))*plane(4))]];
+        UT = U*T(1:2,1:3)';
+      else
+        UT = U(:,1:2);
+      end
+
+      if any(sum(adjacency_matrix(E),2) < 2)
+        warning('Open boundary... cap will be wrong...');
+      end
+      [~,SF] = triangle(UT,E,[],'Flags','-Yc');
       RIM = full(sparse(IM,1,1:numel(IM)));
       % Index back onto U
       SF = RIM(SF);
