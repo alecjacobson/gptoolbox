@@ -120,8 +120,14 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
                     tf = -ones(numel(t),1);
                 else
                     [t, count] = sscanf( line, '%d %d %d %d %d %d %d %d %d %d %d\n' );
-                    tf = -ones(numel(t),1);
-                    nf = -ones(numel(t),1);
+                    if (count>2)
+                      tf = -ones(numel(t),1);
+                      nf = -ones(numel(t),1);
+                    else
+                      [t, count] = sscanf( line, '%d// %d// %d// %d// %d// %d// %d// %d// %d// %d// %d//\n' );
+                      tf = -ones(numel(t),1);
+                      nf = -ones(numel(t),1);
+                    end
                 end
               end
           end

@@ -30,7 +30,10 @@ function [V,F] = readOBJfast(filename,varargin)
     if isunix()
       % try to make the file easier to read
       tmpf = tempname();
-      escaped_filename = strrep(filename,' ','\ ');
+      escaped_filename = filename;
+      escaped_filename = strrep(escaped_filename,' ','\ ');
+      escaped_filename = strrep(escaped_filename,'(','\(');
+      escaped_filename = strrep(escaped_filename,')','\)');
       cmd = sprintf( ...
         ['echo -e "$(grep "^v " %s) \\n$(grep "^f " %s | ' ...
         'sed -e "s/\\([0-9]*\\)\\(\\/[0-9]*\\)*/\\1/g")" >%s'], ...
