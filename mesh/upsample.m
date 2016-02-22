@@ -11,12 +11,12 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   %     'KeepDuplicates' followed by either true or {false}}
   %     'OnlySelected' followed by a list of simplex indices into F to
   %       subdivide.
+  %     'Iterations' followed by number of recursive calls {1}
   % Outputs:
   %  VV  #VV by dim list new vertex positions, original V always comes first.
   %  FF  #FF by simplex-size new list of face indices into VV
   %  FO  #FF list of indices into F of original "parent" simplex
   %  
-  %
   % This is Loop subdivision without moving the points
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
@@ -115,11 +115,12 @@ function [VV,FF,FO] = upsample(V,F,varargin)
 
   keep_duplicates = false;
   sel = [];
+  iters = 1;
    % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'KeepDuplicates','OnlySelected'}, ...
-    {'keep_duplicates','sel'});
+    {'KeepDuplicates','OnlySelected','Iterations'}, ...
+    {'keep_duplicates','sel','iters'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -133,6 +134,13 @@ function [VV,FF,FO] = upsample(V,F,varargin)
     end
     v=v+1;
   end 
+
+  if iters<1
+    FF = F;
+    VV = V;
+    FO = (1:size(F,1))';
+    return;
+  end
 
   if islogical(sel)
     sel = find(sel);
@@ -200,7 +208,8 @@ function [VV,FF,FO] = upsample(V,F,varargin)
       im = size(V,1) + (1:size(m,1))';
       % insert new face indices
       FF = [F(:,1) im;im F(:,2)];
-      FO = [1:m 1:m]';
+      nf = size(F,1);
+      FO = [1:nf 1:nf]';
       % append unique midpoints to vertex positions
       VV = [V;m];
       % No duplicates in 2D case
@@ -213,5 +222,16 @@ function [VV,FF,FO] = upsample(V,F,varargin)
       FO = [nsel;sel(FO)];
     end
   end
-  
+
+  % Recursive call (iters=0 base case will be handled at top)
+  if isempty(sel)
+    sel = 1:size(F,1);
+  end
+  [VV,FF,FOr] = upsample( ...
+    VV,FF, ...
+    'OnlySelected',find(ismember(FO,sel)), ...
+    'Iterations',iters-1, ...
+    'KeepDuplicates',keep_duplicates);
+  FO = FO(FOr);
+
 end
