@@ -13,9 +13,11 @@
 %   F  #F by 3 list of triangle indices into V
 %   Optional:
 %     'DetectOnly'  followed by bool. Whether to only detect intersecting pairs
-%       (sets IF but not VV or FF)
+%       (sets IF but not VV or FF) {false}
 %     'FirstOnly'  followed by bool whether to only detect the first
-%       intersection.
+%       intersection. {false}
+%     'StitchAll'  followed by whether to stitch all vertices in the output, if
+%       true then IM will be 1:size(VV,1) {false}
 % Outputs:
 %   VV  #VV by 3 list of vertex positions
 %   FF  #FF by 3 list of triangle indices into V

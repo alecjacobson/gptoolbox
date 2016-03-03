@@ -89,6 +89,12 @@ int main(int argc, char * argv[])
         validate_arg_logical(i,nrhs,prhs,name);
         mxLogical * v = (mxLogical *)mxGetData(prhs[++i]);
         params.first_only = *v;
+      }else if(strcmp("StitchAll",name) == 0)
+      {
+        validate_arg_scalar(i,nrhs,prhs,name);
+        validate_arg_logical(i,nrhs,prhs,name);
+        mxLogical * v = (mxLogical *)mxGetData(prhs[++i]);
+        params.stitch_all = *v;
       }else
       {
         mexErrMsgTxt(C_STR("Unsupported parameter: "<<name));
