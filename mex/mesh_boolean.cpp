@@ -1,12 +1,12 @@
 #ifdef MEX
 
-#include <igl/copyleft/boolean/mesh_boolean.h>
+#include <igl/copyleft/cgal/mesh_boolean.h>
 #include <igl/copyleft/cgal/remesh_self_intersections.h>
 #include <igl/remove_unreferenced.h>
 #ifndef IGL_NO_CORK
-#  include <igl/copyleft/boolean/mesh_boolean_cork.h>
+#  include <igl/copyleft/cork/mesh_boolean.h>
 #endif
-#include <igl/copyleft/boolean/string_to_mesh_boolean_type.h>
+#include <igl/copyleft/cgal/string_to_mesh_boolean_type.h>
 
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -35,14 +35,13 @@ void parse_rhs(
   Eigen::MatrixXi & FA,
   Eigen::MatrixXd & VB,
   Eigen::MatrixXi & FB,
-  igl::copyleft::boolean::MeshBooleanType & type,
+  igl::MeshBooleanType & type,
   BooleanLibType & boolean_lib,
   bool & debug
   )
 {
   using namespace std;
   using namespace igl;
-  using namespace igl::copyleft::boolean;
   using namespace igl::matlab;
   using namespace igl::copyleft::cgal;
   using namespace Eigen;
@@ -113,7 +112,6 @@ void mexFunction(
   using namespace Eigen;
   using namespace igl;
   using namespace igl::matlab;
-  using namespace igl::copyleft::boolean;
 
   igl::matlab::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
@@ -133,11 +131,11 @@ void mexFunction(
   switch(boolean_lib)
   {
     case BOOLEAN_LIB_TYPE_LIBIGL:
-      mesh_boolean(VA,FA,VB,FB,type,VC,FC,J);
+      igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,type,VC,FC,J);
       break;
 #ifndef IGL_NO_CORK
     case BOOLEAN_LIB_TYPE_CORK:
-      mesh_boolean_cork(VA,FA,VB,FB,type,VC,FC);
+      igl::copyleft::cork::mesh_boolean(VA,FA,VB,FB,type,VC,FC);
       break;
 #endif
     default:
