@@ -1,13 +1,17 @@
-function [U] = lscm(V,F,b,bc)
+function [U] = lscm(V,F,b,bc,Aeq,Beq)
   % LSCM Compute Least Squares Conformal Mapping for mesh
   %
   % U = lscm(V,F,b,bc)
+  % U = lscm(V,F,b,bc,Aeq,Beq)
   %
   % Inputs:
   %   V  #V by dim list of rest domain positions
   %   F  #F by 3 list of triangle indices into V
   %   b  #b list of indices of constraint (boundary) vertices
   %   bc  #b by 2 list of constraint positions for b
+  %   Optional:
+  %     Aeq   #Aeq by 2*#V matrix of linear equality constraints {[]}
+  %     Beq   #Aeq vector of linear equality constraint right-hand sides {[]}
   % Outputs:
   %   U  #V by 2 list of new positions
   %
@@ -15,6 +19,11 @@ function [U] = lscm(V,F,b,bc)
   %
   % See also: arap, takeo_arap, takeo_asap
   %
+
+  if nargin<=4
+    Aeq = [];
+    Beq = [];
+  end
   
   % number of vertices
   n = size(V,1);
@@ -89,7 +98,7 @@ function [U] = lscm(V,F,b,bc)
     P = sparse(1:2*n,[n+(1:n) 1:n],1,2*n,2*n);
     Q = P'*Q*P;
     % solve
-    U = min_quad_with_fixed(Q,zeros(2*n,1),[b b+n],bc(:));
+    U = min_quad_with_fixed(Q,zeros(2*n,1),[b b+n],bc(:),Aeq,Beq);
     % reshape into columns
     U = reshape(U,n,2);
   end
