@@ -24,7 +24,6 @@ function [U,Uall] = laplacian_smooth(V,F,L_method,b,lambda,method,S,max_iter)
 
   % number of vertices
   n = size(V,1);
-[V,
   % nuymber of dimensions
   dim = size(V,2);
 
@@ -94,7 +93,6 @@ function [U,Uall] = laplacian_smooth(V,F,L_method,b,lambda,method,S,max_iter)
 
   while( iter < max_iter && (iter == 0 || max(abs(U(:)-U_prev(:)))>tol*h))
     U_prev = U;
-t
     switch method
     case 'implicit'
       Q = (I-lambda*L);

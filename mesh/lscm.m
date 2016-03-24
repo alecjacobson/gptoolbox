@@ -63,6 +63,22 @@ function [U] = lscm(V,F,b,bc)
 
   % Or equivalently
 
+  % We want that the Cauchy Riemann equations hold:
+  %
+  %  ∂u/∂x = ∂v/∂y and ∂u/∂y = -∂v/∂x
+  %
+  % Instead we satisfy this in a least-squares sense, minimizing
+  %
+  %  ∫ (∂u/∂x - ∂v/∂y)² + (∂u/∂y + ∂v/∂x)² dA
+  %
+  % On a mesh we know how to compute a [∂u/∂x;∂u/∂y] = G u = [Gx;Gy] u, so this
+  % quadratic energy becomes U' [Gx -Gy;Gy Gx]'*TA*[Gx -Gy;Gy Gx] U = U' Q U
+  % with TA being the triangle areas, stacking U = [u;v]
+  % 
+  % This skips the complex-number notation employed by "Least Squares Conformal
+  % Maps for Automatic Texture Atlas Generation" [Lévy et al. 2002]
+  % 
+
   % compute gradient matrix
   G = grad(V,F);
 
@@ -75,6 +91,10 @@ function [U] = lscm(V,F,b,bc)
 
   % Build quadratic coefficients matrix
   Q = [Gx -Gy;Gy Gx]'*TA*[Gx -Gy;Gy Gx];
+
+  %% This is completely equivalent to [Mullen et al. 2008] "Spectral Conformal
+  %% Parameterization"
+  %Q = -(repdiag(cotmatrix(V,F),2) + 2*vector_area_matrix(F));
 
   % solve
   U = min_quad_with_fixed(Q,zeros(2*n,1),[b b+n],bc(:));
