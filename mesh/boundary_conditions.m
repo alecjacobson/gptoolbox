@@ -102,12 +102,17 @@ function [b,bc] = boundary_conditions(V,F,C,P,E,CE)
 
   sqr_d_tol = 1e-6;
 
+  if isempty(F)
+    h = norm(max(V)-min(V))/sqrt(size(V,1));
+  else
+    h = avgedge(V,F);
+  end
 
   % Compute boundary conditions for bone edge handles
   if(~isempty(E))
 
     % average edges length to give an idea of "is on edge" tolerance
-    h = avgedge(V,F);
+    
     % loop over bones
     for( ii = 1:size(E,1) )
       [t,sqr_d] = project_to_lines(V,V(Cv(E(ii,1)),:),V(Cv(E(ii,2)),:));
@@ -129,7 +134,6 @@ function [b,bc] = boundary_conditions(V,F,C,P,E,CE)
     % loop over cage edges
     for( ii = 1:size(CE,1) )
       [t,sqr_d] = project_to_lines(V,V(Cv(P(CE(ii,1))),:),V(Cv(P(CE(ii,2))),:));
-      h = avgedge(V,F);
       on_edge = ((abs(sqr_d) < h*sqr_d_tol) & ((t > -1e-10) & (t < (1+1e-10))));
       % get rid of any NaNs on these rows
       % WARNING: clobbers any (erroneous) point handle boundary conditions on

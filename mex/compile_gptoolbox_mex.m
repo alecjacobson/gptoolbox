@@ -18,37 +18,34 @@ NOOPT_LDOPTIMFLAGS='LDOPTIMFLAGS="-O "';
 % to precompile libigl as a static library. This cuts down on compilation time.
 % It is optional and more difficult to set up. Set this to true only if you
 % know what you're doing.
-use_libigl_static_library = false;
+use_libigl_static_library = exist([path_to_libigl '/lib/libigl.a'],'file')~=0;
 LIBIGL_INC=sprintf('-I%s/include',path_to_libigl);
 if use_libigl_static_library
   LIBIGL_FLAGS='-DIGL_STATIC_LIBRARY';
-  LIBIGL_LIB=sprintf('-L%s/lib -ligl',path_to_libigl);
+  LIBIGL_LIB=strsplit(sprintf('-L%s/lib -ligl',path_to_libigl));
   LIBIGL_LIBEMBREE='-liglembree';
   LIBIGL_LIBMATLAB='-liglmatlab';
   LIBIGL_LIBCGAL='-liglcgal';
-  LIBIGL_LIBBOOLEAN='-liglboolean';
-  LIBIGL_LIBSVD3X3='-liglsvd3x3';
+  LIBIGL_LIBCORK='-liglcork';
 else
   % `mex` has a silly requirement that arguments be non-empty, hence the NOOP
   % defines
   LIBIGL_FLAGS='-DIGL_SKIP';
-  LIBIGL_LIB='-DIGL_SKIP';
+  LIBIGL_LIB={'-DIGL_SKIP'};
   LIBIGL_LIBMATLAB='-DIGL_SKIP';
   LIBIGL_LIBEMBREE='-DIGL_SKIP';
   LIBIGL_LIBCGAL='-DIGL_SKIP';
-  LIBIGL_LIBBOOLEAN='-DIGL_SKIP';
-  LIBIGL_LIBSVD3X3='-DIGL_SKIP';
+  LIBIGL_LIBCORK='-DIGL_SKIP';
 end
-LIBIGL_BASE={LIBIGL_INC,LIBIGL_FLAGS,LIBIGL_LIB,LIBIGL_LIBMATLAB};
+LIBIGL_BASE={LIBIGL_INC,LIBIGL_FLAGS,LIBIGL_LIB{:},LIBIGL_LIBMATLAB};
 
-SVD_INC=sprintf('-I%s/external/Singular_Value_Decomposition/',path_to_libigl);
 
 EMBREE=[path_to_libigl '/external/embree'];
 EMBREE_INC=strsplit(sprintf('-I%s -I%s/include/',EMBREE,EMBREE));
-EMBREE_LIB=strsplit(sprintf('-L%s/build -lembree -lsys',EMBREE));
+EMBREE_LIB=strsplit(sprintf('-L%s/build -lembree -lsys -lembree_avx -lembree_avx2 -lembree_sse42 -llexers -lsimd',EMBREE));
 
 CORK=[path_to_libigl '/external/cork'];
-CORK_INC=sprintf('-I%s/include',CORK);
+CORK_INC=sprintf('-I%s/src',CORK);
 CORK_LIB=strsplit(sprintf('-L%s/lib -lcork',CORK));
 
 TINYXML2=[path_to_libigl '/external/tinyxml2'];
@@ -117,8 +114,6 @@ mex( ...
 mex( ...
   MEXOPTS{:}, MSSE42, STDCPP11, ...
   LIBIGL_BASE{:},EIGEN_INC, ...
-  LIBIGL_LIBSVD3X3, ...
-  SVD_INC, ...
   'fit_rotations_mex.cpp');
 
 % impaste is currently only implemented for mac
@@ -147,7 +142,7 @@ mex( ...
   MEXOPTS{:}, MSSE42, STDCPP11, ...
   LIBIGL_BASE{:},EIGEN_INC, ...
   CGAL_INC,CGAL_LIB{:},CGAL_FLAGS, ...
-  LIBIGL_LIBCGAL, LIBIGL_LIBBOOLEAN, ...
+  LIBIGL_LIBCGAL, LIBIGL_LIBCORK, ...
   CORK_INC,CORK_LIB{:}, ...
   BOOST_INC,BOOST_LIB{:}, ...
   'mesh_boolean.cpp');
@@ -156,7 +151,7 @@ mex( ...
   MEXOPTS{:}, MSSE42, STDCPP11, ...
   LIBIGL_BASE{:},EIGEN_INC, ...
   CGAL_INC,CGAL_LIB{:},CGAL_FLAGS, ...
-  LIBIGL_LIBCGAL, LIBIGL_LIBBOOLEAN, ...
+  LIBIGL_LIBCGAL, ...
   BOOST_INC,BOOST_LIB{:}, ...
   'outer_hull.cpp');
 

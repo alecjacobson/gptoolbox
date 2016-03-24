@@ -61,6 +61,8 @@ function [U,data,SS,R] = arap(varargin)
   %     'Flat' followed by whether to add the constraint that Z=0 {false}
   %     'RemoveRigid' followed by whether to add a constraint that places an
   %       arbitrary point at the origin and another along the x-axis {false}
+  %     'Aeq'/'Beq'  followed by #Aeq by dim*#V linear equality constraints
+  %        matrix and righthand sides respectively {[]}/{[]}
   % Outputs:
   %   U  #V by dim list of new positions
   %   data  struct of reusable data
@@ -109,13 +111,16 @@ function [U,data,SS,R] = arap(varargin)
   G = [];
   debug = false;
   data = [];
+  Aeq = [];
+  Beq = [];
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'Energy','V0','Data','Tikhonov','Groups','Tol', ...
-     'MaxIter','Dynamic','TimeStep','Vm1','Flat','RemoveRigid','Debug'}, ...
+     'MaxIter','Dynamic','TimeStep','Vm1','Flat','RemoveRigid','Debug', ...
+     'Aeq','Beq'}, ...
     {'energy','U','data','alpha_tik','G','tol','max_iterations','fext', ...
-    'h','Vm1','flat','remove_rigid','debug'});
+    'h','Vm1','flat','remove_rigid','debug','Aeq','Beq'});
   v = 5;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -147,10 +152,19 @@ pe
   end
 
 
-  if isempty(G)
+  if isempty(data)
+    if strcmp(energy,'elements') && numel(G) ~= size(F,1) && numel(G) == n
+      % groups are defined per vertex, convert to per face using mode
+      data.G = mode(G(F),2);
+    else
+      data.G = G;
+    end
+  end
+
+  if isempty(data.G)
     k = n;
   else
-    k = max(G);
+    k = max(data.G);
   end
   if flat
     [ref_V,ref_F,ref_map] = plane_project(V,F);
@@ -166,6 +180,8 @@ pe
   end
 
   assert(dim == size(bc,2));
+  assert(size(Aeq,1) == size(Beq,1));
+  assert((size(Aeq,2) == 0) || (size(Aeq,2) == dim*size(V,1)));
 
   if isempty(U)
     if(dim == 2) 
@@ -274,11 +290,7 @@ pe
     % if there are groups then condense scatter matrix to only build
     % covariance matrices for each group
     if ~isempty(G)
-      if strcmp(energy,'elements') && numel(G) ~= size(F,1) && numel(G) == n
-        % groups are defined per vertex, convert to per face using mode
-        G = mode(G(F),2);
-      end
-      G_sum = group_sum_matrix(G,k);
+      G_sum = group_sum_matrix(data.G,k);
       %CSM = [G_sum sparse(k,n); sparse(k,n) G_sum] * CSM;
       data.CSM = repdiag(G_sum,dim) * data.CSM;
     end
@@ -347,8 +359,8 @@ pe
     % #handles*dim*dim+1 by #groups matrix times the rotations at for group
     
     % distribute group rotations to vertices in each group
-    if ~isempty(G)
-      R = R(:,:,G);
+    if ~isempty(data.G)
+      R = R(:,:,data.G);
     end
 
     U(b,:) = bc;
@@ -360,6 +372,7 @@ pe
 
     % RemoveRigid requires to solve each indepently
     if remove_rigid
+      assert(isempty(Aeq),'Linear equality constraints not supported')
       for c = 1:dim
         eff_b = [b rr.b{c}];
         eff_bc = [bc(:,c);rr.bc{c}];
@@ -368,9 +381,21 @@ pe
           -B(:,c)+Dl(:,c),eff_b,eff_bc,[],[],data.rr.preF{c});
       end
     else 
-      [U,data.preF] = min_quad_with_fixed( ...
-        -0.5*data.L+DQ+alpha_tik*speye(size(data.L)), ...
-        -B+Dl,b,bc,[],[],data.preF);
+      if isempty(Aeq)
+        [U,data.preF] = min_quad_with_fixed( ...
+          -0.5*data.L+DQ+alpha_tik*speye(size(data.L)), ...
+          -B+Dl,b,bc,Aeq,Beq,data.preF);
+      else
+        assert(dim == size(bc,2));
+        assert(dim == size(B,2));
+        % repeat diagonal to solve for all coordinates together
+        mQ = repdiag(-0.5*data.L+DQ+alpha_tik*speye(size(data.L)),dim);
+        mL = reshape(-B+Dl,[],1);
+        mb = reshape(bsxfun(@plus,b(:),size(V,1)*(0:dim-1)),[],1)';
+        mbc = bc(:);
+        [U,data.preF] = min_quad_with_fixed(mQ,mL,mb,mbc,Aeq,Beq,data.preF);
+        U = reshape(U,[],dim);
+      end
     end
     energy_prev = data.energy;
     data.energy = trace(U'*(-0.5*data.L)*U+U'*(-B)+V'*(-0.5*data.L*V));

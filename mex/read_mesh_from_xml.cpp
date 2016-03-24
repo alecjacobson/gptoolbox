@@ -1,7 +1,12 @@
 #ifdef MEX
+// Force header only version
+#ifdef IGL_STATIC_LIBRARY
+#undef IGL_STATIC_LIBRARY
+#endif
 #include <mex.h>
 
 #include <igl/matlab/mexErrMsgTxt.h>
+#include <igl/STR.h>
 #undef assert
 #define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
 #include <igl/matlab/MexStream.h>

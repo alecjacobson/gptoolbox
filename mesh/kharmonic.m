@@ -47,7 +47,5 @@ function W = kharmonic(V,F,b,bc,k)
   end
 
   % Minimize W'QW subject to W(b,:) = bc
-  tic;
   W = min_quad_with_fixed(Q,zeros(n,1),b,bc);
-  toc
 end
