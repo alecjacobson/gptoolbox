@@ -48,7 +48,7 @@ function [U,data,SS,R] = arap(varargin)
   %       entries) change by less than 'tol' the optimization terminates,
   %       default is 0.75 (weak tolerance)
   %     'MaxIter'
-  %       max number of local-global iterations, default is 10
+  %       max number of local-global iterations, default is 100
   %     'Dynamic' 
   %        #V by dim list of external forces
   %     'TimeStep'
@@ -97,7 +97,7 @@ function [U,data,SS,R] = arap(varargin)
   U = [];
   Vm1 = [];
   % default is Sorkine and Alexa style local rigidity energy
-  energy = 'spokes';
+  energy = [];
   % default is no external forces
   fext = [];
   % defaults is unit time step
@@ -135,6 +135,15 @@ function [U,data,SS,R] = arap(varargin)
     v=v+1;
   end
 
+  if isempty(energy)
+    switch size(F,2)
+    case 4
+      energy = 'elements';
+    case 3
+      energy = 'spokes-and-rims';
+    end
+  end
+pe
   if isempty(fext)
     dynamic = false;
     fext = zeros(size(V));
@@ -298,7 +307,7 @@ function [U,data,SS,R] = arap(varargin)
   % initialize rotations with identies (not necessary)
   R = repmat(eye(dim,dim),[1 1 size(data.CSM,1)/dim]);
 
-  iteration = 0;
+  iteration = 1;
   U_prev = V;
   data.energy = inf;
   while true

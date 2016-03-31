@@ -15,14 +15,15 @@ function [VV,Uforward,Ubackward] = untangle(V,F,varargin)
   %   F  #F by 3 list of triangle indices into V
   %   Optional:
   %     'ExpansionEnergy' Followed by one of the following energy types:
-  %       'none'  just let eltopo find a valid state and move on
+  %       {'none'}  just let eltopo find a valid state and move on
   %       'arap'  gradient descent on ARAP energy after each reverse step.
   %     'FinalEnergy' Followed by one of the following energy types:
-  %       'none'  just let eltopo find a valid state and move on
+  %       {'none'}  just let eltopo find a valid state and move on
   %       'arap'  gradient descent on ARAP energy after each reverse step.
   %     'Delta' followed by delta value, should roughly be in range
   %       [1e-13,1e13] {1}
-  %     'MaxIter' followed by maximum number of iterations {100}
+  %     'FinalMaxIter' followed by maximum number of iterations {100}
+  %     'ExpansionMaxIter' followed by maximum number of iterations {10}
   %     'MaxEnergyIter' followed by maximum number of iterations for energy
   %       minimization {100}
   %     'LaplacianType' followed by 'cotangent' of 'uniform'.
@@ -52,9 +53,9 @@ function [VV,Uforward,Ubackward] = untangle(V,F,varargin)
   rescale_output = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'MaxIter','ExpansionEnergy','FinalEnergy','Delta','LaplacianType', ...
+    {'ExpansionMaxIter','FinalMaxIter','ExpansionEnergy','FinalEnergy','Delta','LaplacianType', ...
       }, ...
-    {'max_iter','expansion_energy','final_energy','delta','laplacian_type', ...
+    {'e_max_eit','f_max_eit','expansion_energy','final_energy','delta','laplacian_type', ...
       });
   v = 1;
   while v <= numel(varargin)
@@ -124,12 +125,64 @@ function [VV,Uforward,Ubackward] = untangle(V,F,varargin)
       max_eit = e_max_eit;
     end
     switch energy
+    case 'shape-matching'
+      %  This energy option seems good for nothing
+      CC = connected_components(F);
+      VV_prev = VV;
+      tol = 1e-7;
+      delta_t = 0.1;
+      for eit = 1:max_eit
+        % find a best fit rigid transformation for each component
+        dVV = zeros(size(VV));
+        for c = 1:max(CC)
+          [R,trans] = fit_rigid(VV_prev(CC==c,:),Uforward(CC==c,:,it));
+          dVV(CC==c,:) =  -VV_prev(CC==c,:) + bsxfun(@plus,Uforward(CC==c,:,it)*R,trans);
+        end
+        VV = VV_prev + delta_t * dVV;
+        [VV,~] = eltopo(VV_prev,F,VV);
+        append_Ubackward();
+        title(sprintf('step %d/%d, %d/%d',size(Uforward,3)-it,size(Uforward,3)-1,eit,max_eit),'FontSize',15);
+        t.Vertices = VV;
+        C = normrow(arap_gradient(Uforward(:,:,it),F,VV));
+        t.CData = C;
+        colorbar;
+        caxis([min(C) max(C)]);
+        drawnow;
+        dVV = max(abs(VV-VV_prev));
+        dVV
+        if dVV < tol
+          break;
+        end
+      end
+    case 'arap-local-global'
+      % This energy option also seems useless
+      VV_prev = VV;
+      tol = 1e-7;
+      arap_data = [];
+      for eit = 1:max_eit
+        % find a best fit rigid transformation for each component
+        [G,E_prev,R] = arap_gradient(Uforward(:,:,it),F,VV_prev);
+        [VV,arap_data] = arap(Uforward(:,:,it),F,[],[],'V0',VV,'Dynamic',zeros(size(V)),'MaxIter',1,'Data',arap_data);
+        [VV,~] = eltopo(VV_prev,F,VV);
+        append_Ubackward();
+        title(sprintf('step %d/%d, %d/%d',size(Uforward,3)-it,size(Uforward,3)-1,eit,max_eit),'FontSize',15);
+        t.Vertices = VV;
+        C = normrow(arap_gradient(Uforward(:,:,it),F,VV));
+        t.CData = C;
+        colorbar;
+        caxis([min(C) max(C)]);
+        drawnow;
+        dVV = max(abs(VV-VV_prev));
+        dVV
+        if dVV < tol
+          break;
+        end
+      end
     case 'arap'
       tol = 1e-7;
       VV_prev = VV;
       delta_t = 0.3;
       for eit = 1:max_eit
-
         [G,E_prev,R] = arap_gradient(Uforward(:,:,it),F,VV_prev);
         dVV = G;
         while true
