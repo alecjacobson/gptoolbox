@@ -5,15 +5,11 @@
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/parse_rhs.h>
+#include <igl/matlab/prepare_lhs.h>
 #include <igl/point_mesh_squared_distance.h>
-
-#ifdef MEX
-#  include "mex.h"
-#endif
 
 #include <iostream>
 #include <string>
-
 void mexFunction(int nlhs, mxArray *plhs[], 
     int nrhs, const mxArray *prhs[])
 {
@@ -50,25 +46,17 @@ void mexFunction(int nlhs, mxArray *plhs[],
     case 3:
     {
       // Treat indices as reals
-      plhs[2] = mxCreateDoubleMatrix(C.rows(),C.cols(), mxREAL);
-      double * Cp = mxGetPr(plhs[2]);
-      copy(&C.data()[0],&C.data()[0]+C.size(),Cp);
+      prepare_lhs_double(C,plhs+2);
       // Fallthrough
     }
     case 2:
     {
-      // Treat indices as reals
-      plhs[1] = mxCreateDoubleMatrix(I.rows(),I.cols(), mxREAL);
-      double * Ip = mxGetPr(plhs[1]);
-      VectorXd Id = (I.cast<double>().array()+1).matrix();
-      copy(&Id.data()[0],&Id.data()[0]+Id.size(),Ip);
+      prepare_lhs_index(I,plhs+1);
       // Fallthrough
     }
     case 1:
     {
-      plhs[0] = mxCreateDoubleMatrix(sqrD.rows(),sqrD.cols(), mxREAL);
-      double * sqrDp = mxGetPr(plhs[0]);
-      copy(&sqrD.data()[0],&sqrD.data()[0]+sqrD.size(),sqrDp);
+      prepare_lhs_double(sqrD,plhs+0);
       break;
     }
     default:break;
