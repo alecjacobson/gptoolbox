@@ -57,7 +57,7 @@ function [V,F,flag,TC] = read3DS(filename)
       lens = [lens len];
       counts = [counts 6];
       did_traverse = true;
-      %fprintf('%sTraversing chunk with id %d (%04x) and length %d\n',repmat(' ',1,depth),id,swapbytes(id),len);
+      fprintf('%sTraversing chunk with id %d (%04x) and length %d\n',repmat(' ',1,depth),id,swapbytes(id),len);
       switch id
       case mesh_id
         name = [];
@@ -89,7 +89,7 @@ function [V,F,flag,TC] = read3DS(filename)
         %?
       end
     otherwise
-      %fprintf('%sSkipping chunk with id %d (%x) and length %d\n',repmat(' ',1,depth),id,id,len);
+      fprintf('%sSkipping chunk with id %d (%x) and length %d\n',repmat(' ',1,depth),id,id,len);
       fseek(f,len-6,'cof');
       counts(end) = counts(end)+len;
     end
