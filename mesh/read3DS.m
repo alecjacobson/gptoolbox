@@ -20,10 +20,11 @@ function [V,F,flag,TC] = read3DS(filename)
   vertices_id = 16656;
   texture_coords_id = 16704;
   faces_id = 16672;
+  mesh_id = 16384;
   traverse = { ...
     19789 ... main
     15677 ... 3d editor
-    16384 ... mesh
+    mesh_id ... mesh
     16640 ... triangle mesh
     vertices_id ...
     texture_coords_id ...
@@ -43,7 +44,8 @@ function [V,F,flag,TC] = read3DS(filename)
   lens = [];
   while feof(f)~=1
     id = fread(f,1,'ushort');
-    if id == 0
+    id = uint16(id);
+    if isempty(id) || id == 0
       break;
     end
     len = fread(f,1,'int');
@@ -55,8 +57,17 @@ function [V,F,flag,TC] = read3DS(filename)
       lens = [lens len];
       counts = [counts 6];
       did_traverse = true;
-      %fprintf('%sTraversing chunk with id %d (%x) and length %d\n',repmat(' ',1,depth),id,id,len);
+      %fprintf('%sTraversing chunk with id %d (%04x) and length %d\n',repmat(' ',1,depth),id,swapbytes(id),len);
       switch id
+      case mesh_id
+        name = [];
+        while true
+          ch = fread(f,1,'*char')';
+          if ch == 0
+            break;
+          end
+          name = [name ch];
+        end
       case vertices_id
         n = fread(f,1,'ushort');
         v = fread(f,n*3,'float32');
@@ -74,7 +85,6 @@ function [V,F,flag,TC] = read3DS(filename)
         faces = fread(f,n*4,'ushort');
         counts(end) = counts(end)+n*4*2+2;
         F = [F;reshape(faces,4,n)'+1];
-        tsurf(F(:,1:3),V);
       otherwise
         %?
       end
