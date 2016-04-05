@@ -13,8 +13,6 @@ function [V,F,flag,TC] = read3DS(filename)
   %
   % See also: load_mesh
   %
-  % Warning: This will only read the first mesh
-  %
 
   % http://www.gamedev.net/topic/313126-3ds-parsing-tutorial/
   f = fopen(filename, 'r');
@@ -73,6 +71,7 @@ function [V,F,flag,TC] = read3DS(filename)
       case vertices_id
         n = fread(f,1,'ushort');
         v = fread(f,n*3,'float32');
+        last_V_len = size(V,1);
         V = [V;reshape(v,3,n)'];
         counts(end) = counts(end)+n*3*4+2;
         scatter3(V(:,1),V(:,2),V(:,3),'.');
@@ -86,7 +85,7 @@ function [V,F,flag,TC] = read3DS(filename)
         n = fread(f,1,'ushort');
         faces = fread(f,n*4,'ushort');
         counts(end) = counts(end)+n*4*2+2;
-        F = [F;reshape(faces,4,n)'+1];
+        F = [F;last_V_len+reshape(faces,4,n)'+1];
       otherwise
         %?
       end
