@@ -2,6 +2,8 @@
 
 #include <igl/copyleft/cgal/mesh_boolean.h>
 #include <igl/copyleft/cgal/remesh_self_intersections.h>
+#include <igl/copyleft/cgal/mesh_boolean_type_to_funcs.h>
+#include <igl/copyleft/cgal/BinaryWindingNumberOperations.h>
 #include <igl/remove_unreferenced.h>
 #ifndef IGL_NO_CORK
 #  include <igl/copyleft/cork/mesh_boolean.h>
@@ -31,11 +33,11 @@ enum BooleanLibType
 void parse_rhs(
   const int nrhs, 
   const mxArray *prhs[], 
-  Eigen::MatrixXd & VA,
-  Eigen::MatrixXi & FA,
-  Eigen::MatrixXd & VB,
-  Eigen::MatrixXi & FB,
+  std::vector<Eigen::MatrixXd> & Vlist,
+  std::vector<Eigen::MatrixXi> & Flist,
   igl::MeshBooleanType & type,
+  std::function<int(const Eigen::Matrix<int,1,Eigen::Dynamic>) > & wind_func,
+  std::function<int(const int, const int)> & keep_func,
   BooleanLibType & boolean_lib,
   bool & debug
   )
@@ -45,30 +47,67 @@ void parse_rhs(
   using namespace igl::matlab;
   using namespace igl::copyleft::cgal;
   using namespace Eigen;
-  mexErrMsgTxt(nrhs >= 5, "The number of input arguments must be >=5.");
+  mexErrMsgTxt(nrhs >= 3, "The number of input arguments must be >=3.");
 
   const auto & parse_mesh = [](
-    const mxArray *prhs[], 
+    const mxArray *pV, 
+    const mxArray *pF, 
     Eigen::MatrixXd & V,
     Eigen::MatrixXi & F)
   {
-    const int dim = mxGetN(prhs[0]);
+    const int dim = mxGetN(pV);
     mexErrMsgTxt(dim==0 || dim == 3,
       "Mesh vertex list must be #V by 3 list of vertex positions");
-    mexErrMsgTxt(mxGetN(prhs[1])==0 || dim == mxGetN(prhs[1]),
+    mexErrMsgTxt(mxGetN(pF)==0 || dim == mxGetN(pF),
       "Mesh \"face\" simplex size must equal dimension");
-    parse_rhs_double(prhs,V);
-    parse_rhs_index(prhs+1,F);
+    parse_rhs_double(&pV,V);
+    parse_rhs_index(&pF,F);
   };
-  parse_mesh(prhs,VA,FA);
-  parse_mesh(prhs+2,VB,FB);
-  mexErrMsgTxt(mxIsChar(prhs[4]), C_STR("Type should be char"));
-  const char * type_str = mxArrayToString(prhs[4]);
-  mexErrMsgTxt(string_to_mesh_boolean_type(type_str,type),
-    C_STR(type_str << " is not a known boolean operation"));
+
+  int i = 0;
+  while(!mxIsChar(prhs[i]))
+  {
+    if(mxIsCell(prhs[i]))
+    {
+      mexErrMsgTxt(
+        mxIsCell(prhs[i+1]),
+        "Cell input for vertices requires cell input for faces, too"); 
+      const int k = mxGetNumberOfElements(prhs[i]);
+      mexErrMsgTxt(
+        k == mxGetNumberOfElements(prhs[i+1]),
+        "Face cell input must be same length");
+      for(int j = 0;j<k;j++)
+      {
+        Vlist.emplace_back();
+        Flist.emplace_back();
+        parse_mesh(
+          mxGetCell(prhs[i],j),
+          mxGetCell(prhs[i+1],j),
+          Vlist[Vlist.size()-1],Flist[Flist.size()-1]);
+      }
+    }else if(mxIsNumeric(prhs[i]))
+    {
+      Vlist.emplace_back();
+      Flist.emplace_back();
+      parse_mesh(prhs[i],prhs[i+1],Vlist[Vlist.size()-1],Flist[Flist.size()-1]);
+    }else
+    {
+      mexErrMsgTxt(false,"Mesh inputs must be numeric");
+    }
+    i+=2;
+  }
+
+  mexErrMsgTxt(mxIsChar(prhs[i]), C_STR("Type should be char"));
+  std::string type_str = std::string(mxArrayToString(prhs[i]));
+  if(type_str != "")
+  {
+    mexErrMsgTxt(string_to_mesh_boolean_type(type_str,type),
+      C_STR(type_str << " is not a known boolean operation"));
+    igl::copyleft::cgal::mesh_boolean_type_to_funcs(type,wind_func,keep_func);
+  }
+  i++;
 
   {
-    int i = 5;
     while(i<nrhs)
     {
       mexErrMsgTxt(mxIsChar(prhs[i]),"Parameter names should be strings");
@@ -84,12 +123,46 @@ void parse_rhs(
 #ifndef IGL_NO_CORK
         }else if(strcmp("cork",type_name)==0)
         {
+          mexErrMsgTxt( !(wind_func),
+            "Cork does not support arbitrary extraction functions");
           boolean_lib = BOOLEAN_LIB_TYPE_CORK;
 #endif
         }else
         {
           mexErrMsgTxt(false,C_STR("Unknown BooleanLib: "<<type_name));
         }
+      }else if(strcmp("WindingNumberFilter",name) == 0)
+      {
+        validate_arg_function_handle(i,nrhs,prhs,name);
+        mxArray * handle = const_cast<mxArray*>(prhs[++i]);
+        wind_func = [handle](const Eigen::RowVectorXi & w)->int
+        {
+          int fnlhs = 1;
+          mxArray *fplhs[1];
+          int fnrhs = 2;
+          mxArray *fprhs[2];
+          // same as preparing lhs
+          fprhs[0] = handle;
+          igl::matlab::prepare_lhs_double(w,fprhs+1);
+          mexCallMATLAB(fnlhs, fplhs, fnrhs, fprhs,"feval");
+          // This might be slow
+          int res = 0;
+          if( mxIsNumeric(fplhs[0]) )
+          {
+            res = (int)(mxGetScalar(fplhs[0]));
+          }else if( mxIsLogical(fplhs[0]))
+          {
+            res = (bool)*mxGetLogicals(fplhs[0]);
+          }else{
+            mexErrMsgTxt(
+              false, "WindingNumberFilter should return number or logical");
+          }
+          // clean up
+          //mxDestroyArray(fprhs[0]);
+          mxDestroyArray(fprhs[1]);
+          mxDestroyArray(fplhs[0]);
+          return res;
+        };
       }else if(strcmp("Debug",name) == 0)
       {
         validate_arg_logical(i,nrhs,prhs,name);
@@ -102,6 +175,8 @@ void parse_rhs(
       i++;
     }
   }
+  mexErrMsgTxt(type_str != "" || wind_func,
+    "If no type provided, then must provided extraction function");
 }
 
 void mexFunction(
@@ -117,13 +192,27 @@ void mexFunction(
   std::streambuf *outbuf = cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 
-  MatrixXd VA,VB,VC;
-  MatrixXi FA,FB,FC;
+  std::vector<MatrixXd> Vlist;
+  std::vector<MatrixXi> Flist;
+  MatrixXd VC;
+  MatrixXi FC;
   VectorXi J;
   MeshBooleanType type;
+  std::function<int(const Eigen::Matrix<int,1,Eigen::Dynamic>) > wind_func;
+  std::function<int(const int, const int)> keep_func = 
+    igl::copyleft::cgal::KeepInside();
+
   BooleanLibType boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL;
   bool debug = false;
-  parse_rhs(nrhs,prhs,VA,FA,VB,FB,type,boolean_lib,debug);
+  parse_rhs(
+    nrhs,
+    prhs,
+    Vlist,
+    Flist,
+    type,
+    wind_func,
+    keep_func,
+    boolean_lib,debug);
   if(debug)
   {
     cout<<"parsed input."<<endl;
@@ -131,15 +220,25 @@ void mexFunction(
   switch(boolean_lib)
   {
     case BOOLEAN_LIB_TYPE_LIBIGL:
-      igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,type,VC,FC,J);
+      igl::copyleft::cgal::mesh_boolean(
+        Vlist,Flist,wind_func,keep_func,VC,FC,J);
       break;
 #ifndef IGL_NO_CORK
     case BOOLEAN_LIB_TYPE_CORK:
-      igl::copyleft::cork::mesh_boolean(VA,FA,VB,FB,type,VC,FC);
+    {
+      mexErrMsgTxt(Vlist.size() == 2 && Flist.size() == 2,
+        "Must provide exactly two meshes for cork.");
+      assert(Vlist.size() == 2);
+      assert(Flist.size() == 2);
+      igl::copyleft::cork::mesh_boolean(
+        Vlist[0],Flist[0],
+        Vlist[1],Flist[1],
+        type,VC,FC);
       break;
+    }
 #endif
     default:
-      assert(false && "Unknown boolean lib");
+      mexErrMsgTxt(false,"Unknown boolean lib.");
       break;
   }
   if(debug)
