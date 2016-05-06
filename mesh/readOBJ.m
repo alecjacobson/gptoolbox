@@ -131,6 +131,10 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
                 end
               end
           end
+          t = t + (t<0).*   (numv+1);
+          tf = tf + (tf<0).*(numuv+1);
+          nf = nf + (nf<0).*(numn+1);
+
           assert(numel(t) == numel(tf));
           assert(numel(t) == numel(nf));
           if numel(t) > ss

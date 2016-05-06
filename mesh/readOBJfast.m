@@ -41,6 +41,9 @@ function [V,F] = readOBJfast(filename,varargin)
       s = system(cmd);
       if s==0
         readOBJfast_helper(tmpf);
+        if any(F<=0)
+          final_error();
+        end
         %delete(tmpf);
         return;
       end
@@ -135,4 +138,9 @@ function [V,F] = readOBJfast(filename,varargin)
 
   error_handler = @file_wrangler;
   readOBJfast_helper(filename)
+  if all(F(:)<0)
+    F = F+size(V,1)+1;
+  elseif any(F(:)<0)
+    final_error();
+  end
 end
