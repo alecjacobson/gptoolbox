@@ -19,6 +19,7 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   %       'knn' use knnsearch to find closest element barycenters
   %       'spatial-hash' spatial hash on regular grid ~O(#P * sqrt(#F)) **dim=2
   %         only**
+  %     'First'  only keep first match
   % Outputs:
   %   I  #P by #F matrix of bools
   %   B1  #P by #F list of barycentric coordinates
@@ -155,8 +156,9 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
 
   % default values
   method = 'knn';
+  first = false;
   % Map of parameter names to variable names
-  params_to_variables = containers.Map( {'Method'}, {'method'});
+  params_to_variables = containers.Map( {'Method','First'}, {'method','first'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -374,6 +376,12 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
 
     %return;
 
+  end
+
+  if first
+    % Only keep first
+    [mI,J] = max(I,[],2);
+    I = sparse(1:size(I,1),J,mI,size(I,1),size(I,2));
   end
 
   % Compute barycentric coordinates
