@@ -3,6 +3,8 @@
 %
 % [W,H] = mesh_boolean(V,F,U,G,operation)
 % [W,H] = mesh_boolean(V,F,U,G,operation,'ParameterName',paramter_value, ...)
+% [W,H] = mesh_boolean({V1,V2,..,Vn},{F1,F2,...,Fn}, ...
+%    operation,'ParameterName',paramter_value, ...)
 % 
 % Inputs:
 %   V  #V by 3 list of vertex positions of first mesh
