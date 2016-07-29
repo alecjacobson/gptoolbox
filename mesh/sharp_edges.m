@@ -8,12 +8,29 @@ function [E] = sharp_edges(V,F,varargin)
   %   V  #V by 3 list of mesh vertex positions 
   %   F  #F by 3 list of mesh triangle indices into V
   %   Optional:
-  %     'Angle'  followed by dihedral angle considered sharp.
+  %     'Angle'  followed by dihedral angle considered sharp. {pi*0.11}
   % Outputs:
-  %   E  #E by 2 list of edge indices into V {pi*0.11}
+  %   E  #E by 2 list of edge indices into V 
   %
 
   angle = pi*0.11;
+  % default values
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Angle'},{'angle'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
 
   % sharp edges
   [A,C] = adjacency_dihedral_angle_matrix(V,F);
