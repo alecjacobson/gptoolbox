@@ -1,4 +1,4 @@
-function W = biharmonic_coordinates(V,Ele,b)
+function [W,A] = biharmonic_coordinates(V,Ele,b)
   % BIHARMONIC_COORDINATES  Compute the linearly precise generalized
   % coordinates as described in "Linear Subspace Design for Real-Time Shape
   % Deformation" [Wang et al. 2015] **not** to be confused with "Bounded
@@ -13,6 +13,7 @@ function W = biharmonic_coordinates(V,Ele,b)
   %   b  #b list of indices into V of control points
   % Outputs:
   %   W  #V by #b list of coordinates
+  %   A  #V by #V quadratic coefficients matrix
   %
   L = cotmatrix(V,Ele);
   [DD,TE] = normal_derivative(V,Ele);
@@ -26,5 +27,9 @@ function W = biharmonic_coordinates(V,Ele,b)
   K = L + N;
   M = massmatrix(V,Ele);
   A = K' * (M\K);
-  W = min_quad_with_fixed(A,[],b,eye(numel(b)));
+  if isempty(b)
+    W = [];
+  else
+    W = min_quad_with_fixed(A,[],b,eye(numel(b)));
+  end
 end
