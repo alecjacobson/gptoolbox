@@ -10,10 +10,10 @@ function [G] = grad(V,F)
   %   G  #faces*dim by #V Gradient operator
   %
   % Example:
-  %   L = cotmatrix(V,F)
+  %   L = cotmatrix(V,F);
   %   G  = grad(V,F);
   %   dblA = doublearea(V,F);
-  %   GMG = -G'*repdiag(diag(sparse(dblA)/2),3)*G;
+  %   GMG = -G'*repdiag(diag(sparse(dblA)/2),size(V,2))*G;
   %
   %   % Columns of W are scalar fields
   %   G = grad(V,F);
