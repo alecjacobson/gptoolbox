@@ -4,7 +4,7 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   % according to the ambient occlusion computed for this mesh.
   %
   % AO = apply_ambient_occlusion(t)
-  % [AO,l] = apply_ambient_occlusion(t,'ParameterName',parameter_value, ...)
+  % [AO,C,l] = apply_ambient_occlusion(t,'ParameterName',parameter_value, ...)
   %
   % Inputs:
   %   t  handle to a `trisurf` or `patch` object
@@ -19,11 +19,14 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   %     'ColorMap' followed by a colormap to use
   %     'CAxis' followed by a caxis ("color axis") to use
   %     'Colors' followed by a #V|#F|1 list of colors to use
+  %     'Unoriented' followed by whether to treat the surface as unoriented
+  %       {false}
   % Outputs:
   %   AO  #V by 1 list of ambient occlusion values
+  %   C  #V|#F by 3 modified colors
   %   l  #l list of light handles
 
-  function [AO,C] = apply_ambient_occlusion_helper(t,AO,C,factor)
+  function [AO,C] = apply_ambient_occlusion_helper(t,AO,C,factor,unoriented)
     V = t.Vertices;
     Poly = t.Faces;
     % triangulate high order facets
@@ -74,6 +77,9 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
     end
     if isempty(AO)
       AO = ambient_occlusion(V,F,O,N,samples);
+      if unoriented
+          AO = min(AO,ambient_occlusion(V,F,O,-N,samples));
+      end
     end
     t.FaceVertexCData = bsxfun(@plus,(1-factor)*C,factor*bsxfun(@times,C,1-AO));
   end 
@@ -87,10 +93,11 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   add_lights = true;
   soft_lighting = true;
   samples = 1000;
+  unoriented = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'AO', 'AddLights','Factor','SoftLighting','Samples','ColorMap','CAxis','Colors'}, ...
-    {'AO','add_lights','factor','soft_lighting','samples','CM','CA','C'});
+    {'AO', 'AddLights','Factor','SoftLighting','Samples','ColorMap','CAxis','Colors','Unoriented'}, ...
+    {'AO','add_lights','factor','soft_lighting','samples','CM','CA','C','unoriented'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -140,7 +147,7 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
     end
 
     tii = t(ii);
-    [AOii,Cii] = apply_ambient_occlusion_helper(tii,AOii,Cii,factor);
+    [AOii,Cii] = apply_ambient_occlusion_helper(tii,AOii,Cii,factor,unoriented);
     if numel(t) == 1
       AO = AOii;
       C = Cii;
