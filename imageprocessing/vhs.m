@@ -13,6 +13,9 @@ function V = vhs(im,varargin)
   %   V  h by w by c by f image of (f long sequence of images)
   %
 
+  % must use double
+  im = im2double(im);
+
   looping = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( {'VerticalLoop'},{'looping'});
@@ -47,7 +50,7 @@ function V = vhs(im,varargin)
     D = im;
     % exclusion blend like photoshop
     % http://www.deepskycolors.com/archive/2010/04/21/formulas-for-Photoshop-blending-modes.html
-    ex = @(T,B) 0.5 - 2.*(T-0.5).*(B-0.5);
+    ex = @(T,B) 0.5 - 2.*bsxfun(@times,T-0.5,B-0.5);
     % kill color channels
     A(:,:,1) = 0;
     B(:,:,2) = 0;
@@ -61,7 +64,7 @@ function V = vhs(im,varargin)
     B = B(mod(nudge(0.005)+(1:end)-1,end)+1,:,:);
     C = C(mod(nudge(0.005)+(1:end)-1,end)+1,:,:);
     % exclusion blend colored layers and alpha blend with original
-
+    
     F = D+0.3*(ex(ex(C,B),A)-D);
     N = rand(size(im));
 
