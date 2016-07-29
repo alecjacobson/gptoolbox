@@ -7,6 +7,8 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
   %   F  #F by 3 list of triangle indices into V
   %   Optional:
   %     'MaxIter' followed by maximum number of iterations {100}
+  %     'Conformalize' followed by whether to rebuild _just_ the mass
+  %       matrix each step {true}
   %     'delta' followed by delta value, should roughly be in range
   %       [1e-13,1e13] {1}
   %     'LaplacianType' followed by 'cotangent' of 'uniform'.
@@ -19,6 +21,15 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
   %   U  #V by dim list of new vertex positions
   %   Usteps  #V by dim by iterations list of vertex positions during flow
   %
+   function L = laplacian(V,F)
+    switch laplacian_type
+    case 'cotangent'
+      L = cotmatrix(V,F);
+    case 'uniform'
+      A = adjacency_matrix(F);
+      L = A - diag(sparse(sum(A,2)));
+    end
+  end
 
   % default values
   delta = 1;
@@ -27,12 +38,14 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
   until_self_intersection_free = false;
   V0 = V;
   rescale_output = false;
+  min_diff = 1e-13;
+  conformalize = true;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'MaxIter','delta','LaplacianType','V0','RescaleOutput', ...
-      'UntilSelfIntersectionFree'}, ...
-    {'max_iter','delta','laplacian_type','V0','rescale_output', ...
-      'until_self_intersection_free'});
+    {'MaxIter','Conformalize','delta','LaplacianType','V0','RescaleOutput', ...
+      'UntilSelfIntersectionFree','MinDiff'}, ...
+    {'max_iter','conformalize','delta','laplacian_type','V0','rescale_output', ...
+      'until_self_intersection_free','min_diff'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -47,13 +60,7 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
     v=v+1;
   end
 
-  switch laplacian_type
-  case 'cotangent'
-    L = cotmatrix(V,F);
-  case 'uniform'
-    A = adjacency_matrix(F);
-    L = A - diag(sparse(sum(A,2)));
-  end
+ L = laplacian(V,F)
 
   if nargout > 1
     Usteps = zeros([size(V) max_iter]);
@@ -74,17 +81,21 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
     % 'full' seems slight more stable than 'barycentric' which is more stable
     % than 'voronoi'
     M = massmatrix(U,F,'barycentric');
+    if ~conformalize
+      L = laplacian(V,F)
+    end
     U = (M-delta*L)\(M*U);
     area = sum(doublearea(U,F)*0.5);
     c = sum(bsxfun(@times,0.5*doublearea(U,F)/area,barycenter(U,F)));
     U = bsxfun(@minus,U,c);
     U = U/sqrt(area);
     % Use difference from previous as stopping criterion
-    % Better would be to look for convergence while factoring out Möbius
+    % Better would be to look for convergence while factoring out M??bius
     % transformation.
     % Q: Stop when no change in angles?
     d = trace(((U-U_prev)'*M*(U-U_prev)).^2);
-    if d < 1e-13
+    if d < min_diff
+      warning('converged...');
       break;
     end
     % Volume of unit area sphere: pi^-0.5/6
