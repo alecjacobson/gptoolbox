@@ -1,4 +1,4 @@
-function [CV,CF,TV,TT,w,SV,SF] = solid(V,F,varargin)
+function [CV,CT,TV,TT,w,SV,SF] = solid(V,F,varargin)
   % SOLID Clean a mesh using the generalized winding number pipeline with some
   % default settings [Jacobson et al. 2013]: "Shoot for the moon!!!!"
   %
@@ -52,7 +52,7 @@ function [CV,CF,TV,TT,w,SV,SF] = solid(V,F,varargin)
   for t = 1:numel(tetgen_flags_alts)
     tetgen_flags = tetgen_flags_alts{t};
     try
-      [TV,TT,TF] = cdt(SV,SF,'TetgenFlags',tetgen_flags,'Quiet',true);
+      [TV,TT] = cdt(SV,SF,'TetgenFlags',tetgen_flags,'Quiet',true);
       fprintf('cdt succeeded with "%s"...\n',tetgen_flags);
       break;
     catch
@@ -72,10 +72,10 @@ function [CV,CF,TV,TT,w,SV,SF] = solid(V,F,varargin)
   end
   CT = TT(w>avg_w,:);
 
-  CF = boundary_faces(CT);           
   if surface_only
-    [CV,I] = remove_unreferenced(TV,CF);
-    CF = I(CF);
+    CT = boundary_faces(CT);           
   end
-
+  [CV,I] = remove_unreferenced(TV,CT);
+  CT = I(CT);
+  
 end
