@@ -92,6 +92,32 @@ function S = statistics(V,F,varargin)
   end
 
   bbd = sqrt(sum((max(V)-min(V)).^2,2));
+  
+  % To achieve this ordering (or almost this order?):
+  % Basic counts
+  S.num_faces = 0;
+  S.num_vertices = 0;
+  S.num_edges = 0;
+  % Small things
+  S.num_small_triangles = 0;
+  S.num_small_angles = 0;
+  S.num_close_vertices = 0;
+  % Topology related
+  S.num_connected_components = 0;
+  S.num_handles = 0;
+  S.euler_characteristic = 0;
+  S.num_boundary_loops = 0;
+  S.num_boundary_edges = 0;
+  S.num_non_manifold_edges = 0;
+  S.num_conflictingly_oriented_edges = 0;
+  S.num_duplicate_vertices = 0;
+  S.num_non_manifold_vertices = 0;
+  S.num_unreferenced_vertices = 0;
+  % Degeneracy related
+  S.num_combinatorially_duplicate_faces = 0;
+  S.num_geometrically_degenerate_faces = 0;
+  S.num_combinatorially_degenerate_faces = 0;
+  %S.num_selfintersecting_pairs = 0;
 
   % easy
   S.num_faces = size(F,1);
