@@ -13,6 +13,12 @@ function [V,F] = cube(x,y,z)
   %   F  #F by 3 list of triangle indices
   %
   % 
+  if nargin<2
+    y = x;
+  end
+  if nargin<3
+    z = y;
+  end
 
   sam = [x y;z y;x z;x z;z y;x y];
   axes = [0 1 0;0 1 0;1 0 0;1 0 0;0 1 0;0 1 0];
