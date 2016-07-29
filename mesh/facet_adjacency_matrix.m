@@ -12,6 +12,9 @@ function [A,uE2F,uE] = facet_adjacency_matrix(F,varargin)
   %     manifold edges (valence <=2)
   % Outputs:
   %   A  #F by #F adjacency matrix 
+  %   uE2F  #E by #F matrix so that (e,f) = 1 means face f is adjacent to
+  %     unique edge e
+  %   uE  #E by 2 list of unique edges
   %
   % See also: adjacency_matrix
 
