@@ -61,6 +61,7 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
     c = get(gca,'Children');
     T = c(arrayfun(@(x) isa(x,'matlab.graphics.primitive.Patch'),c));
   end
+  T = T(:);
 
   if ~exist('L','var') || isempty(L)
     c = get(gca,'Children');
@@ -72,7 +73,7 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
 
   if isempty(ground)
     minZ = inf;
-    for t = T
+    for t = T'
       V = t.Vertices;
       minZ = min([V(:,3);minZ]);
     end
