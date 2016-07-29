@@ -19,7 +19,8 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   %       'knn' use knnsearch to find closest element barycenters
   %       'spatial-hash' spatial hash on regular grid ~O(#P * sqrt(#F)) **dim=2
   %         only**
-  %     'First'  only keep first match
+  %     'First'  only keep first match {false}
+  %     'Quiet' suppress warnings {false}
   % Outputs:
   %   I  #P by #F matrix of bools
   %   B1  #P by #F list of barycentric coordinates
@@ -157,8 +158,10 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   % default values
   method = 'knn';
   first = false;
+  quiet = false;
   % Map of parameter names to variable names
-  params_to_variables = containers.Map( {'Method','First'}, {'method','first'});
+  params_to_variables = containers.Map( {'Method','First','Quiet'}, ...
+    {'method','first','quiet'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -284,7 +287,9 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
           else
             if numel(f) > 1
               f = f(1);
-              warning('Ignoring non-manifold edge: might miss multiply inside.');
+              if ~quiet
+                warning('Ignoring non-manifold edge: might miss multiply inside.');
+              end
               % TODO: recurse on all in f
             end
             e_in = A(f_prev,f);
@@ -369,7 +374,9 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
       prev_k = k;
       k = min(prev_k*2,size(BC,1));
       if k == size(BC,1)
-        warning('Some points not found');
+        if ~quiet
+          warning('Some points not found');
+        end
         break;
       end
     end
