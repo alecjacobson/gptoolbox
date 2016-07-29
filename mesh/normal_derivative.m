@@ -1,4 +1,4 @@
-function [DD,E,N] = normal_derivative(V,F)
+function [DD,E] = normal_derivative(V,F)
   % NORMAL_DERIVATIVE Computes the directional derivative **normal** to **all**
   % (half-)edges of a triangle mesh (not just boundary edges). These are
   % integrated along the edge: they're the per-face constant gradient dot the
@@ -16,26 +16,27 @@ function [DD,E,N] = normal_derivative(V,F)
   %     derivative with respect to each edge of each face. All edges 23 then all
   %     31 then all 12
   %   E  #F*3 by 2 list of edge vectors matching DD and N
-  %   N  #F*3 by dim  vectors perpendicular to edge vectors
+  %   %N  #F*3 by dim  vectors perpendicular to edge vectors
   %
-  % Example:
-  %   [DD,E,N] = normal_derivative(V,F);
-  %   % normalize and Divide by lengths again to account for integral averaging
-  %   UN = bsxfun(@rdivide,N,normrow(N).^2);
-  %   [~,C] = on_boundary(F);
-  %   EBC = 0.5*(V(E(:,1),:)+V(E(:,2),:));
-  %   % Treat X-coordinate as scalar field
-  %   X = V(:,1);
-  %   DDX = bsxfun(@times,(DD*X),UN);
-  %   tsurf(F,V,'CData',X,fphong,'EdgeColor','none');
-  %   colormap(jet(20))
-  %   axis equal
-  %   view(2)
-  %   hold on;
-  %   quiver(EBC(C,1),EBC(C,2),DDX(C,1),DDX(C,2),0.2, ...
-  %     'k','LineWidth',2)
-  %   hold off;
-  %   title('Integral average normal derivative','FontSize',20);
+
+%  % Example:
+%   %   [DD,E,N] = normal_derivative(V,F);
+%   %   % normalize and Divide by lengths again to account for integral averaging
+%   %   UN = bsxfun(@rdivide,N,normrow(N).^2);
+%   %   [~,C] = on_boundary(F);
+%   %   EBC = 0.5*(V(E(:,1),:)+V(E(:,2),:));
+%   %   % Treat X-coordinate as scalar field
+%   %   X = V(:,1);
+%   %   DDX = bsxfun(@times,(DD*X),UN);
+%   %   tsurf(F,V,'CData',X,fphong,'EdgeColor','none');
+%   %   colormap(jet(20))
+%   %   axis equal
+%   %   view(2)
+%   %   hold on;
+%   %   quiver(EBC(C,1),EBC(C,2),DDX(C,1),DDX(C,2),0.2, ...
+%   %     'k','LineWidth',2)
+%   %   hold off;
+%   %   title('Integral average normal derivative','FontSize',20);
 
 
   dim = size(V,2);
