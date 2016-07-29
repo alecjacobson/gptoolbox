@@ -1,8 +1,8 @@
-function [BB,BF] = bounding_box(V,varargin)
+function [BB,BF,BQ] = bounding_box(V,varargin)
   % BOUNDING_BOX  Compute the bounding box of a set of points
   % 
   % [BB,BF] = bounding_box(V)
-  % [BB,BF] = bounding_box(V,'ParameterName',ParameterValue, ...)
+  % [BB,BF,BQ] = bounding_box(V,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
   %   V  #V by dim list of points
@@ -11,6 +11,7 @@ function [BB,BF] = bounding_box(V,varargin)
   % Outputs:
   %   BB 2^dim list of boundary box vertices
   %   BF #BF by #dim list of facets
+  %   BQ  #BQ by 4 list of quads (only if dim == 3)
   %
 
   epsilon = 0;
@@ -45,6 +46,7 @@ function [BB,BF] = bounding_box(V,varargin)
     BF = outline(D.Triangulation);
   case 4
     BF = boundary_faces(D.Triangulation);
+    BQ = [1 3 4 2;7 5 6 8;1 5 7 3;6 2 4 8;3 7 8 4;5 1 2 6];
   otherwise
     error('Not supported');
   end
