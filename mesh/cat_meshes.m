@@ -14,7 +14,7 @@ function [V,F] = cat_meshes(V,F,varargin)
   %   F  #F1+#F2+... by simplex-size list of simplex indices
   %
   assert(mod(nargin,2)==0);
-  for m = 1:nargin/2
+  for m = 1:(nargin-2)/2
     Vm = varargin{2*m-1};
     Fm = varargin{2*m};
     F = [F; Fm+size(V,1)];
