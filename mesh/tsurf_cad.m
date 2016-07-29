@@ -1,7 +1,21 @@
-%[V,F] = load_mesh('~/Dropbox/models/fandisk.off');
-%V = V*axisangle2matrix([1 0 0],pi);
-%[V,F] = load_mesh('~/Dropbox/models/bunny.off');
 function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
+  % [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
+  %
+  % TSURF_CAD Display a triangle mesh in a CAD-like rendering style: edges,
+  % shadow, floor.
+  %
+  % Inputs:
+  %   F  #F by 3 list of face indices
+  %   V  #V by 3 list of vertex positions
+  % Outputs:
+  %   tf  plot handle to mesh 
+  %   te  plot handle to sharp edges 
+  %   to  plot handle to boundary edges 
+  %   sc  plot handle to shadow
+  %   I  indices into V to cut mesh along sharp edges
+  %   up  callback function to reset lines based on rotation
+  %
+
   function set_hold(v)
     if v
       hold on;
@@ -15,6 +29,7 @@ function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
   BC = barycenter(V,F);
 
   E = sharp_edges(V,F);
+  E = union(sort(E,2),sort(outline(F),2),'rows');
 
   % cut mesh at sharp edges to get crisp normals
   [G,I] = cut_edges(F,E);
@@ -66,6 +81,7 @@ function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
   nx = 16;
   extent = @(BB) max(max(BB)) - min(min(BB));
   ny = ceil(extent(BB(:,:,2))/ extent(BB(:,:,1))*nx/2)*2;
+  ny(isinf(ny)) = nx;
   ch = repmat(0.99-0.15*xor((mod(repmat(0:8*nx-1,8*ny,1),8*2)>7), ...
     (mod(repmat((0:8*ny-1)',1,8*nx),8*2)>7)),[1 1 3])*0.5 + 0.5;
   hold on;
@@ -93,11 +109,11 @@ function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
   set(rotate3d,'ActionPostCallback',@(src,obj) up());
   set(rotate3d,'ActionPreCallback',@(src,obj) down());
 
-  %for t = linspace(0,-360,60)
-  %  view(64+t,20);
-  %  up();
-  %  drawnow;
-  %  filename = 'tsurf-cad.gif';
-  %  figgif(filename,'nodither');
-  %end
+%   for t = linspace(0,-360,60)
+%    view(64+t,20);
+%    up();
+%    drawnow;
+%    filename = 'tsurf-cad.gif';
+%    figgif(filename,'nodither');
+%   end
 end
