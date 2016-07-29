@@ -1,7 +1,7 @@
-function [F,C] = bfs_orient(F,V);
+function [F,C] = bfs_orient(F);
   % BFS_ORIENT Consistently orient faces in orientable patches using BFS
   %
-  % F = bfs_orient(F,V);
+  % F = bfs_orient(F);
   %
   % Inputs:
   %  F  #F by 3 list of faces
@@ -31,6 +31,18 @@ function [F,C] = bfs_orient(F,V);
   end
 
   function FF = bfs_orient_patch(FF,AA)
+    % short circuit if already oriented 
+    E = [FF(:,[2 3]); FF(:,[3 1]); FF(:,[1 2])];
+    % Direct all edges so sortE(:,1) < sortE(:,2)
+    sortE = sort(E,2);
+    OA = sparse(sortE(:,1),sortE(:,2),1-2*(E(:,1)<E(:,2)));
+    DA = sparse(sortE(:,1),sortE(:,2),1);
+    % Don't count boundary edges (where "redirected" edge only occured once).
+    OA(DA==1) = 0;
+    if nnz(OA) == 0
+      return;
+    end
+
     m = size(FF,1);
     seen = false(m,1);
 
@@ -62,9 +74,6 @@ function [F,C] = bfs_orient(F,V);
         Q = [Q;neighbors];
       end
 
-      %t = tsurf(FF(seen,:),V);
-      %drawnow;
-      %input('');
     end
     assert(all(seen));
   end
