@@ -26,8 +26,6 @@ function [G,uE,EMAP] = crouzeix_raviart_grad(V,F)
   V(:,end+1:3) = 0;
   m = size(F,1);
   E = [F(:,[2 3]);F(:,[3 1]);F(:,[1 2])];
-  % Map each face-edge to a unique edge
-  F2E = reshape(1:3*m,m,3);
   % Map duplicate edges to first instance
   [uE,~,EMAP] = unique(sort(E,2),'rows');
 
