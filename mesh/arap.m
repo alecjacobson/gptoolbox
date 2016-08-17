@@ -143,7 +143,6 @@ function [U,data,SS,R] = arap(varargin)
       energy = 'spokes-and-rims';
     end
   end
-pe
   if isempty(fext)
     dynamic = false;
     fext = zeros(size(V));
@@ -319,7 +318,7 @@ pe
       break;
     end
 
-    if iteration > 0
+    if iteration > 1
       change = max(abs(U(:)-U_prev(:)));
       if debug
         fprintf('arap: iter: %d, change: %g, energy: %g\n', ...
