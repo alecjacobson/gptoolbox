@@ -10,7 +10,7 @@ function [V,F] = equilateral_tiling(x);
   %   F  #F by 3 list of triangle indices into V
   %
   [V,F] = create_regular_grid(2*x+1,2*x+1);
-  V = bsxfun(@minus,V,[0.5 0.5])*sqrt(2)/2*[-1/sqrt(3) -1;1/sqrt(3) -1];
+  V = sqrt(8)*bsxfun(@minus,V,[0.5 0.5])*sqrt(2)/2*[-1/sqrt(3) -1;1/sqrt(3) -1];
   % Outside of hexagon
   out = find(V(:,2)>V(x+1,2)+1/(2*x+1)*0.25 | V(:,2)<-V(x+1,2)-1/(2*x+1)*0.25);
   F = F(~any(ismember(F,out),2),:);
