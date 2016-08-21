@@ -1,6 +1,8 @@
 function [BC,side,r] = voxel_grid(V,side,varargin)
   % VOXEL_GRID Prepare a voxel grid around a set of points V
   % 
+  % [BC,side,r] = voxel_grid(V,side,varargin)
+  % 
   % Inputs:
   %   V  #V by 3 list of input point positions
   %   side  either:
