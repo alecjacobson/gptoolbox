@@ -60,7 +60,7 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
     v=v+1;
   end
 
- L = laplacian(V,F)
+  L = laplacian(V,F);
 
   if nargout > 1
     Usteps = zeros([size(V) max_iter]);
