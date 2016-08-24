@@ -196,12 +196,12 @@ int main(int argc, char * argv[])
   }
 
   // Now mesh self intersections
-  Eigen::MatrixXd VVA,VVB;
-  Eigen::MatrixXi FFA,FFB,IF;
-  Eigen::VectorXi JA,JB,IMA,IMB;
+  Eigen::MatrixXd VVAB;
+  Eigen::MatrixXi FFAB,IF;
+  Eigen::VectorXi JAB,IMAB;
   {
     igl::copyleft::cgal::intersect_other(
-      VA,FA,VB,FB,params,IF,VVA,FFA,JA,IMA,VVB,FFB,JB,IMB);
+      VA,FA,VB,FB,params,IF,VVAB,FFAB,JAB,IMAB);
 #ifndef MEX
     cout<<"writing pair list to "<<(prefix+"-IF.dmat")<<endl;
     writeDMAT((prefix+"-IF.dmat").c_str(),IF);
@@ -216,45 +216,24 @@ int main(int argc, char * argv[])
       mexErrMsgTxt(false,"Too many output parameters.");
     }
 
-    case 9:
-    {
-      prepare_lhs_index(IMB,plhs+8);
-      // Fall through
-    }
-    case 8:
-    {
-      prepare_lhs_index(JB,plhs+7);
-      // Fall through
-    }
-    case 7:
-    {
-      prepare_lhs_index(FFB,plhs+6);
-      // Fall through
-    }
-    case 6:
-    {
-      prepare_lhs_double(VVB,plhs+5);
-      // Fall through
-    }
-
     case 5:
     {
-      prepare_lhs_index(IMA,plhs+4);
+      prepare_lhs_index(IMAB,plhs+4);
       // Fall through
     }
     case 4:
     {
-      prepare_lhs_index(JA,plhs+3);
+      prepare_lhs_index(JAB,plhs+3);
       // Fall through
     }
     case 3:
     {
-      prepare_lhs_index(FFA,plhs+2);
+      prepare_lhs_index(FFAB,plhs+2);
       // Fall through
     }
     case 2:
     {
-      prepare_lhs_double(VVA,plhs+1);
+      prepare_lhs_double(VVAB,plhs+1);
       // Fall through
     }
 
