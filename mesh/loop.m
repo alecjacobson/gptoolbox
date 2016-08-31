@@ -24,15 +24,14 @@ FF = F;
 J = (1:size(F,1))';
 
 for i=1:iter
-    
     % number of original vertices
     n = size(VV,1);
     % number of original faces
     nf = size(FF,1);
-    
+
     % outline edges
     O = outline(FF);
-    
+
     % indices of original vertices
     original = 1:n;
     % extract unique vertex indices on outline
@@ -45,18 +44,18 @@ for i=1:iter
     ni = numel(interior);
     % number of boundary original
     nb = numel(boundary);
-    
+
     % get adjacency matrix
     A = adjacency_matrix(FF);
     % number of edges
     ne = sum(A(:))/2;
-    
+
     % valence values
     val = sum(A,2);
     beta = (1./val) .* (5/8 - ( 3/8 + (1/4)*(cos ( 2*pi./val ) )).^2);
     % subdivision matrix for interior (even) vertices
     Seven = sparse(n,n);
-    
+
     %% as if all vertices are interior, then splice out interior
     %Sint = bsxfun(@times,A,beta) + diag(sparse(1-val.*beta));
     %S(interior,:) = Sint(interior,:);
@@ -64,47 +63,46 @@ for i=1:iter
     Seven(interior,:) = ...
         bsxfun(@times,A(interior,:),beta(interior)) + ...
         sparse(1:ni,original(interior),1-val(interior).*beta(interior),ni,no);
-    
+
     % construct boundary coefficients
     Sboundary = ...
         sparse([O(:,1);O(:,2)],[O(:,2);O(:,1)],1/8,n,n) + ...
         sparse([O(:,1);O(:,2)],[O(:,1);O(:,2)],3/8,n,n);
     Seven(boundary,:) = Sboundary(boundary,:);
-    
+
     % odd vertex subdivision matrix
-    
+
     % add a new vertex for each edge
-    
+
     % get "face edges" aka half-edges
     FE = sort([FF(:,1) FF(:,2);FF(:,2) FF(:,3);FF(:,3) FF(:,1)],2);
     % get unique edge list, FE2E tells original face edges (with duplicates, EE)
     % where to find matching unique edge (E)
     [E,I,FE2E] = unique(FE,'rows');
-    
-    % #E by #V matrix, flaps(i,j) = 1 only if vertex j is a "flap" vertex of edge
-    % i, i.e. vertex j *shares a face* both E(i,1) and E(i,2)
+
+    % #E by #V matrix, flaps(i,j) = 1 only if vertex j is a "flap" vertex of
+    % edge i, i.e. vertex j *shares a face* both E(i,1) and E(i,2)
     FEflaps = [FF(:,3);FF(:,1);FF(:,2)];
     flaps = sparse(FE2E,FEflaps,1);
-    
-    
+
+
     % new vertices on boundary
     onboundary = sparse(sum(flaps,2) == 1);
-    
-    % flag for extra ordinary vertices
-    extraordinary = sum(A,2) > 7;
-    % boundary vertices are by default extraordinary
-    extraordinary(E(:,1)) = extraordinary(E(:,1)) | onboundary;
-    extraordinary(E(:,2)) = extraordinary(E(:,2)) | onboundary;
-    % both edge endpoints are extraordinary, for this case will ignore that
-    % they're extra ordinary
-    both = extraordinary(E(:,1)) & extraordinary(E(:,2));
-    neither = (~extraordinary(E(:,1))) & (~extraordinary(E(:,2)));
-    neither = neither | both;
-    
+
     % don't consider flaps for boundary vertices
     flaps(onboundary,:) = 0;
-    
+
     % THIS IS WRONG:
+    %% flag for extra ordinary vertices
+    %extraordinary = sum(A,2) > 7;
+    %% boundary vertices are by default extraordinary
+    %extraordinary(E(:,1)) = extraordinary(E(:,1)) | onboundary;
+    %extraordinary(E(:,2)) = extraordinary(E(:,2)) | onboundary;
+    %% both edge endpoints are extraordinary, for this case will ignore that
+    %% they're extra ordinary
+    %both = extraordinary(E(:,1)) & extraordinary(E(:,2));
+    %neither = (~extraordinary(E(:,1))) & (~extraordinary(E(:,2)));
+    %neither = neither | both;
     %Sodd = ...
     %    sparse( ...
     %    [1:size(E,1) 1:size(E,1)]', ...
@@ -118,7 +116,7 @@ for i=1:iter
     %    ne, ...
     %    n) + ...
     %    flaps*1/8;
-    
+
     % Without considering extraordinary vertices
     Sodd = ...
       sparse( ...
@@ -128,12 +126,12 @@ for i=1:iter
         ne, ...
         n) + ...
       flaps*1/8;
-    
+
     % there are only one or two flap vertices per edge
     assert(all(sum(flaps,2) <= 2))
     % rows should sum to one
     assert(all(sum(Sodd,2) == 1))
-    
+
     % indices of new points as if we really added a new point for each half edge
     i3 = n     + (1:nf)';
     i1 = n+nf  + (1:nf)';
@@ -146,11 +144,11 @@ for i=1:iter
     FE2E = [(1:n)';FE2E+n];
     % reindex faces
     FF = FE2E(FEF);
-    
+
     S = [Seven;Sodd];
     VV = S*VV;
     SS = S*SS;
-    
+
     %trisurf(F,V(:,1),V(:,2),V(:,3),'FaceAlpha',0.1,'FaceColor','r','EdgeColor',[0.3 0 0]);
     %hold on;
     %trisurf(F,VVeven(:,1),VVeven(:,2),VVeven(:,3),'FaceAlpha',0.1,'FaceColor','b','EdgeColor',[0 0 0.3]);
@@ -158,7 +156,7 @@ for i=1:iter
     %plot3(VVodd(:,1),VVodd(:,2),VVodd(:,3),'y.');
     %hold off;
     %view(2);
-    
+
     %tsurf(F,V);
     %text(V(:,1),V(:,2),V(:,3),num2str(S(694,:)'),'BackgroundColor',[.8 .8 .8]);
 end
