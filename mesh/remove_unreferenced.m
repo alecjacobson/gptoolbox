@@ -24,13 +24,19 @@ function [RV,IM,J] = remove_unreferenced(V,F)
   %
 
   % get list of unique vertex indices that occur in faces
-  U = unique(F(:));
+  %U = unique(F(:));
+  % Slightly faster unique if we don't have infs or nans
+  sF = sort(F(:));
+  I = [true;diff(sF)~=0];
+  U = sF(I);
   % get list of vertices that do not occur in faces
-  NU = (1:size(V,1))';
-  NU = NU(~ismember(NU,U));
-  assert((size(U,1) + size(NU,1)) == size(V,1));
+  %NU = (1:size(V,1))';
+  %NU = NU(~ismember(NU,U));
+  n = size(V,1);
+  NU = find(0==sparse(U,1,1,n,1));
+  assert((size(U,1) + size(NU,1)) == n);
   % allocate space for an indexmap so that IM[i] gives new index of vertex i
-  IM = zeros(size(V,1),1);
+  IM = zeros(n,1);
   % reindex vertices that occur in faces to be first
   IM(U) = 1:size(U,1);
   % reindex vertices that do not occur in faces to come after those that do
@@ -39,6 +45,6 @@ function [RV,IM,J] = remove_unreferenced(V,F)
   RV(IM,:) = V;
   % Remove unreferenced
   RV = RV(1:max(IM(F(:))),:);
-  J(IM) = 1:size(V,1);
+  J(IM) = 1:n;
   J = J(1:max(IM(F(:))));
 end
