@@ -26,7 +26,7 @@ function [VV,Uforward,Ubackward] = untangle(V,F,varargin)
   %     'ExpansionMaxIter' followed by maximum number of iterations {10}
   %     'MaxEnergyIter' followed by maximum number of iterations for energy
   %       minimization {100}
-  %     'LaplacianType' followed by 'cotangent' of 'uniform'.
+  %     'LaplacianType' followed by {'cotangent'} of 'uniform'.
   % Outputs:
   %   VV  #V by dim list of new vertex positions
   %   U  #V by dim by steps list of steps
