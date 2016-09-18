@@ -13,10 +13,27 @@ function [P,S,C,E] = readSVG(filename)
   %   E  #E by 2 list of edge indices of all polys into C
   %
 
+  tic;
   xDoc = xmlread(filename);
+  toc
   
   P = {};
   S = [];
+
+  rects = xDoc.getElementsByTagName('rect');
+  for pi = 0:rects.getLength-1
+    rect = rects.item(pi);
+    x = sscanf(char(rect.getAttribute('x')),'%g');
+    y = sscanf(char(rect.getAttribute('y')),'%g');
+    w = sscanf(char(rect.getAttribute('width')),'%g');
+    h = sscanf(char(rect.getAttribute('height')),'%g');
+    Pi = [x y;x+w y;x+w y+h;x y+h;x y];
+    P{end+1} = Pi;
+    hex = char(rect.getAttribute('stroke'));
+    if ~isempty(hex)
+      S(end+1,:) = hex2rgb(hex(2:end));
+    end
+  end
 
   % Read polygons
   polys = xDoc.getElementsByTagName('polygon');
@@ -43,6 +60,7 @@ function [P,S,C,E] = readSVG(filename)
       S(end+1,:) = hex2rgb(hex(2:end));
     end
   end
+
 
   C = [];
   E = [];
