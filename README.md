@@ -112,7 +112,7 @@ BibTeX entry:
   title = {{gptoolbox}: Geometry Processing Toolbox},
   author = {Alec Jacobson and others},
   note = {http://github.com/alecjacobson/gptoolbox},
-  year = {2015},
+  year = {2016},
 }
 ```
 
