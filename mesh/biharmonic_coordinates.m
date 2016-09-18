@@ -1,4 +1,4 @@
-function [W,A] = biharmonic_coordinates(V,Ele,b)
+function [W,A,K,M,L,N] = biharmonic_coordinates(V,Ele,b)
   % BIHARMONIC_COORDINATES  Compute the linearly precise generalized
   % coordinates as described in "Linear Subspace Design for Real-Time Shape
   % Deformation" [Wang et al. 2015] **not** to be confused with "Bounded
