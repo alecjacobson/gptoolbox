@@ -44,10 +44,10 @@ function C = depends(f,depth)
     while(~isempty(Q))
       p = Q{1};
       Q = Q(2:end);
-      new_deps = cat(1,new_deps,depfun(p,'-toponly','-quiet'));
+      %new_deps = cat(1,new_deps,depfun(p,'-toponly','-quiet'));
       % This is the non-obsolete version but it's 100x slower : - (
-      %new_deps = cat(1,new_deps, ...
-        %matlab.codetools.requiredFilesAndProducts(p,'toponly')');C
+      new_deps = cat(1,new_deps, ...
+        matlab.codetools.requiredFilesAndProducts(p,'toponly')');
     end
     % ignore anything in matlab folder
     new_deps = new_deps(cellfun(@isempty,strfind(new_deps,matlabroot)));
