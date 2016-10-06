@@ -58,6 +58,10 @@ function [N,x0] = affine_null_space(A,b,varargin)
       QQ = Q^-1;
       N = QQ(:,nc+1:end);
     end
+    %big = max(abs(N));
+    %if big > 0
+    %  N = N/big;
+    %end
   case 'qr'
     [Q,R,E] = qr(A');
     % Rank of A

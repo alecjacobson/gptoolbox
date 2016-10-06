@@ -24,6 +24,9 @@ function [Z,E] = lexmin(H,f,varargin)
   %          'fmincon'
   %          'lagrange-multiplier'
   %          {'null-space'}
+  %       'NullSpaceMethod'  when using 'null-space', followed by either
+  %          'qr'  use qr decomposition: better for many, big null spaces
+  %          'luq'  use "luq" decomposition: better for few, small null spaces
   %       'fminconOptions' followed by cell of options to fminconv (only
   %         applicable when using 'Method','fmincon')
   % Outputs:
@@ -60,11 +63,13 @@ function [Z,E] = lexmin(H,f,varargin)
   end
 
   method = 'null-space';
+  null_space_method = 'luq';
   fmincon_options = {};
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Method','fminconOptions'},{'method','fmincon_options'});
+    {'Method','NullSpaceMethod','fminconOptions'}, ...
+    {'method','null_space_method','fmincon_options'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -189,23 +194,22 @@ function [Z,E] = lexmin(H,f,varargin)
       %     x = N*y + z
       fi = N'*(Hi*Z+fi);
       Hi = N'*Hi*N;
-      % Now the energy is: ½ y' Hi y + y' fi
-      % The minimizers of this energy satisfy: Hi y = -fi
-      [Q,R,E] = qr(Hi');
-      % Rank of Hi
-      nc = find(any(R,2),1,'last');
-      % Q = [Q₁,N]
-      Q1 = Q(:,1:nc);
-      % A possibly non-unique solution
-      Y = Q1*(R(1:nc,1:nc)'\(E(:,1:nc)'*(-fi)));
+      [Ni,Y] = affine_null_space(Hi,-fi,'Method',null_space_method);
       % Update feasible solution
       Z = N*Y + Z;
-      if nc == size(Hi,1)
+      if size(Ni,2) == 0
         % Z is full determined, exit loop early
         break;
       end
       % Otherwise, N spans the null space of Hi
-      N = N*Q(:,nc+1:end);
+      N = N*Ni;
+
+      %Z = N*Y + Z;
+      %if size(Ni,2) == 0
+      %  break;
+      %end
+      %N = N*Ni;
+
     end
     % (If i<k then) the feasible solution Z is now the unique solution.
   end
