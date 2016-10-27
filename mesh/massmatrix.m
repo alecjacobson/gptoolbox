@@ -111,7 +111,20 @@ function M = massmatrix(V,F, type)
   
     switch type
     case 'full'
-      error('full not supported yet...')
+      % _Finite Elements for Analysis and Design_,  J. E. Akin, pp 198
+      % Zienkiewicz-4
+      I = [F(:,[2 3 4 3 4 1 4 1 2 1 2 3 1 2 3 4])];
+      J = [F(:,[1 1 1 2 2 2 3 3 3 4 4 4 1 2 3 4])];
+      vol = abs(volume(V,F));
+      VV = [repmat(vol/20,1,3*4) repmat(vol/10,1,4)];
+      M = sparse(I,J,VV,size(V,1),size(V,1));
+      % Uniform mid-face quadrature rules don't seem to be quadratically
+      % precise
+      % I = [F(:,[2 3 4 3 4 1 4 1 2 1 2 3 1 2 3 4])];
+      % J = [F(:,[1 1 1 2 2 2 3 3 3 4 4 4 1 2 3 4])];
+      % vol = abs(volume(V,F));
+      % VV = [repmat(vol/18,1,3*4) repmat(vol/12,1,4)];
+      % M = sparse(I,J,VV,size(V,1),size(V,1));
     case 'barycentric'
       %a = V(F(:,1),:);
       %b = V(F(:,2),:);
