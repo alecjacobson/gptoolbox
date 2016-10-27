@@ -111,8 +111,12 @@ function M = massmatrix(V,F, type)
   
     switch type
     case 'full'
-      % _Finite Elements for Analysis and Design_,  J. E. Akin, pp 198
-      % Zienkiewicz-4
+      % e.g., from _Finite Elements for Analysis and Design_,  J. E. Akin, pp
+      % 198. Or Zienkiewicz-4
+      %
+      % Earliest reference I could find is "Numerical Integration over
+      % Simplexes and Cones", [Hammer et al. 1956]
+      % 
       I = [F(:,[2 3 4 3 4 1 4 1 2 1 2 3 1 2 3 4])];
       J = [F(:,[1 1 1 2 2 2 3 3 3 4 4 4 1 2 3 4])];
       vol = abs(volume(V,F));
