@@ -22,9 +22,12 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   %   E  #E by 2 list of boundary edge indices into V
   %   H  #H by 2 list of hole indicator point positions
   %
-  % Known issues: this does _not_ trace the boundary of pixels but rather
-  % connects the centers of boundary pixels. Therefore it struggles if there
-  % are very thin (1px wide) features/holes. 
+  % Known issues: 
+  %   - this does _not_ trace the boundary of pixels but rather
+  %     connects the centers of boundary pixels. Therefore it struggles if
+  %     there are very thin (1px wide) features/holes. 
+  %   - This will correctly carve out simple holes, but will not find islands
+  %     in holes: e.g. a bull's eye sign.
   %
 
   if ischar(A)
