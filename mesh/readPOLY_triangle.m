@@ -9,6 +9,12 @@ function [V,E,BME] = readPOLY_triangle(filename)
   %   BME  #E by 1 list of boundary markers
   %   H  #H by dim list of holes (not supported)
   %
+  % Example:
+  %   % ... triangle on (V,E)
+  %   [VV,EE,BME] = readPOLY_triangle(...)
+  %   % Triangle does not maintain orders of edges 
+  %   EEdotE = sum((VV(EE(:,1),:)-VV(EE(:,2),:)).*(V(E(BME,1),:)-V(E(BME,2),:)),2);
+  %   EE = bsxfun(@times,(EEdotE>0),EE) + bsxfun(@times,(EEdotE<=0),fliplr(EE));
 
   fp = fopen(filename,'r');
   line = eat_comments(fp,'#');
