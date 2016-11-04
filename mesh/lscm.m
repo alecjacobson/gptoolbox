@@ -93,11 +93,7 @@ function [U] = lscm(V,F,b,bc,Aeq,Beq)
   else
     A = vector_area_matrix(F);
     L = repdiag(cotmatrix(V,F),2);
-    Q = -L + 2*A;
-    % Flip XY
-    P = sparse(1:2*n,[n+(1:n) 1:n],1,2*n,2*n);
-    Q = P'*Q*P;
-    % solve
+    Q = -L - 2*A;
     U = min_quad_with_fixed(Q,zeros(2*n,1),[b b+n],bc(:),Aeq,Beq);
     % reshape into columns
     U = reshape(U,n,2);
