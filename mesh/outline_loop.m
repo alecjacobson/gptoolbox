@@ -52,18 +52,21 @@ function loop = outline_loop(F,varargin)
   [~,IM] = remove_unreferenced((1:max(F(:)))',O);
   O = IM(O);
   RIM = sparse(IM,1,1:max(IM));
-  if max(components(adjacency_matrix(O))) > 1
-      warning('Only first loop will be returned');
-  end
+  loop = graphpred2path(sparse(O(2:end,1),1,O(2:end,2))',O(1,2));
+  %if max(conncomp(adjacency_matrix(O))) > 1
+  %    warning('Only first loop will be returned');
+  %end
 
-  if unoriented
-    A = adjacency_matrix(O(2:end,:));
-    [~, pred] = shortest_paths(A,O(1,2));
-    loop = path_from_pred(pred,O(1,1));
-  else
-    pred = full(sparse(1,O(:,2),O(:,1)));
-    loop = path_from_pred(pred,1);
-  end
+  %if unoriented
+  %  A = adjacency_matrix(O(2:end,:));
+  %  %[~, pred] = shortest_paths(A,O(1,2));
+  %  %loop = path_from_pred(pred,O(1,1));
+  %  [~, loop] = graphshortestpath(A,O(1,2));
+  %  loop
+  %else
+  %  pred = full(sparse(1,O(:,2),O(:,1)));
+  %  loop = path_from_pred(pred,1);
+  %end
 
   loop = RIM(loop);
 end
