@@ -208,14 +208,14 @@ void mexFunction(
     int r = SMS::edge_collapse
              (surface_mesh
              ,stop
-             ,CGAL::visitor      (vis)
+             ,CGAL::parameters::visitor      (vis)
              );
   }else
   {
     int r = SMS::edge_collapse
              (surface_mesh
              ,stop
-             ,CGAL::visitor      (vis)
+             ,CGAL::parameters::visitor      (vis)
              .get_cost     (SMS::Edge_length_cost  <Surface_mesh>())
              .get_placement(SMS::Midpoint_placement<Surface_mesh>())
              );
