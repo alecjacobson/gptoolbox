@@ -138,19 +138,7 @@ function [N,x0] = affine_null_space(A,b,varargin)
     Q1 = Q(:,1:nc);
     % A possibly non-unique solution
     if nargout>=2
-      % A' E = Q R
-      % E' A = R' Q'
-      % E' A x = E' b
-      % E' R' Q' x = E' b
-      %   let y = Q' x
-      %   let x = Q [y1;y2]
-
-      b1 = E(:,1:nc)'*(b);
-      R1 = R(1:nc,1:nc);
-      y1 = R1'\b1;
-      y2 = zeros(size(R,1)-size(y1,1),1);
-      b2 = zeros(size(R,2)-size(b1,1),1);
-      x0 = Q1*(y1);
+      x0 = Q1*(R(1:nc,1:nc)'\(E(:,1:nc)'*(b)));
     end
     N = Q(:,nc+1:end);
   case 'rq'
