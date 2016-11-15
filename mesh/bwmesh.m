@@ -13,7 +13,7 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   %   Optional:
   %     'Tol'  tolerance for Douglas-Peucker algorithm {0}
   %     'TriangleFlags' followed by flags to pass to triangle
-  %       {'-q30a[avg_sqr_length]'}
+  %       {'-q30a[median_sqr_edge_length]'}
   %     'SmoothingIters' followed by smoothing amount {0}
   % Outputs:
   %   W  #W by 2 list of mesh vertices
@@ -95,9 +95,9 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
     % triangulate the polygon
     % get average squared edge length as a guess at the maximum area constraint
     % for the triangulation
-    avg_sqr_edge_length = mean(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2))/2.0;
+    median_sqr_edge_length = median(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2))/2.0;
     quality = 30;
-    triangle_flags = sprintf('-q%da%0.17f',quality,avg_sqr_edge_length);
+    triangle_flags = sprintf('-q%da%0.17f',quality,median_sqr_edge_length);
   end
 
   % Why do I need to do this?
