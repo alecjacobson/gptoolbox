@@ -1,34 +1,37 @@
-function L = fd_laplacian(varargin)
-  % FD_LAPLACIAN  build a finite difference laplacian.
+function L = fd_laplacian(side)
+  % FD_LAPLACIAN  build a finite difference laplacian for a regular grid.
   %
-  % L = fd_laplacian(h,w)
   % L = fd_laplacian([h,w])
+  % L = fd_laplacian([h,w,t])
   % 
   % Inputs:
-  %   h  number of nodes along height 
-  %   w  number of nodes along width
+  %   side  containing number of vertices on each side of grid [x y ...]
   % Outputs:
-  %   L   h*w by h*w Laplacian with negative diagonal.
+  %   L   prod(side) by prod(side) Laplacian with negative diagonal.
   % 
+  % See also: fd_grad
+
   function B = vec(A)
     B = A(:)';
   end
 
-  switch nargin
-  case 1
-    h = varargin{1}(1);
-    w = varargin{1}(2);
+  switch numel(side)
   case 2
-    h = varargin{1};
-    w = varargin{2};
+    h = side(1);
+    w = side(2);
+    I = bsxfun(@plus,h*(0:w-1),(1:h)');
+    L = sparse( ...
+      [vec(I(2:end,:)) vec(I(:,2:end))], ...
+      [vec(I(1:end-1,:)) vec(I(:,1:end-1))], ...
+      1,w*h,w*h);
+  case 3
+    I = sub2ind(side([2 1 3]),1:prod(side))';
+    I = reshape(I,side);
+    L = sparse( ...
+      [vec(I(2:end  ,:,:)) vec(I(:,2:end  ,:)) vec(I(:,:,2:end  ))], ...
+      [vec(I(1:end-1,:,:)) vec(I(:,1:end-1,:)) vec(I(:,:,1:end-1))], ...
+      1,prod(side),prod(side));
   end
-
-  I = bsxfun(@plus,h*(0:w-1),(1:h)');
-
-  L = sparse( ...
-    [vec(I(2:end,:)) vec(I(:,2:end))], ...
-    [vec(I(1:end-1,:)) vec(I(:,1:end-1))], ...
-    1,w*h,w*h);
   L = L + L';
   L = L-diag(sum(L,2));
 end
