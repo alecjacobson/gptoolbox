@@ -39,10 +39,10 @@ function [V,F] = wedding_cake(P,E,h)
     end
 
     %F = [F;size(V,1)-size(prevP,1)+BF];
+    % If on any layer but last, then extrude upward
     if v<=numel(P)
       % wall
-      plot_edges(vP,vE);
-      [vV,vF] = extrude(vP,vE);
+      [vV,vF] = extrude(vP,vE,'Cap',false);
       vV = bsxfun(@times,[1 1 h(v)],vV);
       vV = bsxfun(@plus,[0 0 tot_h],vV);
       tot_h = tot_h + h(v);
@@ -63,7 +63,7 @@ function [V,F] = wedding_cake(P,E,h)
     % Assumes we've already dealt with self-intersections in curves
     assert(size(BV,1) == size(BP,1));
     % absolute value is a little unsafe here
-    w = abs(winding_number(BP,BE,barycenter(BV,BF)));
+    w = winding_number(BP,BE,barycenter(BV,BF));
     % Once inside
     BF = BF(w>0.5 & w<1.5,:);
     % If BV == BP, then this is unnecessary
