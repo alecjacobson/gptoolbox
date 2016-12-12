@@ -23,6 +23,12 @@ function [RV,IM,J] = remove_unreferenced(V,F)
   %   V(find(IM<=size(SV,1)),:) = V
   %
 
+  if isempty(F)
+    RV = zeros(0,size(V,2));
+    IM = (1:size(V,1))';
+    J = zeros(1,0);
+    return;
+  end
   % get list of unique vertex indices that occur in faces
   %U = unique(F(:));
   % Slightly faster unique if we don't have infs or nans
