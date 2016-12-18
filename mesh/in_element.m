@@ -21,6 +21,7 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   %         only**
   %     'First'  only keep first match {false}
   %     'Quiet' suppress warnings {false}
+  %     'Epsilon' epsilon used for determining inclusion {eps}
   % Outputs:
   %   I  #P by #F matrix of bools
   %   B1  #P by #F list of barycentric coordinates
@@ -77,7 +78,7 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
       Pvol = reshape(Pvol,[size(T,1) dim+1 np]);
       % sumvol(p,t) --> sum of volumes of tets made with faces of t and p
       sumvol = permute(sum(Pvol,2),[3 1 2]);
-      I = sparse(abs(bsxfun(@minus,sumvol,vol')) < sqrt(eps));
+      I = sparse(abs(bsxfun(@minus,sumvol,vol')) < sqrt(epsilon));
     case 2
       % triangle side lengths
       l = [ ...
@@ -104,7 +105,7 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
       dblA = doublearea(V,F);
       %% check whether sum is more than true are
       %I = ~bsxfun(@gt,sumA,dblA');
-      I = sparse((bsxfun(@minus,sumA,dblA')) < sqrt(eps));
+      I = sparse((bsxfun(@minus,sumA,dblA')) < sqrt(epsilon));
     end
     %B1 = sparse(B(:,:,1));
     %B2 = sparse(B(:,:,2));
@@ -159,9 +160,10 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   method = 'knn';
   first = false;
   quiet = false;
+  epsilon = eps;
   % Map of parameter names to variable names
-  params_to_variables = containers.Map( {'Method','First','Quiet'}, ...
-    {'method','first','quiet'});
+  params_to_variables = containers.Map( {'Method','First','Quiet','Epsilon'}, ...
+    {'method','first','quiet','epsilon'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -343,7 +345,7 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
             V(F(K(:,ki),3),:), ...
             V(F(K(:,ki),4),:)));
         end
-        found = abs(sum(B,2)-1)<sqrt(eps);
+        found = abs(sum(B,2)-1)<sqrt(epsilon);
         I(sub2ind(size(I),IP,K(:,ki)')) = found;
         % DOESN'T REALLY PAY OFF TO COMPUTE THESE HERE
         %B1(sub2ind(size(I),IP,K(:,ki)')) = found.*B(:,1);
