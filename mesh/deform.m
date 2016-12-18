@@ -165,7 +165,7 @@ classdef deform < handle
     % custom deform function handle
     custom_deform
     % energy for solving arap, default is Sorkine and Alexa
-    arap_energy = 'spokes';
+    arap_energy = 'elements';
     % pose rotations of point handles
     R  
     % pose positions of control vertices
