@@ -30,8 +30,10 @@ classdef deform < handle
   %      handles. Default value is []
   %    'CageEdges' followed by a #CE by 2 list of indices into P specifying 
   %      cage edges for point handles (for display purposes only)
-  %    'InterpMode' could be 'LBS' for Linear Blend Skinning or 'DQLBS' for
-  %      Dual Quaternion Linear Blend Skinning, default is 'LBS'
+  %    'InterpMode' followed by 
+  %       {'LBS'}  for Linear Blend Skinning
+  %       'DQLBS'  for Dual Quaternion Linear Blend Skinning
+  %       'GBC'  for Generalized Barycentric Coordinates
   %    'StretchBones' followed by a set of weights #V by #BE. Use stretchable
   %      bones skinning formula instead of LBS, uses extra set of weights per
   %      bone.
@@ -631,11 +633,10 @@ classdef deform < handle
         case 'InterpMode'
           ii = ii + 1;
           assert(ii<=num_ri);
-          if( strcmp(remaining_inputs{ii},'LBS')) 
-            this.interp_mode = 'LBS';
-          elseif( strcmp(remaining_inputs{ii},'DQLBS')) 
-            this.interp_mode = 'DQLBS';
-          else
+          switch remaining_inputs{ii}
+          case {'LBS','DQLBS','GBC'}
+            this.interp_mode = remaining_inputs{ii};
+          otherwise
             error('InterpMode must be either LBS or DQLBS');
           end
         case 'StretchBones'
@@ -1333,9 +1334,12 @@ classdef deform < handle
       % update mesh positions using skinning, using appropriate method based on
       % interp_mode field
       %
-      if(strcmp(this.interp_mode,'LBS'))
+      switch this.interp_mode
+      case 'GBC'
+        this.new_V = this.W * this.new_C;
+      case 'LBS'
         this = this.lbs_update();
-      elseif(strcmp(this.interp_mode,'DQLBS'))
+      case 'DQLBS'
         % USING DUAL QUATERNION SKINNING
         % number of handles
         m = numel(this.P)+size(this.BE,1);
