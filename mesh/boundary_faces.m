@@ -15,6 +15,10 @@ function [F,J,K] = boundary_faces(T)
 
   ss = size(T,2);
   switch ss
+  case 2
+    % Elements are edges, boundary "facets" are vertices
+    F = find(sparse(T,1,1,max(T(:)),1)==1);
+    assert(nargout<=1);
   case 3
     % Elements are triangles, boundary "facets" are edges
     F = outline(T);
