@@ -287,6 +287,8 @@ classdef deform < handle
     tol = 0.01;
     % use last frame to initialize deformation updates
     use_last_frame = true;
+    % extra column for each mesh vertex position: depth
+    Zdepth
   end
 
 
@@ -302,8 +304,6 @@ classdef deform < handle
     np
     % number of bone handles
     nb
-    % extra column for each mesh vertex position: depth
-    Zdepth
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Handles to plot elements
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
