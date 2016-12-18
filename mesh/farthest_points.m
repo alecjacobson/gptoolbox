@@ -16,6 +16,7 @@ function [P,PI] = farthest_points(V,k,varargin)
   %       {'euclidean'} Euclidean distance
   %       'biharmonic'  biharmonic distance embedding
   %       'geodesic'  fast marching geodesic distance (slow)
+  %     'Seed' followed by #S list of seed indices into 
   % Outputs:
   %   P  k by dim list of farthest points sampled from V
   %   PI  k list of indices so that P = V(PI,:)
@@ -23,13 +24,20 @@ function [P,PI] = farthest_points(V,k,varargin)
   % See also: random_points_on_mesh
   %
 
+  if k == 0
+    P = zeros(0,size(V,2));
+    PI = [];
+    return;
+  end
+
   vis = false;
   distance = 'euclidean';
   F = [];
+  S = [];
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Distance','F','Visualize'},{'distance','F','vis'});
+    {'Distance','F','Seed','Visualize'},{'distance','F','S','vis'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -44,7 +52,8 @@ function [P,PI] = farthest_points(V,k,varargin)
     v=v+1;
   end
 
-  PI = ceil(rand(k,1)*size(V,1));
+  ns = numel(S);
+  PI = [ceil(rand(k,1)*size(V,1));S];
 
   if vis
     scatter3(V(:,1),V(:,2),V(:,3),'.b');
@@ -77,7 +86,7 @@ function [P,PI] = farthest_points(V,k,varargin)
   while true
     change = false;
     %progressbar(iter-1,max_iter-1,30);
-    for pi = 1:numel(PI)
+    for pi = 1:k
       old_PI_pi = PI(pi);
       % other points
       others = PI([1:pi-1 pi+1:end]);
@@ -88,7 +97,7 @@ function [P,PI] = farthest_points(V,k,varargin)
         O = EV(others,:);
         if isempty(I)
           Ipi = true(size(V,1),1);
-          J = [1:pi-1 pi+1:k];
+          J = [1:pi-1 pi+1:k+ns];
         else
           Ipi = I==pi;
           J = setdiff(1:numel(PI),pi);
@@ -130,6 +139,7 @@ function [P,PI] = farthest_points(V,k,varargin)
     end
   end
 
+  PI = PI(1:k,:);
   P = V(PI,:);
 
 end
