@@ -35,7 +35,9 @@ function A = uninterp(V,BC,side)
     % X  x-coordinates of grid (like meshgrid)
     % Y  y-coordinates of grid (like meshgrid)
     [~,x] = histc(Xq,X(1,:));
+    x(x==size(X,2)) = x(x==size(X,2))-1;
     [~,y] = histc(Yq,Y(:,1));
+    y(y==size(Y,1)) = y(y==size(Y,1))-1;
     tx = (Xq-X(1,x)')./(X(1,x+1)'-X(1,x)');
     ty = (Yq-Y(y,1) )./(Y(y+1,1) -Y(y,1) );
     A = sparse( ...
