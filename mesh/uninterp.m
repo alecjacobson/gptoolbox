@@ -58,7 +58,7 @@ function A = uninterp(V,BC,side)
     y(y==size(Y,1)) = y(y==size(Y,1))-1;
     [~,z] = histc(Zq,Z(1,1,:));
     z(z==size(Z,3)) = z(z==size(Z,3))-1;
-    tx = squeeze((permute(Xq,[2 1 3])-X(1,x,1))./(X(1,x+1,1)-X(1,x,1)));
+    tx = squeeze((permute(Xq,[2 1 3])-X(1,x,1))./(X(1,x+1,1)-X(1,x,1)))';
     ty = squeeze((permute(Yq,[1 2 3])-Y(y,1,1))./(Y(y+1,1,1)-Y(y,1,1)));
     tz = squeeze((permute(Zq,[3 2 1])-Z(1,1,z))./(Z(1,1,z+1)-Z(1,1,z)));
     A = sparse( ...
