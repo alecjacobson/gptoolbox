@@ -16,7 +16,7 @@ function [P,PI] = farthest_points(V,k,varargin)
   %       {'euclidean'} Euclidean distance
   %       'biharmonic'  biharmonic distance embedding
   %       'geodesic'  fast marching geodesic distance (slow)
-  %     'Seed' followed by #S list of seed indices into 
+  %     'Repellent' followed by #S list of repellent indices into  V
   % Outputs:
   %   P  k by dim list of farthest points sampled from V
   %   PI  k list of indices so that P = V(PI,:)
@@ -37,7 +37,7 @@ function [P,PI] = farthest_points(V,k,varargin)
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Distance','F','Seed','Visualize'},{'distance','F','S','vis'});
+    {'Distance','F','Repellent','Visualize'},{'distance','F','S','vis'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
