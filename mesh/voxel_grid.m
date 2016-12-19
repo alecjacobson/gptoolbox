@@ -44,9 +44,7 @@ function [BC,side,r] = voxel_grid(V,side,varargin)
 
   dim = size(V,2);
 
-
-
-  assert(side>(pad_count*2+1),'side should  be > 2*pad_count+1');
+  assert(all(side>(pad_count*2+1)),'side should be > 2*pad_count+1');
   side = side-pad_count*2;
   switch numel(side)
   case 3
