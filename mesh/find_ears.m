@@ -9,17 +9,25 @@ function [ears,ear_opp,flops,flop_opp] = find_ears(F)
   %   ears  #ears list of indices into F of ears
   %   ear_opp  #ears list of indices indicating which edge is non-boundary
   %     (connecting to flops)
-  %   flop  #ears list of indices into F of faces incident on ears
+  %   flops  #ears list of indices into F of faces incident on ears
   %   flop_opp  #ears list of indices indicating which edge is non-boundary
   %     (connecting to ears)
   % 
-  % Known bugs: (V,F) mmust be manifold near ears.
+  % Known limitation: (V,F) must be manifold near ears for flops and flop_opp
+  % outputs.
+  %
 
-  % Must be manifold (actually only ears need to be)
-  [Fp, Fi] = tt(F);
-  % Definition: an ear has 2 boundary **edges**
-  ears = find(sum(Fp==-1,2)==2);
-  [flops,ear_opp] = max(Fp(ears,:),[],2);
-  flop_opp = Fi(sub2ind(size(Fp),ears,ear_opp));
+  if nargout<2
+    % Works on non-manifold meshes...
+    ears = find(sum(B,2) == 2);
+    [~,ear_opp] = min(B(ears,:),[],2);
+  else
+    % Must be manifold (actually only ears need to be)
+    [Fp, Fi] = tt(F);
+    % Definition: an ear has 2 boundary **edges**
+    ears = find(sum(Fp==-1,2)==2);
+    [flops,ear_opp] = max(Fp(ears,:),[],2);
+    flop_opp = Fi(sub2ind(size(Fp),ears,ear_opp));
+  else
 end
 
