@@ -69,6 +69,11 @@ function [ps,ix] = dpsimplify(p,tol)
 % Author: Wolfgang Schwanghart, 13. July, 2010.
 % w.schwanghart[at]unibas.ch
 
+% Alec: Perhaps this was written when MATLAB had fewer features. There are many
+% bizarre uses of cells/anonymous functions. Probably the performance could be
+% increased a lot.
+%
+
 
 if nargin == 0
     help dpsimplify
@@ -87,9 +92,13 @@ end
 nrvertices    = size(p,1); 
 dims    = size(p,2);
 
-% anonymous function for starting point and end point comparision
-% using a relative tolerance test
-compare = @(a,b) abs(a-b)/max(abs(a),abs(b)) <= eps;
+% Alec: this is insane. If a and b are both zero (lying on an axis) then this
+% will be NaN.
+%% anonymous function for starting point and end point comparision
+%% using a relative tolerance test
+%compare = @(a,b) abs(a-b)/max(abs(a),abs(b)) <= eps;
+% Alec: Handle a=0 & b=0 case.
+compare = @(a,b) abs(a-b)/max(max(abs(a),abs(b)),eps) <= eps;
 
 % what happens, when there are NaNs?
 % NaNs divide polylines.
@@ -169,6 +178,7 @@ ixe     = size(p,1);
 ixs     = 1;
 
 % logical vector for the vertices to be retained
+% Alec: This is being updated by simplifyrec as a side-effect
 I   = true(ixe,1);
 
 % call recursive function
@@ -187,6 +197,7 @@ function p  = simplifyrec(p,tol,ixs,ixe)
     
     % check if startpoint and endpoint are the same 
     % better comparison needed which included a tolerance eps
+    % Alec: why use cells for this? Are ixs and ixe ever more than length = 1?
     
     c1 = num2cell(p(ixs,:));
     c2 = num2cell(p(ixe,:));   
@@ -222,7 +233,9 @@ function p  = simplifyrec(p,tol,ixs,ixe)
     end
     
     % identify maximum distance and get the linear index of its location
+    d
     [dmax,ixc] = max(d);
+    [ixs ixc+1 ixe]
     ixc  = ixs + ixc; 
     
     % if the maximum distance is smaller than the tolerance remove vertices
