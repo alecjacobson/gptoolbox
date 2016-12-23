@@ -45,5 +45,7 @@ function [C,AF] = planar_patches(V,F,varargin)
   AF(:,except) = 0;
   % get connected components
   [~,C] = conncomp(AF);
+  % Force C to be a column vector
+  C = reshape(C,numel(C),1);
   %tsurf(F,V,'CData',randcycle(C))
 end
