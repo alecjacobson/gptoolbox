@@ -1,11 +1,11 @@
-function [E,RP,RD] = readEDGE(edge_file_name)
+function [E,RP,RD] = readEDGE(filename)
   % READEDGE read .edge file used by Triangle program to output edges of
   % voronoi diagrams
   %
-  % [E,RP,RD] = readedge(edge_file_name)
+  % [E,RP,RD] = readedge(filename)
   % 
   % Input:
-  %   edge_file_name  input file name
+  %   filename  input file name
   %
   % Output:
   %   E  #E by 2 list of voronoi internal edges
@@ -28,7 +28,7 @@ function [E,RP,RD] = readEDGE(edge_file_name)
   % See also readNODE
   %
 
-  edge_file_handle = fopen(edge_file_name);
+  edge_file_handle = fopen(filename);
   header = fscanf(edge_file_handle,'%d %d',2);
   % number of edge lines
   num_e = header(1);

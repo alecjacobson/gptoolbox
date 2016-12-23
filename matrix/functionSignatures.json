@@ -1,0 +1,5 @@
+{ 
+  "readDMAT": {"inputs":[{"name":"filename","type":"filepath=*.dmat"}]},
+  "writeDMAT": {"inputs":[{"name":"filename","type":"filepath=*.dmat"}]},
+  "blank_so_every_line_can_have_a_comma":{}
+}

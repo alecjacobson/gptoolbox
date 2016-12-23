@@ -1,11 +1,11 @@
-function [E,A] = readELE(ele_file_name)
+function [E,A] = readELE(filename)
   % READELE Read (face or tet) elements from a .ele file, used by Stellar and
   % Triangle
   %
-  % [E,A] = readELE(ele_file_name)
+  % [E,A] = readELE(filename)
   % 
   % Input:
-  %   ele_file_name  path to .ele file
+  %   filename  path to .ele file
   %
   % Output:
   %   E  list of element indices, could be triangles or tets based
@@ -17,7 +17,7 @@ function [E,A] = readELE(ele_file_name)
   % See also readNODE
   %
 
-  ele_file_handle = fopen(ele_file_name);
+  ele_file_handle = fopen(filename);
   line = fscanf(ele_file_handle,' %[^\n]s');
   [header,count] = sscanf(line,'%d %d %d',3);
   % number of elements
