@@ -233,9 +233,7 @@ function p  = simplifyrec(p,tol,ixs,ixe)
     end
     
     % identify maximum distance and get the linear index of its location
-    d
     [dmax,ixc] = max(d);
-    [ixs ixc+1 ixe]
     ixc  = ixs + ixc; 
     
     % if the maximum distance is smaller than the tolerance remove vertices
