@@ -17,8 +17,9 @@ function [ears,ear_opp,flops,flop_opp] = find_ears(F)
   % outputs.
   %
 
-  if nargout<2
+  if nargout<=2
     % Works on non-manifold meshes...
+    [~,B] = on_boundary(F);
     ears = find(sum(B,2) == 2);
     [~,ear_opp] = min(B(ears,:),[],2);
   else
@@ -28,6 +29,6 @@ function [ears,ear_opp,flops,flop_opp] = find_ears(F)
     ears = find(sum(Fp==-1,2)==2);
     [flops,ear_opp] = max(Fp(ears,:),[],2);
     flop_opp = Fi(sub2ind(size(Fp),ears,ear_opp));
-  else
+  end
 end
 
