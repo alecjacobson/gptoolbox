@@ -14,7 +14,7 @@ function [N,x0] = affine_null_space(A,b,varargin)
   %        {'qr'}  use QR decomposition of A' (robust, best understood, slowest)
   %        'luq'  use LUQ decomposition 
   %        'rq'  use QR decomposition of A (good when m << n)
-  %        'rrlu'  simplifed version of LUQ
+  %        'rrlu'  simplifed version of LUQ (**broken**)
   % Outputs:
   %   N  n by #N matrix spanning null space, where #N = m - rowrank(A)
   %   x0 n by #b, so that columns are feasible solutions
@@ -38,6 +38,9 @@ function [N,x0] = affine_null_space(A,b,varargin)
       error('Unsupported parameter: %s',varargin{v});
     end
     v=v+1;
+  end
+  if nargin<2 || isempty(b)
+    b = zeros(size(A,1),1);
   end
 
   if isempty(tol)
@@ -81,6 +84,14 @@ function [N,x0] = affine_null_space(A,b,varargin)
     [L,U,P,Q] = lu(sparse(A),tol);
 
     NZ = find((any(abs(U)>tol,2)));
+    % LUQ just checks the diagonal:
+    NZluq = find(abs(diag(U))>tol);
+    if ~isempty(setxor(NZ,NZluq))
+      size(NZ)
+      size(NZluq)
+      warning('Not handling non-zero bottom right corner (use luq)');
+    end
+
     Z = find(~(any(abs(U)>tol,2)));
     R = sparse((1:size(U,1))',[NZ;Z],1);
 
@@ -157,7 +168,7 @@ function [N,x0] = affine_null_space(A,b,varargin)
   N(abs(N) < tol) = 0;
   %assert(max(abs(A*(N*rand(size(N,2),size(b,2)) + x0) - b)) < 1e-10, ...
   %  'Should span solutions to A x = b');
-  if ~(all(abs(A*x0-b)<tol))
+  if nargout>1 && ~(all(abs(A*x0-b)<tol))
     % Should check that constraint right-hand sides are compatible:
     %   [Q,R,E] = qr(A'); 
     %   rank_A = find(any(abs(R)>tol,2),1,'last');
