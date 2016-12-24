@@ -5,8 +5,7 @@ function [N,x0] = affine_null_space(A,b,varargin)
   %     A * (N * y + x0) = b  for any y
   %
   % Inputs:
-  %   A  m by n (sparse) matrix. Note: I'm pretty sure A must be symmetric
-  %      positive semi-definite.
+  %   A  m by n (sparse) matrix. 
   %   b  m by #b right-hand side
   %   Options:
   %     'Tol'  followed by tolerance for determine rank (what's considered zero?)
