@@ -1,4 +1,4 @@
-function [U,data,SS,R] = arap(varargin)
+function [U,data,SS,R] = arap(V,F,b,bc,varargin)
   % ARAP Solve for the as-rigid-as-possible deformation according to various
   % manifestations including:
   %   (1) "As-rigid-as-possible Surface Modeling" by [Sorkine and Alexa 2007]
@@ -79,10 +79,6 @@ function [U,data,SS,R] = arap(varargin)
   %
 
   % parse input
-  V = varargin{1};
-  F = varargin{2};
-  b = varargin{3};
-  bc = varargin{4};
   G = [];
 
   % number of vertices
@@ -117,11 +113,11 @@ function [U,data,SS,R] = arap(varargin)
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'Energy','V0','Data','Tikhonov','Groups','Tol', ...
-     'MaxIter','Dynamic','TimeStep','Vm1','Flat','RemoveRigid','Debug', ...
-     'Aeq','Beq'}, ...
+     'MaxIter','Dynamic','TimeStep','Vm1','RemoveRigid','Debug', ...
+     'Aeq','Beq','Flat'}, ...
     {'energy','U','data','alpha_tik','G','tol','max_iterations','fext', ...
-    'h','Vm1','flat','remove_rigid','debug','Aeq','Beq'});
-  v = 5;
+    'h','Vm1','remove_rigid','debug','Aeq','Beq','flat'});
+  v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
     if isKey(params_to_variables,param_name)
@@ -165,6 +161,7 @@ function [U,data,SS,R] = arap(varargin)
   else
     k = max(data.G);
   end
+
   if flat
     [ref_V,ref_F,ref_map] = plane_project(V,F);
     assert(strcmp(energy,'elements'),'flat only makes sense with elements');
@@ -174,6 +171,7 @@ function [U,data,SS,R] = arap(varargin)
     ref_F = F;
   end
   dim = size(ref_V,2);
+
   if isempty(bc)
     bc = sparse(0,dim);
   end
@@ -264,7 +262,7 @@ function [U,data,SS,R] = arap(varargin)
     end
   end
 
-  all = [interior b];
+  all = [interior(:);b(:)]';
 
   % cholesky factorization
   %cholL = chol(-L(interior,interior),'lower');
@@ -280,8 +278,9 @@ function [U,data,SS,R] = arap(varargin)
   % build covariance scatter matrix used to build covariance matrices we'll
   % later fit rotations to
   if ~isfield(data,'CSM') || isempty(data.CSM)
-    assert(size(ref_V,2) == dim);
-    data.CSM = covariance_scatter_matrix(ref_V,ref_F,'Energy',energy);
+    %assert(size(ref_V,2) == dim);
+    data.CSM = ...
+      covariance_scatter_matrix(ref_V,ref_F,'Energy',energy);
     if flat
       data.CSM = data.CSM * repdiag(ref_map',dim);
     end
@@ -397,7 +396,7 @@ function [U,data,SS,R] = arap(varargin)
       end
     end
     energy_prev = data.energy;
-    data.energy = trace(U'*(-0.5*data.L)*U+U'*(-B)+V'*(-0.5*data.L*V));
+    data.energy = trace(U'*(-0.5*data.L)*U+U'*(-B))+trace(V'*(-0.5*data.L*V));
     if data.energy > energy_prev
       if debug
         fprintf('arap: energy (%g) increasing (over %g)\n', ...
