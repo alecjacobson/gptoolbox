@@ -5,11 +5,7 @@ if verbose
 end
 MSSE42='CXXFLAGS=$CXXFLAGS -msse4.2';
 STDCPP11='CXXFLAGS=$CXXFLAGS -std=c++11';
-if exist('/usr/local/include/eigen3')
-  EIGEN_INC='-I/usr/local/include/eigen3';
-elseif exist('/opt/local/include/eigen3')
-  EIGEN_INC='-I/opt/local/include/eigen3';
-end
+
 ELTOPO_INC= sprintf('-I%s/',path_to_eltopo);
 ELTOPO_LIB= strsplit(sprintf('-L%s/eltopo3d -leltopo_release',path_to_eltopo));
 CLANG={'CXX=/usr/bin/clang++','LD=/usr/bin/clang++'};
@@ -22,6 +18,7 @@ NOOPT_LDOPTIMFLAGS='LDOPTIMFLAGS="-O "';
 % It is optional and more difficult to set up. Set this to true only if you
 % know what you're doing.
 use_libigl_static_library = exist([path_to_libigl '/lib/libigl.a'],'file')~=0;
+%use_libigl_static_library  = false;
 if use_libigl_static_library
   r = -1;
   cmd = sprintf('cd "%s"/lib && /usr/local/bin/cmake ../optional/ -DLIBIGL_USE_STATIC_LIBRARY=ON -DLIBIGL_WITH_ANTTWEAKBAR=ON -DLIBIGL_WITH_BBW=ON -DLIBIGL_WITH_CORK=ON -DLIBIGL_WITH_CGAL=ON -DLIBIGL_WITH_COMISO=ON -DLIBIGL_WITH_EMBREE=ON -DLIBIGL_WITH_LIM=ON -DLIBIGL_WITH_MATLAB=ON -DLIBIGL_WITH_MOSEK=ON -DLIBIGL_WITH_NANOGUI=OFF -DLIBIGL_WITH_OPENGL=ON -DLIBIGL_WITH_PNG=ON -DLIBIGL_WITH_TETGEN=ON -DLIBIGL_WITH_TRIANGLE=ON -DLIBIGL_WITH_VIEWER=ON -DLIBIGL_WITH_XML=ON -DCMAKE_BUILD_TYPE=Release && make -j3',path_to_libigl);
@@ -51,6 +48,14 @@ else
   LIBIGL_LIBCORK='-DIGL_SKIP';
 end
 LIBIGL_BASE={LIBIGL_INC,LIBIGL_FLAGS,LIBIGL_LIB{:},LIBIGL_LIBMATLAB};
+
+if exist(sprintf('%s/external/nanogui/ext/eigen/',path_to_libigl))
+  EIGEN_INC=sprintf('-I%s/external/nanogui/ext/eigen/',path_to_libigl);
+elseif exist('/usr/local/include/eigen3')
+  EIGEN_INC='-I/usr/local/include/eigen3';
+elseif exist('/opt/local/include/eigen3')
+  EIGEN_INC='-I/opt/local/include/eigen3';
+end
 
 EMBREE=[path_to_libigl '/external/embree'];
 EMBREE_INC=strsplit(sprintf('-I%s -I%s/include/',EMBREE,EMBREE));
@@ -111,6 +116,7 @@ prefixes = { ...
   'signed_distance', ...
   'signed_distance_isosurface', ...
   'simplify_polyhedron', ...
+  'slim', ...
   'solid_angle' };
 
 for prefix = prefixes
