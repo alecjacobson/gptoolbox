@@ -15,6 +15,7 @@
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/parse_rhs.h>
 #include <igl/matlab/prepare_lhs.h>
+#include <igl/matlab/validate_arg.h>
 
 void mexFunction(
          int          nlhs,
