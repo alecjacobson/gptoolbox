@@ -13,6 +13,7 @@ function [N,x0] = affine_null_space(A,b,varargin)
   %        {'qr'}  use QR decomposition of A' (robust, best understood, slowest)
   %        'luq'  use LUQ decomposition 
   %        'rq'  use QR decomposition of A (good when m << n)
+  %        'svd'  use SVD decompostion (only use for small/dense matrices)
   %        'rrlu'  simplifed version of LUQ (**broken**)
   % Outputs:
   %   N  n by #N matrix spanning null space, where #N = m - rowrank(A)
@@ -162,6 +163,18 @@ function [N,x0] = affine_null_space(A,b,varargin)
     %assert(nargout <= 1 && 'x0 not supported for rq');
     b1 = Q(:,1:nc)'*b;
     x0 = E*[R1\b1;zeros(size(E,2)-size(R1,1),size(b1,2))];
+  case 'svd'
+    [U,S,V] = svd(full(A));
+    % Carefully extract diagonal of S
+    Sdiag = S(sub2ind(size(S),1:min(size(S)),1:min(size(S))));
+    Z = abs(Sdiag)<tol;
+    N = V(:,setdiff(1:end,find(~Z)));
+    Sdiag(Z) = 0;
+    Sdiag(~Z) = 1./Sdiag(~Z);
+    % Place back into S without changing size of S
+    S(sub2ind(size(S),1:min(size(S)),1:min(size(S)))) = Sdiag;
+    Apinv = V*S'*U';
+    x0 = Apinv * b;
   end
   % Zap anything below tolerance
   N(abs(N) < tol) = 0;
