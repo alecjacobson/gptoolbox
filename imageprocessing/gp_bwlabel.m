@@ -13,7 +13,7 @@ function [L,NUM] = gp_bwlabel(BW,N)
   %
   assert(islogical(BW));
 
-  if ~exist('N','var')
+  if nargin<2
     N = 4;
   end
 

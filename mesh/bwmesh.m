@@ -61,6 +61,9 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   % B contains list of boundary loops then hole loops, N number of outer
   % boundaries (as opposed to hole boundaries)
   [B,~,N] = bwboundaries(A>0.5);
+  % If you don't have the image processing toolbox you can use this (slower)
+  % version:
+  %[B,~,N] = gp_bwboundaries(A>0.5);
 
   V = [];
   E = [];
