@@ -10,6 +10,12 @@ function [ B ] = normrow( A )
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch), Daniele Panozzo
   %
-  B = sqrt(sum(A.^2,2));
+
+  switch size(A,2)
+  case 2
+    B = hypot(A(:,1),A(:,2));
+  otherwise
+    B = sqrt(sum(A.^2,2));
+  end
 end
 
