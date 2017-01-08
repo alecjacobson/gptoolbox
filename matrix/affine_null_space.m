@@ -8,7 +8,8 @@ function [N,x0] = affine_null_space(A,b,varargin)
   %   A  m by n (sparse) matrix. 
   %   b  m by #b right-hand side
   %   Options:
-  %     'Tol'  followed by tolerance for determine rank (what's considered zero?)
+  %     'Tol'  followed by tolerance for determine rank (what's considered
+  %       zero?)
   %     'Method'  followed by either:
   %        {'qr'}  use QR decomposition of A' (robust, best understood, slowest)
   %        'luq'  use LUQ decomposition 
@@ -177,7 +178,10 @@ function [N,x0] = affine_null_space(A,b,varargin)
     x0 = Apinv * b;
   end
   % Zap anything below tolerance
-  N(abs(N) < tol) = 0;
+  %N(abs(N) < tol) = 0
+  [NI,NJ,NV] = find(N);
+  N = sparse(NI,NJ,(NV>tol).*NV,size(N,1),size(N,2));
+  
   %assert(max(abs(A*(N*rand(size(N,2),size(b,2)) + x0) - b)) < 1e-10, ...
   %  'Should span solutions to A x = b');
   if nargout>1 && ~(all(abs(A*x0-b)<tol))
