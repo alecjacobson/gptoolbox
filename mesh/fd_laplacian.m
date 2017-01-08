@@ -5,7 +5,7 @@ function L = fd_laplacian(side)
   % L = fd_laplacian([h,w,t])
   % 
   % Inputs:
-  %   side  containing number of vertices on each side of grid [x y ...]
+  %   dims  number of nodes along height (and width and depth)
   % Outputs:
   %   L   prod(side) by prod(side) Laplacian with negative diagonal.
   % 

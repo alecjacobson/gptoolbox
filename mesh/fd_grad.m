@@ -4,8 +4,10 @@ function [G] = fd_grad(side)
   % grid staggered one half-step in the x-direction but otherwise aligned in
   % the y-direction (and z-direction).
   %
+  % [G] = fd_grad(side)
+  %
   % Inputs:
-  %   side  containing number of vertices on each side of grid [x y z]
+  %   dims  number of nodes along height (and width and depth)
   % Outputs:
   %   G   sum(prod(repmat(side,numel(side),1)-eye(numel(side)),2)) by
   %     prod(side)  gradient matrix [Gx;Gy; ...]
