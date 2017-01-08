@@ -17,16 +17,23 @@ NOOPT_LDOPTIMFLAGS='LDOPTIMFLAGS="-O "';
 % to precompile libigl as a static library. This cuts down on compilation time.
 % It is optional and more difficult to set up. Set this to true only if you
 % know what you're doing.
-use_libigl_static_library = exist([path_to_libigl '/lib/libigl.a'],'file')~=0;
 %use_libigl_static_library  = false;
+use_libigl_static_library = exist([path_to_libigl '/lib/libigl.a'],'file')~=0;
 if use_libigl_static_library
   r = -1;
-  cmd = sprintf('cd "%s"/lib && /usr/local/bin/cmake ../optional/ -DLIBIGL_USE_STATIC_LIBRARY=ON -DLIBIGL_WITH_ANTTWEAKBAR=ON -DLIBIGL_WITH_BBW=ON -DLIBIGL_WITH_CORK=ON -DLIBIGL_WITH_CGAL=ON -DLIBIGL_WITH_COMISO=ON -DLIBIGL_WITH_EMBREE=ON -DLIBIGL_WITH_LIM=ON -DLIBIGL_WITH_MATLAB=ON -DLIBIGL_WITH_MOSEK=ON -DLIBIGL_WITH_NANOGUI=OFF -DLIBIGL_WITH_OPENGL=ON -DLIBIGL_WITH_PNG=ON -DLIBIGL_WITH_TETGEN=ON -DLIBIGL_WITH_TRIANGLE=ON -DLIBIGL_WITH_VIEWER=ON -DLIBIGL_WITH_XML=ON -DCMAKE_BUILD_TYPE=Release && make -j3',path_to_libigl);
+  if strcmp(char(java.lang.System.getProperty('user.name')),'ajx')
+    cmd = sprintf('cd "%s"/lib && /usr/local/bin/cmake ../optional/ -DLIBIGL_USE_STATIC_LIBRARY=ON -DLIBIGL_WITH_ANTTWEAKBAR=ON -DLIBIGL_WITH_BBW=ON -DLIBIGL_WITH_CORK=ON -DLIBIGL_WITH_CGAL=ON -DLIBIGL_WITH_COMISO=ON -DLIBIGL_WITH_EMBREE=ON -DLIBIGL_WITH_LIM=ON -DLIBIGL_WITH_MATLAB=ON -DLIBIGL_WITH_MOSEK=ON -DLIBIGL_WITH_NANOGUI=OFF -DLIBIGL_WITH_OPENGL=ON -DLIBIGL_WITH_PNG=ON -DLIBIGL_WITH_TETGEN=ON -DLIBIGL_WITH_TRIANGLE=ON -DLIBIGL_WITH_VIEWER=ON -DLIBIGL_WITH_XML=ON -DCMAKE_BUILD_TYPE=Release && ../scripts/make.sh -j3',path_to_libigl);
+  else
+    cmd = sprintf('cd "%s"/lib && /usr/local/bin/cmake ../optional/ -DLIBIGL_USE_STATIC_LIBRARY=ON -DLIBIGL_WITH_ANTTWEAKBAR=ON -DLIBIGL_WITH_BBW=ON -DLIBIGL_WITH_CORK=ON -DLIBIGL_WITH_CGAL=ON -DLIBIGL_WITH_COMISO=ON -DLIBIGL_WITH_EMBREE=ON -DLIBIGL_WITH_LIM=ON -DLIBIGL_WITH_MATLAB=ON -DLIBIGL_WITH_MOSEK=ON -DLIBIGL_WITH_NANOGUI=OFF -DLIBIGL_WITH_OPENGL=ON -DLIBIGL_WITH_PNG=ON -DLIBIGL_WITH_TETGEN=ON -DLIBIGL_WITH_TRIANGLE=ON -DLIBIGL_WITH_VIEWER=ON -DLIBIGL_WITH_XML=ON -DCMAKE_BUILD_TYPE=Release && make -j3',path_to_libigl);
+  end
   if verbose
     fprintf('%s\n',cmd);
   end
   [r,c] = system(cmd);
-  use_libigl_static_library = r == 0;
+  if r ~= 0
+    warning('libigl Make error: (c set to command output)');
+    use_libigl_static_library = false;
+  end
 end
 %use_libigl_static_library= false;
 LIBIGL_INC=sprintf('-I%s/include',path_to_libigl);
