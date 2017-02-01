@@ -40,7 +40,7 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   %   caxis([min(H) max(H)]);
   %   axis equal;
   %   for z = linspace(min(V(:,3)),max(V(:,3)))
-  %     [U,G,BC] = slice_tets(V,T,[0 0 1 -z]);
+  %     [U,G,J,BC] = slice_tets(V,T,[0 0 1 -z]);
   %     set(s,'Vertices',U,'Faces',G,'CData',BC*H);
   %     p.ZData = z*[1;1;1;1;1];
   %     drawnow;
