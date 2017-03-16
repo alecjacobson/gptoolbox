@@ -63,7 +63,8 @@ function [N,x0] = affine_null_space(A,b,varargin)
       N = speye(size(A,1),m);
     else
       if nargout>=2
-        x0 = Q\[(U(1:nc,1:nc)\(speye(nc,size(L,1))*(L\b)));zeros(size(Q,1)-nc,1)];
+        y0 = U(1:nc,1:nc)\(speye(nc,size(L,1))*(L\b));
+        x0 = Q\[y0;zeros(size(Q,1)-nc,size(b,2))];
       end
       QQ = Q^-1;
       N = QQ(:,nc+1:end);
@@ -184,7 +185,7 @@ function [N,x0] = affine_null_space(A,b,varargin)
   
   %assert(max(abs(A*(N*rand(size(N,2),size(b,2)) + x0) - b)) < 1e-10, ...
   %  'Should span solutions to A x = b');
-  if nargout>1 && ~(all(abs(A*x0-b)<tol))
+  if nargout>1 && ~(all(all(abs(A*x0-b)<tol)))
     % Should check that constraint right-hand sides are compatible:
     %   [Q,R,E] = qr(A'); 
     %   rank_A = find(any(abs(R)>tol,2),1,'last');
