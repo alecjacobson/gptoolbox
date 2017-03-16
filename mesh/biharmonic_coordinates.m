@@ -25,21 +25,41 @@ function [W,A,K,M,L,N] = biharmonic_coordinates(V,Ele,b)
       'Mesh should not have ears, preprocess Ele with flip_ears');
   end
 
-  L = cotmatrix(V,Ele);
-  [DD,TE] = normal_derivative(V,Ele);
-  AT = sparse( ...
-    TE(:), ...
-    repmat(1:size(TE,1),1,size(TE,2))', ...
-    1,size(V,1),size(TE,1));
-  [~,C] = on_boundary(Ele);
-  DD(~C,:) = 0;
-  N = (0.5*AT*DD);
-  K = L + N;
-  M = massmatrix(V,Ele);
-  A = K' * (M\K);
+  % http://www.cs.toronto.edu/~jacobson/images/error-in-linear-subspace-design-for-real-time-shape-deformation-2017-wang-et-al.pdf
+  use_paper_version = false;
+
+  if use_paper_version
+    L = cotmatrix(V,Ele);
+    [DD,TE] = normal_derivative(V,Ele);
+    AT = sparse( ...
+      TE(:), ...
+      repmat(1:size(TE,1),1,size(TE,2))', ...
+      1,size(V,1),size(TE,1));
+    [~,C] = on_boundary(Ele);
+    DD(~C,:) = 0;
+    N = (0.5*AT*DD);
+    K = L + N;
+    M = massmatrix(V,Ele);
+    A = K' * (M\K);
+  else
+    [Mcr,E,EMAP] = crouzeix_raviart_massmatrix(V,Ele);
+    [Lcr] = crouzeix_raviart_cotmatrix(V,Ele);
+    [~,C] = on_boundary(Ele);
+    % Ad  #E by #V Edge-vertex incidence matrix
+    Ad = sparse(E(:),repmat(1:size(E,1),1,2)',1,size(V,1),size(E,1))';
+    De = diag(sparse(sum(Ad,2)));
+    % Invert mass matrix
+    iMcr = diag(1./diag(Mcr));
+    % kill boundary edges
+    iMcr(EMAP(C),EMAP(C)) = 0;
+    Le = Lcr*(De\Ad);
+    A = Le'*(iMcr*Le);
+  end
+
   if nargin<3 || isempty(b)
     W = [];
   else
-    W = min_quad_with_fixed(A,[],b,eye(numel(b)));
+    bc = eye(numel(b));
+    W = min_quad_with_fixed(A,[],b,bc);
   end
 end
