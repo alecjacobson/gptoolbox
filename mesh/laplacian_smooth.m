@@ -29,11 +29,7 @@ function [U,Uall] = laplacian_smooth(V,F,L_method,b,lambda,method,S,max_iter)
 
 
   if(~exist('L_method','var'))
-    if is_planar(V)
-      L_method = 'uniform';
-    else
-      L_method = 'cotan';
-    end
+    L_method = 'cotan';
   end
 
   if(~exist('lambda','var')) 
