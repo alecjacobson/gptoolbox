@@ -26,6 +26,8 @@ function [f,s] = is_planar(V,epsilon)
     return;
   end
 
+  % This seems to have changed during matlab. For large V this is
+  % infeasible.
   [c,l] = pcacov(V);
 
   s = min(l);
