@@ -84,7 +84,7 @@ function [Kd] = arap_linear_block(varargin)
   end
 
   function K = spokes_linear_block(V,F,d)
-    % Computes a matrix K such that K * R computes
+    % Computes a matrix K such that V'* K * R computes
     %  ∑ wij * 0.5 * (V(i,d)-V(j,d)) * (Ri + Rj)
     % j∈N(i)
     % 
@@ -111,7 +111,7 @@ function [Kd] = arap_linear_block(varargin)
   end
 
   function K = spokes_and_rims_linear_block(V,F,d)
-    % Computes a matrix K such that K * R computes
+    % Computes a matrix K such that V' * K * R computes
     %  ∑    -2*(cot(aij) + cot(bij) * (V(i,d)-V(j,d)) * (Ri + Rj) +
     %       -2*cot(aij) * (V(i,d)-V(j,d)) * Raij +
     %       -2*cot(bij) * (V(i,d)-V(j,d)) * Rbij
@@ -163,7 +163,7 @@ function [Kd] = arap_linear_block(varargin)
   end
 
   function K = elements_linear_block(V,F,d)
-    % Computes a matrix K such that K * R computes
+    % Computes a matrix K such that V' * K * R computes
     %  ∑    -2*cot(aij) * (V(i,d)-V(j,d)) * Raij +
     %       -2*cot(bij) * (V(i,d)-V(j,d)) * Rbij
     % j∈N(i)
