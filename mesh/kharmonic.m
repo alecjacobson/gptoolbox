@@ -60,10 +60,17 @@ function W = kharmonic(V,F,b,bc,k,varargin)
   m = size(bc,2);
 
   % Build discrete laplacian and mass matrices used by all handles' solves
-  L = cotmatrix(V,F);
-  M = massmatrix(V,F);
-  % NORMALIZE MASSMATRIX (THIS IS IMPORTANT!!)
-  M = M./max(abs(diag(M)));
+  if n == 0
+    A = adjacency_matrix(F);
+    L = A-diag(sum(A,2));
+    n = max(F(:));
+    M = speye(n);
+  else
+    L = cotmatrix(V,F);
+    M = massmatrix(V,F);
+    % NORMALIZE MASSMATRIX (THIS IS IMPORTANT!!)
+    M = M./max(abs(diag(M)));
+  end
 
   if condensed
     % build k-laplacian, quadratic coefficients
