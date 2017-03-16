@@ -132,7 +132,8 @@ function [U,Q] = lscm(V,F,b,bc,Aeq,Beq,varargin)
     % refer to the [Desbrun et al. 2002] paper they mean the [Mullen et
     % al. 2008] interpretation: zero chi energy + ""natural"" boundary
     % conditions.
-    lambda = mu = 1;
+    lambda = 1;
+    mu = 1;
     L = cotmatrix(V,F);
     % chi energy
     C = cotangent(V,F);
