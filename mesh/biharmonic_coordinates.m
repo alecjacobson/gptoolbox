@@ -46,10 +46,10 @@ function [W,A,K,M,L,N] = biharmonic_coordinates(V,Ele,b)
     [Lcr] = crouzeix_raviart_cotmatrix(V,Ele);
     [~,C] = on_boundary(Ele);
     % Ad  #E by #V Edge-vertex incidence matrix
-    Ad = sparse(E(:),repmat(1:size(E,1),1,2)',1,size(V,1),size(E,1))';
+    Ad = sparse(E(:),repmat(1:size(E,1),1,size(E,2))',1,size(V,1),size(E,1))';
     De = diag(sparse(sum(Ad,2)));
     % Invert mass matrix
-    iMcr = diag(1./diag(Mcr));
+    iMcr = diag(sparse(1./diag(Mcr)));
     % kill boundary edges
     iMcr(EMAP(C),EMAP(C)) = 0;
     Le = Lcr*(De\Ad);
