@@ -24,7 +24,7 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   % Outputs:
   %   W  side(1) by side(2) by side(3) matrix with W(i,j,k) ~= if location
   %     cell centered at BC(i,j,k) overlaps with the volume of (V,F)
-  %   BC  side(1) by side(2) by side(3) matrix of cell barycenters
+  %   BC  prod(side) by dim matrix of cell barycenters
   %   DV  side(1)+1 by side(2)+1 by side(3)+1 matrix of cell corner locations
   %   Q  #Q by 4 list of quads indexing DV
   %
