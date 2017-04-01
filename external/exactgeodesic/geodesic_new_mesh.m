@@ -8,7 +8,7 @@ if ~libisloaded(geodesic_library)
     elseif ismac
         loadlibrary([geodesic_library '.dylib'], hfile);
     elseif isunix && ~ismac
-      loadlibrary([geodesic_library '.so'], hfile);
+        loadlibrary([geodesic_library '.so'], hfile);
     end
 end
 
