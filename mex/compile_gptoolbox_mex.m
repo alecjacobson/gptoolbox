@@ -40,10 +40,10 @@ LIBIGL_INC=sprintf('-I%s/include',path_to_libigl);
 if use_libigl_static_library
   LIBIGL_FLAGS='-DIGL_STATIC_LIBRARY';
   LIBIGL_LIB=strsplit(sprintf('-L%s/lib -ligl',path_to_libigl));
-  LIBIGL_LIBEMBREE='-liglembree';
-  LIBIGL_LIBMATLAB='-liglmatlab';
-  LIBIGL_LIBCGAL='-liglcgal';
-  LIBIGL_LIBCORK='-liglcork';
+  LIBIGL_LIBEMBREE='-ligl_embree';
+  LIBIGL_LIBMATLAB='-ligl_matlab';
+  LIBIGL_LIBCGAL='-ligl_cgal';
+  LIBIGL_LIBCORK='-ligl_cork';
 else
   % `mex` has a silly requirement that arguments be non-empty, hence the NOOP
   % defines
