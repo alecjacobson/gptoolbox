@@ -1,6 +1,7 @@
 #ifdef MEX
 
 #include <igl/copyleft/cgal/signed_distance_isosurface.h>
+#include <igl/copyleft/offset_surface.h>
 #include <igl/matlab/validate_arg.h>
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -14,6 +15,13 @@
 
 #include <cstring>
 
+enum ContouringMethod
+{
+  CONTOURING_METHOD_MARCHING_CUBES = 0,
+  CONTOURING_METHOD_CGAL = 1,
+  NUM_CONTOURING_METHOD = 2,
+};
+
 void parse_rhs(
   const int nrhs, 
   const mxArray *prhs[], 
@@ -23,7 +31,9 @@ void parse_rhs(
   double & angle_bound,
   double & radius_bound,
   double & distance_bound,
-  igl::SignedDistanceType & type)
+  igl::SignedDistanceType & type,
+  ContouringMethod & contouring_method,
+  int & grid_size)
 {
   using namespace std;
   using namespace igl;
@@ -50,6 +60,8 @@ void parse_rhs(
   radius_bound = 0.02*bbd;
   distance_bound = 0.02*bbd;
   type = SIGNED_DISTANCE_TYPE_DEFAULT;
+  contouring_method = CONTOURING_METHOD_MARCHING_CUBES;
+  grid_size = 40;
 
   {
     int i = 2;
@@ -63,6 +75,11 @@ void parse_rhs(
         validate_arg_double(i,nrhs,prhs,name);
         validate_arg_scalar(i,nrhs,prhs,name);
         level = (double)*mxGetPr(prhs[++i]);
+      }else if(strcmp("GridSize",name) == 0)
+      {
+        validate_arg_double(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        grid_size = (int)*mxGetPr(prhs[++i]);
       }else if(strcmp("AngleBound",name) == 0)
       {
         validate_arg_double(i,nrhs,prhs,name);
@@ -78,6 +95,17 @@ void parse_rhs(
         validate_arg_double(i,nrhs,prhs,name);
         validate_arg_scalar(i,nrhs,prhs,name);
         distance_bound = ((double)*mxGetPr(prhs[++i])) * bbd;
+      }else if(strcmp("ContouringMethod",name) == 0)
+      {
+        validate_arg_char(i,nrhs,prhs,name);
+        const char * contouring_name = mxArrayToString(prhs[++i]);
+        if(strcmp("cgal",contouring_name)==0)
+        {
+          contouring_method = CONTOURING_METHOD_CGAL;
+        }else if(strcmp("marching_cubes",contouring_name)==0)
+        {
+          contouring_method = CONTOURING_METHOD_MARCHING_CUBES;
+        }
       }else if(strcmp("SignedDistanceType",name) == 0)
       {
         validate_arg_char(i,nrhs,prhs,name);
@@ -131,9 +159,29 @@ void mexFunction(
   MatrixXi IF,F;
   double level,angle_bound,radius_bound,distance_bound;
   SignedDistanceType type;
-  parse_rhs(nrhs,prhs,IV,IF,level,angle_bound,radius_bound,distance_bound,type);
-  signed_distance_isosurface(
-    IV,IF,level,angle_bound,radius_bound,distance_bound,type,V,F);
+  ContouringMethod contouring_method;
+  int grid_size;
+  parse_rhs(
+    nrhs,prhs,
+    IV,IF,
+    level,angle_bound,radius_bound,distance_bound,type,
+    contouring_method, grid_size);
+  switch(contouring_method)
+  {
+    default:
+    case CONTOURING_METHOD_MARCHING_CUBES:
+      {
+        Eigen::MatrixXd GV;
+        Eigen::RowVector3i side;
+        Eigen::VectorXd S;
+        igl::copyleft::offset_surface(IV,IF,level,grid_size,type,V,F,GV,side,S);
+      }
+      break;
+    case CONTOURING_METHOD_CGAL:
+      signed_distance_isosurface(
+        IV,IF,level,angle_bound,radius_bound,distance_bound,type,V,F);
+      break;
+  }
   switch(nlhs)
   {
     default:

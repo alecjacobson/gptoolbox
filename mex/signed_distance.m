@@ -18,3 +18,5 @@
 %   C  #P by 3 list of closest points
 %   N  #P by 3 list of closest normals (only set if
 %   
+% Example:
+%   

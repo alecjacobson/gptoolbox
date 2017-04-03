@@ -22,6 +22,10 @@
 %       'pseudonormal'  use pseudo-normal, binary value (but not robust for
 %         non-watertight meshes.
 %       'unsigned' use unsigned distance (all distances are positive).
+%     'ContouringMethod' followed by
+%       'cgal'  use cgal's adaptive method
+%       'marching_cubes'  use basic grid + marching cubes
+%     'GridSize' followed by grid size {40}
 % Outputs:
 %   V  #V by 3 list of output mesh positions
 %   F  #F by 3 list of output triangle indices into V
