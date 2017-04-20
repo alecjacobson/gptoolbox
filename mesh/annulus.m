@@ -1,4 +1,4 @@
-function [V,F] = annulus(s,r,varargin)
+function [V,F,bi,bo] = annulus(s,r,varargin)
   % ANNULUS Construct a triangle mesh of a unit annulus.
   % 
   % [V,F] = annulus(s,r)
@@ -14,6 +14,8 @@ function [V,F] = annulus(s,r,varargin)
   % Outputs:
   %   V  #V by 2 list of mesh vertex positions
   %   F  #F by 3 list of triangle mesh indices
+  %   bi  list of vertices on inner boundary
+  %   bo  list of vertices on outer boundary
   %   
 
   flags = nan;
@@ -45,4 +47,7 @@ function [V,F] = annulus(s,r,varargin)
   ER = [1:size(VR,1);2:size(VR,1) 1]';
 
   [V,F] = triangle([Vr;VR],[Er;size(Vr,1)+ER],[0 0],'Flags',flags);
+  b = unique(outline(F));
+  bi = intersect(find(normrow(V)< 0.5*(R+r)),b);
+  bo = intersect(find(normrow(V)> 0.5*(R+r)),b);
 end
