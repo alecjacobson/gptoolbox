@@ -209,6 +209,8 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
               break;
             end
             t = t([1 3:end]);
+            tf = tf([1 3:end]);
+            nf = nf([1 3:end]);
             %VtA = VtA([1 3:end],:);
             if numel(t) < 3
               break;
