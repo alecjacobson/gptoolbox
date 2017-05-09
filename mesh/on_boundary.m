@@ -14,7 +14,11 @@ function [I,C] = on_boundary(F)
   case 3
     E = [F(:,2) F(:,3); F(:,3) F(:,1); F(:,1) F(:,2)];
     [sortedE] = sort(E,2);
-    [u,m,n] = unique(sortedE,'rows');
+    if min(sortedE(:))>0 
+      [~,~,n] = unique(sortedE(:,1)+(max(sortedE(:,1)))*sortedE(:,2));
+    else
+      [~,~,n] = unique(sortedE,'rows');
+    end
     counts = accumarray(n(:), 1);
     C = counts(n);
     C = reshape(C,size(F));

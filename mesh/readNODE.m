@@ -1,11 +1,11 @@
-function [V,I] = readNODE(node_file_name)
+function [V,I] = readNODE(filename)
   % READNODE Read vertex positions from .node file, .node files are used by
   % Stellar and Triangle
   %
-  % V = readNODE(node_file_name)
+  % V = readNODE(filename)
   %
   % Input:
-  %  node_file_name  path to .node file
+  %  filename  path to .node file
   %
   % Output:
   %  V  list of vertex positions
@@ -16,7 +16,7 @@ function [V,I] = readNODE(node_file_name)
   % See also: readELE
   %
 
-  node_file_handle = fopen(node_file_name);
+  node_file_handle = fopen(filename);
   % read header which contains number of vertices, number of dimensions, number
   % of attributes, and number of boundary markers
   header = fscanf(node_file_handle,'%d %d %d %d',4);

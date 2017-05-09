@@ -160,8 +160,9 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
       % nearly symmetric but not perfectly
       F.Auu_sym = true;
     else
+      
       % Either Auu is empty or sym_measure should be perfect
-      assert(isempty(sym_measure) || sym_measure == 0,'not symmetric');
+      assert(isempty(sym_measure) || sym_measure == 0 || max(max(abs(Auu))) == 0,'not symmetric');
       % Perfectly symmetric
       F.Auu_sym = true;
     end
@@ -196,7 +197,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     A_sparse = issparse(A);
 
     % Determine number of linearly independent constraints
-    if neq > 0 && ~(isfield(F,'force_Aeq_li') && ~isempty(F.force_Aeq_li)&& F.force_Aeq_li)
+    if neq > 1 && ~(isfield(F,'force_Aeq_li') && ~isempty(F.force_Aeq_li)&& F.force_Aeq_li)
       %tic;
       % Null space substitution with QR
       [AeqTQ,AeqTR,AeqTE] = qr(Aeq(:,F.unknown)');

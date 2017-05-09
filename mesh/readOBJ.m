@@ -13,9 +13,9 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
   % Outputs:
   %  V  #V by 3 list of vertices
   %  F  #F by 3 list of triangle indices
-  %  UV  #V by 2 list of texture coordinates
+  %  UV  #UV by 2 list of texture coordinates
   %  TF  #F by 3 list of triangle texture coordinates
-  %  N  #V by 3 list of normals
+  %  N  #N by 3 list of normals
   %  NF  #F by 3 list of triangle corner normal indices into N
   %
   % Examples:
@@ -209,6 +209,8 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
               break;
             end
             t = t([1 3:end]);
+            tf = tf([1 3:end]);
+            nf = nf([1 3:end]);
             %VtA = VtA([1 3:end],:);
             if numel(t) < 3
               break;

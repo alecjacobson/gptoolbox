@@ -6,7 +6,10 @@
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/parse_rhs.h>
 #include <igl/matlab/prepare_lhs.h>
+#include <igl/matlab/validate_arg.h>
 #include <igl/point_mesh_squared_distance.h>
+#include <igl/C_STR.h>
+#include <igl/copyleft/cgal/point_mesh_squared_distance.h>
 
 #include <iostream>
 #include <string>
@@ -27,6 +30,12 @@ void mexFunction(int nlhs, mxArray *plhs[],
   VectorXi I;
   VectorXd sqrD;
   MatrixXi F;
+  enum PointMeshSquaredDistanceMethod
+  {
+    POINT_MESH_SQUARED_DISTANCE_METHOD_LIBIGL = 0,
+    POINT_MESH_SQUARED_DISTANCE_METHOD_CGAL = 1,
+    NUM_POINT_MESH_SQUARED_DISTANCE_METHODS = 2
+  } method = POINT_MESH_SQUARED_DISTANCE_METHOD_LIBIGL;
   if(nrhs < 3)
   {
     mexErrMsgTxt("nrhs < 3");
@@ -39,7 +48,49 @@ void mexFunction(int nlhs, mxArray *plhs[],
   mexErrMsgTxt(V.cols()==P.cols(),"dim(V) must be dim(P)");
   mexErrMsgTxt(F.cols()==3 || F.cols()==2 || F.cols()==1,"F must be #F by (3|2|1)");
 
-  point_mesh_squared_distance(P,V,F,sqrD,I,C);
+  {
+    int i = 3;
+    while(i<nrhs)
+    {
+      mexErrMsgTxt(mxIsChar(prhs[i]),"Parameter names should be strings");
+      // Cast to char
+      const char * name = mxArrayToString(prhs[i]);
+      if(strcmp("Method",name) == 0)
+      {
+        validate_arg_char(i,nrhs,prhs,name);
+        const char * type_name = mxArrayToString(prhs[++i]);
+        if(strcmp("libigl",type_name)==0)
+        {
+          method = POINT_MESH_SQUARED_DISTANCE_METHOD_LIBIGL;
+        }else if(strcmp("cgal",type_name)==0)
+        {
+          method = POINT_MESH_SQUARED_DISTANCE_METHOD_CGAL;
+          mexErrMsgTxt(F.cols() == 3, "'cgal' method only works for triangles");
+        }else
+        {
+          mexErrMsgTxt(false,C_STR("Unknown method: "<<method));
+        }
+      }else
+      {
+        mexErrMsgTxt(false,C_STR("Unknown parameter: "<<name));
+      }
+      i++;
+    }
+  }
+
+  switch(method)
+  {
+    case POINT_MESH_SQUARED_DISTANCE_METHOD_LIBIGL:
+      igl::point_mesh_squared_distance(P,V,F,sqrD,I,C);
+      break;
+    case POINT_MESH_SQUARED_DISTANCE_METHOD_CGAL:
+      igl::copyleft::cgal::point_mesh_squared_distance<CGAL::Epeck>(P,V,F,sqrD,I,C);
+      break;
+    default:
+      mexErrMsgTxt(false,"Unkown method.");
+      break;
+  }
+
   // Prepare left-hand side
   switch(nlhs)
   {

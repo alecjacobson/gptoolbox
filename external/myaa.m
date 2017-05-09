@@ -120,7 +120,7 @@ screen_DPI = get(0,'ScreenPixelsPerInch');
 % If IPPL is available, imfilter is much faster. Otherwise it does not 
 % matter too much.
 try
-    if ippl()
+    if exists('imfilter','func')
         myconv = @imfilter;
     else
         myconv = @conv2;
@@ -133,7 +133,7 @@ end
 if isempty(varargin)
     self.K = [4 4];
     try
-        imfilter(zeros(2,2),zeros(2,2));
+        imresize(zeros(2,2),1);
         self.aamethod = 'imresize';
     catch
         self.aamethod = 'standard';
@@ -166,7 +166,7 @@ elseif length(varargin) == 1
         error('To avoid excessive use of memory, K has been limited to max 16. Change the code to fix this on your own risk.');
     end
     try
-        imfilter(zeros(2,2),zeros(2,2));
+        imresize(zeros(2,2),1);
         self.aamethod = 'imresize';
     catch
         self.aamethod = 'standard';

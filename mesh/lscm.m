@@ -1,4 +1,4 @@
-function [U] = lscm(V,F,b,bc,Aeq,Beq)
+function [U,Q] = lscm(V,F,b,bc,Aeq,Beq,varargin)
   % LSCM Compute Least Squares Conformal Mapping for mesh
   %
   % U = lscm(V,F,b,bc)
@@ -9,16 +9,45 @@ function [U] = lscm(V,F,b,bc,Aeq,Beq)
   %   F  #F by 3 list of triangle indices into V
   %   b  #b list of indices of constraint (boundary) vertices
   %   bc  #b by 2 list of constraint positions for b
+  %   Aeq   #Aeq by 2*#V matrix of linear equality constraints {[]}
+  %   Beq   #Aeq vector of linear equality constraint right-hand sides {[]}
   %   Optional:
-  %     Aeq   #Aeq by 2*#V matrix of linear equality constraints {[]}
-  %     Beq   #Aeq vector of linear equality constraint right-hand sides {[]}
+  %     'Method' followed by one of the following:
+  %        'desbrun'  "Intrinsic Parameterizations of Surface Meshes" [Desbrun
+  %          et al. 2002]
+  %        'levy'  "Least Squares Conformal Maps for Automatic Texture Atlas
+  %          Generation" [Lévy et al. 2002]
+  %        {'mullen'}  "Spectral Conformal Parameterization" [Mullen et al. 2008]
   % Outputs:
   %   U  #V by 2 list of new positions
+  %   Q  #V*2 by #*2  quadratic coefficients matrix
   %
   % Note: This is the same system as takeo_asap up to a factor of 2.5
   %
   % See also: arap, takeo_arap, takeo_asap
   %
+
+
+  method = 'mullen';
+  % default values
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Method'}, ...
+    {'method'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
 
   if nargin<=4
     Aeq = [];
@@ -32,8 +61,8 @@ function [U] = lscm(V,F,b,bc,Aeq,Beq)
   % number of original dimensions
   dim = size(V,2);
 
-  legacy = false;
-  if legacy
+  switch method
+  case 'levy'
     % first need to convert each triangle to its orthonormal basis, if coming
     % from 3D
     assert(dim == 2);
@@ -90,16 +119,33 @@ function [U] = lscm(V,F,b,bc,Aeq,Beq)
     U = min_quad_with_fixed(Q,zeros(2*n,1),[b b+n],bc(:));
     % reshape into columns
     U = reshape(U,n,2);
-  else
+  case 'mullen'
     A = vector_area_matrix(F);
     L = repdiag(cotmatrix(V,F),2);
-    Q = -L + 2*A;
-    % Flip XY
-    P = sparse(1:2*n,[n+(1:n) 1:n],1,2*n,2*n);
-    Q = P'*Q*P;
-    % solve
+    Q = -L - 2*A;
     U = min_quad_with_fixed(Q,zeros(2*n,1),[b b+n],bc(:),Aeq,Beq);
     % reshape into columns
     U = reshape(U,n,2);
+  case 'desbrun'
+    error('not implemented.');
+    % This implements the Dirichlet + Chi energies but usually when people
+    % refer to the [Desbrun et al. 2002] paper they mean the [Mullen et
+    % al. 2008] interpretation: zero chi energy + ""natural"" boundary
+    % conditions.
+    lambda = 1;
+    mu = 1;
+    L = cotmatrix(V,F);
+    % chi energy
+    C = cotangent(V,F);
+    l = edge_lengths(V,F);
+    X = sparse( ...
+      F(:,[1 2 3 1 2 3]), ...
+      F(:,[2 3 1 3 1 2]), ...
+      C(:,[2 3 1 3 1 2])./ ...
+      l(:,[3 1 2 2 3 1]), ...
+      size(V,1),size(V,1));
+    Q = repdiag(lambda*L+mu*X,2);
+  otherwise
+    error('unsupported method: %s',method);
   end
 end

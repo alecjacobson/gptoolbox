@@ -77,7 +77,7 @@ function [SV,SF,J,DT] = linear_sweep(V,F,sweep,varargin)
     % Classify interior elements with winding number
     w = winding_number(WV,WE,barycenter(TV,TF));
     % Extract boundary of w~=0 part
-    SE = outline(TF(round(w)~=0,:));
+    SE = fliplr(outline(TF(round(w)~=0,:)));
     [SV,IM] = remove_unreferenced(TV,SE);
     SE = IM(SE);
     % output names

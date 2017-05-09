@@ -1,11 +1,11 @@
-function writePOLY_tetgen(poly_file_name,V,F,H,varargin)
+function writePOLY_tetgen(filename,V,F,H,varargin)
   % WRITEPOLY_TETGEN prints vertices and planar facets to a .poly file for
   % tetgen
   %
-  % writePOLY_tetgen(poly_file_name,V,F,H)
+  % writePOLY_tetgen(filename,V,F,H)
   %
   % Input
-  %   poly_file_name:  name of output file as string (caution! will clobber
+  %   filename:  name of output file as string (caution! will clobber
   %                    existing)
   %   V  #V by dim list of vertex positions
   %   F  #F struct containing polygon information arrays
@@ -60,7 +60,7 @@ function writePOLY_tetgen(poly_file_name,V,F,H,varargin)
   end
 
   % open file for writing
-  poly_file_handle = fopen(poly_file_name,'w');
+  poly_file_handle = fopen(filename,'w');
 
   % dimensions in V, should be 3
   dim = size(V,2);

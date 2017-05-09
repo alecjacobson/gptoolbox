@@ -1,4 +1,4 @@
-function [U,FF] = split_edges(V,F,E)
+function [U,FF,J] = split_edges(V,F,E,varargin)
   % SPLIT_EDGES Split given edges E in their barycenters within a mesh (V,F)
   %
   % Inputs:
@@ -8,6 +8,7 @@ function [U,FF] = split_edges(V,F,E)
   % Outputs:
   %   U  #V+#E by dim list of new mesh vertices
   %   FF #FF by 3 list of new mesh face corners into U
+  %   J  #FF list of birth faces
   %
   % Known bugs: this has not been tested for non-manifold edges in E, though it
   % should probably work.
@@ -55,6 +56,7 @@ function [U,FF] = split_edges(V,F,E)
   end
 
   FF = F;
+  J = (1:size(F,1))';
 
   iter = 1;
   while ~isempty(E)
@@ -62,7 +64,7 @@ function [U,FF] = split_edges(V,F,E)
     % "perfect matching")
     % Should be done in reduced graph of just vertices incident on E
     ne = size(E,1);
-    C = components(adjacency_matrix(E));
+    [~,C] = conncomp(adjacency_matrix(E));
     C = C(E(:,1));
     % Use reverse order so we can take max
     E2C = sparse(1:ne,C,ne-(1:ne)+1,ne,max(C));
@@ -109,6 +111,7 @@ function [U,FF] = split_edges(V,F,E)
     FF = [FF; ...
       FF(f_right,:); ...
       FF(f_left,:)];
+    J = [J;f_right;f_left];
     nf = size(FF,1);
     FF(sub2ind([nf 3],f_right,mod(f_right_c+1,3)+1)) = nv+(1:size(EE,1));
     FF(sub2ind([nf 3],f_left,mod(f_left_c+1,3)+1)) = nv+(1:size(EE,1));

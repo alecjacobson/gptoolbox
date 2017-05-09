@@ -45,7 +45,7 @@ function NV = uniformly_sample(V,un,varargin)
     un = 100;
   end
 
-  NV = zeros(un,2);
+  NV = zeros(un,size(V,2));
   v = 1;
   lv = 0;
   % TODO: There should be a vectorized way of doing this with cumsum

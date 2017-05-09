@@ -134,6 +134,9 @@ function [VV,FF,FO] = upsample(V,F,varargin)
     end
     v=v+1;
   end 
+  if isempty(sel)
+    sel = (1:size(F,1))';
+  end
 
   if iters<1
     FF = F;
@@ -151,9 +154,6 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   % http://mathoverflow.net/questions/28615/tetrahedron-splitting-subdivision
   case 3
     % Add a new vertex at the midpoint of each edge
-    if isempty(sel)
-      sel = (1:size(F,1))';
-    end
     nsel = setdiff((1:size(F,1))',sel);
 
     Fsel = F(sel,:);
@@ -202,7 +202,7 @@ function [VV,FF,FO] = upsample(V,F,varargin)
     % reindex faces
     FF = J(FF);
   case 2
-    if isempty(sel)
+    if numel(sel)==size(F,1)
       m = [ (V(F(:,1),:) + V(F(:,2),:))/2 ];
       % indices of new midpoint vertices
       im = size(V,1) + (1:size(m,1))';

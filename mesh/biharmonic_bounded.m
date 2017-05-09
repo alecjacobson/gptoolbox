@@ -235,7 +235,7 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
     W = zeros(n,m);
     tic;
     if strcmp(opt_type,'active-set')
-      if isempty(W0)
+      if ~exist('W0') || isempty(W0)
         fprintf('Initial guess for active set...\n');
         W = min_quad_with_fixed(Q,[],b,bc);
         fprintf('Lap time: %gs\n',toc);

@@ -13,7 +13,7 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   %   Optional:
   %     'Tol'  tolerance for Douglas-Peucker algorithm {0}
   %     'TriangleFlags' followed by flags to pass to triangle
-  %       {'-q30a[avg_sqr_length]'}
+  %       {'-q30a[median_sqr_edge_length]'}
   %     'SmoothingIters' followed by smoothing amount {0}
   % Outputs:
   %   W  #W by 2 list of mesh vertices
@@ -22,9 +22,12 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   %   E  #E by 2 list of boundary edge indices into V
   %   H  #H by 2 list of hole indicator point positions
   %
-  % Known issues: this does _not_ trace the boundary of pixels but rather
-  % connects the centers of boundary pixels. Therefore it struggles if there
-  % are very thin (1px wide) features/holes. 
+  % Known issues: 
+  %   - this does _not_ trace the boundary of pixels but rather
+  %     connects the centers of boundary pixels. Therefore it struggles if
+  %     there are very thin (1px wide) features/holes. 
+  %   - This will correctly carve out simple holes, but will not find islands
+  %     in holes: e.g. a bull's eye sign.
   %
 
   if ischar(A)
@@ -58,6 +61,9 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   % B contains list of boundary loops then hole loops, N number of outer
   % boundaries (as opposed to hole boundaries)
   [B,~,N] = bwboundaries(A>0.5);
+  % If you don't have the image processing toolbox you can use this (slower)
+  % version:
+  %[B,~,N] = gp_bwboundaries(A>0.5);
 
   V = [];
   E = [];
@@ -92,9 +98,9 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
     % triangulate the polygon
     % get average squared edge length as a guess at the maximum area constraint
     % for the triangulation
-    avg_sqr_edge_length = mean(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2))/2.0;
+    median_sqr_edge_length = median(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2))/2.0;
     quality = 30;
-    triangle_flags = sprintf('-q%da%0.17f',quality,avg_sqr_edge_length);
+    triangle_flags = sprintf('-q%da%0.17f',quality,median_sqr_edge_length);
   end
 
   % Why do I need to do this?

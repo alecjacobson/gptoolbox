@@ -50,6 +50,12 @@ function [FF,I,l] = flip_edges(F,E,varargin)
   % number of vertices
   nv = max(F(:));
   nf = size(F,1);
+  FF = F;
+  I = 1:numel(F);
+  l = [];
+  if isempty(E)
+    return;
+  end
   assert(max(E(:))<=nv,'Edges exceed vertices in faces');
 
   % Direct adjacency matrix
@@ -69,24 +75,10 @@ function [FF,I,l] = flip_edges(F,E,varargin)
     E = E(~NM,:);
   end
 
-  FF = F;
-  I = 1:numel(F);
 
   iter = 1;
   while ~isempty(E)
-    % Find one edge per connected component of edges (ideally we would find a
-    % "perfect matching")
-    % Should be done in reduced graph of just vertices incident on E
-    ne = size(E,1);
-    C = connected_components(E);
-    C = C(E(:,1));
-    % Use reverse order so we can take max
-    E2C = sparse(1:ne,C,ne-(1:ne)+1,ne,max(C));
-    mI = max(E2C,[],1);
-    mI = mI(mI>0);
-    % reverse
-    mI = ne - mI + 1;
-    EE = E(mI,:);
+    [EE,mI] = conservative_edge_matching(E);
 
     if ~isempty(V)
       tsurf(FF,V,'FaceColor','r');

@@ -58,16 +58,7 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
   % planar pataches. They would include the patch boundaries and any other
   % internal non-manifold edges.
   NME = nonmanifold_edges(F);
-
-  A = adjacency_dihedral_angle_matrix(V,F);
-  % Adjacency matrix of nearly coplanar neighbors
-  UA = pi*(A~=0)-abs(pi*(A~=0)-A);
-  AF = UA>=min_delta_angle;
-  AF(except,:) = 0;
-  AF(:,except) = 0;
-  % get connected components
-  [~,C] = conncomp(AF);
-  %tsurf(F,V,'CData',randcycle(C))
+  C = planar_patches(V,F,'MinDeltaAngle',min_delta_angle,'Except',except);
 
   [UC,~,ic] = unique(C);
   ucounts = histc(C,UC);

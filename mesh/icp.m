@@ -92,7 +92,7 @@ function [R,t,BRt,e,KDTA,KDTB] = icp(A,B,varargin)
     if ~isinf(max_samples)
       IA = randperm(size(A,1));
       IA = IA(1:max_samples);
-      IB = randperm(size(A,1));
+      IB = randperm(size(B,1));
       IB = IB(1:max_samples);
     end
 

@@ -29,7 +29,7 @@ function [im_out,alpha_out] = texture_map(V,F,TC,im_in,alpha_in)
 
   path_to_TexMapPreview = ...
     '/usr/local/igl/igl_apps/TexMapPreview/TexMapPreview';
-  path_to_convert = '/opt/local/bin/convert';
+  path_to_convert = '/usr/local/bin/convert';
   %path_to_TexMapPreviewConvert = ...
   %  '/usr/local/igl/igl_apps/TexMapPreview/TexMapPreviewConvert.sh';
 

@@ -1,8 +1,8 @@
-function writePOLY_pyramid(poly_file_name,V,E,F,H)
+function writePOLY_pyramid(filename,V,E,F,H)
   % WRITEPOLY_PYRAMID prints vertices, segments and facets to a .poly suitable
   % for use with PYRAMID
   %
-  % writePOLY_pyramid(poly_file_name,V,E,F,H)
+  % writePOLY_pyramid(filename,V,E,F,H)
   %
   % Inputs:
   %   V  #V by dim=3 list of vertex positions
@@ -35,7 +35,7 @@ function writePOLY_pyramid(poly_file_name,V,E,F,H)
   %
 
   % open file for writing
-  poly_file_handle = fopen(poly_file_name,'w');
+  poly_file_handle = fopen(filename,'w');
 
   dim = size(V,2);
 

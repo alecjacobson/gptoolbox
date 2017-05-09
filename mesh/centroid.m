@@ -34,6 +34,7 @@ function [C,vol] = centroid(V,F,varargin)
   end
 
   if robust
+    assert(size(V,2) == 3,'Only 3d supported');
     [TV,TT] = cdt(V,F);
     BC = barycenter(TV,TT);
     w = winding_number(V,F,barycenter(TV,TT))/(4*pi);
@@ -45,17 +46,27 @@ function [C,vol] = centroid(V,F,varargin)
   else
     % "Calculating the volume and centroid of a polyhedron in 3d" [Nuernberg 2013]
     % http://www2.imperial.ac.uk/~rn/centroid.pdf
-
-    % Rename corners
-    A = V(F(:,1),:);
-    B = V(F(:,2),:);
-    C = V(F(:,3),:);
-    % Needs to be **unnormalized** normals
-    N = cross(B-A,C-A,2);
-    % total volume via divergence theorem: ∫ 1
-    vol = sum(sum(A.*N))/6;
-    % centroid via divergence theorem and midpoint quadrature: ∫ x
-    C = 1/(2*vol)*(1/24* sum(N.*((A+B).^2 + (B+C).^2 + (C+A).^2)));
+    switch size(V,2)
+    case 2
+      % https://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
+      % Rename corners
+      A = V(F(:,1),:);
+      B = V(F(:,2),:);
+      D = A(:,1).*B(:,2) - B(:,1).*A(:,2);
+      vol = 0.5*sum(D);
+      C = (1/(6*vol)).*sum((A+B).*D);
+    case 3
+      % Rename corners
+      A = V(F(:,1),:);
+      B = V(F(:,2),:);
+      C = V(F(:,3),:);
+      % Needs to be **unnormalized** normals
+      N = cross(B-A,C-A,2);
+      % total volume via divergence theorem: ∫ 1
+      vol = sum(sum(A.*N))/6;
+      % centroid via divergence theorem and midpoint quadrature: ∫ x
+      C = 1/(2*vol)*(1/24* sum(N.*((A+B).^2 + (B+C).^2 + (C+A).^2)));
+    end
   end
 
 end

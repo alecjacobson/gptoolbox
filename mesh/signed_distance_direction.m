@@ -25,8 +25,7 @@ function [D,S,C] = signed_distance_direction(P,V,F)
     [~,J] = min(sqrD,[],2);
     T = T(sub2ind(size(T),1:size(P,1),J'))';
     C = V(E(J,1),:) + bsxfun(@times,T,(V(E(J,2),:)-V(E(J,1),:)));
-    % sign: bug in winding number...
-    s = -2*(-winding_number(V,E,P))+1;
+    s = -2*(winding_number(V,E,P))+1;
     vec = C-P;
     % signed distance direction
     D = bsxfun(@times,s,normalizerow(vec));

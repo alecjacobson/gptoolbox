@@ -2,11 +2,11 @@ function writePOLY_triangle(varargin)
   % WRITEPOLY_TRIANGLE prints a vertices to a .poly file, with E connecting
   % those vertices OR triangels made from F. Suitable for use with TRIANGLE
   %
-  % writePOLY_triangle(poly_file_name,poly_struct)
-  % writePOLY_triangle(poly_file_name,V,E,H)
+  % writePOLY_triangle(filename,poly_struct)
+  % writePOLY_triangle(filename,V,E,H)
   %
   % Input
-  %   poly_file_name:  name of output file as string (caution! will clobber
+  %   filename:  name of output file as string (caution! will clobber
   %                    existing)
   %   poly:      struct array where each element contains fields:
   %                    x,y,hole
@@ -30,19 +30,19 @@ function writePOLY_triangle(varargin)
   %
 
   if(nargin == 4)
-    poly_file_name = varargin{1};
+    filename = varargin{1};
     V = varargin{2};
     E = varargin{3};
     H = varargin{4};
   elseif(nargin == 2)
-    poly_file_name = varargin{1};
+    filename = varargin{1};
     poly = varargin{2};
     [V,E,H] = poly2VEH(poly);
   else
     error('Wrong number of inputs');
   end
   % open file for writing
-  poly_file_handle = fopen(poly_file_name,'w');
+  poly_file_handle = fopen(filename,'w');
 
   % dimensions in V, should be 2: triangle format
   dim = size(V,2);

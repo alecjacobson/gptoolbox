@@ -8,7 +8,8 @@ function [SI,SO,EI,EO] = offset_curve(P, offset)
   %   offset   offset amount
   % Output:
   %   SI  #P by 2 list of inner curve offset positions
-  %   SO  #P by 2 list of outer curve offset positions
+  %   SO  #P by 2 list of outer curve offset positions, matches orientation of
+  %     input
   %   EI  #P by dim  list of inner curve edges
   %   EO  #P by dim  list of outer curve edges
   %
@@ -27,10 +28,10 @@ function [SI,SO,EI,EO] = offset_curve(P, offset)
   vOff = offset*m*exp(-i*pi/2) ./ abs(m);
   
   % generate output vectors
-  IX = [x-real(vOff)]; 
-  OX = [fliplr(x+real(vOff))];
-  IY = [y-imag(vOff)];
-  OY = [fliplr(y+imag(vOff))];
+  IX = fliplr([x-real(vOff)]); 
+  IY = fliplr([y-imag(vOff)]);
+  OX = [x+real(vOff)];
+  OY = [y+imag(vOff)];
   SI = [IX' IY'];
   SO = [OX' OY'];
   EI = [1:numel(IX);2:numel(IX) 1]';

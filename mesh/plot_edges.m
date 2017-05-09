@@ -10,6 +10,7 @@ function varargout = plot_edges(V,E,varargin)
   % Outputs:
   %   p  plot handle
   %
+  % See also: plot_directed_edges
   if isempty(E)
     return;
   end

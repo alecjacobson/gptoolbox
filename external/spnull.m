@@ -1,4 +1,4 @@
-function N = sparseNull(S, tol)
+function N = spnull(S, tol)
   % spnull returns computes the sparse Null basis of a matrix
   %
   % N = sparseNull(S, tol)

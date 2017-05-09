@@ -101,14 +101,23 @@ if ~isempty(I)
     X                   = [];
 end
 
+%Alec:
+%LL = [Lbar1 sparse(size(Lbar1,1),size(L,2)-size(Lbar1,2))];
+%UU = [Ubar1                                       sparse(size(Ubar1,1),size(U,2)-size(Ubar1,2)); ...
+%      sparse(size(U,1)-size(Ubar1,1),size(Ubar1,2)) Ubar2];
+%QQ = [Qbar1 ; sparse(size(Q,1)-size(Qbar1,1),size(Q,2)) ];
+%norm(full(A-LL*UU*QQ))
+
 %--------------------------------------------------------------------------
 %       FINDS ROWS AND COLUMNS WITH ONLY ZERO ELEMENTS
 %--------------------------------------------------------------------------
 I2                      = find(max(abs(Ubar2),[],2)>tol);
 I5                      = find(max(abs(Ubar2),[],1)>tol);
 
+% Alec: These are the cols/rows with zero diagonal but some non-zero elements
 I3                      = Jl(I2);
 I4                      = Jq(I5);
+% Alec: These are the rows/cols (with zero diagonal and) only zero elements
 Jq(I5)                  = [];
 Jl(I2)                  = [];
 U                       = [];
@@ -116,6 +125,7 @@ U                       = [];
 %--------------------------------------------------------------------------
 %       FINDS A PART OF THE MATRIX U WHICH IS NOT IN THE REQIRED FORM
 %--------------------------------------------------------------------------
+% Alec: block corresponding to zero-diagonal but *non-zeros* on off digaonal
 A                       = Ubar2(I2,I5);
 
 %--------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 function str = fphong()
-  % FPHONG  Simple returns:
+  % FPHONG  Simply returns:
   % struct('FaceColor','interp','FaceLighting','phong');
   %
   % str = fphong()

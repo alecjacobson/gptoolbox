@@ -8,6 +8,8 @@ function [VV,FF] = extrude(V,F,varargin)
   % Inputs:
   %   V  #V by 2 list of 2d vertex positions
   %   F  #F by 3 list of triangle indices into V
+  %     or
+  %   E  #E by 2 list of segment indices into V, CCW order
   %   Optional:
   %     'Cap' followed by {true} of false whether to put a *bottom cap*
   % Outputs:
@@ -15,7 +17,7 @@ function [VV,FF] = extrude(V,F,varargin)
   %   FF  #FF by 3 list of triangle indices into VV
   %
 
-  cap = true;
+  cap = [];
   levels = 1;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
@@ -34,6 +36,9 @@ function [VV,FF] = extrude(V,F,varargin)
     end
     v=v+1;
   end
+  if isempty(cap)
+    cap = size(F,2) > 2;
+  end
 
   assert(size(V,2) == 2, 'Vertices should be 2d');
   %% Copy top and bottom
@@ -47,6 +52,8 @@ function [VV,FF] = extrude(V,F,varargin)
     % Curve as input
     FF = [];
     O = F;
+    % Use triangles
+    F = zeros(0,3);
   end
   assert(size(unique(sort(O,2),'rows'),1) == size(O,1));
 

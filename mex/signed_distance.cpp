@@ -94,7 +94,7 @@ void parse_rhs(
   static igl::SignedDistanceType g_sign_type = 
     igl::NUM_SIGNED_DISTANCE_TYPE;
   static igl::AABB<Eigen::MatrixXd,3> g_tree;
-  static igl::WindingNumberAABB<Eigen::Vector3d> g_hier;
+  static igl::WindingNumberAABB<Eigen::RowVector3d> g_hier;
   static Eigen::MatrixXd g_FN,g_VN,g_EN;
   static Eigen::MatrixXi g_E;
   static Eigen::VectorXi g_EMAP;
@@ -179,7 +179,8 @@ void mexFunction(
               assert(false && "Unknown SignedDistanceType");
             case SIGNED_DISTANCE_TYPE_DEFAULT:
             case SIGNED_DISTANCE_TYPE_WINDING_NUMBER:
-              signed_distance_winding_number(g_tree,g_V,g_F,g_hier,q,s,sqrd,i,c);
+              signed_distance_winding_number(
+                g_tree,g_V,g_F,g_hier,q,s,sqrd,i,c);
               break;
             case SIGNED_DISTANCE_TYPE_PSEUDONORMAL:
             {

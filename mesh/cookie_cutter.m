@@ -1,18 +1,24 @@
-function [V,F,W,G] = cookie_cutter(P,E)
+function [V,F] = cookie_cutter(P,E)
   % COOKIE_CUTTER Generate a cookie cutter model from a curve
   %
   % [V,F,W,G] = cookie_cutter(P,E)
   %
   % Inputs:
-  %   P  #P by 2 list of positions
+  %   P  #P by 2 list of positions (bbd should be ~40)
   %   E  #E by 3 list of edge indices into P
   % Outputs:
   %   V  #V by 3 list of positions of cutter part
   %   F  #F by 3 list of triangle indices on cutter part
-  %   W  #W by 3 list of positions of stamper part
-  %   G  #G by 3 list of triangle indices on stamper part
   %
-
+  % Example:
+  % 
+  %     clf;
+  %     axis([-40 40 -40 40]);axis equal;
+  %     P = get_pencil_curve();
+  %     E = [1:size(P,1);2:size(P,1) 1]';
+  %     [V,F] = cookie_cutter(P,E);
+  %     tsurf(F,V);axis equal;
+  %
   function [V,O] = robust_overlap(S,E)
     sqr_len = mean(sum((S(E(:,1),:)-S(E(:,2),:)).^2,2));
     max_area = sqr_len/9;
@@ -66,15 +72,14 @@ function [V,F,W,G] = cookie_cutter(P,E)
 
   tol = 0.8;
   [sP,~,sE,~] = offset_curve(P,offset+tol);
-  plot_edges(sP,sE);
   sE = fliplr(sE);
   [sP,sE] = robust_overlap(sP,sE);
   % center
   c = mean(sP);
   % center should be inside
-  assert(abs(winding_number(sP,sE,c))>0.5);
+  assert(abs(winding_number(sP,sE,c))>0.5,'Uhoh, center for post fell outside curve. Too non-convex');
   % radius determined by closest point on curve
-  r = min(all_pairs_distances(K,c));
+  r = min(pdist2(K,c));
   r = 0.9*r;
   r = min(r,4);
   theta = linspace(0,2*pi,100)';
@@ -87,5 +92,5 @@ function [V,F,W,G] = cookie_cutter(P,E)
   F = [CF;size(CV,1)+SF];
   %V = [CV;bsxfun(@plus,[max(CV(:,1))*2 0 0],SV)];
   % Cutter needs to be flipped!
-  V = [bsxfun(@times,[-1 1 1],CV);bsxfun(@plus,[abs(max(CV(:,1)))/2 0 0],SV)];
+  V = [bsxfun(@times,[-1 1 1],CV);bsxfun(@plus,[abs(max(CV(:,1))-min(CV(:,1)))*1.1 0 0],SV)];
 end

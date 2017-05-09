@@ -123,7 +123,7 @@ void parse_rhs(
 #ifndef IGL_NO_CORK
         }else if(strcmp("cork",type_name)==0)
         {
-          mexErrMsgTxt( !(wind_func),
+          mexErrMsgTxt( type_str != "",
             "Cork does not support arbitrary extraction functions");
           boolean_lib = BOOLEAN_LIB_TYPE_CORK;
 #endif

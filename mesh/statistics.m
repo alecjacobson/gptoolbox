@@ -108,6 +108,7 @@ function S = statistics(V,F,varargin)
   S.euler_characteristic = 0;
   S.num_boundary_loops = 0;
   S.num_boundary_edges = 0;
+  S.num_ears = 0;
   S.num_non_manifold_edges = 0;
   S.num_conflictingly_oriented_edges = 0;
   S.num_duplicate_vertices = 0;
@@ -143,6 +144,11 @@ function S = statistics(V,F,varargin)
   S.num_nonmanifold_edges = nnz(DA>2);
   % If edge only occurs once then it's a boundary
   S.num_boundary_edges = nnz(DA==1);
+  if S.num_nonmanifold_edges == 0
+    S.num_ears = size(find_ears(F),1);
+  else
+    rmfield(S,'num_ears');
+  end
   % Same adjacency matrix but count -1 if E(:,1)<E(:,2) for and +1 otherwise
   OA = sparse(sortE(:,1),sortE(:,2),1-2*(E(:,1)<E(:,2)),size(V,1),size(V,1));
   % Don't count boundary edges (where "redirected" edge only occured once).

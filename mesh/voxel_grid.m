@@ -18,6 +18,10 @@ function [BC,side,r] = voxel_grid(V,side,varargin)
   %   BC  prod(side+2*pad_count) by 3 list of cell centers
   %   side  number of cells on each side: side+2*pad_count
   %   r  size of step in each direciton
+  %
+  % See also: voxelize
+
+
   pad_count = 0;
   % default values
   % Map of parameter names to variable names
@@ -38,9 +42,9 @@ function [BC,side,r] = voxel_grid(V,side,varargin)
     v=v+1;
   end
 
+  dim = size(V,2);
 
-
-  assert(side>(pad_count*2+1),'side should  be > 2*pad_count+1');
+  assert(all(side>(pad_count*2+1)),'side should be > 2*pad_count+1');
   side = side-pad_count*2;
   switch numel(side)
   case 3
@@ -55,8 +59,9 @@ function [BC,side,r] = voxel_grid(V,side,varargin)
     side(1) = side(1);
     NV = min(V);
     XV = max(V);
-    side(2) = ceil(side(1) * (XV(2)-NV(2))/(XV(1)-NV(1)));
-    side(3) = ceil(side(1) * (XV(3)-NV(3))/(XV(1)-NV(1)));
+    for d = 2:dim
+      side(d) = ceil(side(1) * (XV(d)-NV(d))/(XV(1)-NV(1)));
+    end
     r = max((XV-NV)./(side-1));
     % recenter
     old_cen = 0.5*(XV + NV);
@@ -78,11 +83,20 @@ function [BC,side,r] = voxel_grid(V,side,varargin)
 
   r = (XV-NV)./(side-1);
 
-  [X,Y,Z] = meshgrid( ...
-    NV(1)+linspace(0,1,side(1))*(XV(1)-NV(1)), ...
-    NV(2)+linspace(0,1,side(2))*(XV(2)-NV(2)), ...
-    NV(3)+linspace(0,1,side(3))*(XV(3)-NV(3)));
-  % barycenters of cells
-  BC = [X(:) Y(:) Z(:)];
+  switch dim
+  case 3
+    [X,Y,Z] = meshgrid( ...
+      NV(1)+linspace(0,1,side(1))*(XV(1)-NV(1)), ...
+      NV(2)+linspace(0,1,side(2))*(XV(2)-NV(2)), ...
+      NV(3)+linspace(0,1,side(3))*(XV(3)-NV(3)));
+    % barycenters of cells
+    BC = [X(:) Y(:) Z(:)];
+  case 2
+    [X,Y] = meshgrid( ...
+      NV(1)+linspace(0,1,side(1))*(XV(1)-NV(1)), ...
+      NV(2)+linspace(0,1,side(2))*(XV(2)-NV(2)));
+    % barycenters of cells
+    BC = [X(:) Y(:)];
+  end
 
 end

@@ -1,4 +1,4 @@
-function [M,E] = crouzeix_raviart_massmatrix(V,F)
+function [M,E,EMAP] = crouzeix_raviart_massmatrix(V,F)
   % CROUZEIX_RAVIART_MASSMATRIX Compute the Crouzeix-Raviart mass matrix where
   % M(e,e) is just the sum of 1/3 the areas of the triangles on either side of
   % an edge e. For tets, edges are now faccets.

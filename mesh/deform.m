@@ -30,8 +30,10 @@ classdef deform < handle
   %      handles. Default value is []
   %    'CageEdges' followed by a #CE by 2 list of indices into P specifying 
   %      cage edges for point handles (for display purposes only)
-  %    'InterpMode' could be 'LBS' for Linear Blend Skinning or 'DQLBS' for
-  %      Dual Quaternion Linear Blend Skinning, default is 'LBS'
+  %    'InterpMode' followed by 
+  %       {'LBS'}  for Linear Blend Skinning
+  %       'DQLBS'  for Dual Quaternion Linear Blend Skinning
+  %       'GBC'  for Generalized Barycentric Coordinates
   %    'StretchBones' followed by a set of weights #V by #BE. Use stretchable
   %      bones skinning formula instead of LBS, uses extra set of weights per
   %      bone.
@@ -163,7 +165,7 @@ classdef deform < handle
     % custom deform function handle
     custom_deform
     % energy for solving arap, default is Sorkine and Alexa
-    arap_energy = 'spokes';
+    arap_energy = 'elements';
     % pose rotations of point handles
     R  
     % pose positions of control vertices
@@ -285,6 +287,8 @@ classdef deform < handle
     tol = 0.01;
     % use last frame to initialize deformation updates
     use_last_frame = true;
+    % extra column for each mesh vertex position: depth
+    Zdepth
   end
 
 
@@ -300,8 +304,6 @@ classdef deform < handle
     np
     % number of bone handles
     nb
-    % extra column for each mesh vertex position: depth
-    Zdepth
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Handles to plot elements
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -631,11 +633,10 @@ classdef deform < handle
         case 'InterpMode'
           ii = ii + 1;
           assert(ii<=num_ri);
-          if( strcmp(remaining_inputs{ii},'LBS')) 
-            this.interp_mode = 'LBS';
-          elseif( strcmp(remaining_inputs{ii},'DQLBS')) 
-            this.interp_mode = 'DQLBS';
-          else
+          switch remaining_inputs{ii}
+          case {'LBS','DQLBS','GBC'}
+            this.interp_mode = remaining_inputs{ii};
+          otherwise
             error('InterpMode must be either LBS or DQLBS');
           end
         case 'StretchBones'
@@ -961,11 +962,23 @@ classdef deform < handle
 
       % plot the original mesh
       if(this.grid)
-        this.gsh = warp( ...
-          reshape(this.V(:,1),this.grid_h,this.grid_w), ...
-          reshape(this.V(:,2),this.grid_h,this.grid_w), ...
-          reshape(this.Zdepth,this.grid_h,this.grid_w), ...
-          this.im);
+        if size(this.V,1) == (size(this.im,1)*size(this.im,2))
+          % Just use per face colors if grid is same size as image: this allows
+          % nans in this.im to make certain faces selectively disappear.
+          fprintf('surfin\n');
+          this.gsh = surf( ...
+            reshape(this.V(:,1),this.grid_h,this.grid_w), ...
+            reshape(this.V(:,2),this.grid_h,this.grid_w), ...
+            reshape(this.Zdepth,this.grid_h,this.grid_w), ...
+            'CData',this.im,'EdgeColor','none');
+          set(gca,'YDir','reverse');
+        else
+          this.gsh = warp( ...
+            reshape(this.V(:,1),this.grid_h,this.grid_w), ...
+            reshape(this.V(:,2),this.grid_h,this.grid_w), ...
+            reshape(this.Zdepth,this.grid_h,this.grid_w), ...
+            this.im);
+        end
       else
         if size(this.V,2) == 2
           this.tsh = trisurf(this.F,this.V(:,1),this.V(:,2),this.Zdepth, ...
@@ -1322,9 +1335,12 @@ classdef deform < handle
       % update mesh positions using skinning, using appropriate method based on
       % interp_mode field
       %
-      if(strcmp(this.interp_mode,'LBS'))
+      switch this.interp_mode
+      case 'GBC'
+        this.new_V = this.W * this.new_C;
+      case 'LBS'
         this = this.lbs_update();
-      elseif(strcmp(this.interp_mode,'DQLBS'))
+      case 'DQLBS'
         % USING DUAL QUATERNION SKINNING
         % number of handles
         m = numel(this.P)+size(this.BE,1);
