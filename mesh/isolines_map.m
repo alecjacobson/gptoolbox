@@ -2,8 +2,9 @@ function M = isolines_map(varargin)
   % ISOLINES_MAP Create a colormap that can be used to create "isolines". That
   % is colored intervals where everyother interval is a thin black interval.
   % 
-  % M = isolines_map(n,thick)
-  % M = isolines_map(N,thick)
+  % M = isolines_map(n)
+  % M = isolines_map(N)
+  % M = isolines_map(...,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
   %   n  number of *isolines* (thus there will be n+1 colored intervals), using
@@ -21,7 +22,7 @@ function M = isolines_map(varargin)
 
   if numel(varargin{1}) == 1
     n = varargin{1};
-    N = jet(n+1);
+    N = parula(n+1);
   else
     N = varargin{1};
     assert(size(N,2) == 3,'Number columns in colormap (%d) not 3',size(N,2));
