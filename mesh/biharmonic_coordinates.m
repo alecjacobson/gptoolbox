@@ -1,4 +1,4 @@
-function [W,A,K,M,L,N] = biharmonic_coordinates(V,Ele,b)
+function [W,A,K,M,L,N] = biharmonic_coordinates(V,Ele,b,varargin)
   % BIHARMONIC_COORDINATES  Compute the linearly precise generalized
   % coordinates as described in "Linear Subspace Design for Real-Time Shape
   % Deformation" [Wang et al. 2015] **not** to be confused with "Bounded
@@ -27,6 +27,25 @@ function [W,A,K,M,L,N] = biharmonic_coordinates(V,Ele,b)
 
   % http://www.cs.toronto.edu/~jacobson/images/error-in-linear-subspace-design-for-real-time-shape-deformation-2017-wang-et-al.pdf
   use_paper_version = false;
+  % default values
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'PaperVersion'}, ...
+    {'use_paper_version'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
 
   if use_paper_version
     L = cotmatrix(V,Ele);
