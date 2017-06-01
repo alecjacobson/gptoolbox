@@ -61,6 +61,9 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
     c = get(gca,'Children');
     T = c(arrayfun(@(x) isa(x,'matlab.graphics.primitive.Patch'),c));
   end
+  if iscell(T)
+    T = [T{:}]';
+  end
   T = T(:);
 
   if ~exist('L','var') || isempty(L)
