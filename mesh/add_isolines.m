@@ -15,12 +15,12 @@ function p = add_isolines(T,varargin);
     c = get(gca,'Children');
     T = c(arrayfun(@(x) isa(x,'matlab.graphics.primitive.Patch'),c));
   end
-  if ~iscell(T)
-    T = {T};
+  if iscell(T)
+    T = [T{:}];
   end
   p = {};
   for ti = 1:numel(T)
-    t = T{ti};
+    t = T(ti);
     n = size(colormap,1)+1;
     a = caxis;
     iso = linspace(a(1),a(2),n);
