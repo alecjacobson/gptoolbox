@@ -1,4 +1,4 @@
-function writeOBJ(filename, V,E)
+function writeWIRE(filename, V,E)
   % WRITEWIRE writes an .wire file with vertex/edge information (see PyMesh
   % documentation).
   %
