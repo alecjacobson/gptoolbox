@@ -57,7 +57,7 @@ function [all_opts,use_libigl_static_library] = gptoolbox_mexopts(varargin)
     end
     [r,c] = system(cmd);
     if r ~= 0
-      warning('libigl Make error: (c set to command output)');
+      warning('libigl Make error:\n%s',c);
       use_libigl_static_library = false;
     end
   end
@@ -93,7 +93,8 @@ function [all_opts,use_libigl_static_library] = gptoolbox_mexopts(varargin)
 
   EMBREE=[path_to_libigl '/external/embree'];
   EMBREE_INC=strsplit(sprintf('-I%s -I%s/include/',EMBREE,EMBREE));
-  EMBREE_LIB=strsplit(sprintf('-L%s/build -lembree -lsys -lembree_avx -lembree_avx2 -lembree_sse42 -llexers -lsimd',EMBREE));
+  %EMBREE_LIB=strsplit(sprintf('-ltbb -L%s -lembree_avx -lembree_avx2 -lembree_sse42 -limage -llexers -llights -llights_ispc -lnoise -lnoise_ispc -lscenegraph -lsimd -lsys -ltasking -ltexture -ltexture_ispc -ltutorial -ltutorial_device -ltutorial_device_ispc ',[path_to_libigl '/external/embree/build/']));
+  EMBREE_LIB=strsplit(sprintf('-L%s -lembree',[path_to_libigl '/external/embree/build/']));
 
   CORK_INC=sprintf('-I%s/src',[path_to_libigl '/external/cork']);
   CORK_LIB=strsplit(sprintf('-L%s -lcork',[path_to_libigl '/lib']));

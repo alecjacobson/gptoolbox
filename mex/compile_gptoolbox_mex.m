@@ -43,9 +43,11 @@ prefixes = { ...
 for prefix = prefixes
   prefix = prefix{1};
   if out_of_date(prefix)
+    fprintf('============== %s ==============\n',prefix);
     try
       mex( all_opts{:}, [prefix '.cpp']);
      catch ME
+       fprintf('----------------- Error --------------\n');
        warning(ME.identifier,ME.message);
      end
   end

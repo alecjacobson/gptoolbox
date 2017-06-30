@@ -30,7 +30,9 @@ function [param,mosek_exists] = default_quadprog_param()
       end
     end
     % Different parameter for mosek 7
-    if ~isempty(strfind(which('mosekopt'),'7'))
+    if  ...
+      ~isempty(strfind(which('mosekopt'),'7')) || ...
+      ~isempty(strfind(which('mosekopt'),'8'))
       param.MSK_IPAR_NUM_THREADS = num_threads;
     else
       param.MSK_IPAR_INTPNT_NUM_THREADS = num_threads;

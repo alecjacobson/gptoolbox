@@ -214,7 +214,7 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
     if neq > 0 && isfield(F,'force_Aeq_li') && ~isempty(F.force_Aeq_li)
       F.Aeq_li = F.force_Aeq_li;
     end
-
+    
     % Use raw Lagrange Multiplier method only if rows of Aeq are Linearly
     % Independent
     if F.Aeq_li

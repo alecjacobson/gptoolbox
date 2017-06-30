@@ -4,5 +4,6 @@ function s = path_to_libigl()
   % s = path_to_libigl()
   %
   % Returns path to libigl as string
-  s = '/usr/local/igl/libigl/';
+  
+  s = find_first_path({'/usr/local/igl/libigl/','/usr/local/libigl/'});
 end
