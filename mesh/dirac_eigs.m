@@ -13,6 +13,8 @@ function [eVec,eVal] = dirac_eigs(V,F,k,varargin)
   %     'Relative' followed by wehter to use the "relative dirac operator"
   %        (as described by "A Dirac Operator for Extrinsic Shape Analysis"
   %        [Liu, Jacobson, and Crane. 2017]).) {false}.
+  %     'Tao'  followed by how much to blend between "relative dirac operator"
+  %     and Laplace opeator. Only used if {'Relative',true}. {0.999999}
   % Outputs:
   %   eVec  #V by 4 by k list of eigenvectors. Each 4x1 subblock
   %     represents a quaternion (w,x,y,z)
@@ -35,10 +37,11 @@ function [eVec,eVal] = dirac_eigs(V,F,k,varargin)
 
   % default values
   relative = false;
+  tao = 0.999999;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Relative'}, ...
-    {'relative'});
+    {'Relative','Tao'}, ...
+    {'relative','tao'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -74,6 +77,15 @@ function [eVec,eVal] = dirac_eigs(V,F,k,varargin)
   B = kroneye(sparse(repmat(1:size(F,1),3,1)',F,1/3,size(F,1),size(V,1)),4);
   massMat = B'*MF*D; % "mass matrix"
   massMat = (massMat'+massMat)/2; % Symmetrize mass matrix
+
+  if relative && tao<1
+    L = kroneye(cotmatrix(V,F),4);
+    M = kroneye(massmatrix(V,F),4);
+    Dsquare = Dsquare + tao*(L-Dsquare);
+    massMat = massMat + tao*(M-massMat);
+
+  end
+
   [eVal, eVec] = QuaternionEigs(Dsquare, massMat, k); 
 
   % 3. normalize eigenvectors
