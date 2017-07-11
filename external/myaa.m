@@ -115,6 +115,7 @@ drawnow;
 
 %% Find out about the current DPI...
 screen_DPI = get(0,'ScreenPixelsPerInch');
+self.scale = 1;
 
 %% Determine the best choice of convolver.
 % If IPPL is available, imfilter is much faster. Otherwise it does not 
@@ -152,9 +153,13 @@ elseif strcmp(varargin{1},'lazyupdate')
     self = get(gcf,'UserData');
     self.figmode = 'lazyupdate';
 elseif length(varargin) == 1
-    if strcmp(varargin{1},'raw')
+    if (ischar(varargin{1}) && strcmp(varargin{1},'raw')) || ...
+      (iscell(varargin{1}) && strcmp(varargin{1}{1},'raw'))
       self.K = [4 4];
       self.figmode = 'raw';
+      if iscell(varargin{1})
+        self.scale = varargin{1}{2};
+      end
     else
       self.K = varargin{1};
     self.figmode = 'figure';
@@ -193,17 +198,18 @@ end
 
 %% Capture current figure in high resolution
 if ~strcmp(self.figmode,'lazyupdate');
-    tempfile = 'myaa_temp_screendump.png';
-    self.source_fig = gcf;
-    current_paperpositionmode = get(self.source_fig,'PaperPositionMode');
-    current_inverthardcopy = get(self.source_fig,'InvertHardcopy');
-    set(self.source_fig,'PaperPositionMode','auto');
-    set(self.source_fig,'InvertHardcopy','off');
-    print(self.source_fig,['-r',num2str(screen_DPI*self.K(1))], '-dpng', tempfile);
-    set(self.source_fig,'InvertHardcopy',current_inverthardcopy);
-    set(self.source_fig,'PaperPositionMode',current_paperpositionmode);
-    self.raw_hires = imread(tempfile);
-    delete(tempfile);
+    %tempfile = 'myaa_temp_screendump.png';
+    %self.source_fig = gcf;
+    %current_paperpositionmode = get(self.source_fig,'PaperPositionMode');
+    %current_inverthardcopy = get(self.source_fig,'InvertHardcopy');
+    %set(self.source_fig,'PaperPositionMode','auto');
+    %set(self.source_fig,'InvertHardcopy','off');
+    %print(self.source_fig,['-r',num2str(self.scale*screen_DPI*self.K(1))], '-dpng', tempfile);
+    %set(self.source_fig,'InvertHardcopy',current_inverthardcopy);
+    %set(self.source_fig,'PaperPositionMode',current_paperpositionmode);
+    %self.raw_hires = imread(tempfile);
+    %delete(tempfile);
+    self.raw_hires = print('-RGBImage',['-r',num2str(self.scale*screen_DPI*self.K(1))]);
 end
 %% Start filtering to remove aliasing
 w = warning;
@@ -213,9 +219,9 @@ if strcmp(self.aamethod,'standard') || strcmp(self.aamethod,'noshrink')
     % butterworth filter    
     kk = lpfilter(self.K(2)*3,self.K(2)*0.9,2);
     mm = myconv(ones(size(self.raw_hires(:,:,1))),kk,'same');
-    a1 = max(min(myconv(single(self.raw_hires(:,:,1))/(256),kk,'same'),1),0)./mm;
-    a2 = max(min(myconv(single(self.raw_hires(:,:,2))/(256),kk,'same'),1),0)./mm;
-    a3 = max(min(myconv(single(self.raw_hires(:,:,3))/(256),kk,'same'),1),0)./mm;
+    a1 = max(min(myconv(single(self.raw_hires(:,:,1))/(255),kk,'same'),1),0)./mm;
+    a2 = max(min(myconv(single(self.raw_hires(:,:,2))/(255),kk,'same'),1),0)./mm;
+    a3 = max(min(myconv(single(self.raw_hires(:,:,3))/(255),kk,'same'),1),0)./mm;
     if strcmp(self.aamethod,'standard')
         if abs(1-self.K(2)) > 0.001
             raw_lowres = double(cat(3,a1(2:self.K(2):end,2:self.K(2):end),a2(2:self.K(2):end,2:self.K(2):end),a3(2:self.K(2):end,2:self.K(2):end)));
@@ -227,7 +233,7 @@ if strcmp(self.aamethod,'standard') || strcmp(self.aamethod,'noshrink')
     end
 elseif strcmp(self.aamethod,'imresize')
     % This is probably the fastest method available at this moment...
-    raw_lowres = single(imresize(self.raw_hires,1/self.K(2),'bilinear'))/256;
+    raw_lowres = single(imresize(self.raw_hires,1/self.K(2),'bilinear'))/255;
 end
 warning(w);
 
