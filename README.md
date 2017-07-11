@@ -46,9 +46,11 @@ application:
 ## Installation ##
 The vast majority of this code is __straight MATLAB__ (`*.m` files). Thus, only
 installing MATLAB and adding the qptoolbox directory and its subdirectories to
-your MATLAB path is needed for installation:
+your MATLAB path is needed for installation. Let's assume you cloned gptoolbox
+at `/usr/local/gptoolbox/`, then you could issue:
 
-    addpath(genpath('/absolute/path/to/gptoolbox'))
+    gp_subdirs = split(genpath('/usr/local/gptoolbox/'),':');
+    addpath(strjoin(gp_subdirs(~contains(gp_subdirs,'.git')),':'));
 
 To make this change permanent, then issue:
 
@@ -56,13 +58,6 @@ To make this change permanent, then issue:
 
 There are some mex files, whose documentation for installation are included in
 respective `mex/README.md` file.
-
-To enable tab completion on gptoolbox's IO functions issue:
-
-    add_gptoolbox_tab_completion
-
-this takes a second or two (or 30) and then you'll need to restart MATLAB for
-it to take effect.
 
 ### Full installation ###
 

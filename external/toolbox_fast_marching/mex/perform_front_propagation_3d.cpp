@@ -52,9 +52,9 @@
 #define end_points_(i,s) end_points[(i)+3*(s)]
 
 /* Global variables */
-int n;			// size on X
-int p;			// size on Y
-int q;			// size on Z
+size_t n;			// size on X
+size_t p;			// size on Y
+size_t q;			// size on Z
 double* D = NULL;
 double* S = NULL;
 double* W = NULL;

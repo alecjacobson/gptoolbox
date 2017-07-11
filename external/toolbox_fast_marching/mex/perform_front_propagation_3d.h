@@ -9,9 +9,9 @@
 #include <algorithm>
 
 // some global variables
-extern int n;			// width
-extern int p;			// height
-extern int q;			// height
+extern size_t n;			// width
+extern size_t p;			// height
+extern size_t q;			// height
 extern double* D;
 extern double* S;
 extern double* W;

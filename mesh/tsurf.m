@@ -37,6 +37,7 @@ function t = tsurf(F,V,varargin)
 
   vertex_indices = 0;
   face_indices = 0;
+  tets = [];
 
   v = 1;
   while v<=numel(varargin) && ischar(varargin{v}) 
@@ -49,12 +50,16 @@ function t = tsurf(F,V,varargin)
       v = v+1;
       assert(v<=numel(varargin));
       face_indices = varargin{v};
+    case 'Tets'
+      v = v+1;
+      assert(v<=numel(varargin));
+      tets = varargin{v};
     otherwise
       break;
     end
     v = v+1;
   end
-
+  
   % number of vertices
   n = size(V,1);
 
@@ -70,7 +75,8 @@ function t = tsurf(F,V,varargin)
   end
 
   %tets = size(F,2) ==4 && (size(F,1)*4 > 1.01*size(boundary_faces(F),1));
-  tets = false;
+  if isempty(tets)
+    tets = false;
   if size(F,2) == 4
     VV = bsxfun(@minus,V,min(V))*max(max(V)-min(V));
     tets = sum(volume(VV,F))>1e-10;
@@ -82,6 +88,7 @@ function t = tsurf(F,V,varargin)
     tets = false;
     Ftri = F;
     Itri = 1:size(F,1);
+  end
   end
 
   if tets

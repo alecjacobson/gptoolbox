@@ -16,5 +16,6 @@ function s = path_to_eltopo()
   elseif ismac
     s = '/usr/local/eltopo';
   end
+
 end
 
