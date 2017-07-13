@@ -13,6 +13,7 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
   %     'Ground'  ground plane equation {[0 0 -1 min(Z)]}
   %     'Nudge'  nudge the ground plane down a bit
   %     'Color' followed by 3-vector color {[0.21 0.21 0.21]}
+  %     'BackgroundColor' followed by 3-vector color {[1 1 1]}
   %     'Fade'  followed by:
   %        'none' constant shadow color
   %        'local' fade darker away from contact with ground (ape a spotlight)
@@ -38,11 +39,12 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
   ground = [];
   nudge = 0;
   color = [0.21 0.21 0.21];
+  background_color = [1 1 1];
   fade = 'none';
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Ground','Nudge','Color','Fade'}, ...
-    {'ground','nudge','color','fade'});
+    {'Ground','Nudge','BackgroundColor','Color','Fade'}, ...
+    {'ground','nudge','background_color','color','fade'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -113,7 +115,7 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
           D = 1.0-D;
         end
         tsh.FaceVertexCData = ...
-          bsxfun(@plus,color,bsxfun(@times,D,[1 1 1]-color));
+          bsxfun(@plus,color,bsxfun(@times,D,background_color-color));
         tsh.FaceColor = 'interp';
       end
       h = [h;tsh];
