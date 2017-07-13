@@ -10,7 +10,7 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   %   t  handle to a `trisurf` or `patch` object
   %   Optional:
   %     'AO' followed by previously computed ambient occlusion values {[]}
-  %     'AOFactor' followed by a scaler between [0,1] determining how much to
+  %     'Factor' followed by a scaler between [0,1] determining how much to
   %       to modulate by ambient occlusion {1}
   %     'AddLights' followed by whether to add lights {true}
   %     'SoftLighting' followed by whether to soft lighting {true}
