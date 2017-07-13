@@ -21,10 +21,11 @@ function [V,F] = delaunayize(V,F,varargin)
   vis = false;
   keep_E = zeros(0,2);
   split_edges = false;
+  max_dihedral_angle = inf;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Tol','Visualize','Keep','SplitEdges'}, ...
-    {'tol','vis','keep_E','split_edges'});
+    {'Tol','Visualize','Keep','SplitEdges','MaxDihedralAngle'}, ...
+    {'tol','vis','keep_E','split_edges','max_dihedral_angle'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -48,9 +49,22 @@ function [V,F] = delaunayize(V,F,varargin)
     [~,B] = on_boundary(F);
     % Find edges to be kept
     K = reshape(ismember(sort(allE,2),keep_E,'rows'),[],3);
-    % Kept edges and boundary edges are by definition "delaunay"
+    if isinf(max_dihedral_angle)
+      C = false(size(D));
+    else
+      % Edges with too much curvature are also by definition "delaunay"
+      % pi is flat
+      [A,G] = adjacency_dihedral_angle_matrix(V,F);
+      [AI,AJ,AV] = find(A);
+      [GI,GJ,GV] = find(G);
+      assert(isequal(AI,GI));
+      assert(isequal(AJ,GJ));
+      C = full(sparse(GI,GV,abs(AV-pi),size(F,1),size(F,2)))>max_dihedral_angle;
+    end
+    % Kept edges, boundary edges, and curved edges are by definition "delaunay"
     D = D | K;
     D = D | B;
+    D = D | C;
     % list all delaunay edges
     NDE = allE(~D,:);
     % list all unique delaunay edges
