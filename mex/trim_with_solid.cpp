@@ -54,7 +54,7 @@ void mexFunction(
     }
     case 3:
     {
-      prepare_lhs_index(D,plhs+2);
+      prepare_lhs_logical(D,plhs+2);
       // Fall through
     }
     case 2:
