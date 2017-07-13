@@ -6,6 +6,18 @@ function imwrite_gif(S,filename,varargin)
   %   S  h by w by c by #frames sequence of color images
   %   filename  path to .gif file
   %
+  % Example:
+  %   % Read an animation
+  %   [X,M] = imread('peaks.gif');
+  %   % Convert to raw color image sequence
+  %   Y = cell2mat(permute(arrayfun(@(C) ...
+  %     ind2rgb( ...
+  %       X(:,:,:,C),M(:,:,C)),1:size(X,4),'UniformOutput',false),[1 4 3 2]));
+  %   % Trim animation to fit
+  %   C = imtrim(Y);
+  %   % Write back to animated .gif
+  %   imwrite_gif(C(:,:,:,[1:end end-1:-1:1]),'peaks2.gif');
+  %
   % See also: imwrite
   %
 
