@@ -198,18 +198,21 @@ end
 
 %% Capture current figure in high resolution
 if ~strcmp(self.figmode,'lazyupdate');
-    %tempfile = 'myaa_temp_screendump.png';
-    %self.source_fig = gcf;
-    %current_paperpositionmode = get(self.source_fig,'PaperPositionMode');
-    %current_inverthardcopy = get(self.source_fig,'InvertHardcopy');
-    %set(self.source_fig,'PaperPositionMode','auto');
-    %set(self.source_fig,'InvertHardcopy','off');
-    %print(self.source_fig,['-r',num2str(self.scale*screen_DPI*self.K(1))], '-dpng', tempfile);
-    %set(self.source_fig,'InvertHardcopy',current_inverthardcopy);
-    %set(self.source_fig,'PaperPositionMode',current_paperpositionmode);
-    %self.raw_hires = imread(tempfile);
-    %delete(tempfile);
-    self.raw_hires = print('-RGBImage',['-r',num2str(self.scale*screen_DPI*self.K(1))]);
+    tempfile = 'myaa_temp_screendump.png';
+    self.source_fig = gcf;
+    current_paperpositionmode = get(self.source_fig,'PaperPositionMode');
+    current_inverthardcopy = get(self.source_fig,'InvertHardcopy');
+    set(self.source_fig,'PaperPositionMode','auto');
+    set(self.source_fig,'InvertHardcopy','off');
+    print(self.source_fig,['-r',num2str(self.scale*screen_DPI*self.K(1))], '-dpng', tempfile);
+    set(self.source_fig,'InvertHardcopy',current_inverthardcopy);
+    set(self.source_fig,'PaperPositionMode',current_paperpositionmode);
+    self.raw_hires = imread(tempfile);
+    delete(tempfile);
+
+    %% Alec: This only works if the background color is white. It also seems to
+    %% mess up grid axis lines etc.
+    %self.raw_hires = print('-RGBImage',['-r',num2str(self.scale*screen_DPI*self.K(1))]);
 end
 %% Start filtering to remove aliasing
 w = warning;
