@@ -130,7 +130,9 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   u0(gamma) = 1;
   
   Q = M - t*L;
-  B = M*u0;
+  % 11/7/2017: Keenan writes that the mass matrix should not be here.
+  % B = M*u0;
+  B = u0;
 
   if isempty(u)
     if strcmp(bc_type,'dirichlet') || strcmp(bc_type,'robin')
@@ -227,14 +229,19 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   div_X = Div*X(:);
   if legacy
     [phi,pre.poisson] = min_quad_with_fixed( ...
-      -L,div_X,gamma,zeros(numel(gamma),1),[],[],pre.poisson);
+      -L*0.5,2*div_X,gamma,zeros(numel(gamma),1),[],[],pre.poisson);
   else
     [phi,pre.poisson] = ...
-      min_quad_with_fixed(-L,div_X,[],[],[],[],pre.poisson);
+      min_quad_with_fixed(-L*0.5,2*div_X,[],[],[],[],pre.poisson);
   end
   D = phi;
   % "Note that ???? is unique only up to an additive constant and should be
   % shifted such that the smallest distance value is zero."
-  D = D - min(D(:));
+  %
+  % D should be zero at gamma
+  D = D - mean(D(gamma));
+  % Flip sign so farthest point is positive distance
+  [~,mi] = max(abs(D));
+  D = D*sign(D(mi));
 
 end
