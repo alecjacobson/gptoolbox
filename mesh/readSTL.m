@@ -1,8 +1,8 @@
-function [V,F] = readSTL(filename,varargin)
+function [V,F,N] = readSTL(filename,varargin)
   % READSTL read a triangle mesh from an .stl file.
   %
   % [V,F] = readSTL(filename)
-  % [V,F] = readSTL(filename,'ParameterName',ParameterValue, ...)
+  % [V,F,N] = readSTL(filename,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
   %   filename  path to .stl file
@@ -12,6 +12,7 @@ function [V,F] = readSTL(filename,varargin)
   % Outputs:
   %   V  #V by 3 list of vertex positions
   %   F  #F by 3 list of faces
+  %   N  #F by 3 list of face normals
   % 
 
   % default values
@@ -34,9 +35,30 @@ function [V,F] = readSTL(filename,varargin)
   end 
 
 
-  [FVX,FVY,FVZ] = stlread(filename);
-  V = [FVX(:) FVY(:) FVZ(:)];
-  F = reshape(1:size(V,1),3,size(V,1)/3)';
+  is_ascii = false;
+  fid = fopen(filename, 'r');
+  header =fread(fid,80,'uchar=>schar'); % Read file title
+  header = char(header(:)');
+  is_ascii = startsWith(lower(header),'solid');
+  fclose(fid);
+
+  if is_ascii
+    fid = fopen(filename, 'r');
+    % discard header line
+    fgets(fid);
+    % The prefixing space is important here.
+    D = fscanf(fid,' facet normal %f %f %f outer loop vertex %f %f %f vertex %f %f %f vertex %f %f %f endloop endfacet ');
+    D = reshape(D,12,[])';
+    N = D(:,1:3);
+    V = reshape(D(:,4:12)',3,[])';
+    F = reshape(1:size(V,1),3,size(V,1)/3)';
+    fclose(fid);
+  else
+    [FVX,FVY,FVZ] = stlread(filename);
+    V = [FVX(:) FVY(:) FVZ(:)];
+    F = reshape(1:size(V,1),3,size(V,1)/3)';
+    N = [];
+  end
 
   if join_corners
     [V,~,J] = remove_duplicate_vertices(V,0);
