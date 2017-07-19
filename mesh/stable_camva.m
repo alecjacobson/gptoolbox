@@ -4,6 +4,9 @@ function stable_camva(a)
   % Inputs:
   %   a  angle input to camva
   %
+  % Note: This will mess up interactive view orbitting. So set up your
+  % view first...
+  %
   % See also: camva
   old_a = camva;
   old_t = camtarget;
