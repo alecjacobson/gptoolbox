@@ -5,6 +5,7 @@
 #include "parse_rhs.h"
 #include "prepare_lhs.h"
 
+#include <igl/parallel_for.h>
 #include <igl/winding_number.h>
 #include <igl/WindingNumberAABB.h>
 #include <igl/matlab/MexStream.h>
@@ -142,12 +143,14 @@ void mexFunction(
       // Build hierarchy
       hier.grow();
       // loop over origins
-#     pragma omp parallel for if (no>IGL_WINDING_NUMBER_OMP_MIN_VALUE)
-      for(int o = 0;o<no;o++)
-      {
-        Vector3d p(O[0*no+o], O[1*no+o], O[2*no+o]);
-        W[o] = hier.winding_number(p);
-      }
+      igl::parallel_for(
+        no,
+        [&no,&hier,&W,&O](const int o)
+        {
+          Vector3d p(O[0*no+o], O[1*no+o], O[2*no+o]);
+          W[o] = hier.winding_number(p);
+        },
+        IGL_WINDING_NUMBER_OMP_MIN_VALUE);
     }else
     {
       switch(dim)
