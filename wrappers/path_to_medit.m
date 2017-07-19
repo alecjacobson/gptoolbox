@@ -1,4 +1,4 @@
-function s = path_to_medit()
+function [s] = path_to_medit()
   % PATH_TO_MEDIT Return path to medit executable
   %
   % s = path_to_medit()
@@ -24,9 +24,7 @@ function s = path_to_medit()
       guesses = { ...
         '/usr/local/bin/medit', ...
         '/opt/local/bin/medit'};
-      s = ...
-        guesses{find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first')};
-      assert(~isempty(s),'Could not find medit');
+      s = find_first_path(guesses);
     end
   end
 end

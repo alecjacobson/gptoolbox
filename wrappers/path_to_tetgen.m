@@ -12,9 +12,7 @@ function s = path_to_tetgen()
       'Could you put tetgen there and change this accordingly?' ...
       'Thanks, Alec']);
     s = 'c:/prg/lib/tetgen/Release/tetgen.exe';
-  elseif ismac
-    s = '/usr/local/bin/tetgen';
-  elseif isunix
+  elseif ismac || isunix
     % I guess this means linux
     [~,s] = system('which tetgen');
     s = strtrim(s);
