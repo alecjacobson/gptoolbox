@@ -166,14 +166,14 @@ void mexFunction(
     IV,IF,
     level,angle_bound,radius_bound,distance_bound,type,
     contouring_method, grid_size);
+  Eigen::MatrixXd GV;
+  Eigen::RowVector3i side;
+  Eigen::VectorXd S;
   switch(contouring_method)
   {
     default:
     case CONTOURING_METHOD_MARCHING_CUBES:
       {
-        Eigen::MatrixXd GV;
-        Eigen::RowVector3i side;
-        Eigen::VectorXd S;
         igl::copyleft::offset_surface(IV,IF,level,grid_size,type,V,F,GV,side,S);
       }
       break;
@@ -187,6 +187,21 @@ void mexFunction(
     default:
     {
       mexErrMsgTxt(false,"Too many output parameters.");
+    }
+    case 5:
+    {
+      prepare_lhs_double(S,plhs+4);
+      // Fall through
+    }
+    case 4:
+    {
+      prepare_lhs_double(side,plhs+3);
+      // Fall through
+    }
+    case 3:
+    {
+      prepare_lhs_double(GV,plhs+2);
+      // Fall through
     }
     case 2:
     {

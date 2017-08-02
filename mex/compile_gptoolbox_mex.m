@@ -39,18 +39,21 @@ prefixes = { ...
   'slim', ...
   'solid_angle', ...
   'trim_with_solid', ...
+  'winding_number', ...
   'wire_mesh' };
 
+errors = '';
 for prefix = prefixes
   prefix = prefix{1};
   if out_of_date(prefix)
     fprintf('============== %s ==============\n',prefix);
     try
       mex( all_opts{:}, [prefix '.cpp']);
-     catch ME
-       fprintf('----------------- Error --------------\n');
-       warning(ME.identifier,ME.message);
-     end
+    catch ME
+      fprintf('----- Error (see `errors`) -----\n');
+      warning(ME.identifier,ME.message);
+      errors = [errors ME.message];
+    end
   end
 end
 
@@ -58,11 +61,13 @@ end
 
 % impaste is currently only implemented for mac
 if ismac
-  mex(all_opts{:}, '-output','impaste','impaste.cpp','paste.mm');
+  try
+    fprintf('============== %s ==============\n','impaste');
+    mex(all_opts{:}, '-output','impaste','impaste.cpp','paste.mm');
+  catch ME
+    fprintf('----- Error (see `errors`) -----\n');
+    warning(ME.identifier,ME.message);
+    errors = [errors ME.message];
+  end
 end
 
-mex( ...
-  all_opts{:}, ...
-  '-Iwinding_number', ...
-  '-output','winding_number', ...
-  'winding_number.cpp','winding_number/parse_rhs.cpp','winding_number/prepare_lhs.cpp');

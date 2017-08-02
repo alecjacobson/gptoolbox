@@ -8,6 +8,7 @@
 #include <igl/matlab/MexStream.h>
 
 #include <igl/per_vertex_normals.h>
+#include <igl/parallel_for.h>
 #include <igl/signed_distance.h>
 #include <igl/per_edge_normals.h>
 #include <igl/matlab/validate_arg.h>
@@ -94,7 +95,10 @@ void parse_rhs(
   static igl::SignedDistanceType g_sign_type = 
     igl::NUM_SIGNED_DISTANCE_TYPE;
   static igl::AABB<Eigen::MatrixXd,3> g_tree;
-  static igl::WindingNumberAABB<Eigen::RowVector3d> g_hier;
+  static igl::WindingNumberAABB<
+    Eigen::RowVector3d,
+    Eigen::MatrixXd,
+    Eigen::MatrixXi> g_hier;
   static Eigen::MatrixXd g_FN,g_VN,g_EN;
   static Eigen::MatrixXi g_E;
   static Eigen::VectorXi g_EMAP;
@@ -167,7 +171,8 @@ void mexFunction(
         S.resize(P.rows(),1);
         I.resize(P.rows(),1);
         C.resize(P.rows(),3);
-        for(int p = 0;p<P.rows();p++)
+        //for(int p = 0;p<P.rows();p++)
+        igl::parallel_for(P.rows(),[&](const int p)
         {
           const Eigen::RowVector3d q(P(p,0),P(p,1),P(p,2));
           double s,sqrd;
@@ -195,7 +200,7 @@ void mexFunction(
           I(p) = i;
           S(p) = s*sqrt(sqrd);
           C.row(p) = c;
-        }
+        },10000);
         break;
       }
     }

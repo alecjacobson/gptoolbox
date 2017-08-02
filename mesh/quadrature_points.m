@@ -1,4 +1,4 @@
-function Q = quadrature_points(V,F,k)
+function [Q,w,S] = quadrature_points(V,F,k)
   % QUADRATURE_POINTS Sample quadrature points on a triangle or tetrahedron.
   %
   % Q = quadrature_points(V,F)
@@ -10,6 +10,8 @@ function Q = quadrature_points(V,F,k)
   % Outputs:
   %   Q  #F by dim by k list of quadrature points
   %   w  #k list of weights
+  %   S  #F*k by #V sparse matrix so that Q ~= S*V (~= means after
+  %     reordering)
   %
   % Example:
   %   Q = quadrature_points(V,F);
@@ -46,6 +48,21 @@ function Q = quadrature_points(V,F,k)
   otherwise
     error(sprintf('Unsupported simplex-size %d',ss));
   end
+  
+  % #F by #lambda matrix of indices of all of the new points
+  I = ((1:size(F,1))') + (0:size(lambda,1)-1)*size(F,1);
+  S = sparse( ...
+      repmat(I,size(F,2),1), ...
+      repmat(F(:),1,size(lambda,1)), ...
+      reshape(permute(repmat(lambda,[1 1 size(F,1)]),[3 2 1]),numel(F),size(lambda,1)), ...
+      size(F,1)*size(lambda,1), ...
+      size(V,1));
+  % Q2 = S*V;
+  
   lambda = permute(lambda,[3 4 1 2]);
   Q = sum(bsxfun(@times,QQ,lambda),4);
+  
+  % The Q ordering is silly. S*V ~= Q after gnarly reordering
+  assert(max(max(max(abs(Q-permute(reshape(S*V,[size(Q,1) size(Q,3) size(Q,2)]),[1 3 2])))))<1e-12)
+  
 end
