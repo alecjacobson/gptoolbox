@@ -24,11 +24,12 @@ function [FF,I,l] = flip_edges(F,E,varargin)
   l = [];
   max_iter = inf;
   allow_nm = false;
+  asserts = false;
   V = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'SideLengths','MaxIter','V','AllowNonManifold'}, ...
-    {'l','max_iter','V','allow_nm'});
+    {'Asserts','SideLengths','MaxIter','V','AllowNonManifold'}, ...
+    {'asserts','l','max_iter','V','allow_nm'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -51,6 +52,9 @@ function [FF,I,l] = flip_edges(F,E,varargin)
   nv = max(F(:));
   nf = size(F,1);
   FF = F;
+  if asserts
+    assert(isempty(nonmanifold_edges(FF)));
+  end
   I = 1:numel(F);
   l = [];
   if isempty(E)
@@ -127,17 +131,26 @@ function [FF,I,l] = flip_edges(F,E,varargin)
 
     new_EE = sort([FF(fJ_left) FF(fJ_right)],2);
     if ~allow_nm
+      % If edge-after-flip already  exists then this will create a non-manifold
+      % edge
       [found] = ismember(new_EE,uE,'rows');
+      % If two edges will be the same edge after flip then this will create a
+      % non-manifold edge
+      [~,keep] = unique(new_EE,'rows');
+      % Mark those that don't appear as non-manifold 
+      found(setdiff(1:end,keep)) = true;
+
       if any(found)
         warning('Ignoring edge flips that would create non-manifold edges');
-        new_EE = new_EE(~found,:);
-        f_left_c = f_left_c(~found);
-        f_left = f_left(~found);
-        f_right = f_right(~found);
+        new_EE    = new_EE(~found,:);
+        f_left_c  = f_left_c(~found);
+        f_left    = f_left(~found);
+        f_right   = f_right(~found);
         f_right_c = f_right_c(~found);
-        fJ_left = fJ_left(~found);
-        fJ_right = fJ_right(~found);
+        fJ_left   = fJ_left(~found);
+        fJ_right  = fJ_right(~found);
       end
+
     end
     fI_left = sub2ind(size(F),f_left,mod(f_left_c+1,3)+1);    % +2
     fI_right = sub2ind(size(F),f_right,mod(f_right_c+1,3)+1); % +2
@@ -174,10 +187,16 @@ function [FF,I,l] = flip_edges(F,E,varargin)
       l(re) = old_l(la);
     end
 
+    FFbefore = FF;
+    
     I(fI_left) = fJ_left;
     FF(fI_left) = FF(fJ_left); 
     I(fI_right) = fJ_right;
     FF(fI_right) = FF(fJ_right);
+    
+    if asserts
+      assert(isempty(nonmanifold_edges(FF)));
+    end
 
     if ~isempty(V)
       tsurf(FF,V,'FaceColor','r');
