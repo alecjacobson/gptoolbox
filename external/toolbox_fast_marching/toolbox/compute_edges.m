@@ -4,7 +4,7 @@ function edges = compute_edges(face)
 %
 %   edge = compute_edges(face);
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 if isempty(face)
     edges=[];

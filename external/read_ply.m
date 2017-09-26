@@ -8,7 +8,7 @@ function [vertex,face,d,c] = read_ply(filename)
 %   'face' is a 'nb.face x 3' array specifying the connectivity of the mesh.
 %
 %
-%   Copyright (c) 2003 Gabriel Peyr?
+%   Copyright (c) 2003 Gabriel Peyré
 
 [d,c] = plyread(filename);
 vi = d.face.vertex_indices;

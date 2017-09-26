@@ -44,7 +44,7 @@ function [U,FF,J] = split_edges(V,F,E,varargin)
   uE = unique(sortE,'rows');
 
   DA = sparse(sortE(:,1),sortE(:,2),1-2*(allE(:,2)>allE(:,1)),nv,nv);
-  % Edge partiy sum adjacency matrix
+  % Edge parity sum adjacency matrix
   EP = DA - DA';
   % Symmetrize
   EP = EP + EP';

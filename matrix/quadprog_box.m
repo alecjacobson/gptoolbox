@@ -8,7 +8,7 @@ function [X,state] = quadprog_box(H,f,Aeq,Beq,lx,ux,state,varargin)
   % [X,state] = quadprog_box(H,f,Aieq,Bieq,Aeq,Beq,lx,ux,X0,state)
   % 
   % Inputs:
-  %   H  #X by #X sparse quadratic coefficients matrix (with іmplied ½, like
+  %   H  #X by #X sparse quadratic coefficients matrix (with implied ½, like
   %     quadprog, but unlike min_quad_with_fixed)
   %   f  #X by dim linear quadratic coefficients vector/matrix
   %%   Aieq  ignored (todo/match quadprog api)
@@ -21,7 +21,7 @@ function [X,state] = quadprog_box(H,f,Aeq,Beq,lx,ux,state,varargin)
   %     X0  #X by dim initial guess {[]}
   % Outputs:
   %   X  #X by dim solution
-  %   state  struct containing precomputation information. This is reusable iff
+  %   state  struct containing precomputation information. This is reusable if
   %     the H and Aeq do not change. It is OK, for f, Beq, lx and ux to change.
   % 
   % 

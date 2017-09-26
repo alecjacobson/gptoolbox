@@ -7,7 +7,7 @@ function plot_fast_marching_3d(W,S,path,start_points,end_points, options)
 %   If you provide W, path is assumed to lie in [1,n]^3 where n=length(W).
 %   Path can be a cell array of 3D curves or a single 3D curve.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 options.null = 0;
 if isfield(options, 'plot_isosurface')

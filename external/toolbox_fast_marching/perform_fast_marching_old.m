@@ -34,7 +34,7 @@ function [D,S,Q] = perform_fast_marching(W, start_points, options)
 %
 %   See also: perform_fast_marching_3d.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 
 options.null = 0;
@@ -115,5 +115,5 @@ elseif d==3
 end
 Q = Q+1;
 
-% replace C 'Inf' value (1e9) by Matlab Inf value.
+% replace C 'Inf' value (1e9) by MATLAB Inf value.
 D(D>1e8) = Inf;

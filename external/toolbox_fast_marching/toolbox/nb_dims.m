@@ -4,7 +4,7 @@ function d = nb_dims(x)
 %
 %   d = nb_dims(x);
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 if isempty(x)
     d = 0;

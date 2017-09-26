@@ -6,7 +6,7 @@ function s = compute_cuvilinear_abscice(c)
 %
 %   A curve is a ndims x npts matrix.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 if size(c,1)>size(c,2)
     c = c';

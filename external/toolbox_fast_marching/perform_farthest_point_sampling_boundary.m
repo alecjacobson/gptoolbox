@@ -6,7 +6,7 @@ function points = perform_farthest_point_sampling_boundary( W, points, nbr_pts, 
 %
 %   points can be []
 %   
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©
 
 if nbr_pts>1
     for i=1:nbr_pts

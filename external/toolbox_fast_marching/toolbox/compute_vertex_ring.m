@@ -7,7 +7,7 @@ function vring = compute_vertex_ring(face)
 %   vring{i} is the set of vertices that are adjacent
 %   to vertex i.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel Peyr√©
 
 [tmp,face] = check_face_vertex([],face);
 

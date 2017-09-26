@@ -100,7 +100,7 @@ function [U,Ud,data] = linear_elasticity(V,F,b,bc,varargin)
       mu = .5.*young./(1+nu);
     end
 
-    % This matches the matlab code by Jonas Koko, in
+    % This matches the MATLAB code by Jonas Koko, in
     % "Vectorized Matlab Codes for Linear Two-Dimensional Elasticity"
 
     % Gradient/divergence operator

@@ -2,7 +2,7 @@
 %   Fast Marching algorithm, 
 %   aka FM* with landmark points
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % speed fonction W

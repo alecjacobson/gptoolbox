@@ -212,4 +212,4 @@ public:
 #endif // __GW_Matrix2x2_h_
 
 ///////////////////////////////////////////////////////////////////////////////
-//  Copyright (C) 2009 Gabriel Peyre
+//  Copyright (C) 2009 Gabriel Peyré

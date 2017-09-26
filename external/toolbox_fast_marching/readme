@@ -1,4 +1,4 @@
-WARNING: you have to add the files under toolbox/ in your Matlab path.
+WARNING: you have to add the files under toolbox/ in your MATLAB path.
 
 The Fast Marching algorithm, introduced by Sethian (1996) is a 
 numerical algorithm that is able to catch the viscosity solution 
@@ -49,7 +49,7 @@ Additional features:
 	Appleton, B., Talbot, H., 
 	Globally Optimal Geodesic Active Contours, 
 	Journal of Mathematical Imaging and Vision, to appear.
-* Constraint path planing : the script 'test_path_planing'
+* Constraint path planning : the script 'test_path_planning'
  shows the application of 3D fast marching to the extraction
  of optimal path for a tiny rectangle.
  The function 'generate_constrained_map' generate the 3D speed
@@ -69,4 +69,4 @@ simply run 'compile_mex'. This should be ok if you have
 set some C++ compiler (use 'mex -setup').
 Precompiled version (.dll) for Windows are provided.
 
-Copyright (c) 2004 Gabriel Peyré
+Copyright (c) 2004 Gabriel PeyrÃ©

@@ -7,7 +7,7 @@ function [points,D] = perform_farthest_point_sampling( W, points, npoints, optio
 %   points can be [] or can be a (2,npts) matrix of already computed 
 %       sampling locations.
 %   
-%   Copyright (c) 2005 Gabriel Peyre
+%   Copyright (c) 2005 Gabriel Peyré
 
 options.null = 0;
 if nargin<3

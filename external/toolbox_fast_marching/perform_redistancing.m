@@ -10,7 +10,7 @@ function D1 = perform_redistancing(D, options)
 %   Note that the distance function is computed with 1 pixel = distance of
 %   1, so the overall image range over a 1...n=size(D,1)
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 use_interpolation = getoptions(options, 'use_interpolation', 1);

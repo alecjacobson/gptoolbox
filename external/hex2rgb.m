@@ -28,7 +28,7 @@ function RGB = hex2rgb(HEX)
 %
 %   See also HEX2DEC
 
-% Created in Matlab R2011b 
+% Created in MATLAB R2011b 
 % version 1.0 (feb 2014)
 % (c) Jos van der Geest
 % email: jos@jasen.nl

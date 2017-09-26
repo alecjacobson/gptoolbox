@@ -9,7 +9,7 @@ function [tsc,alpha,V] = total_signed_curvature(P,E)
   %   P  #P by 2 list of positions of a closed piecewise-linear curve
   %   or 
   %   P  #P by 2 list of positions 
-  %   E  #E by 2 list of orientedd edge indices into P
+  %   E  #E by 2 list of oriented edge indices into P
   % Outputs:
   %   tsc  total signed curvature scalar, should be 2*pi*k where k∈0,1,2,...
   %   alpha  #P by 1 list of exterior angles (boundaries will get 0)

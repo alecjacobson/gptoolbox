@@ -1,10 +1,10 @@
 
-This directory contains some Matlab script files that serve to give
+This directory contains some MATLAB script files that serve to give
 example usage of this code, and also to explain some of the 
 representations and algorithms.
 
-The files are NOT meant to be executed from the MatLab prompt (like many 
-of the MatLab demos).  You should instead read through the comments, 
+The files are NOT meant to be executed from the MATLAB prompt (like many 
+of the MATLAB demos).  You should instead read through the comments, 
 executing the subsequent pieces of code.  This gives you a chance to 
 explore as you go...
 

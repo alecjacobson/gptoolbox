@@ -8,7 +8,7 @@ function [M,G] = perform_geodesic_interpolation(W,points,f,options)
 %
 %   options.method can be 'powerlaw' or 'gaussian'.
 %
-%   Copyright (c) 2007 Gabriel Peyré
+%   Copyright (c) 2007 Gabriel Peyr√©
 
 
 n = size(W,1);

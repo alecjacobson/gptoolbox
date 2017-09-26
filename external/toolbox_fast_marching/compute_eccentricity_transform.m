@@ -22,7 +22,7 @@ function [E,Ind] = compute_eccentricity_transform(M, options)
 %   For s==Inf only:
 %       Ind(i) is the index of the point j that reaches E(i)=d(i,Ind(i)).
 %
-%   Copyright (c) 2006 Gabriel Peyr?
+%   Copyright (c) 2006 Gabriel Peyré
 
 options.null = 0;
 

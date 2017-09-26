@@ -28,7 +28,7 @@ function [A,rhs,pre_rhs,L_prime] = laplacian_editing_system(V,F,b,bc)
   if(isempty(F) || size(F,2) ==2)
     % curve case
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Matlab script for 2D Laplacian Editing
+    % MATLAB script for 2D Laplacian Editing
     %
     % Please refer to "Laplacian Surface Editing" by Olga Sorkine,
     %   Daniel Cohen-Or, Yaron Lipman,  Marc Alexa, Christian Rössl and

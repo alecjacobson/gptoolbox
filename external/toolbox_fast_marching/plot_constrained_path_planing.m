@@ -1,10 +1,10 @@
-function plot_constrained_path_planing(M,path,obj,nb_s,options)
+function plot_constrained_path_planning(M,path,obj,nb_s,options)
 
-% plot_constrained_path_planing - plot the result of the fast marching.
+% plot_constrained_path_planning - plot the result of the fast marching.
 %
-%   plot_constrained_path_planing(M,path,obj);
+%   plot_constrained_path_planning(M,path,obj);
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 options.null = 1;
 if nargin<4

@@ -1,6 +1,6 @@
 function preserve_history ()
 % Maintains command history indefinitely in a separate history_saved.m file
-% since Matlab is truncating history.m to a fixed size. The code is fast even
+% since MATLAB is truncating history.m to a fixed size. The code is fast even
 % when history_saved.m gets very big.
 %
 % Also works with the new format introduced in R2014a which is XML. Its

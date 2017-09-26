@@ -43,9 +43,9 @@ function [U] = stiff_points_lbs(V,C,P,SE,new_C,WP,WS)
   % and Rij is the bone rotation of points i and j
 
   % Mask weights with bone incidence
-  % M(i,k) is 1 iff handle i is incident on bone k
+  % M(i,k) is 1 if handle i is incident on bone k
   M = sparse([SE(:,1)' SE(:,2)'],[1:ns 1:ns],1);
-  % M(j,i,k) is 1 only iff handle i is incident on bone k
+  % M(j,i,k) is 1 only if handle i is incident on bone k
   M = permute(repmat(full(M),[1 1 n]),[3 1 2]);
   WSP = permute(repmat(WS,[1 1 np]),[1 3 2]) .* M;
   % normalize per vertex per handle

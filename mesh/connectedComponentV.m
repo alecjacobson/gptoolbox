@@ -1,6 +1,6 @@
 function [C] = connectedComponentV(VV,TAG)
 % CONNECTEDCOMPONENTV Compute the connected components of a subset of vertices
-% on a tri surface. Two vertices are considered connected iff an edge connects
+% on a tri surface. Two vertices are considered connected if an edge connects
 % them.
 %
 % [C] = connectedComponent(VV,TAG)

@@ -60,7 +60,7 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
       I = (1:size(V,1))';
       nao = size(V,1);
       N = per_vertex_normals(V,T);
-      % Matlab uses backwards normals
+      % MATLAB uses backwards normals
       t.VertexNormals =  -N;
       lighting phong;
     elseif size(C,1) == size(F,1)

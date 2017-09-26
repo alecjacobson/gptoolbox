@@ -7,7 +7,7 @@ function vertex1 = compute_bending_invariant(vertex,faces,options)
 %   Use out-of-sample interpolation to speed up the computation.
 %   The number of landmarks used is set by options.nlandmarks.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 nlandmarks = getoptions(options, 'nlandmarks', 200);

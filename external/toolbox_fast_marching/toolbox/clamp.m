@@ -6,7 +6,7 @@ function y = clamp(x,a,b)
 %
 % Default is [a,b]=[0,1].
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 if nargin<2
     a = 0;

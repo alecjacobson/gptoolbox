@@ -7,7 +7,7 @@ function A = triangulation2adjacency(face,vertex)
 % or for getting a weighted graph
 %   A = triangulation2adjacency(face,vertex);
 %
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©
 
 
 [tmp,face] = check_face_vertex([],face);

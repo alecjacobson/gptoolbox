@@ -10,7 +10,7 @@ function count = cprintf(style,format,varargin)
 %
 %    CPRINTF then displays the text in the Command Window using the
 %    specified STYLE argument. The accepted styles are those used for
-%    Matlab's syntax highlighting (see: File / Preferences / Colors / 
+%    MATLAB's syntax highlighting (see: File / Preferences / Colors / 
 %    M-file Syntax Highlighting Colors), and also user-defined colors.
 %
 %    The possible pre-defined STYLE names are:
@@ -33,11 +33,11 @@ function count = cprintf(style,format,varargin)
 %    STYLE beginning with '*' will be bold (R2011b+ only). For example:
 %          '*Blue' is bold blue;
 %          '*Comments' is bold green etc.
-%    Note: Matlab does not currently support both bold and underline,
+%    Note: MATLAB does not currently support both bold and underline,
 %          only one of them can be used in a single cprintf command. But of
 %          course bold and underline can be mixed by using separate commands.
 %
-%    STYLE also accepts a regular Matlab RGB vector, that can be underlined
+%    STYLE also accepts a regular MATLAB RGB vector, that can be underlined
 %    and bolded: -[0,1,1] means underlined cyan, '*[1,0,0]' is bold red.
 %
 %    STYLE is case-insensitive and accepts unique partial strings just
@@ -63,8 +63,8 @@ function count = cprintf(style,format,varargin)
 %    Please send to Yair Altman (altmany at gmail dot com)
 %
 % Warning:
-%    This code heavily relies on undocumented and unsupported Matlab
-%    functionality. It works on Matlab 7+, but use at your own risk!
+%    This code heavily relies on undocumented and unsupported MATLAB
+%    functionality. It works on MATLAB 7+, but use at your own risk!
 %
 %    A technical description of the implementation can be found at:
 %    <a href="http://undocumentedmatlab.com/blog/cprintf/">http://UndocumentedMatlab.com/blog/cprintf/</a>
@@ -75,7 +75,7 @@ function count = cprintf(style,format,varargin)
 %
 %    2. In R2011a and earlier, consecutive differently-colored multi-line
 %       CPRINTFs sometimes display incorrectly on the bottom line.
-%       As far as I could tell this is due to a Matlab bug. Examples:
+%       As far as I could tell this is due to a MATLAB bug. Examples:
 %         >> cprintf('-str','under\nline'); cprintf('err','red\n'); % hidden 'red', unhidden '_'
 %         >> cprintf('str','regu\nlar'); cprintf('err','red\n'); % underline red (not purple) 'lar'
 %
@@ -88,7 +88,7 @@ function count = cprintf(style,format,varargin)
 %       the last character of an underlined segment is not underlined for
 %       some unknown reason (add an extra space character to make it look better)
 %
-%    5. In old Matlab versions (e.g., Matlab 7.1 R14), multi-line styles
+%    5. In old MATLAB versions (e.g., MATLAB 7.1 R14), multi-line styles
 %       only affect the first line. Single-line styles work as expected.
 %       R14 also appends a single space after underlined segments.
 %
@@ -102,7 +102,7 @@ function count = cprintf(style,format,varargin)
 %    2011-03-04: Performance improvement
 %    2010-06-27: Fix for R2010a/b; fixed edge case reported by Sharron; CPRINTF with no args runs the demo
 %    2009-09-28: Fixed edge-case problem reported by Swagat K
-%    2009-05-28: corrected nargout behavior sugegsted by Andreas Gäb
+%    2009-05-28: corrected nargout behavior sugegsted by Andreas GÃ¤b
 %    2009-05-13: First version posted on <a href="http://www.mathworks.com/matlabcentral/fileexchange/authors/27420">MathWorks File Exchange</a>
 %
 % See also:
@@ -142,7 +142,7 @@ function count = cprintf(style,format,varargin)
 
   % In compiled mode
   try useDesktop = usejava('desktop'); catch, useDesktop = false; end
-  if isdeployed | ~useDesktop %#ok<OR2> - for Matlab 6 compatibility
+  if isdeployed | ~useDesktop %#ok<OR2> - for MATLAB 6 compatibility
       % do not display any formatting - use simple fprintf()
       % See: http://undocumentedmatlab.com/blog/bold-color-text-in-the-command-window/#comment-103035
       % Also see: https://mail.google.com/mail/u/0/?ui=2&shva=1#all/1390a26e7ef4aa4d
@@ -157,7 +157,7 @@ function count = cprintf(style,format,varargin)
       if underlineFlag
           format = ['<a href="">' format '</a>'];
 
-          % Matlab 7.1 R14 (possibly a few newer versions as well?)
+          % MATLAB 7.1 R14 (possibly a few newer versions as well?)
           % have a bug in rendering consecutive hyperlinks
           % This is fixed by appending a single non-linked space
           if majorVersion < 7 || (majorVersion==7 && minorVersion <= 1)
@@ -213,7 +213,7 @@ function count = cprintf(style,format,varargin)
       if majorVersion<7 || (majorVersion==7 && minorVersion<13)
           if bolFlag && ~underlineFlag
               % Set the leading hyperlink space character ('_') to the bg color, effectively hiding it
-              % Note: old Matlab versions have a bug in hyperlinks that need to be accounted for...
+              % Note: old MATLAB versions have a bug in hyperlinks that need to be accounted for...
               %disp(' '); dumpElement(docElement)
               setElementStyle(docElement,'CW_BG_Color',1+underlineFlag,majorVersion,minorVersion); %+getUrlsFix(docElement));
               %disp(' '); dumpElement(docElement)
@@ -277,7 +277,7 @@ function [underlineFlag,boldFlag,style] = processStyleInfo(style)
           style = style(~boldIdx);
       end
       if underlineFlag && boldFlag
-          warning('YMA:cprintf:BoldUnderline','Matlab does not support both bold & underline')
+          warning('YMA:cprintf:BoldUnderline','MATLAB does not support both bold & underline')
       end
 
       % Check if the remaining style sting is a numeric vector
@@ -288,7 +288,7 @@ function [underlineFlag,boldFlag,style] = processStyleInfo(style)
       end
   end
 
-  % Style = valid matlab RGB vector
+  % Style = valid MATLAB RGB vector
   if isnumeric(style) && length(style)==3 && all(style<=1) && all(abs(style)>=0)
       if any(style<0)
           underlineFlag = 1;
@@ -336,14 +336,14 @@ function [underlineFlag,boldFlag,style] = processStyleInfo(style)
       end
   end
 
-% Convert a Matlab RGB vector into a known style name (e.g., '[255,37,0]')
+% Convert a MATLAB RGB vector into a known style name (e.g., '[255,37,0]')
 function styleName = getColorStyle(rgb)
   intColor = int32(rgb*255);
   javaColor = java.awt.Color(intColor(1), intColor(2), intColor(3));
   styleName = sprintf('[%d,%d,%d]',intColor);
   com.mathworks.services.Prefs.setColorPref(styleName,javaColor);
 
-% Fix a bug in some Matlab versions, where the number of URL segments
+% Fix a bug in some MATLAB versions, where the number of URL segments
 % is larger than the number of style segments in a doc element
 function delta = getUrlsFix(docElement)  %#ok currently unused
   tokens = docElement.getAttribute('SyntaxTokens');

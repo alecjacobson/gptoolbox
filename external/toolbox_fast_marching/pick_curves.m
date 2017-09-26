@@ -10,7 +10,7 @@ function sk = pick_curves(mask)
 %   Left click stop a curve.
 %   Another left click stop the process.
 %
-%   Copyright (c) 2007 Gabriel Peyr?
+%   Copyright (c) 2007 Gabriel Peyré
 
 
 n = size(mask,1);

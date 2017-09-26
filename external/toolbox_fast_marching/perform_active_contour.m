@@ -34,7 +34,7 @@ function D = perform_active_contour(D0, motion, options)
 %
 %   See also: display_segmentation.
 %
-%   Copyright (c) 2007 Gabriel eyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 dt              = getoptions(options, 'dt', 1000);
 Tmax            = getoptions(options, 'Tmax', 1000);

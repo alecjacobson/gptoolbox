@@ -3,11 +3,11 @@ gptoolbox - Geometry Processing Toolbox
 
 <https://github.com/alecjacobson/gptoolbox/>
 
-This is a toolbox of useful matlab functions for geometry processing. There are
-also tools related to constrainted optimization and image processing. Typically
+This is a toolbox of useful MATLAB functions for geometry processing. There are
+also tools related to constrained optimization and image processing. Typically
 these are utility functions that are not stand alone applications.
 
-Here's an incomplete list of cool features this matlab toolbox contains:
+Here's an incomplete list of cool features this MATLAB toolbox contains:
 
 - wrappers for TetGen, Triangle, QSlim, meshfix
 - mesh smoothing
@@ -29,7 +29,7 @@ Here's an incomplete list of cool features this matlab toolbox contains:
 - constructive solid geometry operations on meshes, booleans
 - accelerated point location in triangle and tetrahedral meshes
 - image dithering
-- deep matlab function dependency
+- deep MATLAB function dependency
 
 The functions have been organized into folders based on their primary
 application:
@@ -45,7 +45,7 @@ application:
 
 ## Installation ##
 The vast majority of this code is __straight MATLAB__ (`*.m` files). Thus, only
-installing MATLAB and adding the qptoolbox directory and its subdirectories to
+installing MATLAB and adding the gptoolbox directory and its subdirectories to
 your MATLAB path is needed for installation. Let's assume you cloned gptoolbox
 at `/usr/local/gptoolbox/`, then you could issue:
 
@@ -64,18 +64,18 @@ respective `mex/README.md` file.
 This strives to be full installation instructions, but will no doubt remain
 incomplete for some time. Begin by adding paths as above. 
 
-As stated above, most files are straight matlab and will _just run_ if you have
+As stated above, most files are straight MATLAB and will _just run_ if you have
 gptoolbox in your path.
 
 #### Compile `/mex` ####
 Most of our mex files will depend on
-[libigl](https://github.com/libigl/libigl). The following will assume your
-usign a "standard" unix-y install of libigl as a static library.
+[libigl](https://github.com/libigl/libigl). The following will assume you are
+using a "standard" unix-y install of libigl as a static library.
 
 In MATLAB issue:
 
     cd mex
-    compile_qptoolbox_mex
+    compile_gptoolbox_mex
 
 #### Compile `toolbox_fast_marching` ####
 
@@ -120,8 +120,8 @@ We will probably switch to a MPL2 license in the near future.
 The Geometry Processing Toolbox grew out of Alec Jacobson's private codebase
 during his PhD, but has benefited a lot from various collaborators at NYU and
 ETH Zurich. Now, the Geometry Processing Toolbox is a group endeavour. If
-you're intersted in contributing, please contact Alec Jacobson
-(alecjacobson@gmail.com) or submit a pull request on github.
+you're interested in contributing, please contact Alec Jacobson
+(alecjacobson@gmail.com) or submit a pull request on GitHub.
 
 ## Documentation ##
 For now, documentation is limited to a per-function basis. For example, to find

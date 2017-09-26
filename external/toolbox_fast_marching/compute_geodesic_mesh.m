@@ -10,7 +10,7 @@ function [path,vlist,plist] = compute_geodesic_mesh(D, vertex, face, x, options)
 %   You can force to use a fully discrete descent using
 %   options.method='discrete'.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 verb = getoptions(options, 'verb', 1);

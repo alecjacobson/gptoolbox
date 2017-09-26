@@ -7,7 +7,7 @@ function D = compute_levelset_shape(name, n, options)
 %   name can be: 'circle', 'rectangle', 'small-disks', 'circlerect1',
 %   'circlerect2', 'square'.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 

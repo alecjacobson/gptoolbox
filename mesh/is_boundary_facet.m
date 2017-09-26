@@ -8,7 +8,7 @@ function B = is_boundary_facet(E,F)
   %   E  #E by element-size-1 list of facets
   %   F  #F by element-size list of elements
   % Outputs:
-  %   B  #E list bools. true iff unoriented facet occurs exactly once in F
+  %   B  #E list bools. true if unoriented facet occurs exactly once in F
   %     (non-manifold and non-existant edges will be false)
   %
 

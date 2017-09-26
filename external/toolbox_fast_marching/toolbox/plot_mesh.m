@@ -13,7 +13,7 @@ function h = plot_mesh(vertex,face,options)
 %
 %   See also: mesh_previewer.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel Peyr√©
 
 
 if nargin<2

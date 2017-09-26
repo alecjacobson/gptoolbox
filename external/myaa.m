@@ -2,7 +2,7 @@ function [varargout] = myaa(varargin)
 %MYAA Render figure with anti-aliasing.
 %   MYAA
 %   Anti-aliased rendering of the current figure. This makes graphics look 
-%   a lot better than in a standard matlab figure, which is useful for  
+%   a lot better than in a standard MATLAB figure, which is useful for  
 %   publishing results on the web or to better see the fine details in a
 %   complex and cluttered plot. Some simple keyboard commands allow
 %   the user to set the rendering quality interactively, zoom in/out and
@@ -23,7 +23,7 @@ function [varargout] = myaa(varargin)
 %     rendering will be bigger.
 %
 %     myaa('publish'): An experimental parameter, useful for publishing 
-%     matlab programs (see example 3). Beware, it kills the current figure.
+%     MATLAB programs (see example 3). Beware, it kills the current figure.
 %
 %   Interactivity:
 %     The anti-aliased figure can be updated with the following keyboard 
@@ -90,7 +90,7 @@ function [varargout] = myaa(varargin)
 %
 %   BUGS:
 %     Dotted and dashed lines in plots are not rendered correctly. This is
-%     probably due to a bug in Matlab and it will hopefully be fixed in a
+%     probably due to a bug in MATLAB and it will hopefully be fixed in a
 %     future version.
 %     The OpenGL renderer does not always manage to render an image large
 %     enough. Try the zbuffer renderer if you have problems or decrease the

@@ -8,7 +8,7 @@ function [E,G] = surface_graph(P,V,F)
   %
   % Inputs:
   %   P  #P by 3 list input points
-  %   V  #V by 3 list of mesh veretex positions
+  %   V  #V by 3 list of mesh vertex positions
   %   F  #F by 3 list of triangle indices into V
   % Outputs:
   %   E  #E by 2 list of edge indices into P

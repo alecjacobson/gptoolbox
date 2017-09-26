@@ -8,7 +8,7 @@ function newimg = image_resize(img,p1,q1,r1)
 %
 %   Works for 2D, 2D 2 or 3 channels, 3D images.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 if nargin==2
     % size specified as an array

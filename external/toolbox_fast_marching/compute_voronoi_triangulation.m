@@ -10,7 +10,7 @@ function faces = compute_voronoi_triangulation(Q, vertex)
 %
 %   Works in 2D and in 3D.
 %
-%   Copyright (c) 2008 Gabriel Peyre
+%   Copyright (c) 2008 Gabriel Peyré
 
 d = nb_dims(Q);
 

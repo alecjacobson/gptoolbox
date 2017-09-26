@@ -7,7 +7,7 @@ function A = compute_edge_face_ring(face)
 %   e2f(i,j) and e2f(j,i) are the number of the two faces adjacent to
 %   edge (i,j).
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 
 [tmp,face] = check_face_vertex([],face);

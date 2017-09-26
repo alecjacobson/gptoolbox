@@ -7,7 +7,7 @@ function landmark = perform_farthest_landmark_sampling( W, landmark, DL_landmark
 %   points can be []
 %   DL is the distance map to base_points, wich is a 2 x p matrix
 %   
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©
 
 if size(base_points,1)~=2
     base_points = base_points';

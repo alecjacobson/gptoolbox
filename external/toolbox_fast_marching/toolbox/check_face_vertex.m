@@ -4,7 +4,7 @@ function [vertex,face] = check_face_vertex(vertex,face, options)
 %
 %   [vertex,face] = check_face_vertex(vertex,face);
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 vertex = check_size(vertex);
 face = check_size(face);

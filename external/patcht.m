@@ -1,5 +1,5 @@
 function patcht(FF,VV,TF,VT,I,Options)
-% This function PATCHT, will show a triangulated mesh like Matlab function
+% This function PATCHT, will show a triangulated mesh like MATLAB function
 % Patch but then with a texture.
 %
 % Alec: Essentially this calls "surface" for each triangle of the triangle mesh
