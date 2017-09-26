@@ -29,7 +29,7 @@ function [D,S,Q] = perform_fast_marching_mesh(vertex, faces, start_points, optio
 %       will be expanded. Set some entries of L to -Inf to avoid any
 %       exploration of these points.
 %
-%   Copyright (c) 2004-2006 Gabriel Peyr?
+%   Copyright (c) 2004-2006 Gabriel Peyré
 
 
 options.null = 0;
@@ -66,6 +66,6 @@ else
     error('You have to run compiler_mex before.');
 end
 
-% replace C 'Inf' value (1e9) by Matlab Inf value.
+% replace C 'Inf' value (1e9) by MATLAB Inf value.
 I = find( D>1e8 );
 D(I) = Inf;

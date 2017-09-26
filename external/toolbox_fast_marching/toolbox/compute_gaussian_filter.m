@@ -17,7 +17,7 @@ function f = compute_gaussian_filter(n,s,N);
 %
 %   The filter is normalised so that it sums to 1.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel Peyr√©
 
 nd = 1;
 if length(n)>1 & n(2)>1
@@ -51,7 +51,7 @@ end
 %
 %   The filter is normalised so that it sums to 1.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel Peyr√©
 
 function f = build_gaussian_filter_2d(n,s,N)
 
@@ -86,7 +86,7 @@ f = f / sum(f(:));
 %
 %   f = build_gaussian_filter_1d(n,s,N);
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel Peyr√©
 
 function f = build_gaussian_filter_1d(n,s,N)
 

@@ -9,7 +9,7 @@ function [points,D] = perform_farthest_point_sampling_mesh( vertex,faces, points
 %
 %   See also: perform_fast_marching_mesh.
 %   
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 if nargin<3

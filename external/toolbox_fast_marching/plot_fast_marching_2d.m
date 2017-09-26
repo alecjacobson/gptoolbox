@@ -4,7 +4,7 @@ function plot_fast_marching_2d(W,S,path,start_points,end_points, options)
 %
 %   plot_fast_marching_2d(W,S,path,start_points,end_points, options);
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 
 n = size(W,1);

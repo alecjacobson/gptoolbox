@@ -1,6 +1,6 @@
 % shows an animation of a propagation
 %
-%   Copyright (c) 2005 Gabriel Peyre
+%   Copyright (c) 2005 Gabriel Peyré
 
 path(path, 'toolbox/');
 n = 100;

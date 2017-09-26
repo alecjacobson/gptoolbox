@@ -7,7 +7,7 @@ function bound = compute_shape_boundary(M)
 %   bound is oriented counter clockwise.
 %   This is the 8 connectivity boundary.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 
 n = size(M,1);

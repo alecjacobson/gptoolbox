@@ -8,7 +8,7 @@ function D = compute_distance_to_points(X,seeds)
 %   'seeds' is a [d,k] matrix.
 %   D(i,j) = |X(:,j)-seeds(:,i)|^2.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 nbCluster = size(seeds,2);
 n = size(X,2);

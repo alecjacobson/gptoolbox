@@ -11,7 +11,7 @@ function c1 = perform_curve_resampling(c, s, mode, interp_type)
 %
 % For 'interp_type', see the 'method' parameter in 'help interp1'.
 %
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©
 
 
 if nargin<3

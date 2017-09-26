@@ -11,7 +11,7 @@ function definitions = tabcomplete(funcName, varargin)
 %
 %    TABCOMPLETE modifies the [matlabroot '/toolbox/local/TC.xml'] file
 %    to set/unset the tab-completion definition of the specified function.
-%    Note: changes take effect only after a Matlab restart.
+%    Note: changes take effect only after a MATLAB restart.
 %
 %    TABCOMPLETE(funcName, argType1, argType2, ...) sets the tab-completion
 %    list for function arguments 1, 2, etc. argType can be one of these pre-
@@ -21,8 +21,8 @@ function definitions = tabcomplete(funcName, varargin)
 %      - 'subfun'    - list of accessible sub-functions
 %      - 'dir'       - list of accessible folders (directories)
 %      - 'file'      - list of accessible files (of any type)
-%      - 'mfile'     - list of accessible *.m files (Matlab functions)
-%      - 'matfile'   - list of accessible *.mat files (Matlab data)
+%      - 'mfile'     - list of accessible *.m files (MATLAB functions)
+%      - 'matfile'   - list of accessible *.mat files (MATLAB data)
 %      - 'figfile'   - list of accessible *.fig files (figures)
 %      - 'mdlfile'   - list of accessible *.mdl files (Simulink models)
 %      - 'mcospkg'   - list of accessible MCOS class packages (R2010a+)
@@ -64,13 +64,13 @@ function definitions = tabcomplete(funcName, varargin)
 %    defs = tabcomplete       % returns all currently-defined tab-completions
 %
 % Known issues/limitations:
-%    - The modified tab-completions only take effect after Matlab restart.
+%    - The modified tab-completions only take effect after MATLAB restart.
 %    - The last (default) argType does NOT accept non-pre-defined keywords
-%      (this is a limitation of Matlab's TC.xsd definition file).
+%      (this is a limitation of MATLAB's TC.xsd definition file).
 %    - Arguments *MUST* use at least one of the pre-define keywords for their
-%      argType (this is another limitation of Matlab's TC.xsd definition file).
+%      argType (this is another limitation of MATLAB's TC.xsd definition file).
 %    - Only lowercase function names are supported. This is another limitation
-%      of Matlab's TC.xsd definition file. It can be overcome by editing TC.xsd
+%      of MATLAB's TC.xsd definition file. It can be overcome by editing TC.xsd
 %      (in the same folder as TC.xml) line #20: Change <xsd:pattern value=
 %      '[a-z_0-9]+(/[a-z_0-9]+)?'/> to: '[A-Za-z_0-9]+(/[A-Za-z_0-9]+)?'/>
 %    - This utility currently does not enable setting previous-arg-based
@@ -78,8 +78,8 @@ function definitions = tabcomplete(funcName, varargin)
 %      You can edit the TC.xml file manually to achieve this functionality.
 %
 % Warning:
-%    This code heavily relies on undocumented and unsupported Matlab
-%    functionality. It works on Matlab 7+, but use at your own risk!
+%    This code heavily relies on undocumented and unsupported MATLAB
+%    functionality. It works on MATLAB 7+, but use at your own risk!
 %
 % Technical explanation:
 %    A technical explanation of the code in this utility can be found on
@@ -242,7 +242,7 @@ function nodeXmlStr = getXmlStr(funcName, varargin)
             V = sscanf(version, '%d.', 2);
             if V(1) == 7 && (V(2) >= 10 && V(2) <= 13) && ... % R2010a-R2011b
                ~ispref(mfilename,'dontUseExtra')
-                msg = {['Matlab R2010a-R2011b have a bug that cause an endless loop (100% CPU load) when using extra tab-completion values such as "' extra '"'], ...
+                msg = {['MATLAB R2010a-R2011b have a bug that cause an endless loop (100% CPU load) when using extra tab-completion values such as "' extra '"'], ...
                        '', 'Use the extra parameters anyway?'};
                 switch getQuestDlg(msg)
                     case 'Yes'   % => Yes: use extra, nothing to do here

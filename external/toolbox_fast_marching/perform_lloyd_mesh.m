@@ -4,7 +4,7 @@ function start_points = perform_lloyd_mesh(vertex,faces, start_points, options)
 %
 %   start_points = perform_lloyd_mesh(vertex,faces, start_points, options);
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 

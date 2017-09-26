@@ -72,7 +72,7 @@ function [FF,I,l] = flip_edges(F,E,varargin)
   uE = unique(sortE,'rows');
 
   DA = sparse(sortE(:,1),sortE(:,2),1-2*(allE(:,2)>allE(:,1)),nv,nv);
-  % Edge partiy sum adjacency matrix
+  % Edge parity sum adjacency matrix
   EP = DA - DA';
   % Symmetrize
   EP = EP + EP';
@@ -140,7 +140,7 @@ function [FF,I,l] = flip_edges(F,E,varargin)
 
     new_EE = sort([FF(fJ_left) FF(fJ_right)],2);
     if ~allow_nm
-      % If edge-after-flip already  exists then this will create a non-manifold
+      % If edge-after-flip already exists then this will create a non-manifold
       % edge
       [found] = ismember(new_EE,uE,'rows');
       % If two edges will be the same edge after flip then this will create a

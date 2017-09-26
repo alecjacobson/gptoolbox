@@ -1,6 +1,6 @@
 function [C] = connectedComponent(TT,TAG)
 % CONNECTEDCOMPONENT Compute the connected components of a subset of triangles
-% on a tri surface. Two faces are considered connected iff they share an edge.
+% on a tri surface. Two faces are considered connected if they share an edge.
 %
 %
 % [C] = connectedComponent(TT,TAG)

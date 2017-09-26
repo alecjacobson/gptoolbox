@@ -7,7 +7,7 @@ function [vertex_voronoi,faces_voronoi] = compute_voronoi_triangulation_mesh(Q, 
 %   Q is a Voronoi partition function, computed using
 %   perform_fast_marching_mesh.
 %
-%   Copyright (c) 2006 Gabriel Peyre
+%   Copyright (c) 2006 Gabriel Peyré
 
 if size(vertex,1)>size(vertex,2)
     vertex = vertex';

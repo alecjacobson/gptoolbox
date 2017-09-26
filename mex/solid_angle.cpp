@@ -160,7 +160,7 @@ void solid_angle_mex2(
         }
         //mexPrintVector(v[t],true);
         // finish edge length computation
-        // Matlab crashes on NaN
+        // MATLAB crashes on NaN
         if(vl[t]!=0)
         {
           vl[t] /= sqrt(vl[t]);

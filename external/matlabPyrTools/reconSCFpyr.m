@@ -12,7 +12,7 @@
 %
 % PYR is a vector containing the N pyramid subbands, ordered from fine
 % to coarse.  INDICES is an Nx2 matrix containing the sizes of
-% each subband.  This is compatible with the MatLab Wavelet toolbox.
+% each subband.  This is compatible with the MATLAB Wavelet toolbox.
 %
 % LEVS (optional) should be a list of levels to include, or the string
 % 'all' (default).  0 corresonds to the residual highpass subband.
@@ -26,7 +26,7 @@
 % function, in octaves (default = 1, which gives a raised cosine for
 % the bandpass filters).
                                                                                                                         
-% Javier Portilla, 7/04, basing on Eero Simoncelli's Matlab Pyrtools code
+% Javier Portilla, 7/04, basing on Eero Simoncelli's MATLAB Pyrtools code
 % and our common code on texture synthesis (textureSynthesis.m).
                                                                                                                         
 function res = reconSCFpyr(pyr, indices, levs, bands, twidth)

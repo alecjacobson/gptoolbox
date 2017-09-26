@@ -13,7 +13,7 @@ function M = load_image(type, n, options)
 %   Natural images:
 %       'boat', 'lena', 'goldhill', 'mandrill', 'maurice', 'polygons_blurred', or your own.
 %   
-%   Copyright (c) 2004 Gabriel Peyre
+%   Copyright (c) 2004 Gabriel Peyré
 
 if nargin<2
     n = 512;
@@ -583,7 +583,7 @@ function M = gen_noisy_image(n,alpha)
 % generate an image M whose Fourier spectrum amplitude is 
 %   |M^(omega)| = 1/f^{omega}
 %
-%   Copyright (c) 2004 Gabriel Peyr?
+%   Copyright (c) 2004 Gabriel Peyré
 
 if nargin<1
     n = 128;
@@ -616,7 +616,7 @@ function y = gen_signal_2d(n,alpha)
 %
 %   The signal is scale in [0,1].
 %   
-%   Copyright (c) 2003 Gabriel Peyr?
+%   Copyright (c) 2003 Gabriel Peyré
 
 
 
@@ -673,7 +673,7 @@ function newimg = image_resize(img,p1,q1,r1)
 %
 %   Works for 2D, 2D 2 or 3 channels, 3D images.
 %
-%   Copyright (c) 2004 Gabriel Peyr?
+%   Copyright (c) 2004 Gabriel Peyré
 
 if nargin==2
     % size specified as an array

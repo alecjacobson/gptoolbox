@@ -7,7 +7,7 @@ function M = perform_blurring(M, sigma, options)
 %   M is the original data
 %   sigma is the width of blurs (in pixels)
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 n = size(M,1);

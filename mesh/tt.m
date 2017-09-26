@@ -41,7 +41,7 @@ function [Fp, Fi] = tt(F)
     Ei = sparse(E(:,1),E(:,2),1:size(E,1));
     % adjacency list of edges as if edges represent undirected graph
     unadj = Ei>0;
-    % "non-adjacency" list, (i,j) > 0 iff i-->j exists but j-->i does not exist
+    % "non-adjacency" list, (i,j) > 0 if i-->j exists but j-->i does not exist
     nonadj = unadj-(unadj');
     adj = ((unadj + nonadj)==1).*Ei;
 

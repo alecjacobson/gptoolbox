@@ -20,7 +20,7 @@ function x = perform_histogram_equalization(x,y,options)
 %       x = perform_histogram_equalization(x,'linear',options);
 %   to impose gaussian or uniform density.
 %   
-%   Copyright (c) 2006 Gabriel Peyre
+%   Copyright (c) 2006 Gabriel Peyré
 
 
 

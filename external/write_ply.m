@@ -9,7 +9,7 @@ function write_ply(vertex,face,filename, mode)
 %
 %   IMPORTANT: works only for triangular meshes.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 if nargin<4
     mode = 'ascii';

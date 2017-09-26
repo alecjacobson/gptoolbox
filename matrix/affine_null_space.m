@@ -132,7 +132,7 @@ function [N,x0] = affine_null_space(A,b,varargin)
     % Assume: (L R') is invertible:
     % [U11 U12; 0] y = (L R')\(P b)
     % [U11 U12; 0] y = [b1;b2];
-    % Invertible iff b2 = 0
+    % Invertible if b2 = 0
     % [U11 U12; 0] y = [b1;0];
     % y = [U11\b1;y2] for any y2
     % And might as well set y2 to 0

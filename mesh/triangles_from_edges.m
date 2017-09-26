@@ -20,7 +20,7 @@ function F = triangles_from_edges(E)
   % If there exists exactly two unique paths from an edge to a vertex then both
   % endpoints must be connected to the edge (no other way to get two paths).
   %
-  % 3-clique iff #paths from edge to vertex == 2
+  % 3-clique if #paths from edge to vertex == 2
   [I,J] = find(E2V*V2V==2);
   F = unique(sort([E(I,:) J],2),'rows');
 end

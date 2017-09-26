@@ -971,4 +971,4 @@ GW_MatrixStatic<r_size,c_size,v_type> operator - (const GW_MatrixStatic<r_size,c
 #endif // __GW_MatrixStatic_h_
 
 ///////////////////////////////////////////////////////////////////////////////
-//  Copyright (C) 2009 Gabriel Peyre
+//  Copyright (C) 2009 Gabriel Peyré

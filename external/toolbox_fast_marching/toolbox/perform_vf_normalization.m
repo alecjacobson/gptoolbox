@@ -4,7 +4,7 @@ function v2 = perform_vf_normalization(v1)
 %
 %   v2 = perform_vf_normalization(v1);
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 
 n = sum(v1.^2,3);

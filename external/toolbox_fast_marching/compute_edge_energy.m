@@ -12,7 +12,7 @@ function W = compute_edge_energy(M,s,epsi, center_point)
 %
 %   where G_s is a gaussian smoothing of width s.
 %
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel Peyr√©
 
 if nargin<3
     epsi = 0.05;

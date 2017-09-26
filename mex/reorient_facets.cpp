@@ -16,7 +16,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     int nrhs, const mxArray *prhs[])
 {
   using namespace igl::matlab;
-  // This is useful for debugging whether Matlab is caching the mex binary
+  // This is useful for debugging whether MATLAB is caching the mex binary
   //mexPrintf("%s %s\n",__TIME__,__DATE__);
   MexStream mout;
   std::streambuf *outbuf = std::cout.rdbuf(&mout);

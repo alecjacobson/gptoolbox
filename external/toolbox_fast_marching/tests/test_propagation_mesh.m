@@ -1,6 +1,6 @@
 % test for front propagation on 3D meshes
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 path(path, 'toolbox/');
 path(path, '../toolbox_graph_data/');

@@ -12,7 +12,7 @@ function path = compute_geodesic(D, x, options)
 %   Set options.method = 'discrete' if you want to use a pure discrete
 %   gradient descent.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 
 options.null = 0;
@@ -60,7 +60,7 @@ function path = compute_discrete_geodesic(D,x)
 %
 %   Same as extract_path_xd but less precise and more robust.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 nd = 2;
 if size(D,3)>1
@@ -124,7 +124,7 @@ function path = extract_path_2d(A,end_points,options)
 %   'D' is the distance function.
 %   'end_point' is ending point (should be integer). 
 %
-%   Copyright (c) 2004 Gabriel Peyr�
+%   Copyright (c) 2004 Gabriel Peyré
 
 options.null = 0;
 
@@ -292,7 +292,7 @@ function path = extract_path_3d(A,end_points,options)
 %   'A' is the distance function.
 %   'x' is starting point (should be integer). 
 %
-%   Copyright (c) 2004 Gabriel Peyr�
+%   Copyright (c) 2004 Gabriel Peyré
 
 
 options.null = 0;

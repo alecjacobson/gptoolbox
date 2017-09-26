@@ -383,4 +383,4 @@ void GW_OutputComment( const char* str );
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//  Copyright (C) 2009 Gabriel Peyre
+//  Copyright (C) 2009 Gabriel Peyré

@@ -6,7 +6,7 @@ function str = num2string_fixeddigit(num, d)
 %
 %   examples for d=3: 12.3->'012', 99->'099', 999->'999', 1200->'1200' (overflow).
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 
 num = round(num);

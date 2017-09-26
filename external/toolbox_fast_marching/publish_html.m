@@ -4,7 +4,7 @@ function publish_html(filename, outputDir, stylesheet)
 %
 %    publish_html(filename, outputDir, stylesheet);
 %
-%   Copyright (c) 2008 Gabriel Peyre
+%   Copyright (c) 2008 Gabriel Peyré
 
 if nargin<1
     filename = 'content';

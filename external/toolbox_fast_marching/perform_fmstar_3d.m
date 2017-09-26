@@ -12,7 +12,7 @@ function [D,S] = perform_fmstar_3d(W, start_points,end_points, options)
 %       computation (eg. 0.5 will perform the heuristic computation
 %       on a grid of half size).
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 options.null = 0;
 if isfield(options, 'weight')

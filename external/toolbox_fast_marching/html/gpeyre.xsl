@@ -109,7 +109,7 @@ To make changes, update the M-file and republish this document.
 
     <p class="footer">
       <br/>
-      Copyright  &reg; 2008 Gabriel Peyre<br/>
+      Copyright  &reg; 2008 Gabriel Peyr&eacute;<br/>
     </p>
 
     </div>

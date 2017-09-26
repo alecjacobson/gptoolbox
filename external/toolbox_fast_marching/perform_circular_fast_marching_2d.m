@@ -17,7 +17,7 @@ function [D,S] = perform_circular_fast_marching_2d(W, start_points, center_point
 %       that remains from a given node to a given target).
 %       This is an array of same size as W.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 
 if nargin<4
@@ -62,6 +62,6 @@ else
     error('You must compile the mex files.');
 end
 
-% replace C 'Inf' value (1e9) by Matlab Inf value.
+% replace C 'Inf' value (1e9) by MATLAB Inf value.
 I = find( D>10000 );
 D(I) = Inf;

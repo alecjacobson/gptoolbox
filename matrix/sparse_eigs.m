@@ -7,7 +7,7 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   % Inputs:
   %   L  #L by #L sparse, semi-positive definite "stiffness" matrix 
   %   D  #L by #L diagonal positive definite "mass" matrix
-  %   k  number of modes requestedd
+  %   k  number of modes requested
   %   mu  sparsity parameter (larger is more sparse) {10}
   %   Optional:
   %     'Method' followed by one of the following:
@@ -70,7 +70,7 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
     US = UEUS(n+(1:n),:);
     % Based on the Python code:
     Y = Dsqrt*(E-UE + S-US);
-    % Matlab:  [U,S,V] = svd(A) --> U*S*V' = A
+    % MATLAB:  [U,S,V] = svd(A) --> U*S*V' = A
     % Numpy:  [U,S,VT] = svd(A) --> U*S*VT = A
     [V,W,VT] = svd(Y'*Y);
     Wisqrt = isqrt(W);
@@ -131,8 +131,8 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   case 'neumann'
     % Even if I measure the L1 norm of S weighted by vertex area, I'm getting bias
     % toward higher resolution areas. If I warm start from a regular mesh, this
-    % almost goes away sugtesting it's a local minimum issue, but there's still
-    % some assymmetric bais. My only idea to fix this so far is to also measure
+    % almost goes away suggesting it's a local minimum issue, but there's still
+    % some asymmetric bias. My only idea to fix this so far is to also measure
     % the penalties on the auxiliary variables using weighted vertex areas...
     % (S-Phi)'*M(S-Phi) instead of (S-Phi)'*(S-Phi). This should not change the
     % actual energy landscape, but maybe knock things into a more fair local
@@ -158,7 +158,7 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
       tol_abs = 1e-8;
       tol_rel = 1e-6;
       % Python codes uses qr factorization of random numbers in [-1,1] range,
-      % presummably to start with orthogonal vectors
+      % presumably to start with orthogonal vectors
       %[Psi,~] = qr(2*rand(n,k)-1,0);
       %Phi = Disqrt*Psi;
       % This is (more) deterministic. The cost is negligible in comparison to the
@@ -195,7 +195,7 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   
         % Based on the Python code:
         Y = Dsqrt*(E-UE + S-US);
-        % Matlab:  [U,S,V] = svd(A) --> U*S*V' = A
+        % MATLAB:  [U,S,V] = svd(A) --> U*S*V' = A
         % Numpy:  [U,S,VT] = svd(A) --> U*S*VT = A
         [V,W,VT] = svd(Y'*Y);
         Phi_prev = Phi;

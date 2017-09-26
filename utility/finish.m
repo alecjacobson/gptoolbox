@@ -37,7 +37,7 @@ if usejava('desktop')
       end
   catch
       preserve_history_failed_ = true;
-      disp Exiting Matlab was halted so you can investigate.
-      disp Type "preserve_history" after you fix it before exiting this Matlab session.
+      disp Exiting MATLAB was halted so you can investigate.
+      disp Type "preserve_history" after you fix it before exiting this MATLAB session.
   end
 end

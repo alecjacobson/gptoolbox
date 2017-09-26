@@ -3,7 +3,7 @@ function [V, F] = readWRL(filename)
 %
 %   [V, F] = readWRL(filename);
 %
-%   Copyright (c) 2004 Gabriel Peyr
+%   Copyright (c) 2004 Gabriel Peyré
 
 fp = fopen(filename,'r');
 if fp == -1

@@ -6,7 +6,7 @@ function v2 = prod_vf_sf(v1,s)
 %
 %   The result is the vector field defined by pointwise product.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 
 v2 = zeros(size(v1));

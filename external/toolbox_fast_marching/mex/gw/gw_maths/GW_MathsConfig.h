@@ -359,4 +359,4 @@ struct gw_basic_type_traits<int>
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//  Copyright (C) 2009 Gabriel Peyre
+//  Copyright (C) 2009 Gabriel Peyré

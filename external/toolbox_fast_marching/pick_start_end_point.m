@@ -4,7 +4,7 @@ function [start_point,end_point,center_point] = pick_start_end_point(M, no_end_p
 %
 %   [start_point,end_point,center_point] = pick_start_end_point(M);
 %
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©
 
 if nargin<2
     no_end_point = 0;

@@ -1,6 +1,6 @@
 % test for circular fast marching
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 % some parameters
 name = 'stephanodiscusniagarae';

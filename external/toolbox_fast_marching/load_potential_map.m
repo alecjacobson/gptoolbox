@@ -7,7 +7,7 @@ function [M,W] = load_potential_map(name, n, options)
 %   'M' is a cool 2D image you can use for display
 %   'W' is the potential map
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 
 options.null = 0;

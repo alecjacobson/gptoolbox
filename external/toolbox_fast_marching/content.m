@@ -1,10 +1,10 @@
 %% Toolbox Fast Marching - A toolbox for Fast Marching and level sets computations
 %
-% Copyright (c) 2008 Gabriel Peyre
+% Copyright (c) 2008 Gabriel Peyré
 %
 
 %% 
-% The toolbox can be downloaded from Matlab Central
+% The toolbox can be downloaded from MATLAB Central
 % http://www.mathworks.com/matlabcentral/fileexchange/loadFile.do?objectId=6110&objectType=FILE
 
 %% Introduction to Fast Marching and Level Sets

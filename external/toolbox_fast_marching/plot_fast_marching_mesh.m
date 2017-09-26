@@ -15,7 +15,7 @@ function plot_fast_marching_mesh(vertex,faces, D, paths, options)
 %   You can force color equalization using options.colorfx = 'equalize' 
 %   options.start_points is a set of start points (in red), for instance the center of geodesic cells.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 if not(iscell(paths))

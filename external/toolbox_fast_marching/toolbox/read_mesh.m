@@ -10,7 +10,7 @@ function [vertex,face,normal, uv, sphparam] = read_mesh(file)
 %
 %   Supported file extensions are: .off, .ply, .wrl, .obj, .m, .gim.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 switch file
     case {'triangle' 'square' 'square1' 'L' 'L1' 'tetra' 'oct' 'ico' 'rand'}
