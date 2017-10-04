@@ -15,30 +15,30 @@ function [W,E,U] = skeleton_extraction(V,F)
   %   U  #V by 3 list of skeleton vertex positions, before thinning
   %
 
-  delta = 1e-3;
+  delta = 1e-3*max(max(V)-min(V))^2;
   U = V;
-  L = cotmatrix(U,F);
-  %tsurf(F,V,'FaceAlpha',0.1,'EdgeColor','k','FaceColor',[0.5 0.5 0.5],'EdgeAlpha',0.5);
-  %hold on;
-  %t = tsurf( ...
-  %   bsxfun(@plus,size(F,1)*(0:2),(1:size(F,1))'), ...
-  %   U(F,:),'FaceColor',[0.7 0.8 1.0],'EdgeColor','k','EdgeAlpha',0.5, ...
-  %  'SpecularStrength',0.1,'FaceLighting','phong');
-  %tr = tsurf([1 1 1],U,'EdgeColor','r','LineWidth',2);
-  %hold off;
-  %axis equal;
-  %view(-62,10);
-  %camproj('persp');
-  %light('Position',[-100.0,1.0,-1.0],'Style','infinite');
-  %set(gca,'Visible','off');
-  %set(gcf,'Color','w');
-  %drawnow;
+  
+  viz = false;
+  if viz
+      tsurf(F,V,'FaceAlpha',0.1,'EdgeColor','k','FaceColor',[0.5 0.5 0.5],'EdgeAlpha',0.5);
+      hold on;
+      t = tsurf( ...
+          bsxfun(@plus,size(F,1)*(0:2),(1:size(F,1))'), ...
+          U(F,:),'FaceColor',[0.7 0.8 1.0],'EdgeColor','k','EdgeAlpha',0.5, ...
+          'SpecularStrength',0.1,'FaceLighting','phong');
+      tr = tsurf([1 1 1],U,'EdgeColor','r','LineWidth',2);
+      hold off;
+      axis equal;
+      view(-62,10);
+      camproj('persp');
+      light('Position',[-100.0,1.0,-1.0],'Style','infinite');
+      set(gca,'Visible','off');
+      set(gcf,'Color','w');
+      drawnow;
+  end
 
   b = [];
 
-  iter = 0;
-  %imwrite(myaa('raw'),sprintf('parasaur-pass-%05d.png',iter));
-  %set(t,'EdgeColor','none');
   iter = 1;
   h = avgedge(V,F);
 
@@ -53,14 +53,15 @@ function [W,E,U] = skeleton_extraction(V,F)
     %D = max(internalangles(U,F),[],2)>0.9*pi & ...
     %  doublearea(U,F)<1e-5;
     D = all(ismember(F,b),2);
-    %set(t,'Vertices',U(F,:));
-    %set(tr,'Faces',F(D,:),'Vertices',U);
-    %xlabel(sprintf('%d',numel(b)));
-    %drawnow;
+    if viz
+        set(t,'Vertices',U(F,:));
+        set(tr,'Faces',F(D,:),'Vertices',U);
+        xlabel(sprintf('%d',numel(b)));
+        drawnow;
+    end
     if max(max(abs(U-U_prev))) < 1e-2*h
       break;
     end
-    %imwrite(myaa('raw'),sprintf('parasaur-pass-%05d.png',iter));
     iter =iter + 1;
   end
 
@@ -71,6 +72,7 @@ function [W,E,U] = skeleton_extraction(V,F)
   phi = zeros(size(W,1),1);
   marked = false(size(W,1),1);
   E = [];
+  % This is very slow for large meshes...
   for wi = 1:size(W,1)
     % this is a lot faster than find(A(ui,:))
     if marked(wi)
@@ -94,13 +96,16 @@ function [W,E,U] = skeleton_extraction(V,F)
       N = pN;
       C = pC;
       S = pS;
-      %tsurf(F,W);
-      %hold on;
-      %scatter3(U(I,1),U(I,2),U(I,3),'SizeData',50);
-      %hold off;
-      %title(sprintf('%g',phi(wi)));
-      %axis equal;
-      %drawnow;
+      
+      if viz
+          tsurf(F,W);
+          hold on;
+          scatter3(U(I,1),U(I,2),U(I,3),'SizeData',50);
+          hold off;
+          title(sprintf('%g',phi(wi)));
+          axis equal;
+          drawnow;
+      end
 
       %pI = (A*I)>0;
       CCI = sum(A(I,:))';
@@ -146,7 +151,7 @@ function [W,E,U] = skeleton_extraction(V,F)
     %f = f/sum(f);
     %W(wi,:) = sum(bsxfun(@times,f,Wi));
   end
-    %plot_edges(W,E,'LineWidth',2)
+  %plot_edges(W,E,'LineWidth',2)
 
   count = ones(size(W,1),1);
   while true
@@ -157,6 +162,9 @@ function [W,E,U] = skeleton_extraction(V,F)
     %plot_edges(W,E,'LineWidth',2)
     %axis equal;
     %drawnow;
+    if size(E,1) == 0
+      break;
+    end
     A = adjacency_matrix(E)+speye(size(W,1));
     [ncc,C] = conncomp(A);
     if ncc == 1
