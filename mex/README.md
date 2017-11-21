@@ -26,24 +26,18 @@ I'll try to keep this up to date. We'll see how that goes.
 ### One-by-one
 
 These mex functions do not depend on each other, so if you just need a certain
-function, you can compile it alone directly: 
+function, you can compile it alone directly. First, try to gather up options
+automatically. Here I'm showing how to force libigl to use the header-only
+(non-static) mode:
 
 ```
-compile_gptoolbox_mex
+[all_opts,use_libigl_static_library] = gptoolbox_mexopts('Static',false);
 ```
 
-But **don't hit OK**, hit CTRL+C instead. Now the paths are set as needed. Copy
-the relevant chunk from `compile_gptoolbox_mex.m` and compile the individual
-mex file. For example,
+For example,
 
 ```matlab
-mex( ...
-  MEXOPTS{:}, MSSE42, STDCPP11, ...
-  LIBIGL_BASE{:},EIGEN_INC, ...
-  LIBIGL_LIBCGAL, ...
-  CGAL_INC,CGAL_LIB{:},CGAL_FLAGS, ...
-  BOOST_INC,BOOST_LIB{:}, ...
-  'signed_distance_isosurface.cpp');
+mex(all_opt{:}, 'in_element_aabb.cpp');
 ```
 
 ### Dependencies 
