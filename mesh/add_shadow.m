@@ -82,8 +82,9 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
       V = t.Vertices;
       minZ = min([V(:,3);minZ]);
     end
-    ground = [0 0 -1 minZ-nudge];
+    ground = [0 0 -1 minZ];
   end
+  ground(4) = ground(4)-nudge;
 
   h = [];
   % need to specify that there are 0 "tubes"
