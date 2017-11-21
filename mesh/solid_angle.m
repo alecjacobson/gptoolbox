@@ -99,12 +99,13 @@ function [S,detF] = solid_angle(V,F,O,legacy)
     % 2d vectors from O to VS and VD
     O2VS = bsxfun(@minus,permute(O(:,1:2),[1 3 2]),permute(VS(:,1:2),[3 1 2]));
     O2VD = bsxfun(@minus,permute(O(:,1:2),[1 3 2]),permute(VD(:,1:2),[3 1 2]));
-    % normalize
-    O2VS = bsxfun(@rdivide,O2VS,sqrt(sum(O2VS.^2,3)));
-    O2VD = bsxfun(@rdivide,O2VD,sqrt(sum(O2VD.^2,3)));
-    % http://stackoverflow.com/questions/2150050/finding-signed-angle-between-vectors
-    %O2VS
-    % O2VD
+    % WHY WAS THIS NORMALIZATION HERE?! THIS SHOULD NOT BE NECESSARY
+    %%% normalize
+    %%O2VS = bsxfun(@rdivide,O2VS,sqrt(sum(O2VS.^2,3)));
+    %%O2VD = bsxfun(@rdivide,O2VD,sqrt(sum(O2VD.^2,3)));
+    %%% http://stackoverflow.com/questions/2150050/finding-signed-angle-between-vectors
+    %%%O2VS
+    %%% O2VD
     S = -atan2( ...
       O2VD(:,:,1).*O2VS(:,:,2) - O2VD(:,:,2).*O2VS(:,:,1), ...
       O2VD(:,:,1).*O2VS(:,:,1) + O2VD(:,:,2).*O2VS(:,:,2) );
