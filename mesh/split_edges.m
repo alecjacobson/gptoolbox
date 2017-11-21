@@ -111,7 +111,7 @@ function [U,FF,J] = split_edges(V,F,E,varargin)
     FF = [FF; ...
       FF(f_right,:); ...
       FF(f_left,:)];
-    J = [J;f_right;f_left];
+    J = [J;J(f_right);J(f_left)];
     nf = size(FF,1);
     FF(sub2ind([nf 3],f_right,mod(f_right_c+1,3)+1)) = nv+(1:size(EE,1));
     FF(sub2ind([nf 3],f_left,mod(f_left_c+1,3)+1)) = nv+(1:size(EE,1));
