@@ -13,6 +13,13 @@ function [F,J,K] = boundary_faces(T)
   %   K  list of indices revealing across from which vertex is this face
   %
 
+  if isempty(T)
+    F = zeros(0,size(T,2)-1);
+    J = [];
+    K = [];
+    return;
+  end
+
   ss = size(T,2);
   switch ss
   case 2
