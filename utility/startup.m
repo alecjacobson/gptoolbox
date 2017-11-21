@@ -10,15 +10,16 @@ catch
   disp(lastworkspace)
 end;
 
-if ispref('StartupDirectory','LastWorkingDirectory')
-    lwd = getpref('StartupDirectory','LastWorkingDirectory');
+if ispref('my','LastWorkingDirectory')
+    lwd = getpref('my','LastWorkingDirectory');
     try
         cd(lwd)
     catch
-        disp('Sorry, but I could not go to your last working directory:')
-        disp(lwd)
+        warning('Sorry, could not change to your last working directory: %s', lwd);
     end;
 end;
+clear lwd;
+
 com.mathworks.mde.desk.MLDesktop.getInstance.restoreLayout('figure-command-history');
 clear lwd;
 format short g;
