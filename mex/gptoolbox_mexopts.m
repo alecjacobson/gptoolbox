@@ -27,8 +27,13 @@ function [all_opts,use_libigl_static_library] = gptoolbox_mexopts(varargin)
   end
   MSSE42='CXXFLAGS=$CXXFLAGS -msse4.2';
   STDCPP11='CXXFLAGS=$CXXFLAGS -std=c++11';
-  ELTOPO_INC= sprintf('-I%s/',path_to_eltopo);
-  ELTOPO_LIB= strsplit(sprintf('-L%s/eltopo3d -leltopo_release',path_to_eltopo));
+  try
+    ELTOPO_INC= sprintf('-I%s/',path_to_eltopo);
+    ELTOPO_LIB= strsplit(sprintf('-L%s/eltopo3d -leltopo_release',path_to_eltopo));
+  catch e
+    ELTOPO_INC='-DELTOPO_NOT_FOUND';
+    ELTOPO_LIB={'-DELTOPO_NOT_FOUND'};
+  end
   CLANG={'CXX=/usr/bin/clang++','LD=/usr/bin/clang++'};
   FRAMEWORK_LDFLAGS='LDFLAGS=\$LDFLAGS -framework Foundation -framework AppKit -framework Accelerate';
   NOOPT_LDOPTIMFLAGS='LDOPTIMFLAGS="-O "';
