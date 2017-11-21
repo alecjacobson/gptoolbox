@@ -10,6 +10,8 @@ function [V,F] = delaunayize(V,F,varargin)
   %     'Tol'  followed by tolerance for `is_delaunay`
   %     'Keep'  followed by #E by 2 list of edges _not_ to flip
   %     'SplitEdges'  followed by whether to allow edge splitting.
+  %     'MaxDihedralAngle'  followed by max-dihedral angle of edges to allow
+  %       flip across {inf}
   % Outputs:
   %   V  #V by dim list of vertex positions
   %   F  #F by 3 list of triangle indices into V
