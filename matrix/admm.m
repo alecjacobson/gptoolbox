@@ -37,8 +37,6 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
   %   
 
   max_iter = 2000;
-  % Whether to use admm.m, augh... it's slower because of function handles!
-  admm_function = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'MaxIter'}, ...
