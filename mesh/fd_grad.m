@@ -1,4 +1,4 @@
-function [G] = fd_grad(side)
+function [G,GI] = fd_grad(side)
   % FD_GRAD build a finite difference gradient for a regular grid. Components
   % of the gradient live on **different** staggered grids. So, d/dx lives on a
   % grid staggered one half-step in the x-direction but otherwise aligned in
@@ -11,11 +11,32 @@ function [G] = fd_grad(side)
   % Outputs:
   %   G   sum(prod(repmat(side,numel(side),1)-eye(numel(side)),2)) by
   %     prod(side)  gradient matrix [Gx;Gy; ...]
+  %   GI   numel(side) array of row indices of Gx;Gy
   %
   % Example:
   %   G = fd_grad([3 3]);
   %   L = fd_laplacian([3 3]);
   %   -L - G'*G
+  % 
+  % Example:
+  %   [X,Y] = meshgrid(linspace(-1,1,w),linspace(-1,1,h));
+  %   X = X*(w-1)/(h-1);
+  %   [G,GI] = fd_grad([w h]);
+  %   Gx = G(GI(1)+1:GI(2),:);
+  %   Gy = G(GI(2)+1:GI(3),:);
+  %   % forward differences at bottom-left corners
+  %   Gx(h:h:end,:) = [];
+  %   Gy = Gy(1:end-(h-1),:);
+  %   F = [Gx*Z(:) Gy*Z(:)];
+  %   vec = @(X) X(:);
+  %   Z = (X.^2+Y.^2);
+  %   clf;
+  %   hold on;
+  %   surf(X,Y,0*Z,'CData',Z,fphong);
+  %   quiver(vec(X(1:end-1,1:end-1)), vec(Y(1:end-1,1:end-1)),F(:,1),F(:,2),'k');
+  %   hold off;
+  %   axis equal;
+  % 
   %
   % See also: fd_laplacian
   %
@@ -27,6 +48,7 @@ function [G] = fd_grad(side)
 
   G = [];
   n = prod(side);
+  GI = [0];
   switch numel(side)
   case 2
     I = sub2ind([side(2) side(1)],1:n)';
@@ -38,6 +60,7 @@ function [G] = fd_grad(side)
       G = [G;...
         sparse(vec(J),vec(I(1:end-(d==2),1:end-(d==1))),-1,m,n)+ ...
         sparse(vec(J),vec(I((d==2)+1:end,(d==1)+1:end)), 1,m,n)];
+      GI = [GI size(G,1)];
     end 
   case 3
     I = sub2ind([side(2) side(1) side(3)],1:n)';
@@ -49,6 +72,7 @@ function [G] = fd_grad(side)
       G = [G;...
         sparse(vec(J),vec(I(1:end-(d==2),1:end-(d==1),1:end-(d==3))),-1,m,n)+ ...
         sparse(vec(J),vec(I((d==2)+1:end,(d==1)+1:end,(d==3)+1:end)), 1,m,n)];
+      GI = [GI size(G,1)];
     end 
   end 
 
