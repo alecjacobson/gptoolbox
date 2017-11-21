@@ -14,7 +14,7 @@ function s = path_to_eltopo()
       'Thanks, Alec']);
     s = 'c:/prg/lib/eltopo/'
   elseif ismac
-    s = '/usr/local/eltopo';
+    s = find_first_path({'/usr/local/eltopo'});
   end
 
 end
