@@ -46,6 +46,22 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   %     drawnow;
   %   end
   %
+  % Example:
+  %   % slice a triangle mesh to produce an oriented curve
+  %   plane = [0 0 1 -40];
+  %   [U,E,J] = slice_tets(V,F(:,[1 2 3 3]),plane);
+  %   [U,~,I] = remove_duplicate_vertices(U,eps);
+  %   E(E(:,2) == E(:,1),2) = E(E(:,2) == E(:,1),3);
+  %   E = E(:,1:2);
+  %   N = normals(V,F(J,:));
+  %   N = N-sum(N.*plane(1:3),2).*plane(1:3);
+  %   M = U(E(:,2),:)-U(E(:,1),:);
+  %   Q = [1 plane(1:3)].*[cos(pi/4) sin(pi/4)*[1 1 1]];
+  %   W = quatmultiply(quatmultiply(Q,[zeros(size(M,1),1) M]),Q.*[1 -1 -1 -1]);
+  %   W = W(:,2:4);
+  %   R = sign(sum(W.*N,2))>0;
+  %   E(R,:) = fliplr(E(R,:));
+  %
 
   function [U,G,BC] = one_below(V,T,IT)
     [sIT,sJ] = sort(IT,2);
