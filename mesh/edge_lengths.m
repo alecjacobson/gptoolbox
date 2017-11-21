@@ -24,6 +24,7 @@ function l = edge_lengths(V,F)
     s23 = normrow(V(i3,:) - V(i2,:));
     l = [s23 s13 s12];
   case 4
+    T = F;
     % lengths of edges opposite *face* pairs: 23 31 12 41 42 43
     l = [ ...
       sqrt(sum((V(T(:,4),:)-V(T(:,1),:)).^2,2)) ...
