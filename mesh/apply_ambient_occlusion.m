@@ -125,6 +125,7 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   end
 
   AOin = AO;
+  AO = {};
   Cin = C;
   for ii = 1:numel(t)
     if isempty(AOin)
@@ -132,8 +133,10 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
     else
       if numel(t) == 1
         AOii = AOin;
-      else
+      elseif iscell(AOin)
         AOii = AOin{ii};
+      else
+        AOii = AOin(:,min(ii,end));
       end
     end
     if isempty(Cin)
