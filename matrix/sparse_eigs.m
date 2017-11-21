@@ -28,10 +28,11 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   max_iter = 2000;
   % Whether to use admm.m, augh... it's slower because of function handles!
   admm_function = false;
+  quadprog_max_iter = 100;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'ADMM','Method' ,'Constrained','MaxIter'}, ...
-    {'admm_function','method','constrained','max_iter'});
+    {'ADMM','Method' ,'Constrained','MaxIter','QuadProgMaxIter'}, ...
+    {'admm_function','method','constrained','max_iter','quadprog_max_iter'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -213,6 +214,11 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
         % S = sign(v).*max(abs(v) - mu/rho,0);
         % Based on python code
         S = shrink(Phi + US,(mu/rho)*full(diag(M)));
+
+        % TODO: it'd be nice to also handle the brandt-style constrained problem
+        % in this setup. We would need to:
+        %
+        % min_S ρ/2‖Φ - S + US‖² subject to ‖Sj‖₁ = μ ∀j
       
         % Update E (11)
         if rho ~= rho_prev
@@ -281,6 +287,7 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
 
     % Loop over modes
     for i = 1:k
+      state = [];
       % TODO: Should probably reformulate as a conic problem
       % 
       % min_U⁺,U⁻   [U⁺' U⁻'] [L -L;-L L] [U⁺; U⁻] + μ(1' M U⁺ + 1' M U⁻)
@@ -315,18 +322,29 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
           Aeq = [Aeqc;Aeqj];
           Beq = [Beqc;Beqj];
         end
-        params = default_quadprog_param();
-        fval_prev = fval;
-        [Ui,fval,exitflag,output,lambda] = quadprog( ...
-          [L -L;-L L],f, ...
-          [],[], ...
-          Aeq, Beq, ...
-          [Z;Z],[],params);
+        Q = [L -L;-L L];
+        lx = [Z;Z];
+        ux = inf(2*n,1);
+        use_quadprog = false;
+        if use_quadprog
+          params = default_quadprog_param();
+          fval_prev = fval;
+          [Ui,fval,exitflag,output,lambda] = quadprog( ...
+            Q,f, ...
+            [],[], ...
+            Aeq, Beq, ...
+            lx,ux,params);
+        else
+          fval_prev = fval;
+          [Ui,state] = ...
+            quadprog_box(Q,f,sparse(Aeq),Beq,lx,ux,state,'MaxIter',quadprog_max_iter,'Aeq_li',true);
+          fval = 0.5*Ui'*Q*Ui+Ui'*f;
+        end
         rel_delta = abs(fval_prev-fval)/abs(fval);
         fvals = [fvals;rel_delta];
         %subplot(2,1,2);
-        semilogy(fvals,'LineWidth',3);
-        drawnow;
+        %semilogy(fvals,'LineWidth',3);
+        %drawnow;
         U(:,i) = Ui(1:n)-Ui(n+(1:n));
         if rel_delta < 1e-7
           break;
