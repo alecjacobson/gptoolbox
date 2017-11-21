@@ -36,10 +36,17 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
   % See also: boundary_conditions
   %
 
+  function COUNT = verbose_fprintf(varargin)
+    if verbose
+      COUNT = fprintf(varargin{:});
+    end
+  end
+
   % number of vertices
   n = size(V,1);
   % number of handles
   m = size(bc,2);
+
 
   % default options
   pou = false;
@@ -60,10 +67,11 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
 
 
   % default values
+  verbose = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'W0','k','QuadProgParam','Low','Up','POU','OptType','ShapePreserving'}, ...
-    {'W0','k','param','low','up','pou','opt_type','R'});
+    {'Verbose','W0','k','QuadProgParam','Low','Up','POU','OptType','ShapePreserving'}, ...
+    {'verbose','W0','k','param','low','up','pou','opt_type','R'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -159,17 +167,18 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
       ux = up.*ones(m*n,1);
       lx = low.*ones(m*n,1);
       if(mosek_exists)
-        fprintf('Quadratic optimization using mosek...\n');
+        verbose_fprintf('Quadratic optimization using mosek...\n');
       else
-        fprintf('Quadratic optimization using matlab...\n');
+        verbose_fprintf('Quadratic optimization using matlab...\n');
       end
-      fprintf( [ ...
+      verbose_fprintf( [ ...
         '  minimize:     x''LM\\Lx\n' ...
         'subject to: %g <= x <= %g, ???_i xi = 1\n'], ...
         low,up);
       tic;
       W = quadprog(Q,zeros(n*m,1),[],[],[PA;BCA],[Pb;BCb],lx,ux,[],param);
-      toc
+      t = toc;
+      verbose_fprintf('Total elapsed time: %gs\n',t);
       W = reshape(W,n,m);
     else
       error( [ ...
@@ -236,9 +245,9 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
     tic;
     if strcmp(opt_type,'active-set')
       if ~exist('W0') || isempty(W0)
-        fprintf('Initial guess for active set...\n');
+        verbose_fprintf('Initial guess for active set...\n');
         W = min_quad_with_fixed(Q,[],b,bc);
-        fprintf('Lap time: %gs\n',toc);
+        verbose_fprintf('Lap time: %gs\n',toc);
       else
         W = W0;
       end
@@ -247,8 +256,8 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
     for i = 1:m
       switch opt_type
       case 'active-set'
-        fprintf('Quadratic optimization using active set...\n');
-        fprintf( [ ...
+        verbose_fprintf('Quadratic optimization using active set...\n');
+        verbose_fprintf( [ ...
           '  minimize:     x''LM\\Lx\n' ...
           'subject to: %g <= x <= %g\n' ], ...
           low,up);
@@ -262,11 +271,11 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
         Aeq = speye(n,n);
         Aeq = Aeq(b,:);
         if(mosek_exists)
-          fprintf('Quadratic optimization using mosek...\n');
+          verbose_fprintf('Quadratic optimization using mosek...\n');
         else
-          fprintf('Quadratic optimization using matlab...\n');
+          verbose_fprintf('Quadratic optimization using matlab...\n');
         end
-        fprintf( [ ...
+        verbose_fprintf( [ ...
           '  minimize:     x''LM\\Lx\n' ...
           'subject to: %g <= x <= %g\n' ], ...
           low,up);
@@ -274,7 +283,7 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
         % matrices are not yet supported...
         [x,fval,err] = quadprog(Q,zeros(n,1),[],[],Aeq,bc(:,i),lx,ux,[],param);
         if(err ~= 1)
-          fprintf([...
+          verbose_fprintf([...
             '----------------------------------------------------------\n' ...
             'ERROR ('  num2str(err) ',' num2str(fval) '):' ...
             ' solution may be inaccurate...\n' ...
@@ -286,8 +295,8 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
         % enforce boundary conditions via lower and upper bounds
         lx(b) = bc(:,i);
         ux(b) = bc(:,i);
-        fprintf('Quadratic optimization using mosek...\n');
-        fprintf([ ...
+        verbose_fprintf('Quadratic optimization using mosek...\n');
+        verbose_fprintf([ ...
           '  minimize:       z''z\n' ...
           '  subject to: M\\Lx - z = 0\n' ...
           '  and          %g <= x <= %g\n'], ...
@@ -296,8 +305,8 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
       case 'conic'
         prob.bux(b) = bc(:,i);
         prob.blx(b) = bc(:,i);
-        fprintf('Conic optimization using mosek...\n');
-        fprintf([ ...
+        verbose_fprintf('Conic optimization using mosek...\n');
+        verbose_fprintf([ ...
           '  minimize:         t\n' ...
           '  subject to: M\\Lx - z = 0,\n' ...
           '             t >= sqrt(z''z),\n' ...
@@ -337,11 +346,11 @@ function W = biharmonic_bounded(V,F,b,bc,varargin)
       end
       % set weights to solution in weight matrix
       W(:,i) = x(1:n);
-      fprintf('Lap time: %gs\n',toc);
+      verbose_fprintf('Lap time: %gs\n',toc);
     end
     t = toc;
-    fprintf('Total elapsed time: %gs\n',t);
-    fprintf('Average time per handle: %gs\n',t/m);
+    verbose_fprintf('Total elapsed time: %gs\n',t);
+    verbose_fprintf('Average time per handle: %gs\n',t/m);
   end
 
 end
