@@ -23,9 +23,9 @@ function s = path_to_qslim()
       guesses = { ...
         '/usr/local/bin/qslim', ...
         '/opt/local/bin/qslim'};
-      s = ...
-        guesses{find(cellfun(@(guess) exist(guess,'file'),guesses),1,'first')};
-      assert(~isempty(s),'Could not find qslim');
+      E = cellfun(@(guess) exist(guess,'file'),guesses);
+      assert(any(E),'Could not find qslim');
+      s = guesses{find(E,1,'first')};
     end
   end
 end
