@@ -17,7 +17,8 @@ function [IA,IO,e,A] = is_acute(V,F)
   e = edge_lengths(V,F);
   % semiperimeter, area, circumradius, inradius
   s = sum(e,2)/2;
-  A = sqrt(s.*(s-e(:,1)).*(s-e(:,2)).*(s-e(:,3)));
+  A = doublearea(V,F);
+  %A = sqrt(s.*(s-e(:,1)).*(s-e(:,2)).*(s-e(:,3)));
   R = e(:,1).*e(:,2).*e(:,3)./(4.0.*A);
   r = A./s;
   IA = s-r > 2*R;
