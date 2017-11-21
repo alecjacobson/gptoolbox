@@ -12,6 +12,7 @@ function [VV,FF] = extrude(V,F,varargin)
   %   E  #E by 2 list of segment indices into V, CCW order
   %   Optional:
   %     'Cap' followed by {true} of false whether to put a *bottom cap*
+  %     'Levels'  followed by number of "stacks" or "levels" {1}
   % Outputs:
   %   VV #VV by 3 list of 3d vertex positions
   %   FF  #FF by 3 list of triangle indices into VV
