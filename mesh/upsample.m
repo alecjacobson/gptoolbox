@@ -1,5 +1,9 @@
 function [VV,FF,FO] = upsample(V,F,varargin)
-  % UPSAMPLE Upsample a mesh by adding vertices on existing edges/faces
+  % UPSAMPLE Upsample a mesh by adding vertices on existing edges/faces After n
+  % iterations of loop subivision, the resulting mesh will have
+  %                                      4^n |F| faces
+  %            2^n*|E| +  3*2^(n-1)*(2^n-1))*|F| edges
+  %   |V| + (2^n-1)|E| + (1+2^(n-1)*(2^n-3))*|F| vertices
   %
   % [VV,FF] = upsample(V,F)
   % [VV,FF,FO] = upsample(V,F,'ParameterName',ParameterValue, ...)

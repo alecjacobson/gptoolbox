@@ -1,5 +1,9 @@
 function [VV,FF,SS,J] = loop(V,F,iter)
-% LOOP perform loop subdivision
+% LOOP perform loop subdivision. After n iterations of loop subivision, the
+% resulting mesh will have
+%   4^n |F| faces
+%   2^(n-1)*(2*|E| + 3*|F|*(2^n-1)) edges
+%   |V| + (2^n-1)|E| + (1+2^(n-1)*(2^n-3))*|F| vertices
 %
 % [VV,FF] = loop(V,F)
 %
