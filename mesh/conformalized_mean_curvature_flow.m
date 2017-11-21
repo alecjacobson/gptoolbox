@@ -7,6 +7,7 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
   %   F  #F by 3 list of triangle indices into V
   %   Optional:
   %     'MaxIter' followed by maximum number of iterations {100}
+  %     'MinDiff' followed by minimum difference between iterations {1e-13}
   %     'Conformalize' followed by whether to rebuild _just_ the mass
   %       matrix each step {true}
   %     'delta' followed by delta value, should roughly be in range
@@ -21,7 +22,7 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
   %   U  #V by dim list of new vertex positions
   %   Usteps  #V by dim by iterations list of vertex positions during flow
   %
-   function L = laplacian(V,F)
+  function L = laplacian(V,F)
     switch laplacian_type
     case 'cotangent'
       L = cotmatrix(V,F);
@@ -62,6 +63,13 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
 
   L = laplacian(V,F);
 
+  switch size(F,2)
+  case 3
+    SF = F;
+  case 4
+    SF = boundary_faces(F);
+  end
+
   if nargout > 1
     Usteps = zeros([size(V) max_iter]);
   end
@@ -72,8 +80,7 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
       Usteps(:,:,iter) = U;
     end
     if until_self_intersection_free
-      [~,~,IF] = selfintersect(U,F,'DetectOnly',true,'FirstOnly',true);
-      IF
+      [~,~,IF] = selfintersect(U,SF,'DetectOnly',true,'FirstOnly',true);
       if isempty(IF)
         break;
       end
@@ -83,11 +90,11 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
     % than 'voronoi'
     M = massmatrix(U,F,'barycentric');
     if ~conformalize
-      L = laplacian(V,F)
+      L = laplacian(V,F);
     end
-    U = (M-delta*L)\(M*U);
-    area = sum(doublearea(U,F)*0.5);
-    c = sum(bsxfun(@times,0.5*doublearea(U,F)/area,barycenter(U,F)));
+    U = (M-delta(min(iter,end))*L)\(M*U);
+    area = sum(doublearea(U,SF)*0.5);
+    c = sum(bsxfun(@times,0.5*doublearea(U,SF)/area,barycenter(U,SF)));
     U = bsxfun(@minus,U,c);
     U = U/sqrt(area);
     % Use difference from previous as stopping criterion
@@ -117,8 +124,8 @@ function [U,Usteps] = conformalized_mean_curvature_flow(V,F,varargin)
   end
 
   if rescale_output
-    area = sum(doublearea(V,F)*0.5);
-    c = sum(bsxfun(@times,0.5*doublearea(V,F)/area,barycenter(V,F)));
+    area = sum(doublearea(V,SF)*0.5);
+    c = sum(bsxfun(@times,0.5*doublearea(V,SF)/area,barycenter(V,SF)));
     U = U*sqrt(area);
     U = bsxfun(@plus,U,c);
     if nargout > 1
