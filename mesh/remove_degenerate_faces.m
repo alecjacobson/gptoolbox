@@ -111,7 +111,7 @@ function [VV,FF] = remove_degenerate_faces(V,F,varargin)
     %pause
 
     [ESL,EI] = conservative_edge_matching([ES;EL],'Method','recursive');
-    fprintf('%d+%d = %d %d\n',[size(ES,1) size(EL,1) size(ES,1)+size(EL,1) size(ESL,1)]);
+    %fprintf('%d+%d = %d %d\n',[size(ES,1) size(EL,1) size(ES,1)+size(EL,1) size(ESL,1)]);
 
     EL = ESL(EI>size(ES,1),:);
     ES = ESL(EI<=size(ES,1),:);
