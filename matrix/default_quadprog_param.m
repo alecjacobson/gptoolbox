@@ -32,11 +32,14 @@ function [param,mosek_exists] = default_quadprog_param()
     % Different parameter for mosek 7
     if strfind(which('mosekopt'),'mosek/6')
       param.MSK_IPAR_NUM_THREADS = num_threads;
+    elseif strfind(which('mosekopt'),'mosek/8')
+      % multi-thread?
     else
       param.MSK_IPAR_INTPNT_NUM_THREADS = num_threads;
       param.Diagnostics = 'on';
       param.Display = 'iter';
       param.MSK_DPAR_INTPNT_TOL_REL_GAP = 1e-14;
+      param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 1e-14;
       %param.Display = 'iter';
     end
     param.MSK_IPAR_CHECK_CONVEXITY = 'MSK_CHECK_CONVEXITY_NONE';
