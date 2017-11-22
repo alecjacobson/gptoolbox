@@ -1,4 +1,22 @@
-function [VV,FF,II,JJ] = remesh_at_points(V,F,P)
+function [FF,II] = remesh_at_points(V,F,P)
+  % REMESH_AT_POINTS Given a surface mesh (V,F) and a list of points on/near the
+  % surface P, subdivide triangles of (V,F) so that P are now contained in the
+  % vertex set.
+  %
+  % Inputs:
+  %   V  #V by 3 list of vertex positions
+  %   F  #F by 3 list of face indices into V
+  %   P  #P by 3 list of point positions
+  % Outputs:
+  %   FF  #FF by 3 list of face indices into [V;P]
+  %   II  #FF list of indices into F revealing birth face
+  %
+  % Example:
+  %   P = random_points_on_mesh(V,F,size(F,1));
+  %   [FF,II] = remesh_at_points(V,F,P);
+  %   tsurf(FF,[V;P],'CData',II)
+  %
+
   VV = V;
   FF = F;
   II = (1:size(F,1))';
@@ -7,10 +25,12 @@ function [VV,FF,II,JJ] = remesh_at_points(V,F,P)
   PP = P;
   while true
     %clf;hold on;tsurf(FF,VV,'CData',II);scatter3(PP(:,1),PP(:,2),PP(:,3));hold off;pause
-    % Find closest points/faces on mesh
-    [~,I,C] = point_mesh_squared_distance(PP,VV,FF);
+    % Find closest points/faces on mesh (This is a bit redundant. Really we
+    % should only look at faces that _were_ affected last round, since those
+    % must have had multiple points.)
+    [~,IC,C] = point_mesh_squared_distance(PP,VV,FF);
     % Only keep one closest point per face
-    [I,J] = unique(I);
+    [I,J] = unique(IC);
     % append keepers
     n = size(VV,1);
     JJ = [JJ;L(J)];
@@ -30,7 +50,12 @@ function [VV,FF,II,JJ] = remesh_at_points(V,F,P)
       break;
     end
   end
-  % Now that we've meshed everything using closest points. Snap back to actually
-  % input points.
-  %VV(JJ>0,:) = P(JJ(JJ>0),:);
+
+  %% Re-order so that output is simply VV = [V;C]
+  %C = zeros(size(P));
+  %C(JJ(size(V,1)+1:end),:) = VV(size(V,1)+1:end,:);
+  I = JJ+size(V,1);
+  I(1:size(V,1)) = 1:size(V,1);
+  FF = I(FF);
+  %VV = [V;C];
 end

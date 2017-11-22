@@ -30,9 +30,8 @@ function [E,G] = surface_graph(P,V,F)
   % to have nice resolution and include the sample points".
   [VV,FF] = upsample(V,F,'Iterations',2);
   % Add points into mesh
-  [VV,FF,~,JJ] = remesh_at_points(VV,FF,P);
-  % Force new points to be exactly at P (even if slighlty off of surface)
-  VV(JJ>0,:) = P(JJ(JJ>0),:);
+  FF = remesh_at_points(VV,FF,P);
+  VV = [VV;P];
   %% We really ought to have a delaunay mesh, but this is slow and can probably
   %% be avoided.
   %[VV,FF] = delaunayize(VV,FF,'Keep',edges(F),'SplitEdges',false);
