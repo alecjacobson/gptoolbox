@@ -32,6 +32,9 @@ function [E,G] = surface_graph(P,V,F)
   % Add points into mesh
   FF = remesh_at_points(VV,FF,P);
   VV = [VV;P];
+  % Still might be duplicates
+  [VV,~,J] = remove_duplicate_vertices(VV,eps);
+  FF = J(FF);
   %% We really ought to have a delaunay mesh, but this is slow and can probably
   %% be avoided.
   %[VV,FF] = delaunayize(VV,FF,'Keep',edges(F),'SplitEdges',false);
