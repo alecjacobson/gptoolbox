@@ -9,6 +9,8 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   %   V  #V by 3 list of tet mesh vertices
   %   T  #T by 4 list of tet indices into V 
   %   plane  list of 4 coefficients in the plane equation: [x y z 1]'*plane = 0
+  %     or
+  %   S  #V by 1 list of values per vertex
   %   Optional:
   %     'Manifold' followed by whether to stitch together triangles into a
   %       manifold mesh {true}: results in more compact U but slightly slower.
@@ -63,6 +65,20 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   %   E(R,:) = fliplr(E(R,:));
   %
 
+  fliped_order = [ ...
+      4 3 1 2
+      4 2 3 1
+      4 1 2 3
+      3 4 2 1
+      3 2 1 4
+      3 1 4 2
+      2 4 1 3
+      2 3 4 1
+      2 1 3 4
+      1 4 3 2
+      1 3 2 4
+      1 2 4 3];
+
   function [U,G,BC] = one_below(V,T,IT)
     [sIT,sJ] = sort(IT,2);
     sT = T(sub2ind(size(T),repmat(1:size(T,1),size(T,2),1)',sJ));
@@ -80,6 +96,8 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
       BC = [];
     end
     G = bsxfun(@plus,1:size(sT,1),[0;1;2]*size(sT,1))';
+    flip = ismember(sJ,fliped_order,'rows');
+    G(flip,:) = fliplr(G(flip,:));
   end
 
   function [U,G,BC] = two_below(V,T,IT)
@@ -106,6 +124,8 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
     G = [ ...
       bsxfun(@plus,1:size(sT,1),[0;1;3]*size(sT,1))'; ...
       bsxfun(@plus,1:size(sT,1),[0;3;2]*size(sT,1))'];
+    flip = ismember([sJ;sJ],fliped_order,'rows');
+    G(flip,:) = fliplr(G(flip,:));
   end
 
   % default values
@@ -132,7 +152,11 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   end
 
   % Homogeneous coordinates
-  IV = sum(bsxfun(@times,[V ones(size(V,1),1)],plane),2);
+  if numel(plane) == 4
+    IV = sum(bsxfun(@times,[V ones(size(V,1),1)],plane),2);
+  else
+    IV = plane;
+  end
   IT = IV(T);
   IT = reshape(IT,size(T));
 
@@ -147,16 +171,13 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   if construct_BC
     BC = [BC13;BC31;BC22];
   end
-  G = [G13;size(U13,1)+[G31;size(U31,1)+[G22;]]];
+  G = [G13;size(U13,1)+[fliplr(G31);size(U31,1)+[G22;]]];
   J = [find(I13);find(I31);repmat(find(I22),2,1)];
-  N = normals(U,G);
-  flip = sum(bsxfun(@times,N,plane(1:3)),2)<0;
-  G(flip,:) = fliplr(G(flip,:));
 
   if manifold
     % should be able to do this combinatorially
     bbd = normrow(max(V)-min(V));
-    [U,I,IM] = remove_duplicate_vertices(U,1e-14*bbd);
+    [U,I,IM] = remove_duplicate_vertices(U,1e-13*bbd);
     if construct_BC
       BC = BC(I,:);
     end
