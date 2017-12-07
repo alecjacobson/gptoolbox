@@ -12,12 +12,12 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
   %   Optional:
   %     'Ground'  ground plane equation {[0 0 -1 min(Z)]}
   %     'Nudge'  nudge the ground plane down a bit
-  %     'Color' followed by 3-vector color {[0.21 0.21 0.21]}
-  %     'BackgroundColor' followed by 3-vector color {[1 1 1]}
+  %     'Color' followed by 3-vector color {get(gcf,'Color')*0.9}
+  %     'BackgroundColor' followed by 3-vector color {get(gcf,'Color')*0.9}
   %     'Fade'  followed by:
   %        'none' constant shadow color
   %        'local' fade darker away from contact with ground (ape a spotlight)
-  %        'infinite' fade lighter away from contact ground (ape infinite
+  %        {'infinite'} fade lighter away from contact ground (ape infinite
   %          light)
   % Outputs:
   %   h  #T*#L list of output shadow trisurf handles
@@ -38,9 +38,9 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
   % default values
   ground = [];
   nudge = 0;
-  color = [0.21 0.21 0.21];
-  background_color = [1 1 1];
-  fade = 'none';
+  color = get(gcf,'Color')*0.9;
+  background_color = get(gcf,'Color');
+  fade = 'infinite';
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'Ground','Nudge','BackgroundColor','Color','Fade'}, ...
