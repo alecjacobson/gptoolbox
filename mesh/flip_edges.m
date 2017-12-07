@@ -14,6 +14,9 @@ function [FF,I,l] = flip_edges(F,E,varargin)
   %     'SideLengths' followed by:
   %       l  #F by 3 list of side lengths corresponding to edges 23 31 12
   %     'MaxIter' maximum iterations of disconnected edge components
+  %     'NonConflicting'  followed by whether you cross-your-heart-hope-to-die
+  %       promise that it's possible to flip all input edges without creating a
+  %       conflict. {false}
   % Outputs:
   %   FF  #F by 3 list of new facets
   %   I  #F*3 list of indices such that FF = reshape(F(I),size(F))
@@ -26,10 +29,11 @@ function [FF,I,l] = flip_edges(F,E,varargin)
   allow_nm = false;
   asserts = false;
   V = [];
+  promise = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Asserts','SideLengths','MaxIter','V','AllowNonManifold'}, ...
-    {'asserts','l','max_iter','V','allow_nm'});
+    {'Asserts','SideLengths','MaxIter','V','AllowNonManifold','NonConflicting'}, ...
+    {'asserts','l','max_iter','V','allow_nm','promise'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -82,7 +86,12 @@ function [FF,I,l] = flip_edges(F,E,varargin)
 
   iter = 1;
   while ~isempty(E)
-    [EE,mI] = conservative_edge_matching(E);
+    if promise
+      EE = E;
+      mI = (1:size(E,1))';
+    else
+      [EE,mI] = conservative_edge_matching(E);
+    end
 
     if ~isempty(V)
       tsurf(FF,V,'FaceColor','r');
