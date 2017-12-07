@@ -9,6 +9,10 @@ function [V,F] = subdivided_sphere(iters,varargin)
   %     icosahedron)
   %   Optional:
   %     'Radius'  followed by scalar radius (multiplied against final V) {1}
+  %     'SubdivisionMethod' followed by either:
+  %       'loop'
+  %       'sqrt3'
+  %       {'upsample'}
   % Outputs:
   %   V  #V by 3 list of mesh vertices
   %   F  #F by 3 list of face indices into V
@@ -18,9 +22,10 @@ function [V,F] = subdivided_sphere(iters,varargin)
 
   % default values
   radius = 1;
+  subdivision_method = 'upsample';
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Radius'},{'radius'});
+    {'Radius','SubdivisionMethod'},{'radius','subdivision_method'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -74,8 +79,16 @@ function [V,F] = subdivided_sphere(iters,varargin)
         4  11 7];
   V = normalizerow(V);
   for iter = 1:iters
-    [V,F] = upsample(V,F);
+    switch subdivision_method
+    case 'upsample'
+      [V,F] = upsample(V,F);
+    case 'loop'
+      [V,F] = loop(V,F);
+    case 'sqrt3'
+      [V,F] = sqrt3(V,F);
+    end
     V = normalizerow(V);
+
   end
   V = V*radius;
 

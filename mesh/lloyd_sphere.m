@@ -1,4 +1,4 @@
-function [N,F] = lloyd_sphere(n)
+function [N,F] = lloyd_sphere(n,varargin)
   % LLOYD_SPHERE Construct a triangle mesh of the sphere with n reasonably well
   % distributed vertices.
   %
@@ -11,7 +11,36 @@ function [N,F] = lloyd_sphere(n)
 
   %N = randsphere(n,'Method','trig');
   %N = normalizerow(N.^3);
-  N = subdivided_sphere(ceil(log2(1/10*(10*(n)-20)^(1/2))));
+
+  % default values
+  subdivision_method = 'upsample';
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'SubdivisionMethod'}, ...
+    {'subdivision_method'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end 
+
+  switch subdivision_method
+  case 'sqrt3'
+    ssn = ceil(-(log(3)-log(3/10*n-3/5))/log(3));
+  case {'upsample','loop'}
+    ssn = ceil(log2(1/10*(10*(n)-20)^(1/2)));
+  otherwise
+    error('Unsupported subdivision_method %s',subdivision_method);
+  end
+  N = subdivided_sphere(ssn, 'SubdivisionMethod',subdivision_method);
 
   N = N(1:n,:);
   F = convhulln(N);
@@ -21,11 +50,14 @@ function [N,F] = lloyd_sphere(n)
   end
 
   M = massmatrix(N,F,'voronoi');
-  %t = tsurf(F,N);
-  %caxis auto;
-  %set(t,'CData',full(diag(M)));
-  %colorbar;
-  %axis equal;
+  vis = false;
+  if vis
+    t = tsurf(F,N);
+    caxis auto;
+    set(t,'CData',full(diag(M)));
+    colorbar;
+    axis equal;
+  end
   while true
     A = adjacency_matrix(F);
     A = A*M;
@@ -39,12 +71,14 @@ function [N,F] = lloyd_sphere(n)
     F = convhulln(N);
     M = massmatrix(N,F,'voronoi');
     er = trace((N-N_prev)'*M*(N-N_prev));
-    %set(t,'Vertices',N,'Faces',F, ...
-    %  ... 'CData',full(diag(M)));
-    %  'CData',full(sum(adjacency_matrix(F),2)),'FaceLighting','phong','FaceColor','interp');
-    %axis equal;
-    %drawnow;
-    %title(sprintf('%g',er));
+    if vis
+    set(t,'Vertices',N,'Faces',F, ...
+      ... 'CData',full(diag(M)));
+      'CData',full(sum(adjacency_matrix(F),2)),'FaceLighting','phong','FaceColor','interp');
+    axis equal;
+    drawnow;
+    title(sprintf('%g',er));
+    end
     if er < 1e-07
       break;
     end
