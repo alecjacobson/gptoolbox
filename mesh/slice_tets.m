@@ -176,12 +176,16 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
 
   if manifold
     % should be able to do this combinatorially
+    %
+    % Ironically this snapping is not guaranteed to produce a manifold mesh
     bbd = normrow(max(V)-min(V));
     [U,I,IM] = remove_duplicate_vertices(U,1e-13*bbd);
     if construct_BC
       BC = BC(I,:);
     end
     G = IM(G);
+    % At least remove combinatorially degenerate faces
+    G = G(G(:,1) ~= G(:,2) & G(:,2) ~= G(:,3) & G(:,3) ~= G(:,1),:);
   end
 
 end
