@@ -65,7 +65,7 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   %   E(R,:) = fliplr(E(R,:));
   %
 
-  fliped_order = [ ...
+  flipped_order = [ ...
       4 3 1 2
       4 2 3 1
       4 1 2 3
@@ -96,7 +96,7 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
       BC = [];
     end
     G = bsxfun(@plus,1:size(sT,1),[0;1;2]*size(sT,1))';
-    flip = ismember(sJ,fliped_order,'rows');
+    flip = ismember(sJ,flipped_order,'rows');
     G(flip,:) = fliplr(G(flip,:));
   end
 
@@ -124,7 +124,7 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
     G = [ ...
       bsxfun(@plus,1:size(sT,1),[0;1;3]*size(sT,1))'; ...
       bsxfun(@plus,1:size(sT,1),[0;3;2]*size(sT,1))'];
-    flip = ismember([sJ;sJ],fliped_order,'rows');
+    flip = ismember([sJ;sJ],flipped_order,'rows');
     G(flip,:) = fliplr(G(flip,:));
   end
 
