@@ -22,7 +22,8 @@ void parse_rhs(
   Eigen::MatrixXd & WV,
   Eigen::MatrixXi & WE,
   double & th,
-  int & poly_size)
+  int & poly_size,
+  bool & solid)
 {
   using namespace std;
   using namespace igl;
@@ -46,6 +47,7 @@ void parse_rhs(
   th = 0.1*igl::avg_edge_length(WV,WE);
   // Size of extrusion polygon
   poly_size = 4;
+  solid = true;
 
   {
     int i = 2;
@@ -64,6 +66,11 @@ void parse_rhs(
         validate_arg_double(i,nrhs,prhs,name);
         validate_arg_scalar(i,nrhs,prhs,name);
         poly_size = (int)*mxGetPr(prhs[++i]);
+      }else if(strcmp("Solid",name) == 0)
+      {
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        solid = (bool)*mxGetPr(prhs[++i]);
       }else
       {
         mexErrMsgTxt(false,"Unknown parameter");
@@ -92,11 +99,12 @@ void mexFunction(
   VectorXi J;
   double th;
   int poly_size;
+  bool solid;
   parse_rhs(
     nrhs,prhs,
     WV,WE,
-    th,poly_size);
-  wire_mesh(WV,WE,th,poly_size,V,F,J);
+    th,poly_size,solid);
+  wire_mesh(WV,WE,th,poly_size,solid,V,F,J);
   switch(nlhs)
   {
     default:
