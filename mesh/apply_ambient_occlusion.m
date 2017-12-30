@@ -28,11 +28,13 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
 
   function [AO,C] = apply_ambient_occlusion_helper(t,AO,C,factor,unoriented)
     V = t.Vertices;
-    Poly = t.Faces;
+    F = t.Faces;
     % triangulate high order facets
-    F = [];
-    for c = 3:size(Poly,2)
-      F = [F;Poly(:,[1 c-1 c])];
+    T = [];
+    J = [];
+    for c = 3:size(F,2)
+      T = [T;F(:,[1 c-1 c])];
+      J = [J;(1:size(F,1))'];
     end
     if isempty(C)
       C = t.FaceVertexCData;
@@ -55,15 +57,19 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
     if size(C,1) == size(V,1)
       t.FaceColor = 'interp';
       O = V;
-      N = per_vertex_normals(V,F);
+      I = (1:size(V,1))';
+      nao = size(V,1);
+      N = per_vertex_normals(V,T);
       % Matlab uses backwards normals
       t.VertexNormals =  -N;
       lighting phong;
     elseif size(C,1) == size(F,1)
       t.FaceColor = 'flat';
       % Could be fancy and use high-order quadrature.
-      O = barycenter(V,F);
-      N = normalizerow(normals(V,F));
+      O = barycenter(V,T);
+      I = J;
+      nao = size(F,1);
+      N = normalizerow(normals(V,T));
       lighting flat;
     else
       error('Unknown number of colors');
@@ -76,11 +82,12 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
       t.AmbientStrength = 1.0;
     end
     if isempty(AO)
-      AO = ambient_occlusion(V,F,O,N,samples);
+      AO = ambient_occlusion(V,T,O,N,samples);
       if unoriented
-          AO = min(AO,ambient_occlusion(V,F,O,-N,samples));
+          AO = min(AO,ambient_occlusion(V,T,O,-N,samples));
       end
     end
+    AO = full(sparse(I,1,AO,nao,1)./sparse(I,1,1,nao,1));
     t.FaceVertexCData = bsxfun(@plus,(1-factor)*C,factor*bsxfun(@times,C,1-AO));
   end 
 
