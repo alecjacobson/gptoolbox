@@ -1,4 +1,4 @@
-function NV = uniformly_sample(V,un,varargin)
+function [NV,NI] = uniformly_sample(V,un,varargin)
   % UNIFORMLY_SAMPLE  Uniformly sample an input curve 
   %
   % NV = uniformly_sample(V,un,'ParameterName',ParameterValue, ...)
@@ -14,6 +14,7 @@ function NV = uniformly_sample(V,un,varargin)
   %      NP = NP(1:end-1,:);
   % Outputs:
   %  NV  un by dim list of ordered outputs points on an open curve
+  %  NI  un list of indices into NP of previous node w.r.t. arc length
   %
   %
 
@@ -46,6 +47,7 @@ function NV = uniformly_sample(V,un,varargin)
   end
 
   NV = zeros(un,size(V,2));
+  NI = zeros(size(NV,1),1);
   v = 1;
   lv = 0;
   % TODO: There should be a vectorized way of doing this with cumsum
@@ -60,10 +62,13 @@ function NV = uniformly_sample(V,un,varargin)
       end
     end
     NV(ni,:) = V(v,:) + (li-lv)/l(v)*(V(mod(v,size(V,1))+1,:)-V(v,:));
+    NI(ni) = v;
   end
   NV(un,:) = V(end,:);
+  NI(un) = size(V,1);
 
   if loop
     NV = NV(1:end-1,:);
+    NI = NI(1:end-1);
   end
 end
