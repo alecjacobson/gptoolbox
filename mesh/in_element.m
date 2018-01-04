@@ -106,6 +106,11 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
       %% check whether sum is more than true are
       %I = ~bsxfun(@gt,sumA,dblA');
       I = sparse((bsxfun(@minus,sumA,dblA')) < sqrt(epsilon));
+    case 1
+      % To-do: this is actually being computed in a dense way
+      I = sparse( ...
+        ((P <= V(F(:,1))') & (P >= V(F(:,2))')) | ...
+        ((P <= V(F(:,2))') & (P >= V(F(:,1))')));
     end
     %B1 = sparse(B(:,:,1));
     %B2 = sparse(B(:,:,2));
@@ -157,7 +162,7 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   end
 
   % default values
-  method = 'knn';
+  method = [];
   first = false;
   quiet = false;
   epsilon = eps;
@@ -177,6 +182,14 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
       error('Unsupported parameter: %s',varargin{v});
     end
     v=v+1;
+  end
+  if isempty(method)
+    switch size(V,2)
+    case 1
+      method = 'brute-force';
+    otherwise 
+      method = 'knn';
+    end
   end
 
   switch method
@@ -418,10 +431,14 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
           V(Ff(:,1),:),V(Ff(:,2),:),V(Ff(:,3),:),V(Ff(:,4),:));
       case 3
         Bf = barycentric_coordinates(Pf,V(Ff(:,1),:),V(Ff(:,2),:),V(Ff(:,3),:));
+      case 2
+        Bf = barycentric_coordinates(Pf,V(Ff(:,1),:),V(Ff(:,2),:));
       end
       B1(sub2ind(size(B1),If,Jf)) = Bf(:,1);
       B2(sub2ind(size(B2),If,Jf)) = Bf(:,2);
-      B3(sub2ind(size(B3),If,Jf)) = Bf(:,3);
+      if size(Bf,2) >= 3
+        B3(sub2ind(size(B3),If,Jf)) = Bf(:,3);
+      end
       if size(Bf,2) >= 4
         B4(sub2ind(size(B3),If,Jf)) = Bf(:,4);
       end
