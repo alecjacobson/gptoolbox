@@ -11,9 +11,6 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   %   plane  list of 4 coefficients in the plane equation: [x y z 1]'*plane = 0
   %     or
   %   S  #V by 1 list of values per vertex
-  %   Optional:
-  %     'Manifold' followed by whether to stitch together triangles into a
-  %       manifold mesh {true}: results in more compact U but slightly slower.
   % Outputs:
   %   U  #U by 3 list of triangle mesh vertices along slice
   %   G  #G by 3 list of triangles indices into U
@@ -79,48 +76,21 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
       1 3 2 4
       1 2 4 3];
 
-  function [U,G,BC] = one_below(V,T,IT)
+  function [U,G] = one_below(V,T,IT)
     [sIT,sJ] = sort(IT,2);
     sT = T(sub2ind(size(T),repmat(1:size(T,1),size(T,2),1)',sJ));
-    lambda = sIT(:,2:4)./bsxfun(@minus,sIT(:,2:4),sIT(:,1));
-    if construct_BC
-      BC = sparse( ...
-        repmat((1:size(sT,1)*3)',1,2), ...
-        [repmat(sT(:,1),3,1) reshape(sT(:,2:4),size(sT,1)*3,1)], ...
-        [lambda(:) 1-lambda(:)], ...
-        size(sT,1)*3,size(V,1));
-      U = BC * V;
-    else
-      U = bsxfun(@times,V(repmat(sT(:,1),3,1),:),lambda(:)) + ...
-        bsxfun(@times,1-lambda(:),V(sT(:,2:4),:));
-      BC = [];
-    end
+    U = [repmat(sT(:,1),3,1) reshape(sT(:,2:4),size(sT,1)*3,1)];
     G = bsxfun(@plus,1:size(sT,1),[0;1;2]*size(sT,1))';
     flip = ismember(sJ,flipped_order,'rows');
     G(flip,:) = fliplr(G(flip,:));
   end
 
-  function [U,G,BC] = two_below(V,T,IT)
+  function [U,G] = two_below(V,T,IT)
     [sIT,sJ] = sort(IT,2);
     sT = T(sub2ind(size(T),repmat(1:size(T,1),size(T,2),1)',sJ));
-    lambda = sIT(:,3:4)./bsxfun(@minus,sIT(:,3:4),sIT(:,1));
-    gamma  = sIT(:,3:4)./bsxfun(@minus,sIT(:,3:4),sIT(:,2));
-    if construct_BC
-      BC = sparse( ...
-        repmat((1:size(sT,1)*4)',1,2), ...
+    U =  ...
         [repmat(sT(:,1),2,1) reshape(sT(:,3:4),size(sT,1)*2,1); ...
-         repmat(sT(:,2),2,1) reshape(sT(:,3:4),size(sT,1)*2,1)], ...
-        [lambda(:) 1-lambda(:);gamma(:) 1-gamma(:)], ...
-        size(sT,1)*4,size(V,1));
-      U = BC * V;
-    else 
-      U = [ ...
-        bsxfun(@times,V(repmat(sT(:,1),2,1),:),lambda(:)) + ...
-        bsxfun(@times,1-lambda(:),V(sT(:,3:4),:)); ...
-        bsxfun(@times,V(repmat(sT(:,2),2,1),:),gamma(:)) + ...
-        bsxfun(@times,1-gamma(:),V(sT(:,3:4),:))];
-      BC = [];
-    end
+         repmat(sT(:,2),2,1) reshape(sT(:,3:4),size(sT,1)*2,1)];
     G = [ ...
       bsxfun(@plus,1:size(sT,1),[0;1;3]*size(sT,1))'; ...
       bsxfun(@plus,1:size(sT,1),[0;3;2]*size(sT,1))'];
@@ -133,6 +103,8 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   construct_BC = nargout >= 4;
 
   % Map of parameter names to variable names
+  % 'Manifold' is kept for legacy reason, but is no longer needed (always
+  % "manifold")
   params_to_variables = containers.Map( ...
     {'Manifold'}, ...
     {'manifold'});
@@ -161,31 +133,37 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   IT = reshape(IT,size(T));
 
   I13 = sum(IT<0,2) == 1;
-  [U13,G13,BC13] = one_below(V,T(I13,:),IT(I13,:));
+  [U13,G13] = one_below(V,T(I13,:),IT(I13,:));
   I31 = sum(IT>0,2) == 1;
-  [U31,G31,BC31] = one_below(V,T(I31,:),-IT(I31,:));
+  [U31,G31] = one_below(V,T(I31,:),-IT(I31,:));
   I22 = sum(IT<0,2) == 2;
-  [U22,G22,BC22] = two_below(V,T(I22,:),IT(I22,:));
+  [U22,G22] = two_below(V,T(I22,:),IT(I22,:));
 
   U = [U13;U31;U22];
-  if construct_BC
-    BC = [BC13;BC31;BC22];
-  end
-  G = [G13;size(U13,1)+[fliplr(G31);size(U31,1)+[G22;]]];
-  J = [find(I13);find(I31);repmat(find(I22),2,1)];
 
-  if manifold
-    % should be able to do this combinatorially
-    %
-    % Ironically this snapping is not guaranteed to produce a manifold mesh
-    bbd = normrow(max(V)-min(V));
-    [U,I,IM] = remove_duplicate_vertices(U,1e-13*bbd);
-    if construct_BC
-      BC = BC(I,:);
-    end
-    G = IM(G);
-    % At least remove combinatorially degenerate faces
-    G = G(G(:,1) ~= G(:,2) & G(:,2) ~= G(:,3) & G(:,3) ~= G(:,1),:);
+  % sort edges in U
+  sU = sort(U,2);
+  % find unique edges in U
+  [E,uI,uJ] = unique(sU,'rows');
+  % Values at each corner of each unique edge
+  IE = IV(E);
+  % Sort endpoints of each edge by value
+  [sIE,sJ] = sort(IE,2);
+  sE = E(sub2ind(size(E),repmat(1:size(E,1),size(E,2),1)',sJ));
+  % Lambda from smallest to largest endpoint
+  lambda = sIE(:,2)./(sIE(:,2)-sIE(:,1));
+  % Vertex position on each unique edge
+  U = V(sE(:,1),:).*lambda+ V(sE(:,2),:).*(1-lambda);
+  G = [G13;size(U13,1)+[fliplr(G31);size(U31,1)+[G22;]]];
+  G = uJ(G);
+
+  if construct_BC
+    BC = sparse( ...
+      repmat(1:size(sE,1),2,1)', ...
+      sE, ...
+      [lambda 1-lambda], ...
+      size(sE,1),size(V,1));
   end
+  J = [find(I13);find(I31);repmat(find(I22),2,1)];
 
 end
