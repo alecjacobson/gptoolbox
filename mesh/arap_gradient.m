@@ -45,6 +45,7 @@ function [G,E,R,data] = arap_gradient(V,F,U,varargin)
   % end
   %
 
+  % default values
   switch size(F,2)
   case 4
     energy = 'elements';
@@ -54,7 +55,6 @@ function [G,E,R,data] = arap_gradient(V,F,U,varargin)
   single_precision = true;
   R = [];
   data = [];
-  % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'Energy','Rotations','Data','SinglePrecision'}, ...
