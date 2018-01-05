@@ -1,4 +1,4 @@
-function [vertex,face] = read_ply(filename)
+function [vertex,face,d,c] = read_ply(filename)
 
 % read_ply - read data from PLY file.
 %
