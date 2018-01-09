@@ -1,5 +1,5 @@
 function [x,R,v,omega,M,I,dt,t] = ...
-  plane_drop(VV,FF,geo_idx,x0,R0,v0,omega0,rho,fixed)
+  plane_drop(VV,FF,geo_idx,x0,R0,v0,omega0,rho,fixed,varargin)
   % PLANE_DROP  Drop some shit on the ground using SCISIM.
   %
   % This assumes you've installed scisim and implicittoolkit. Congratulations if
@@ -19,6 +19,13 @@ function [x,R,v,omega,M,I,dt,t] = ...
   %     [] --> zero
   %   rho  k list of densities(?) [] --> one
   %   fixed  k list of flags whether object is fixed [] --> false
+  %   Optional:
+  %     'CellWidth'  followed by scalar or ngeo list of cell width value(s) to
+  %       use for signed distance field {0.1*bbd{i}}
+  %     'Duration'  followed by simulation duration in seconds {1}
+  %     'FPS'  followed by frames-per second rate of output animation {30}
+  %     'GridPadding'  followed by scalar or ngeo list of grid padding value(s) to
+  %       use for signed distance field 
   % Outputs
   %   x  k by 3 by #frames list of center of mass locations
   %   R  k by 9 by #frames list of rotations (matrices...)
@@ -44,10 +51,29 @@ function [x,R,v,omega,M,I,dt,t] = ...
     docRootNode.appendChild(thisElement);
   end
 
-  cell_width = 0.05;
+  % default values
+  cell_width = [];
   end_time = 1;
   fps = 30;
-  grid_padding = 1;
+  grid_padding = [];
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'CellWidth','Duration','FPS','GridPadding'}, ...
+    {'cell_width','end_time','fps','grid_padding'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
   if ~iscell(VV)
     VV = {VV};
   end
@@ -55,17 +81,24 @@ function [x,R,v,omega,M,I,dt,t] = ...
     FF = {FF};
   end
   ngeo = numel(VV);
+  if isempty(cell_width)
+    cell_width = cellfun(@(V) 0.1*normrow(max(V)-min(V)),VV);
+  end
+  if isempty(grid_padding)
+    grid_padding = cellfun(@(V) 0.1*normrow(max(V)-min(V)),VV);
+  end
 
   % generate h5 file for each input mesh
   h5 = cell(ngeo,1);
-  for i = 1:geo_idx
+  for i = 1:ngeo
     path_to_implicittoolkit_cli = '/Users/ajx/Dropbox/implicittoolkit/build/implicittoolkitcli/implicittoolkit_cli';
     obj = sprintf('plane_drop-%d.obj',i-1);
     h5{i} = sprintf('%s/plane_drop-%d.h5',pwd,i-1);
     writeOBJ(obj,VV{i},FF{i});
     cmd = sprintf( ...
       '%s -w %0.17f -p %0.17f %s %s', ...
-      path_to_implicittoolkit_cli,cell_width,grid_padding,obj,h5{i});
+      path_to_implicittoolkit_cli, ...
+      cell_width(min(i,end)),grid_padding(min(i,end)),obj,h5{i});
     [status,r] = system(cmd);
     if status ~= 0
       error(sprintf('%s\n\n%s',cmd,r));
@@ -159,8 +192,9 @@ function [x,R,v,omega,M,I,dt,t] = ...
   end
 
   % while you wait, why don't you preview it in qt?
-  qt = sprintf('%s %s',path_to_rigidbody3d_qt4,xmlFileName);
-  fprintf(qt);
+  qt = sprintf('%s %s &',path_to_rigidbody3d_qt4,xmlFileName);
+  %fprintf(qt);
+  [status,r] = system(qt);
   cmd = sprintf( ...
     '%s -o %s -e %0.17f -f %0.17f %s', ...
     path_to_rigidbody3d_cli,'plane_drop-data/',end_time,fps,xmlFileName);
@@ -169,7 +203,7 @@ function [x,R,v,omega,M,I,dt,t] = ...
     error(sprintf('\n%s\n\n%s',cmd,r));
   else
     % Erase qt line
-    fprintf(repmat('\b',[1 length(qt)]));
+  %  fprintf(repmat('\b',[1 length(qt)]));
   end
   
 
