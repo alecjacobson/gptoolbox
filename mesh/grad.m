@@ -24,6 +24,11 @@ function [G] = grad(V,F)
   dim = size(V,2);
   ss = size(F,2);
   switch ss
+  case 2
+    % Edge lengths
+    len = abs(V(F(:,2))-V(F(:,1)));
+    % Gradient is just staggered grid finite difference
+    G = sparse(repmat(1:size(F,1),2,1)',F,[1 -1]./len, size(F,1),size(V,1));
   case 3
     % append with 0s for convenience
     if size(V,2) == 2
