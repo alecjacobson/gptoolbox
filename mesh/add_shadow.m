@@ -61,7 +61,10 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
 
   if ~exist('T','var') || isempty(T)
     c = get(gca,'Children');
-    T = c(arrayfun(@(x) isa(x,'matlab.graphics.primitive.Patch'),c));
+    T = c(arrayfun(@(x) ...
+      isa(x,'matlab.graphics.primitive.Patch') || ...
+      isa(x,'matlab.graphics.chart.primitive.Scatter') ...
+      ,c));
   end
   if iscell(T)
     T = [T{:}]';
@@ -79,18 +82,32 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
   if isempty(ground)
     minZ = inf;
     for t = T'
-      V = t.Vertices;
+      switch class(t)
+      case 'matlab.graphics.primitive.Patch'
+        V = t.Vertices;
+      case 'matlab.graphics.chart.primitive.Scatter'
+        V = [t.XData;t.YData;t.ZData]';
+      otherwise
+        class(t)
+      end
       minZ = min([V(:,3);minZ]);
     end
     ground = [0 0 -1 minZ];
   end
   ground(4) = ground(4)-nudge;
 
-  h = [];
+  h = {};
   % need to specify that there are 0 "tubes"
   M = zeros([0,0,0]);
   for t = T'
-    V = t.Vertices;
+    switch class(t)
+    case 'matlab.graphics.primitive.Patch'
+      V = t.Vertices;
+    case 'matlab.graphics.chart.primitive.Scatter'
+      V = [t.XData;t.YData;t.ZData]';
+    otherwise
+      class(t)
+    end
     for l = L'
       % plane equation
       % 0 = ax + by + cz + d
@@ -101,25 +118,45 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
       U = bsxfun(@rdivide,U(:,1:3),U(:,4));
     
       hold on;
-      tsh = trisurf(t.Faces,U(:,1),U(:,2),U(:,3), ...
-        'FaceColor',color, ...
-        'DiffuseStrength',0,'SpecularStrength',0, ...
-        'AmbientStrength',1, ...
-        'EdgeColor','none');
+      switch class(t)
+      case 'matlab.graphics.primitive.Patch'
+        tsh = trisurf(t.Faces,U(:,1),U(:,2),U(:,3), ...
+          'FaceColor',color, ...
+          'DiffuseStrength',0,'SpecularStrength',0, ...
+          'AmbientStrength',1, ...
+          'EdgeColor','none');
+      case 'matlab.graphics.chart.primitive.Scatter'
+        tsh = copyobj(t,t.Parent);
+        tsh.XData = U(:,1);
+        tsh.YData = U(:,2);
+        tsh.ZData = U(:,3);
+        tsh.MarkerFaceColor = color;
+        tsh.MarkerEdgeColor = color;
+      end
       hold off;
       switch fade
       case {'local','infinite'}
         D = matrixnormalize( ...
-          sum(bsxfun(@times,tsh.Vertices(:,1:2),l.Position(1:2)),2));
+          sum(bsxfun(@times,U(:,1:2),l.Position(1:2)),2));
         switch fade
         case 'infinite'
           D = 1.0-D;
         end
-        tsh.FaceVertexCData = ...
-          bsxfun(@plus,color,bsxfun(@times,D,background_color-color));
-        tsh.FaceColor = 'interp';
+        ca = caxis;
+        C = bsxfun(@plus,color,bsxfun(@times,D,background_color-color));
+        switch class(t)
+        case 'matlab.graphics.primitive.Patch'
+          tsh.FaceVertexCData = C;
+          tsh.FaceColor = 'interp';
+        case 'matlab.graphics.chart.primitive.Scatter'
+          tsh.MarkerEdgeColor = 'flat';
+          tsh.MarkerFaceColor = 'flat';
+          tsh.CData = C;
+        end
+        caxis(ca);
       end
-      h = [h;tsh];
+
+      h = {h{:};tsh};
       M(:,:,end+1) = shadow_mat;
     end
   end
