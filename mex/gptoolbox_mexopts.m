@@ -97,7 +97,7 @@ function [all_opts,use_libigl_static_library] = gptoolbox_mexopts(varargin)
   end
 
   EMBREE=[path_to_libigl '/external/embree'];
-  EMBREE_INC=strsplit(sprintf('-I%s -I%s/include/',EMBREE,EMBREE));
+  EMBREE_INC=strsplit(sprintf('-DWITH_EMBREE -I%s -I%s/include/',EMBREE,EMBREE));
   %EMBREE_LIB=strsplit(sprintf('-ltbb -L%s -lembree_avx -lembree_avx2 -lembree_sse42 -limage -llexers -llights -llights_ispc -lnoise -lnoise_ispc -lscenegraph -lsimd -lsys -ltasking -ltexture -ltexture_ispc -ltutorial -ltutorial_device -ltutorial_device_ispc ',[path_to_libigl '/external/embree/build/']));
   EMBREE_LIB=strsplit(sprintf('-L%s -lembree',[path_to_libigl '/external/embree/build/']));
 

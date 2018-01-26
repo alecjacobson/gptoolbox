@@ -1,7 +1,6 @@
 #ifdef MEX
 #ifdef WITH_EMBREE
 #  include "winding_number_ray.h"
-#  include "winding_number_ray.cpp"
 #endif
 
 #include <igl/parallel_for.h>
@@ -170,9 +169,10 @@ void mexFunction(
     ei.init(V.cast<float>(),FF);
 
     // loop over origins
-#   pragma omp parallel for if (no>IGL_WINDING_NUMBER_OMP_MIN_VALUE)
+    const int no = O.rows();
     for(int o = 0;o<no;o++)
     {
+      double Wo = 0;
       RowVector3d p = O.row(o);
       for(int r = 0;r<num_rays;r++)
       {
@@ -191,9 +191,9 @@ void mexFunction(
         {
           winding_number_ray(ei,N,p,dir,w,num_rays_shot);
         }
-        W(o) += w;
+        Wo += w;
       }
-      W(o) /= (double)num_rays;
+      W(o) = Wo/(double)num_rays;
     }
 
 

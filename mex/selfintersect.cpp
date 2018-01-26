@@ -159,14 +159,10 @@ int main(int argc, char * argv[])
       return 1;
 #endif
     }
-    VectorXi F12,F23,F31;
-    F12 = F.col(0)-F.col(1);
-    F23 = F.col(1)-F.col(2);
-    F31 = F.col(2)-F.col(0);
     if(
-      F12.minCoeff() == 0 || 
-      F23.minCoeff() == 0 || 
-      F31.minCoeff() == 0)
+       (F.array().col(0) == F.array().col(1)).any() ||
+       (F.array().col(1) == F.array().col(2)).any() ||
+       (F.array().col(2) == F.array().col(0)).any())
     {
 #ifdef MEX
       mexErrMsgTxt("Combinatorially degenerate face found.");

@@ -5,7 +5,7 @@
 #include <igl/copyleft/cgal/mesh_boolean_type_to_funcs.h>
 #include <igl/copyleft/cgal/BinaryWindingNumberOperations.h>
 #include <igl/remove_unreferenced.h>
-#ifndef IGL_NO_CORK
+#ifdef WITH_CORK
 #  include <igl/copyleft/cork/mesh_boolean.h>
 #endif
 #include <igl/copyleft/cgal/string_to_mesh_boolean_type.h>
@@ -120,7 +120,7 @@ void parse_rhs(
         if(strcmp("libigl",type_name)==0)
         {
           boolean_lib = BOOLEAN_LIB_TYPE_LIBIGL;
-#ifndef IGL_NO_CORK
+#ifdef WITH_CORK
         }else if(strcmp("cork",type_name)==0)
         {
           mexErrMsgTxt( type_str != "",
@@ -223,7 +223,7 @@ void mexFunction(
       igl::copyleft::cgal::mesh_boolean(
         Vlist,Flist,wind_func,keep_func,VC,FC,J);
       break;
-#ifndef IGL_NO_CORK
+#ifdef WITH_CORK
     case BOOLEAN_LIB_TYPE_CORK:
     {
       mexErrMsgTxt(Vlist.size() == 2 && Flist.size() == 2,

@@ -5,7 +5,7 @@
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/parse_rhs.h>
 #include <igl/matlab/prepare_lhs.h>
-#include <eltopo3d/eltopo.h>
+#include <eltopo.h>
 #include <iostream>
 
 typedef Eigen::Matrix<double,Eigen::Dynamic,3,Eigen::RowMajor> MatrixX3d;
