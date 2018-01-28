@@ -1,0 +1,51 @@
+# - Try to find the ELTOPO library
+# Once done this will define
+#
+#  ELTOPO_FOUND - system has LIBELTOPO
+#  LIBELTOPO_INCLUDE_DIR - the LIBELTOPO include directory
+#  LIBELTOPO_LIBRARY - the LIBELTOPO library
+if(NOT LIBELTOPO_FOUND)
+
+FIND_PATH(LIBELTOPO_INCLUDE_DIR eltopo.h
+   ${PROJECT_SOURCE_DIR}/../../include
+   ${PROJECT_SOURCE_DIR}/../include
+   ${PROJECT_SOURCE_DIR}/include
+   ${PROJECT_SOURCE_DIR}/../../../eltopo/eltopo3d
+   /usr/include
+   /usr/local/include
+   /usr/local/eltopo/eltopo3d
+)
+
+# Includes must be found
+if(NOT LIBELTOPO_INCLUDE_DIR)
+  set(LIBELTOPO_INCLUDE_DIR FALSE)
+  message(FATAL_ERROR "could NOT find LIBELTOPO_INCLUDE_DIR")
+endif(NOT LIBELTOPO_INCLUDE_DIR)
+
+if(LIBELTOPO_INCLUDE_DIR)
+   set(LIBELTOPO_FOUND TRUE)
+   set(LIBELTOPO_INCLUDE_DIRS ${LIBELTOPO_INCLUDE_DIR})
+endif(LIBELTOPO_INCLUDE_DIR)
+
+FIND_LIBRARY(LIBELTOPO_LIBRARY NAME eltopo_release PATHS ${LIBELTOPO_INCLUDE_DIR})
+
+# Main library must be found
+if(NOT LIBELTOPO_LIBRARY)
+  set(LIBELTOPO_FOUND FALSE)
+  message(FATAL_ERROR "could NOT find LIBELTOPO")
+endif(NOT LIBELTOPO_LIBRARY)
+
+
+
+
+if(LIBELTOPO_FOUND)
+   if(NOT LIBELTOPO_FIND_QUIETLY)
+      message(STATUS "Found LIBELTOPO: ${LIBELTOPO_LIBRARY}")
+   endif(NOT LIBELTOPO_FIND_QUIETLY)
+else(LIBELTOPO_FOUND)
+   if(LIBELTOPO_FIND_REQUIRED)
+      message(FATAL_ERROR "could NOT find LIBELTOPO")
+   endif(LIBELTOPO_FIND_REQUIRED)
+endif(LIBELTOPO_FOUND)
+
+endif(NOT LIBELTOPO_FOUND)
