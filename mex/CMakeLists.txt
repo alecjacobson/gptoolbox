@@ -45,7 +45,7 @@ include_directories(${Matlab_INCLUDE_DIRS})
 set( CMAKE_SHARED_LIBRARY_SUFFIX ".${Matlab_MEX_EXTENSION}" )  # set suffix to .mexa64
 set( CMAKE_SHARED_LIBRARY_PREFIX )      # remove the "lib" prefix
 set( CMAKE_SHARED_LIBRARY_CXX_FLAGS )       # remove the -fPIC option. mex does not accept the "-fPIC" option
-set( CMAKE_POSITION_INDEPENDENT_CODE OFF)
+set( CMAKE_POSITION_INDEPENDENT_CODE ON)
 set( CMAKE_INSTALL_RPATH "\$ORIGIN" )
 
 #file( GLOB MEX_SOURCES *.cpp )
