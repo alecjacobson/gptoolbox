@@ -1,78 +1,40 @@
-This directory contains mex functions that must be _compiled_ before they can
-be called from matlab.
+This directory contains mex functions that must be _compiled_ before they can be
+called from matlab.
 
 Typically the C++ code for function `myfunc` will be in a file called
-`myfunc.cpp` and accompanied by a _blank_ file `myfunc.m`, which simply
-contains comments explaining call usage of the function (so that `help myfunc`
-returns something useful).
+`myfunc.cpp` and accompanied by a _blank_ file `myfunc.m`, which simply contains
+comments explaining call usage of the function (so that `help myfunc` returns
+something useful).
 
 ## Compiling (mexing)
 
-I haven't invested too much time trying to be sure these functions compile
-anywhere. They should. Why not? All compilers are perfectly standard, right?
+I've abandoned trying to build a "pure-matlab" build system. I now use cmake. So
+the build routine is (from the bash command line):
 
-### Experimental
+    mkdir build
+    cd build
+    cmake ..
+    make 
 
-I've tried to gather the compilation of all these mex functions into a script.
-To attempt to compile all mex functions in this directory, issue:
-
-
-```matlab
-compile_gptoolbox_mex
-```
-
-I'll try to keep this up to date. We'll see how that goes.
-
-### One-by-one
-
-These mex functions do not depend on each other, so if you just need a certain
-function, you can compile it alone directly. First, try to gather up options
-automatically. Here I'm showing how to force libigl to use the header-only
-(non-static) mode:
-
-```
-[all_opts,use_libigl_static_library] = gptoolbox_mexopts('Static',false);
-```
-
-For example,
-
-```matlab
-mex(all_opt{:}, 'in_element_aabb.cpp');
-```
+This will output the mex functions in this (`mex/`) directory.
 
 ### Dependencies 
 
 Some of these functions depend on:
 
+ - cmake
  - c++11
    - VS2012 or newer (windows users only)
  - Eigen
  - libigl
- - Embree
- - Cork
  - CGAL
    - boost
+ - Embree
+ - El Topo
+ - Cork
  - Mac OS X Foundation and AppKit frameworks
 
 ### libigl
 
 Libigl is by default a _header only_ library. You do not need to compile it to
 use it (though you do need to compile and link to any dependencies, e.g. CGAL).
-
-If you see a mex command _linking_ to libigl libraries (e.g.
-`-L/usr/local/igl/libigl -ligl`, etc) you may safely remove these, so long as
-you **also remove** any definition of the static library flag:
-`-DIGL_STATIC_LIBRARY`.
-
-
-### OpenMP
-
-OpenMP is _still_ not well supported by clang. I've configured my `mexopts.sh`
-to use gcc4.7 (installed via macports) and enabled openmp via the `-fopenmp`
-flag. Some of these mex files will utilize this if enabled.
-
-### Windows
-
-Currently, none of these mex functions are developed or even known to be
-compilable on Windows. If you succeed, drop me a line. If you fail, I'll try to
-help, but I do not have access to a windows machine.
