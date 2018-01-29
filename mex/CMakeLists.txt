@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
+set(CMAKE_BUILD_TYPE_INIT Release)
 project(gptoolbox_mex)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-I")
 
 # Move output to this dir (gptoolbox/mex)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -36,29 +36,22 @@ if(WITH_ELTOPO)
   find_package(BLAS REQUIRED )
 endif()
 
-find_package(Matlab REQUIRED QUIET COMPONENTS MEX_COMPILER)
-message(STATUS "Matlab_MEX_COMPILER: ${Matlab_MEX_COMPILER}")
-set( CMAKE_CXX_COMPILER "${Matlab_MEX_COMPILER}" )
-set( CMAKE_C_COMPILER   "${Matlab_MEX_COMPILER}" )
-set( CMAKE_SHARED_LIBRARY_SUFFIX .mexa64 )  # set suffix to .mexa64
-set( CMAKE_SHARED_LIBRARY_PREFIX )      # remove the "lib" prefix
-set( MEX_CXX_FLAGS "-v -cxx -largeArrayDims CXXFLAGS='$$CXXFLAGS -std=c++11'" )
-set( CMAKE_SHARED_LIBRARY_CXX_FLAGS )       # remove the -fPIC option. mex does not accept the "-fPIC" option
-set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
-set( CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS )    # remove -shared options. mex does not accept the "-shared" option
-set(
-    CMAKE_CXX_CREATE_SHARED_LIBRARY
-    "<CMAKE_CXX_COMPILER> -v -cxx <LINK_FLAGS> <CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS> -output <TARGET> <OBJECTS> <LINK_LIBRARIES>"
-)
-set( CMAKE_CXX_COMPILE_OBJECT
-    "<CMAKE_CXX_COMPILER> <DEFINES> <INCLUDES> -outdir <OBJECT_DIR> -c <SOURCE>; mv <OBJECT_DIR>/$$(basename <SOURCE> .cpp ).o <OBJECT>"
-)
-set( CMAKE_INSTALL_RPATH "\$ORIGIN" )
+find_package(Matlab REQUIRED QUIET COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
+include_directories(${Matlab_INCLUDE_DIRS})
 
+#set( CMAKE_CXX_COMPILER "${Matlab_MEX_COMPILER}" )
+#set( CMAKE_C_COMPILER   "${Matlab_MEX_COMPILER}" )
+
+set( CMAKE_SHARED_LIBRARY_SUFFIX ".${Matlab_MEX_EXTENSION}" )  # set suffix to .mexa64
+set( CMAKE_SHARED_LIBRARY_PREFIX )      # remove the "lib" prefix
+set( CMAKE_SHARED_LIBRARY_CXX_FLAGS )       # remove the -fPIC option. mex does not accept the "-fPIC" option
+set( CMAKE_POSITION_INDEPENDENT_CODE OFF)
+set( CMAKE_INSTALL_RPATH "\$ORIGIN" )
 
 #file( GLOB MEX_SOURCES *.cpp )
 set(MEX_SOURCES)
 set(LIBS)
+list(APPEND LIBS ${Matlab_LIBRARIES})
 
 #list(APPEND MEX_SOURCES "impaste.cpp")
 list(APPEND MEX_SOURCES "segment_graph.cpp")
@@ -86,12 +79,7 @@ if(WITH_ELTOPO)
     )
   include_directories(${LIBELTOPO_INCLUDE_DIR})
   list(APPEND LIBS ${LIBELTOPO_LIBRARY})
-  if(${BLAS_LIBRARIES} MATCHES "Accelerate.framework$")
-    # Mac OS X style framework
-    set(CMAKE_SHARED_LINKER_FLAGS "LDFLAGS='$LDFLAGS ${BLAS_LIBRARIES}/Accelerate'" )
-  elseif()
-    list(APPEND LIBS ${BLAS_LIBRARIES})
-  endif()
+  list(APPEND LIBS ${BLAS_LIBRARIES})
 endif()
 
 if(LIBIGL_WITH_EMBREE)
@@ -140,5 +128,13 @@ foreach(MEX_SOURCE ${MEX_SOURCES})
   list(APPEND MEX_OUTPUTS ${MEX_OUTPUT})
 endforeach()
 
-#add_library(eltopo SHARED eltopo.cpp)
-#add_library(impast SHARED impaste.cpp)
+
+if(APPLE)
+  find_library(FOUNDATION_LIBRARY Foundation)
+  find_library(APPKIT_LIBRARY AppKit)
+  mark_as_advanced (FOUNDATION_LIBRARY APPKIT_LIBRARY)
+  set(MEX_OUTPUT "impaste")
+  add_library(${MEX_OUTPUT} SHARED "impaste.cpp" "paste.mm")
+  target_link_libraries(${MEX_OUTPUT} 
+    ${LIBS} ${FOUNDATION_LIBRARY} ${APPKIT_LIBRARY})
+ENDIF (APPLE)
