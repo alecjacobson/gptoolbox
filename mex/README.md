@@ -38,3 +38,14 @@ Some of these functions depend on:
 
 Libigl is by default a _header only_ library. You do not need to compile it to
 use it (though you do need to compile and link to any dependencies, e.g. CGAL).
+
+### cmake says Matlab not found?!
+
+cmake has a built in Module to find Matlab. Unfortunately, it only finds
+versions of Matlab that have been released at the time you installed cmake. So
+if you have a newer Matlab version than your cmake you can:
+
+1. update cmake (e.g., `brew upgrade cmake`), 
+2. add your version to the Module: add a line to `/usr/local/share/cmake/Modules/FindMatlab.cmake`, or
+3. directly tell cmake where matlab: (e.g., instead of issuing `cmake ..`, issue
+   `cmake .. -DMatlab_ROOT_DIR=/Applications/MATLAB_R2018b.app/`)
