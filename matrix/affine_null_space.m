@@ -181,7 +181,7 @@ function [N,x0] = affine_null_space(A,b,varargin)
   % Zap anything below tolerance
   %N(abs(N) < tol) = 0
   [NI,NJ,NV] = find(N);
-  N = sparse(NI,NJ,(NV>tol).*NV,size(N,1),size(N,2));
+  N = sparse(NI,NJ,(abs(NV)>tol).*NV,size(N,1),size(N,2));
   
   %assert(max(abs(A*(N*rand(size(N,2),size(b,2)) + x0) - b)) < 1e-10, ...
   %  'Should span solutions to A x = b');
