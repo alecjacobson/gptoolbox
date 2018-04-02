@@ -13,7 +13,7 @@ function [U,E,J] = slice_triangles(V,F,plane,varargin)
 
   % HACK!
   [U,E,J] = slice_tets(V,F(:,[1 2 3 3]),plane);
-  % matlab fails to reutrn one face as row vecto
+  % MATLAB fails to return one face as row vector
   if size(E,2) == 1 && size(E,1) == 3
     E = E';
   end

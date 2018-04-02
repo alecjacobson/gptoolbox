@@ -12,7 +12,7 @@ function h1 = imageplot(M,str, a,b,c)
 %   If you want to display several images:
 %       imageplot({M1 M2}, {'title1', 'title2'});
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 if nargin<2
     str = [];
@@ -142,7 +142,7 @@ function d = nb_dims(x)
 %
 %   d = nb_dims(x);
 %
-%   Copyright (c) 2004 Gabriel Peyr�
+%   Copyright (c) 2004 Gabriel Peyré
 
 if isempty(x)
     d = 0;

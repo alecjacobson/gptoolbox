@@ -13,7 +13,7 @@ function y = perform_convolution(x,h, bound)
 %   'bound' is either 'per' (periodic extension) 
 %   or 'sym' (symmetric extension).
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 if nargin<3
     bound = 'sym';

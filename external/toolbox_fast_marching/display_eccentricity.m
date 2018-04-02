@@ -7,7 +7,7 @@ function display_eccentricity(E, mode)
 %   mode==1 for colors
 %   mode==2 for level sets
 %
-%   Copyright (c) 2006 Gabriel Peyré
+%   Copyright (c) 2006 Gabriel PeyrÃ©
 
 if nargin<2
     mode = 1;

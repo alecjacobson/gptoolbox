@@ -4,7 +4,7 @@ function plot_volumetric_data(W, nb_colors)
 %
 %   plot_volumetric_data(W, nb_colors);
 %
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©
 
 if nargin<2
     nb_colors = 256;

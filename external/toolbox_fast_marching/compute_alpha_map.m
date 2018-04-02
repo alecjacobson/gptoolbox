@@ -8,7 +8,7 @@ function [a,c] = compute_alpha_map(aname, options)
 %
 %   a is an alphamap.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 if nargin<2
     cname = 'jet';

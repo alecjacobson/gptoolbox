@@ -7,7 +7,7 @@ function [D1,Z] = compute_distance_landmark(start_points, DL, landmark, landmark
 %   DL(:,:,i) is the distance map to the ith landmark point.
 %   'D1' is an approximation of the distance to 'start_point'.
 %
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©
 
 
 if nargin<4

@@ -9,7 +9,7 @@ function display_segmentation(B,M)
 %   
 %   See also: perform_active_contour
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 if min(B(:))>=0
     if max(B(:))>2

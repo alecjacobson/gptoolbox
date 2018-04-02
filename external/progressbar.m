@@ -47,7 +47,7 @@ if n==N
     fprintf('\n');
 end
 
-% Copyright (c) 2009, Gabriel Peyre
+% Copyright (c) 2009, Gabriel Peyré
 % All rights reserved.
 % 
 % Redistribution and use in source and binary forms, with or without

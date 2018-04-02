@@ -1,4 +1,4 @@
-% test for constrainted path planing.
+% test for constrained path planning.
 map_name = 'data/room1.png';        % a small map
 map_name = 'data/room.png';         % warning : this is a *big* map, expect large computation time.
 
@@ -34,4 +34,4 @@ path = compute_geodesic(D,end_points, options);
 path(:,3) = (path(:,3)-1)/ntheta*pi;
 
 clf;
-plot_constrained_path_planing(M,path,obj,40);
+plot_constrained_path_planning(M,path,obj,40);

@@ -7,7 +7,7 @@ function [H,Z] = compute_heuristic_landmark(DL,start_points)
 %   DL(:,:,i) is the distance map to the ith landmark point.
 %   'H' is an approximation of the distance to 'start_point' (the heuristic map).
 %
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©
 
 n = size(DL,1);
 T = repmat(DL(start_points(1),start_points(2),:), [n,n,1] );

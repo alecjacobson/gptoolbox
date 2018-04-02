@@ -11,7 +11,7 @@ The nice property of the subdivision algorithm is that it becomes Dijkstra when 
 
 The input mesh is represented as two arrays: vertices (each vertex has tree coordinates) and faces (each face is represented as indices of its vertices). Most of the communication with the algorithms is done through SurfacePoints (points on the surface of the mesh; they have three coordinates and a pointer to a mesh element they belong).
 
-The algorithms are available as C++ code (downloadable at http://code.google.com/p/geodesic/) and Matlab toolbox (downloadable at MathWorks File Exchange). 
+The algorithms are available as C++ code (downloadable at http://code.google.com/p/geodesic/) and MATLAB toolbox (downloadable at MathWorks File Exchange). 
 
 C++ NOTES 
 The base class of for all algorithms is GeodesicAlgorithmBase (defined in geodesic_algorithm_base.h). The most important functions defined in this class are
@@ -49,5 +49,5 @@ Danil Kirsanov, 01/2008
 
 
 CHANGES ON 03/03/08
-- fixed libpointer conflict with matlab 2007b
-- fixed cellfun error with earlier versions of matlab
+- fixed libpointer conflict with MATLAB 2007b
+- fixed cellfun error with earlier versions of MATLAB

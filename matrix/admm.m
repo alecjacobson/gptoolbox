@@ -9,7 +9,7 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
   %        Z  #Z by dim list of dual variables
   %        U  #c by dim list of scaled Lagrange multipliers
   %        rho  current penalty parameter
-  %        data  empty [] on first call, or `data` ouput from previous call
+  %        data  empty [] on first call, or `data` output from previous call
   %      Outputs:
   %        X  #X by dim list of primary variables
   %        data  persistent callback data

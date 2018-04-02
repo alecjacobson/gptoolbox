@@ -11,7 +11,7 @@ function [vertex,faces] = compute_saddle_points(Q,D,mask)
 %   points of the voronoi diagram along the boundary of the domain) and
 %   then the triple points (meeting points of 3 cells).
 %
-%   Copyright (c) 2008 Gabriel Peyre
+%   Copyright (c) 2008 Gabriel Peyré
 
 if nargin==3 && not(isempty(mask))
     Q(mask==0) = -1;

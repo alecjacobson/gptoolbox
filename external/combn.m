@@ -26,7 +26,7 @@ function [M,IND] = combn(V,N)
 %   See also PERMS, NCHOOSEK
 %        and COMBNSUB, ALLCOMB, and PERMPOS on the File Exchange
 
-% tested in Matlab R13, R14, 2010b
+% tested in MATLAB R13, R14, 2010b
 % version 4.3 (apr 2013)
 % (c) Jos van der Geest
 % email: jos@jasen.nl

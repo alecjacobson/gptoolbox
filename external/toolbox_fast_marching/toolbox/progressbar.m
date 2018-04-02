@@ -8,7 +8,7 @@ function progressbar(n,N,w)
 % n should start at 1.
 % w is the width of the bar (default w=20).
 %
-%   Copyright (c) Gabriel Peyré 2006
+%   Copyright (c) Gabriel Peyr√© 2006
 
 if nargin<3
     w = 20;

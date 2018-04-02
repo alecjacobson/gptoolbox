@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <functional>
 
-// Parse right hand side arguments for a matlab mex function.
+// Parse right hand side arguments for a MATLAB mex function.
 //
 // Inputs:
 //   nrhs  number of right hand side arguments
@@ -20,7 +20,7 @@
 //   P  #P by 3 list of origin points
 //   N  #P by 3 list of origin normals
 //   num_samples  number of samples
-// Throws matlab errors if dimensions are not sane.
+// Throws MATLAB errors if dimensions are not sane.
 void parse_rhs(
   const int nrhs, 
   const mxArray *prhs[], 
@@ -78,7 +78,7 @@ void parse_rhs(
 void mexFunction(int nlhs, mxArray *plhs[],
     int nrhs, const mxArray *prhs[])
 {
-  // This is useful for debugging whether Matlab is caching the mex binary
+  // This is useful for debugging whether MATLAB is caching the mex binary
   //mexPrintf("%s %s\n",__TIME__,__DATE__);
   igl::matlab::MexStream mout;
   std::streambuf *outbuf = std::cout.rdbuf(&mout);

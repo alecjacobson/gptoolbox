@@ -7,7 +7,7 @@ function [vertex,face] = read_off(filename)
 %   'vertex' is a 'nb.vert x 3' array specifying the position of the vertices.
 %   'face' is a 'nb.face x 3' array specifying the connectivity of the mesh.
 %
-%   Copyright (c) 2003 Gabriel Peyré
+%   Copyright (c) 2003 Gabriel PeyrÃ©
 
 
 fid = fopen(filename,'r');

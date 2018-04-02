@@ -4,7 +4,7 @@ function y = callback_active_contour(x, options)
 %   
 %   y = callback_active_contour(x, options);
 %
-%   Copytight (c) 2007 Gabriel Peyre
+%   Copytight (c) 2007 Gabriel Peyré
 
 % norm of gradient
 dt = options.dt;

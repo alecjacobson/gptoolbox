@@ -12,7 +12,7 @@ function T = perform_tensor_recomp(e1,e2,l1,l2)
 %   You have 
 %       T = l1*e1*e1' + l2*e2*e2'
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 
 T = zeros( [size(l1),2,2] );

@@ -438,4 +438,4 @@ public:
 #endif // __GW_Matrix3x3_h_
 
 ///////////////////////////////////////////////////////////////////////////////
-//  Copyright (C) 2009 Gabriel Peyre
+//  Copyright (C) 2009 Gabriel Peyré

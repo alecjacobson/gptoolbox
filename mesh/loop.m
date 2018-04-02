@@ -1,5 +1,5 @@
 function [VV,FF,SS,J] = loop(V,F,iter)
-% LOOP perform loop subdivision. After n iterations of loop subivision, the
+% LOOP perform loop subdivision. After n iterations of loop subdivision, the
 % resulting mesh will have
 %   4^n |F| faces
 %   2^(n-1)*(2*|E| + 3*|F|*(2^n-1)) edges

@@ -12,7 +12,7 @@
 %	'start_points' is a 2 x num_start_points matrix where k is the number of starting points.
 %	'H' is an heuristic (distance that remains to goal). This is a 2D matrix.
 %   
-%   Copyright (c) 2004 Gabriel Peyr�
+%   Copyright (c) 2004 Gabriel Peyré
 *=================================================================*/
 
 // select to test or not to test (debug purpose)

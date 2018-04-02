@@ -7,7 +7,7 @@ function M = crop(M,n,c)
 %   n is the new size of the image
 %   c is the center of the grop
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 n0 = size(M);
 n0(3) = size(M,3);

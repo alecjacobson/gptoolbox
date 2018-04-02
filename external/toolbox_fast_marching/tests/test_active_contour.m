@@ -1,6 +1,6 @@
 % test for active contours
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 
 options.bound = 'per';

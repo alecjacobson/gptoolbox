@@ -1,4 +1,4 @@
-% test for constrainted path planing using an heuristic.
+% test for constrained path planning using an heuristic.
 %
 
 save_image = 0;
@@ -44,7 +44,7 @@ path = compute_geodesic(D,end_points);
 path1(:,3) = (path(:,3)-1)/ntheta*pi;
 
 clf;
-plot_constrained_path_planing(M,path1,obj,40);
+plot_constrained_path_planning(M,path1,obj,40);
 
 
 test_type = 'weight';

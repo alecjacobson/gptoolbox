@@ -8,7 +8,7 @@ function G = divgrad(M,options)
 %   if M is a 3D array, compute divergence.
 %   Use centered finite differences.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 if size(M,3)==2

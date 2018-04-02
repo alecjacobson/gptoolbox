@@ -4,6 +4,6 @@ function m = mmax(A)
 %
 %   m = mmax(A)
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 m = max(A(:));

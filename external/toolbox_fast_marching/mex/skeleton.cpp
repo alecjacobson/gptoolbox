@@ -1,6 +1,6 @@
 //***************************************************************************
 //
-// Matlab C routine file:  skelgrad.cpp
+// MATLAB C routine file:  skelgrad.cpp
 //
 // Written 8/04 by N. Howe
 //
@@ -399,9 +399,9 @@ compute_skeleton_gradient(T *img, int nrow, int ncol, int nlhs,
 
 //***************************************************************************
 //
-// Gateway driver to call the calculation from Matlab.
+// Gateway driver to call the calculation from MATLAB.
 //
-// This is the Matlab entry point.
+// This is the MATLAB entry point.
 // 
 
 void 

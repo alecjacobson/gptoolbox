@@ -9,7 +9,7 @@ function v = convert_distance_color(D,M)
 %   Very useful to save a result of distance computation to an image file
 %   with nice colors.
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 n = size(D,1);
 if nargin<2

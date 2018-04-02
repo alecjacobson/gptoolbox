@@ -13,7 +13,7 @@ function [D,S,father] = perform_front_propagation_2d_slow(W,start_points,end_poi
 %	'start_points' is a 2 x num_start_points matrix where k is the number of starting points.
 %	'H' is an heuristic (distance that remains to goal). This is a 2D matrix.
 %   
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 data.D = W.*0 + Inf; % action 
 start_ind = sub2ind(size(W), start_points(1,:), start_points(2,:));
@@ -77,7 +77,7 @@ function data1 = perform_fast_marching_step(data)
 %   Data is a structure that records the state before/after a step 
 %   of the FM algorithm.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 % some constant
 kClose = -1;

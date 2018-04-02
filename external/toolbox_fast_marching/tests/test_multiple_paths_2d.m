@@ -1,6 +1,6 @@
 % test for multiple path extraction
 %
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©
 
 n = 256;
 

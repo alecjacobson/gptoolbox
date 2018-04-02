@@ -36,11 +36,11 @@
 %
 % perform_fmstar_2d and perform_fmstar_3d implement the algorithm described in 
 %	Heuristically Driven Front Propagation for Path Planning and Geodesic Extraction
-%	Gabriel Peyré and Laurent Cohen, 2005 ,To appear.
+%	Gabriel PeyrÃ© and Laurent Cohen, 2005 ,To appear.
 % See script test_fmstar_2d and test_fmstar_3d for samples of use.
 %
 % The main computation are done in a mex file so it is very 
 % fast (using a C++ heap structure). Precompiled version
 % for windows are given.
 %
-%   Copyright (c) 2005 Gabriel Peyré
+%   Copyright (c) 2005 Gabriel PeyrÃ©

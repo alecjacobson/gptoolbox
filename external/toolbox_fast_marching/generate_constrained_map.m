@@ -10,7 +10,7 @@ function M1 = generate_constrained_map(M,nb_theta,obj,theta_max)
 %  obj is the size of the size of the rectangle object that moves
 %   (eg. obj=[0.2,0.05]).
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 if nargin<2
     nb_theta = 10;

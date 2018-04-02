@@ -1,6 +1,6 @@
 % test for segmentation using front propagation
 %
-%   Copyright (c) 2006 Gabriel Peyré
+%   Copyright (c) 2006 Gabriel PeyrÃ©
 
 n = 200;
 map_name = 'data/room.png';

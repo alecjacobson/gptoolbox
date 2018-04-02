@@ -666,4 +666,4 @@ std::ostream& operator<<(std::ostream &s, GW_Quaternion& m)
 #endif /* #ifndef _GW_QUATERNION_H_ */
 
 ///////////////////////////////////////////////////////////////////////////////
-//  Copyright (C) 2009 Gabriel Peyre
+//  Copyright (C) 2009 Gabriel Peyré

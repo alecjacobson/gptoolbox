@@ -1,12 +1,12 @@
 /* 
 RES = corrDn(IM, FILT, EDGES, STEP, START, STOP);
   >>> See corrDn.m for documentation <<<
-  This is a matlab interface to the internal_reduce function. 
+  This is a MATLAB interface to the internal_reduce function. 
   EPS, 7/96.
 */
 
 #define V4_COMPAT
-#include <matrix.h>  /* Matlab matrices */
+#include <matrix.h>  /* MATLAB matrices */
 #include <mex.h>
 
 #include "convolve.h"
@@ -89,7 +89,7 @@ void mexFunction(int nlhs,	     /* Num return vals on lhs */
           (y_start<1) || (y_start>y_idim))
          mexErrMsgTxt("START values must lie between 1 and the image dimensions.");
       }
-  x_start--;  /* convert from Matlab to standard C indexes */
+  x_start--;  /* convert from MATLAB to standard C indexes */
   y_start--;
 
   /* ARG 6 (optional): STOP */

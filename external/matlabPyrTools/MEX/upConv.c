@@ -1,12 +1,12 @@
 /* 
 RES = upConv(IM, FILT, EDGES, STEP, START, STOP, RES);
   >>> See upConv.m for documentation <<<
-  This is a matlab interface to the internal_expand function. 
+  This is a MATLAB interface to the internal_expand function. 
   EPS, 7/96.
 */
 
 #define V4_COMPAT
-#include <matrix.h>  /* Matlab matrices */
+#include <matrix.h>  /* MATLAB matrices */
 #include <mex.h>
 
 #include "convolve.h"
@@ -109,7 +109,7 @@ void mexFunction(int nlhs,	     /* Num return vals on lhs */
       arg6 = prhs[6];
       if notDblMtx(arg6) mexErrMsgTxt("RES arg must be double float matrix.");
 
-      /* 7/10/97: Returning one of the args causes problems with Matlab's memory 
+      /* 7/10/97: Returning one of the args causes problems with MATLAB's memory 
 	 manager, so we don't return anything if the result image is passed */
       /*  plhs[0] = arg;  */
       result = mxGetPr(arg6);

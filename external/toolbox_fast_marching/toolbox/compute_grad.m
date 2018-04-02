@@ -19,7 +19,7 @@ function grad = compute_grad(M,options)
 %           middle of each pixel (be aware that you have a shift of -1/2 on X and Y for
 %           the location of the gradient).
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel PeyrÃ©
 
 if nargin<2
     options.null = 0;

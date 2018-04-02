@@ -23,7 +23,7 @@ function [x,err,it] = perform_conjugate_gradient(A,y,options)
 %       options.epsilon is maximum error
 %       options.niter_max is maximum number of error
 %
-%   Copyright (c) 2007 Gabriel Peyre
+%   Copyright (c) 2007 Gabriel Peyré
 
 options.null = 0;
 niter = getoptions(options, 'niter_max', 100);
