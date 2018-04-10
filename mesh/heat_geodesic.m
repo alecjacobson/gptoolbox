@@ -16,11 +16,16 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   %   t  time parameter
   %   Optional:
   %     'BoundaryConditions'  followed by one of the following strings
-  %       {'robin'}:
+  %       {'average'}: 
   %       'dirichlet'  domain boundaries set to 0 when computing heat
   %         diffusion
   %       'neumann'  heat diffusion solved with implicit neumann conditions
-  %       'robin'  Uniform average of neumann and Dirichlet solutions
+  %       'average'  Uniform average of neumann and Dirichlet solutions
+  %       'robin'  The original ArXiv paper called the method of averaging the
+  %         Dirichlet and Neumann solutions 'robin'. This was later corrected
+  %         (this solution cannot be created by boundary conditions to the heat
+  %         equation alone: average solutions is a non-linear operation).  In
+  %         any case, 'robin' is treated as 'average'.
   %     'Precomputation' Followed by pre struct as returned by this function
   %     'Legacy' followed by bool telling whether to use Alec's legacy
   %       implmentation. In particular this is useful because the original
@@ -70,7 +75,7 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   end
 
   % option parameter default values
-  bc_type = 'robin';
+  bc_type = 'average';
   pre = [];
   % precomputation for Dirichlet solve
   pre.D = [];
@@ -135,7 +140,7 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   B = u0;
 
   if isempty(u)
-    if strcmp(bc_type,'dirichlet') || strcmp(bc_type,'robin')
+    if strcmp(bc_type,'dirichlet') || strcmp(bc_type,'average') || strcmp(bc_type,'robin')
       % get outline ("boundary") of mesh 
       switch ss
       case 3
@@ -163,7 +168,7 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
         [uD,pre.D] = min_quad_with_fixed(Q,B,b,bc,[],[],pre.D);
       end
     end
-    if strcmp(bc_type,'neumann') || strcmp(bc_type,'robin')
+    if strcmp(bc_type,'neumann') || strcmp(bc_type,'average') || strcmp(bc_type,'robin')
       % See Figure 9, pretty sure these are implicit ???x/???n = 0 neumann
       % conditions, though it is not stated in the text. At best, "Neumann
       % conditions prevent heat from flowing out of the domain..."
@@ -200,7 +205,7 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
       u = uD;
     case 'neumann'
       u = uN;
-    case 'robin'
+    case {'average','robin'}
       % "We advocate the use of the Robin boundary conditions obtained by taking
       % the mean of the Neumann solution uN and the Dirichlet solution uD, i.e.,
       % u = 0.5*(uN + uD)"
