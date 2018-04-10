@@ -14,10 +14,12 @@ function [N,F] = lloyd_sphere(n,varargin)
 
   % default values
   subdivision_method = 'upsample';
+  max_iters = 100000;
+  N = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'SubdivisionMethod'}, ...
-    {'subdivision_method'});
+    {'InitialGuess','MaxIters','SubdivisionMethod'}, ...
+    {'N','max_iters','subdivision_method'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -40,7 +42,9 @@ function [N,F] = lloyd_sphere(n,varargin)
   otherwise
     error('Unsupported subdivision_method %s',subdivision_method);
   end
-  N = subdivided_sphere(ssn, 'SubdivisionMethod',subdivision_method);
+  if isempty(N)
+    N = subdivided_sphere(ssn, 'SubdivisionMethod',subdivision_method);
+  end
 
   N = N(1:n,:);
   F = convhulln(N);
@@ -58,7 +62,7 @@ function [N,F] = lloyd_sphere(n,varargin)
     colorbar;
     axis equal;
   end
-  while true
+  for iter = 1:max_iters
     A = adjacency_matrix(F);
     A = A*M;
     %A = bsxfun(@rdivide,A,sum(A,2));
@@ -68,7 +72,7 @@ function [N,F] = lloyd_sphere(n,varargin)
     % subtract off center of mass  (needed for small n)
     N = bsxfun(@minus,N,diag(M)'*N./sum(diag(M)));
     N = normalizerow(N);
-    F = convhulln(N);
+    F = fliplr(convhulln(N));
     M = massmatrix(N,F,'voronoi');
     er = trace((N-N_prev)'*M*(N-N_prev));
     if vis
