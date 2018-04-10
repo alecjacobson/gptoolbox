@@ -1,4 +1,4 @@
-function [CV,CE,I] = polygonize(V,F,fun)
+function [CV,CE,I,CN,GD,D] = polygonize(V,F,fun,varargin)
   % Polygonize (contour) an implicit function in the spirit of "An Implicit
   % Surface Polygonizer" [Bloomenthal 1994]
   %
@@ -12,7 +12,28 @@ function [CV,CE,I] = polygonize(V,F,fun)
   %   CV  #CV by dim list of contour mesh vertices 
   %   CE  #CE by dim list of facet indices into CV
   %   I  #CE list of indices into F
+  %   CN  #CN by dim list of unit normal vectors at vertices
   %
+
+  % default values
+  delta = [];
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Delta'}, ...
+    {'delta'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous funtion to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
 
   flipped_order = flipped_tet_orders();
 
@@ -130,40 +151,91 @@ function [CV,CE,I] = polygonize(V,F,fun)
     end
   end
 
-  % Flip non-deluanay edges in quads... at least.
-  CQT = [CQ(:,[3 1 4]);CQ(:,[2 4 1])];
-  A = reshape(internalangles(CV,CQT),[],6);
-  % Quads with Non-delaunay diagonals.
-  nd = (A(:,1)+A(:,4))>pi;
-  CQ(nd,:) = CQ(nd,[3 4 1 2]);
-  CQ1 = CQ(:,[3 1 4]);
-  CQ2 = CQ(:,[2 4 1]);
-  CQ1(nd,:) = fliplr(CQ1(nd,:));
-  CQ2(nd,:) = fliplr(CQ2(nd,:));
-  CQT = [CQ1;CQ2];
-  %% Double check: sum should be zero
-  % A = reshape(internalangles(CV,CQT),[],6);
-  % % Non-delaunay
-  % nd = (A(:,1)+A(:,4))>pi;
-  % sum(nd)
-  
+  switch ss
+  case 4
+    % Flip non-deluanay edges in quads... at least.
+    CQT = [CQ(:,[3 1 4]);CQ(:,[2 4 1])];
+    A = reshape(internalangles(CV,CQT),[],6);
+    % Quads with Non-delaunay diagonals.
+    nd = (A(:,1)+A(:,4))>pi;
+    CQ(nd,:) = CQ(nd,[3 4 1 2]);
+    CQ1 = CQ(:,[3 1 4]);
+    CQ2 = CQ(:,[2 4 1]);
+    CQ1(nd,:) = fliplr(CQ1(nd,:));
+    CQ2(nd,:) = fliplr(CQ2(nd,:));
+    CQT = [CQ1;CQ2];
+    %% Double check: sum should be zero
+    % A = reshape(internalangles(CV,CQT),[],6);
+    % % Non-delaunay
+    % nd = (A(:,1)+A(:,4))>pi;
+    % sum(nd)
+    CE = fliplr([CT;CQT]);
+    assert(size(CE,2) == ss-1);
 
-  CE = [CT;CQT];
-  assert(size(CE,2) == ss-1);
+    %% How I determined what should be flipped:
+    % S = sum(normals(CV,CT).*barycenter(CV,CT),2);
+    % A = unique([crossT(S<0,:) ST(S<0,:)],'rows');
+    % B = unique([crossT(S>0,:) ST(S>0,:)],'rows');
+    % intersect(A,B,'rows');
+    % fprintf('    flippedT = [\n');
+    % fprintf('      %d %d %d %d %d %d %d %d %d %d %d %d\n',A');
+    % fprintf('    ];\n');
+    %S = sum(normals(CV,CQ(:,[1 4 3])).*barycenter(CV,CQ(:,[1 4 3])),2);
+    %A = unique([crossQ(S<0,:) SQ(S<0,:)],'rows');
+    %B = unique([crossQ(S>0,:) SQ(S>0,:)],'rows');
+    %intersect(A,B,'rows')
+    %fprintf('    flippedQ = [\n');
+    %fprintf('      %d %d %d %d %d %d %d %d %d %d %d %d\n',A');
+    %fprintf('    ];\n');
+  end
 
-  %% How I determined what should be flipped:
-  % S = sum(normals(CV,CT).*barycenter(CV,CT),2);
-  % A = unique([crossT(S<0,:) ST(S<0,:)],'rows');
-  % B = unique([crossT(S>0,:) ST(S>0,:)],'rows');
-  % intersect(A,B,'rows');
-  % fprintf('    flippedT = [\n');
-  % fprintf('      %d %d %d %d %d %d %d %d %d %d %d %d\n',A');
-  % fprintf('    ];\n');
-  %S = sum(normals(CV,CQ(:,[1 4 3])).*barycenter(CV,CQ(:,[1 4 3])),2);
-  %A = unique([crossQ(S<0,:) SQ(S<0,:)],'rows');
-  %B = unique([crossQ(S>0,:) SQ(S>0,:)],'rows');
-  %intersect(A,B,'rows')
-  %fprintf('    flippedQ = [\n');
-  %fprintf('      %d %d %d %d %d %d %d %d %d %d %d %d\n',A');
-  %fprintf('    ];\n');
+  if nargout>=4
+    if isempty(delta)
+      %  following Bloomenthal's "An Implicit Surface Polygonizer" 1994
+      %
+      delta = avgedge(V,F)/max_iters^2;
+      % More accurate...
+      delta = delta*0.0001;
+    end
+    % Approximate the gradient with finite differences (it'd be cool if fun
+    % could also provide the gradient)
+    %
+    % Combine FD calls into a single call to fun in case fun has a lot of
+    % per-call precomputation.
+    order = 2
+    switch order
+    case 1
+      % Wasn't computed on the last iteration
+      D = fun(CV);
+      switch ss
+      case 3
+        GD = ...
+          reshape(fun([CV+[1 0]*delta;CV+[0 1]*delta]),[],2);
+      case 4
+        GD = reshape( ...
+          fun([CV+[1 0 0]*delta;CV+[0 1 0]*delta;CV+[0 0 1]*delta]), ...
+          size(CV,1),3);
+      end
+      % Don't bother dividing by delta (we're normalizing anyway)
+      G = GD-D;
+    case 2
+      delta = delta/2;
+      switch ss
+      case 3
+        GD = ...
+          reshape(fun([CV+[1 0]*delta;CV+[0 1]*delta;CV-[1 0]*delta;CV-[0 1]*delta]),[],2,2);
+      case 4
+        GD = reshape( ...
+          fun([ ...
+            CV+[1 0 0]*delta;CV+[0 1 0]*delta;CV+[0 0 1]*delta; ...
+            CV-[1 0 0]*delta;CV-[0 1 0]*delta;CV-[0 0 1]*delta; ...
+            ]), ...
+          size(CV,1),3,2);
+      end
+      G = GD(:,:,1)-GD(:,:,2);
+    end
+
+    CN = -normalizerow(G);
+  end
+
 end
