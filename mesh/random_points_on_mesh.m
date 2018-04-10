@@ -77,7 +77,7 @@ function [N,I,B,r] = random_points_on_mesh(V,F,n,varargin)
     % This is a "cheap hack" way of getting something like Poisson-Disk
     % sampling which approximates a blue noise sampling.
     k = 10;
-    BV = biharmonic_embedding(V,F,k);
+    %BV = biharmonic_embedding(V,F,k);
     randsample = @(n) random_points_on_mesh(V,F,n,'Color','white','Bias',A);
     embed = @(N,I,B) ...
       bsxfun(@times,B(:,1),V(F(I,1),:)) +  ...
@@ -102,7 +102,7 @@ function [N,I,B,r] = random_points_on_mesh(V,F,n,varargin)
       D = D(:,2);
       % Find darts to rethrow, first of each pair with small distance
       rethrow = unique(kI( kI>(1:numel(kI))' & D<r));
-      fprintf('iter: %d, #rethrow: %d\n',iter,numel(rethrow));
+      %fprintf('iter: %d, #rethrow: %d\n',iter,numel(rethrow));
       if numel(rethrow) == 0
         break;
       end
