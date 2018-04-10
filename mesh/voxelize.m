@@ -21,6 +21,8 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   %        mesh as inside {true}
   %     'Closed'  followed by whether to assume mesh is closed when determining
   %       interior (avoid winding number computation, use flood filling)
+  %     'Centers'  followed by prod(side) centers (e.g., already produced by
+  %       call to previous call to voxel_grid.m)
   % Outputs:
   %   W  side(1) by side(2) by side(3) matrix with W(i,j,k) ~= if location
   %     cell centered at BC(i,j,k) overlaps with the volume of (V,F)
@@ -56,11 +58,12 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   with_interior = true;
   pad_count = 0;
   closed = [];
+  BC = [];
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Boundary','Interior','Pad','Closed'}, ...
-    {'with_boundary','with_interior','pad_count','closed'});
+    {'Boundary','Interior','Pad','Centers','Closed'}, ...
+    {'with_boundary','with_interior','pad_count','BC','closed'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -79,9 +82,18 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   end
 
 
+  assert(any(size(side) == 1),'side should be a vector');
+  % Make sure we have a row vector
+  side = side(:)';
+
   dim = size(V,2);
 
-  [BC,side,r] = voxel_grid(V,side,'Pad',pad_count);
+  if isempty(BC)
+    [BC,side,r] = voxel_grid(V,side,'Pad',pad_count);
+  else
+    assert(prod(side) == size(BC,1),'side dims must match BC');
+    r = (max(BC)-min(BC))./(side-1);
+  end
   NV = min(BC);
   XV = max(BC);
 
