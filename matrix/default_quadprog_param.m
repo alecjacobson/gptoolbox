@@ -34,6 +34,22 @@ function [param,mosek_exists] = default_quadprog_param()
       param.MSK_IPAR_NUM_THREADS = num_threads;
     elseif strfind(which('mosekopt'),'mosek/8')
       % multi-thread?
+      %param.MSK_IPAR_INTPNT_NUM_THREADS = num_threads;
+      %param.Diagnostics = 'on';
+      %param.Display = 'iter';
+      param.MSK_DPAR_INTPNT_TOL_REL_GAP = 1e-14;
+      param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 1e-14;
+      param.MSK_DPAR_INTPNT_TOL_REL_GAP = 1e-14;
+      param.MSK_DPAR_INTPNT_CO_TOL_DFEAS = 1e-14;
+      param.MSK_DPAR_INTPNT_CO_TOL_INFEAS = 1e-14;
+      param.MSK_DPAR_INTPNT_CO_TOL_PFEAS = 1e-14;
+      param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP = 1e-14;
+      param.MSK_DPAR_INTPNT_QO_TOL_DFEAS = 1e-14;
+      param.MSK_DPAR_INTPNT_QO_TOL_INFEAS = 1e-14;
+      param.MSK_DPAR_INTPNT_QO_TOL_MU_RED = 1e-14;
+      %param.MSK_DPAR_INTPNT_QO_TOL_NEAR_REL = 1e-10;
+      param.MSK_DPAR_INTPNT_QO_TOL_PFEAS = 1e-14;
+      param.MSK_DPAR_INTPNT_QO_TOL_REL_GAP = 1e-14;
     else
       param.MSK_IPAR_INTPNT_NUM_THREADS = num_threads;
       param.Diagnostics = 'on';
