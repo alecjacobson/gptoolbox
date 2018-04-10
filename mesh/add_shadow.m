@@ -155,8 +155,7 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
         end
         caxis(ca);
       end
-
-      h = {h{:};tsh};
+      h = {h{:} tsh};
       M(:,:,end+1) = shadow_mat;
     end
   end
