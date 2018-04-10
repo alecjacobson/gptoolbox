@@ -11,6 +11,8 @@ function [V,T,F] = tetgen(SV,SF,varargin)
   %   Optional:
   %     'Flags'  followed by tetgen flags {'-q100'}
   %     'Verbose'  followed by whether to print command and result {false}
+  %     'Holes'  followed by #Holes by 3 list of points inside each "hole"
+  %       (inner cavity)
   % Outputs:
   %   V  list of tetrahedra vertices
   %   T  list of tetrahedra indices
@@ -23,12 +25,13 @@ function [V,T,F] = tetgen(SV,SF,varargin)
       'First optional arg not char. Using obsolete interface?');
   end
 
+  SH = [];
   % default values
   flags = '-q2';
   verbose = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Flags','Verbose'}, {'flags','verbose'});
+    {'Flags','Holes','Verbose'}, {'flags','SH','verbose'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -52,7 +55,7 @@ function [V,T,F] = tetgen(SV,SF,varargin)
 
   prefix = tempname;
   poly_filename = [prefix '.poly'];
-  writePOLY_tetgen(poly_filename,SV,SF,[],'BoundaryMarkers',ones(size(SF,1),1));
+  writePOLY_tetgen(poly_filename,SV,SF,SH,'BoundaryMarkers',ones(size(SF,1),1));
 
   %% if there are internal constraint vertices then print them to a .node file
   %if(internal_constraints)
