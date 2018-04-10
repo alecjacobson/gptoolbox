@@ -15,7 +15,6 @@ function t = tsurf(F,V,varargin)
   %                   0 -> off
   %                   1 -> text and grey background
   %                  >1 -> text
-  %%     'ColorMultiplier' followed by #CData list of color multiplier values.
   %     ... additional options passed on to trisurf
   % Outputs:
   %  t  handle to trisurf object
@@ -38,6 +37,7 @@ function t = tsurf(F,V,varargin)
   vertex_indices = 0;
   face_indices = 0;
   tets = [];
+  buttondownfcn = 'default';
 
   v = 1;
   while v<=numel(varargin) && ischar(varargin{v}) 
@@ -54,6 +54,10 @@ function t = tsurf(F,V,varargin)
       v = v+1;
       assert(v<=numel(varargin));
       tets = varargin{v};
+    case 'ButtonDownFcn'
+      v = v+1;
+      assert(v<=numel(varargin));
+      buttondownfcn = varargin{v};
     otherwise
       break;
     end
@@ -145,7 +149,12 @@ function t = tsurf(F,V,varargin)
 
   % subversively set up the callbacks so that if the user clicks and holds on
   % the mesh then hits m, meshplot will open with this mesh
-  set(t_copy,'buttondownfcn',@ondown);
+  switch buttondownfcn
+  case 'default'
+    set(t_copy,'buttondownfcn',@ondown);
+  case 'none'
+  otherwise
+  end
 
   
   function ondown(src,ev)
