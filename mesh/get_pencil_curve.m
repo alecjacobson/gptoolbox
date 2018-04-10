@@ -17,19 +17,22 @@ function [P,p] = get_pencil_curve(f)
   % Get the input figure or get current one (creates new one if none exist)
   if nargin == 0 || isempty(f)
     f = gcf;
+    default_f = true;
+  
+    % get axes of current figure (creates on if doesn't exist)
+    a = gca;
+    
+    % set equal axis
+    axis equal;
+    % freeze axis
+    axis manual;
+    % set view to XY plane
+    view(2);
+    
+  else
+    figure(f);
   end
-  figure(f);
-
-  % get axes of current figure (creates on if doesn't exist)
-  a = gca;
-
-  % set equal axis 
-  axis equal;
-  % freeze axis
-  axis manual;
-  % set view to XY plane
-  view(2);
-
+ 
   rotate3d off;
   set(gcf,'windowbuttondownfcn',@ondown);
   set(gcf,'keypressfcn',        @onkeypress);
