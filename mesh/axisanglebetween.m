@@ -32,6 +32,7 @@ function [w,a] = axisanglebetween(u,v,nan_replacement)
     v = [v zeros(n,1)];
   end
   w = normalizerow(cross(u,v,2));
+  S = normrow(u-v)<eps;
   if(exist('nan_replacement','var'))
     assert(numel(nan_replacement) == 3);
     nan_replacement = reshape(nan_replacement,1,3);
@@ -46,4 +47,8 @@ function [w,a] = axisanglebetween(u,v,nan_replacement)
 
   a = acos(dot(u,v,2));
   a(normrow(u-v)==0) = 0;
+  w(S,1) = 0;
+  w(S,2) = 0;
+  w(S,3) = 1;
+  a(S) = 0;
 end
