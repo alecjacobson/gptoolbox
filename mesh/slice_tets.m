@@ -62,19 +62,7 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   %   E(R,:) = fliplr(E(R,:));
   %
 
-  flipped_order = [ ...
-      4 3 1 2
-      4 2 3 1
-      4 1 2 3
-      3 4 2 1
-      3 2 1 4
-      3 1 4 2
-      2 4 1 3
-      2 3 4 1
-      2 1 3 4
-      1 4 3 2
-      1 3 2 4
-      1 2 4 3];
+  flipped_order = flipped_tet_orders();
 
   function [U,G] = one_below(V,T,IT)
     [sIT,sJ] = sort(IT,2);
