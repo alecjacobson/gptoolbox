@@ -89,7 +89,9 @@ function [U,Ud,data] = linear_elasticity(V,F,b,bc,varargin)
     v=v+1;
   end
 
+  first_solve = false;
   if isempty(data)
+    first_solve = true;
     tic;
     data.dt = dt;
     assert( ...
@@ -213,6 +215,10 @@ function [U,Ud,data] = linear_elasticity(V,F,b,bc,varargin)
     % -(dt²K - M)u₂  = dt²MF - M(-2u₁+u₀)
     % (M-dt²K)u₂  = dt²MF + M(2u₁-u₀)
     % (M-dt²K)u₂  = M*(dt²F + 2u₁-u₀)
+    % ud₀ = (u₁-u₀)/dt
+    % dt*ud₀ = u₁-u₀
+    % (M-dt²K)u₂  = M*(dt²F + u₁ + u₁-u₀)
+    % (M-dt²K)u₂  = M*(dt²F + u₁ + dt*ud₀)
     A = data.M+data.dt^2*data.K;
     % ud = (u - u0)/dt
     % udd = ((u - u0)-(u0-um1)/dt²
@@ -230,15 +236,15 @@ function [U,Ud,data] = linear_elasticity(V,F,b,bc,varargin)
     % u-ud*dt-udd*dt²
 
 
-    % B = data.M*(data.dt^2*fext(:) + 2*U0(:) - Um1(:));
-    B = data.M*(data.dt^2*fext(:) + U0(:) + data.dt*Ud0(:));
+  end
+  B = data.M*(data.dt^2*fext(:) + U0(:) + data.dt*Ud0(:));
+  if first_solve
     % Fix each coordinate
     bb = reshape(bsxfun(@plus,reshape(b,[],1),(0:size(V,2)-1)*size(V,1)),1,[]);
     % solve once to set data.mqwf
     [U,data.mqwf] = min_quad_with_fixed(A,-2*B,bb,bc(:));
     data.solve  = @(B,bc) min_quad_with_fixed(A,-2*B,bb,bc(:),[],[],data.mqwf);
   else
-    B = data.M*(data.dt^2*fext(:) + U0(:) + data.dt*Ud0(:));
     U = data.solve(B,bc(:));
   end
   U = reshape(U,size(V));
