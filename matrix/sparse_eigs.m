@@ -3,6 +3,7 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   %
   % min_φ  tr( φ' L φ ) + μ ‖φ‖₁  subject to φ' D φ = I
   %
+  % [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   %
   % Inputs:
   %   L  #L by #L sparse, semi-positive definite "stiffness" matrix 
@@ -10,13 +11,17 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   %   k  number of modes requestedd
   %   mu  sparsity parameter (larger is more sparse) {10}
   %   Optional:
-  %     'Method' followed by one of the following:
-  %       'neumann' This ADMM optimization is implemented according to
+  %     'Method'  followed by one of the following:
+  %       'neumann'  This ADMM optimization is implemented according to
   %          "Compressed Manifold Modes for Mesh Processing" [Neumann et al.
   %          2014]. This method only works for {'Constrained',false}
-  %     'Constrained followed by whether to solve the L1 "constrained" problem
+  %       'brandt'  This follows the implementation in "Compressed Vibration
+  %         Modes of Elastic Bodies" [Brandt & Hildebrandt 2017]
+  %     'Constrained'  followed by whether to solve the L1 "constrained" problem
   %        where for all i>1, instead of minimizing μ‖φi‖₁, we add constrain its
   %        L1 norm to match that of the first mode (i=1): ‖φi‖₁ = ‖φ₁‖₁
+  %        "Compressed Vibration Modes of Elastic Bodies" [Brandt & Hildebrandt
+  %        2017]
   % Outputs:
   %   Phi  #L by k modes sorted in decreasing order by energy value
   %   lambda  k by k diagonal matrix of energy values (in some way analogous to
@@ -131,7 +136,7 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   case 'neumann'
     % Even if I measure the L1 norm of S weighted by vertex area, I'm getting bias
     % toward higher resolution areas. If I warm start from a regular mesh, this
-    % almost goes away sugtesting it's a local minimum issue, but there's still
+    % almost goes away suggesting it's a local minimum issue, but there's still
     % some assymmetric bais. My only idea to fix this so far is to also measure
     % the penalties on the auxiliary variables using weighted vertex areas...
     % (S-Phi)'*M(S-Phi) instead of (S-Phi)'*(S-Phi). This should not change the
@@ -299,7 +304,6 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
       One = ones(n,1);
       Z = zeros(n,1);
       Uj = U(:,setdiff(1:i-1,i));
-      Zj = zeros(n,size(Uj,2));
       Aeqj = [Uj'*D        -Uj'*D];
       Beqj = [zeros(size(Uj,2),1)];
       fval = inf;
@@ -333,7 +337,7 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
             Q,f, ...
             [],[], ...
             Aeq, Beq, ...
-            lx,ux,params);
+            lx,ux,[],params);
         else
           fval_prev = fval;
           [Ui,state] = ...
