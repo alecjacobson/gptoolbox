@@ -102,7 +102,7 @@ function [VV,FF,birth,UT,E] = half_space_intersect(V,F,p,n,varargin)
     plane = [n(:)' -dot(p,n)];
 
     % Homogeneous coordinates
-    IV = sum(bsxfun(@times,[V ones(size(V,1),1)],plane),2);
+    IV = sum(bsxfun(@times,[V(:,1:3) ones(size(V,1),1)],plane),2);
     IF = IV(F);
     IF = reshape(IF,size(F));
     I13 = sum(IF<0,2) == 1;
@@ -143,7 +143,7 @@ function [VV,FF,birth,UT,E] = half_space_intersect(V,F,p,n,varargin)
         cp = @(v) [0 -v(3) v(2);v(3) 0 -v(1);-v(2) v(1) 0];
         R = eye(3) + cp(v) + cp(v)*cp(v)*(1-c)/s^2;
         T = [R [0;0;R(3,:)*(un'/norm(plane(1:3))*plane(4))]];
-        UT = U*T(1:2,1:3)';
+        UT = U(:,1:3)*T(1:2,1:3)';
       else
         UT = U(:,1:2);
       end
@@ -161,7 +161,7 @@ function [VV,FF,birth,UT,E] = half_space_intersect(V,F,p,n,varargin)
       FF = [FF;fliplr(SF)];
       birth = [birth;zeros(size(SF,1),1)];
     end
-    [VV,IM] = remove_unreferenced(VV,FF);
+    [VV,IM,J] = remove_unreferenced(VV,FF);
     FF = IM(FF);
   end
 
