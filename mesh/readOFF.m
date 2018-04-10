@@ -4,7 +4,7 @@ function [V,F,UV,C,N] = readOFF( filename )
   % [V,F,UV,C,N] = readOFF( filename )
   %
   % Input:
-  %  filename  path to .obj file
+  %  filename  path to .off file
   % Outputs:
   %  V  #V by 3 list of vertices
   %  F  #F by 3 list of triangle indices
