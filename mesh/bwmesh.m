@@ -93,7 +93,7 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
       end
     end
   end
-  fprintf('triangle...\n');
+  %fprintf('triangle...\n');
   if isempty(triangle_flags)
     % triangulate the polygon
     % get average squared edge length as a guess at the maximum area constraint
