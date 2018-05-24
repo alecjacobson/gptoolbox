@@ -45,7 +45,7 @@ application:
 
 ## Installation ##
 The vast majority of this code is __straight MATLAB__ (`*.m` files). Thus, only
-installing MATLAB and adding the qptoolbox directory and its subdirectories to
+installing MATLAB and adding the gptoolbox directory and its subdirectories to
 your MATLAB path is needed for installation. Let's assume you cloned gptoolbox
 at `/usr/local/gptoolbox/`, then you could issue:
 
@@ -75,7 +75,7 @@ usign a "standard" unix-y install of libigl as a static library.
 In MATLAB issue:
 
     cd mex
-    compile_qptoolbox_mex
+    compile_gptoolbox_mex
 
 #### Compile `toolbox_fast_marching` ####
 
