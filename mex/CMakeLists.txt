@@ -8,6 +8,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+find_package(ELTOPO QUIET)
 
 # libigl
 option(LIBIGL_USE_STATIC_LIBRARY "Use libigl as static library" OFF)
@@ -28,15 +29,14 @@ option(LIBIGL_WITH_TETGEN           "Use Tetgen"         OFF)
 option(LIBIGL_WITH_TRIANGLE         "Use Triangle"       OFF)
 option(LIBIGL_WITH_VIEWER           "Use OpenGL viewer"  OFF)
 option(LIBIGL_WITH_XML              "Use XML"            OFF)
-option(WITH_ELTOPO                  "Use El Topo"        ON)
+option(WITH_ELTOPO                  "Use El Topo"        ${LIBELTOPO_FOUND})
 
-find_package(LIBIGL REQUIRED QUIET)
+find_package(LIBIGL REQUIRED)
 if(WITH_ELTOPO)
-  find_package(ELTOPO REQUIRED QUIET)
   find_package(BLAS REQUIRED )
 endif()
 
-find_package(Matlab REQUIRED QUIET COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
+find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
 include_directories(${Matlab_INCLUDE_DIRS})
 
 #set( CMAKE_CXX_COMPILER "${Matlab_MEX_COMPILER}" )
