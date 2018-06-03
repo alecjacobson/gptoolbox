@@ -58,6 +58,7 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
   %     'Tikhonov' followed by constant Tikhonov regularization parameter
   %       alpha:
   %       http://en.wikipedia.org/wiki/Tikhonov_regularization#Relation_to_probabilistic_formulation
+  %     'Youngs'  followed by young's modulus (only for dynamics)
   %     'Flat' followed by whether to add the constraint that Z=0 {false}
   %     'RemoveRigid' followed by whether to add a constraint that places an
   %       arbitrary point at the origin and another along the x-axis {false}
@@ -83,8 +84,8 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
 
   % number of vertices
   n = size(V,1);
-  assert(isempty(b) || max(b) <= n);
-  assert(isempty(b) || min(b) >= 1);
+  assert(isempty(b) || max(b) <= n,'b should be in bounds [1,size(V,1)]');
+  assert(isempty(b) || min(b) >= 1,'b should be in bounds [1,size(V,1)]');
 
   indices = 1:n;
   max_iterations = 100;
@@ -92,6 +93,7 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
   interior = indices(~ismember(indices,b));
   U = [];
   Vm1 = [];
+  youngs = 1.2e9;
   % default is Sorkine and Alexa style local rigidity energy
   energy = [];
   % default is no external forces
@@ -114,9 +116,9 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
   params_to_variables = containers.Map( ...
     {'Energy','V0','Data','Tikhonov','Groups','Tol', ...
      'MaxIter','Dynamic','TimeStep','Vm1','RemoveRigid','Debug', ...
-     'Aeq','Beq','Flat'}, ...
+     'Aeq','Beq','Flat','Youngs'}, ...
     {'energy','U','data','alpha_tik','G','tol','max_iterations','fext', ...
-    'h','Vm1','remove_rigid','debug','Aeq','Beq','flat'});
+    'h','Vm1','remove_rigid','debug','Aeq','Beq','flat','youngs'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -196,15 +198,16 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
     if isempty(Vm1)
       Vm1 = V0;
     end
+    %% This parameter seem good for a 0.1m tall hotdog with h=0.0333
+    % Larger --> more rigid
+    dyn_alpha = h^2*youngs;
+    % Smaller --> more damped
+    mom = 1e10;
     M = massmatrix(V,F);
-    M = M/max(M(:));
-    % Larger is more dynamic, smaller is more rigid.
-    dw = 5e-2*h^2;
-    DQ = dw * 0.5*1/h^2*M;
-    vel = (V0-Vm1)/h;
-    Dl = dw * (1/(h^2)*M*(-V0 - h*vel) - fext);
-    %Dl = 1/h^3*M*(-2*V0 + Vm1) - fext;
+    DQ = 0.5*mom*M;
+    Dl =     mom*M*(-2*V0 + Vm1) - h^2*fext;
   else
+    dyn_alpha = 1;
     DQ = sparse(size(V,1),size(V,1));
     Dl = sparse(size(V,1),dim);
   end
@@ -321,9 +324,9 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
       change = max(abs(U(:)-U_prev(:)));
       if debug
         fprintf('arap: iter: %d, change: %g, energy: %g\n', ...
-          iteration,change,data.energy);
+          iteration,change/data.ae,data.energy);
       end
-      if change <tol*data.ae
+      if change/data.ae <tol
         if debug
           fprintf('arap: change (%g) < tol*ae (%g * %g)\n',change,tol,data.ae);
         end
@@ -368,6 +371,8 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
     Bcol = data.K * Rcol;
     B = reshape(Bcol,[size(Bcol,1)/dim dim]);
 
+    zQ = -0.5*dyn_alpha*data.L+DQ+alpha_tik*speye(size(data.L));
+    zL = -dyn_alpha*B+Dl;
     % RemoveRigid requires to solve each indepently
     if remove_rigid
       assert(isempty(Aeq),'Linear equality constraints not supported')
@@ -375,20 +380,20 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
         eff_b = [b rr.b{c}];
         eff_bc = [bc(:,c);rr.bc{c}];
         [U(:,c),data.rr.preF{c}] = min_quad_with_fixed( ...
-          -0.5*data.L+DQ+alpha_tik*speye(size(data.L)), ...
-          -B(:,c)+Dl(:,c),eff_b,eff_bc,[],[],data.rr.preF{c});
+          zQ, ...
+          zL(:,c),eff_b,eff_bc,[],[],data.rr.preF{c});
       end
     else 
       if isempty(Aeq)
         [U,data.preF] = min_quad_with_fixed( ...
-          -0.5*data.L+DQ+alpha_tik*speye(size(data.L)), ...
-          -B+Dl,b,bc,Aeq,Beq,data.preF);
+          zQ, ...
+          zL,b,bc,Aeq,Beq,data.preF);
       else
         assert(dim == size(bc,2));
         assert(dim == size(B,2));
         % repeat diagonal to solve for all coordinates together
-        mQ = repdiag(-0.5*data.L+DQ+alpha_tik*speye(size(data.L)),dim);
-        mL = reshape(-B+Dl,[],1);
+        mQ = repdiag(zQ,dim);
+        mL = reshape(zL,[],1);
         mb = reshape(bsxfun(@plus,b(:),size(V,1)*(0:dim-1)),[],1)';
         mbc = bc(:);
         [U,data.preF] = min_quad_with_fixed(mQ,mL,mb,mbc,Aeq,Beq,data.preF);
@@ -396,14 +401,15 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
       end
     end
     energy_prev = data.energy;
-    data.energy = trace(U'*(-0.5*data.L)*U+U'*(-B))+trace(V'*(-0.5*data.L*V));
+    data.energy = trace(U'*(zQ)*U+U'*(zL))+trace(V'*(0.5*dyn_alpha*data.L*V));
     if data.energy > energy_prev
       if debug
-        fprintf('arap: energy (%g) increasing (over %g)\n', ...
-          data.energy,energy_prev);
+        fprintf('arap: energy (%g) increasing (over %g) (iter %d)\n', ...
+          data.energy,energy_prev,iteration);
       end
       break;
     end
+
     %U(interior,:) = -L(interior,interior) \ (B(interior,:) + L(interior,b)*bc);
     %U(interior,:) = -L(interior,all)*L(all,interior) \ (L(interior,all)*B(all,:) + L(interior,all)*L(all,b)*bc);
     %U(interior,:) = luQ*(luU\(luL\(luP*(luR\(B(interior,:)+L(interior,b)*bc)))));
