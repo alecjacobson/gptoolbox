@@ -10,3 +10,4 @@ syntax: glob
 quat/*
 quat.zip
 mex/build*
+*.*.swo
