@@ -53,7 +53,10 @@ function [P,PI] = farthest_points(V,k,varargin)
   end
 
   ns = numel(S);
-  PI = [ceil(rand(k,1)*size(V,1));S];
+  % Ensure that PI does not contain anything in S
+  NS = setdiff(1:size(V,1),S)';
+  NS = NS(randperm(end));
+  PI = [NS(1:k);S];
 
   if vis
     scatter3(V(:,1),V(:,2),V(:,3),'.b');
@@ -94,13 +97,14 @@ function [P,PI] = farthest_points(V,k,varargin)
       % need to be updated...
       switch distance
       case {'euclidean','biharmonic'}
-        O = EV(others,:);
         if isempty(I)
+          % I don't think this is reachable...
           Ipi = true(size(V,1),1);
           J = [1:pi-1 pi+1:k+ns];
         else
           Ipi = I==pi;
           J = setdiff(1:numel(PI),pi);
+          assert(any(Ipi));
         end
         %[D,I] = pdist2(O,EV,'euclidean','Smallest',1);
         % Much faster for large O/EV
