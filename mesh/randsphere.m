@@ -22,6 +22,10 @@ function [N] = randsphere(n,varargin)
 %
   
   method = 'trig';
+
+  if nargin == 0
+    n = 1;
+  end
   
   v = 1;
   while v <= numel(varargin)
