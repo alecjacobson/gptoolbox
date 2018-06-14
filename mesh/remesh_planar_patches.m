@@ -120,7 +120,7 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
       assert(size(Wuo,1) >= size(Vuo,1));
       % easier to remove holes post hoc than pass hole positions to triangle
       AE = adjacency_matrix(E);
-      [~,CE] = graphconncomp(AE);
+      [~,CE] = conncomp(AE);
       if max(CE) > 1
         w = winding_number(Vuo,O,barycenter(Vuo,Gc));
         % should only be 1s and 0s
