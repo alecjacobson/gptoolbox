@@ -1,4 +1,4 @@
-function [flag, t, lambda] = ray_mesh_intersect(o, d, V, F);
+function [flag, t, lambda] = ray_mesh_intersect(o, d, V, F)
 % RAY_MESH_INTERSECT  Ray/mesh intersection using the algorithm proposed by
 % Möller and Trumbore (1997).
 %
