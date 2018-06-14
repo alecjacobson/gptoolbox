@@ -8,7 +8,7 @@ function [RV,IM,J] = remove_unreferenced(V,F)
   %   V  #V by dim list of "vertex positions"
   %   F  #F by anything list of indices into V (will be treated as F(:))
   % Outputs:
-  %  RV  #V by dim vertex positions, order such that if the jth vertex is
+  %  RV  #unique(F) by dim vertex positions, order such that if the jth vertex is
   %    some face in F, and the kth vertex is not then j comes before k
   %  IM  #V by 1 list of indices such that: RF = IM(F) and RT = IM(T)
   %    and V(find(IM~=-1),:) = RV
