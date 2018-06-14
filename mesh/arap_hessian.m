@@ -7,7 +7,7 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
   %   V  #V by dim list of mesh vertex positions
   %   F  #F by simplex-size list of simplex indices into V
   %   Optional:
-  %     'Energy' followed by 'spokes','spokes-and-rims',or {'elements'}
+  %     'Energy' followed by 'spokes',{'spokes-and-rims'}, or 'elements'
   %     'EvaluationPoint' followed by U  #V by dim list of current positions
   %     'Rotations' followed by best fit rotations R  dim by dim #R
   %       corresponding to U {compute using `fit_rotations`}
@@ -78,6 +78,14 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
   % Number of vertices
   n = size(V,1);
   dim = size(V,2);
+  if dim == 2
+    % Hacky way to handle 2D
+    V(:,3) = 0;
+    assert(size(F,2) == 3);
+   [H,L,BT,CC] = arap_hessian(V,F,varargin{:});
+   H = H(1:end*2/3,1:end*2/3);
+   return;
+  end
   % Simplex size
   ss = size(F,2);
   % Number of simplices
@@ -120,9 +128,14 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
     X{d} = arap_linear_block(V,F,d,'Energy',energy)';
   end
   Z = sparse(nr,n);
-  BT = -3*[    Z  -X{3}  X{2}; ...
-           X{3}     Z -X{1}; ...
-          -X{2}  X{1}     Z];
+  switch dim 
+  case 3
+    BT = -3*[    Z  -X{3}  X{2}; ...
+            X{3}     Z -X{1}; ...
+            -X{2}  X{1}     Z];
+  case 2
+    error('not sure what BT should be');
+  end
 
   CI = repmat(1:nr*dim,dim,1)';
   CJ = repmat(reshape(1:nr*dim,nr,dim),dim,1);
