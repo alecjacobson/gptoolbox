@@ -1,5 +1,4 @@
-gptoolbox - Geometry Processing Toolbox
-=======================================
+# gptoolbox - Geometry Processing Toolbox
 
 <https://github.com/alecjacobson/gptoolbox/>
 
@@ -57,7 +56,7 @@ To make this change permanent, then issue:
     savepath
 
 There are some mex files, whose documentation for installation are included in
-respective `mex/README.md` file.
+respective [mex/README.md](mex/README.md) file.
 
 ### Full installation ###
 
@@ -68,16 +67,15 @@ As stated above, most files are straight matlab and will _just run_ if you have
 gptoolbox in your path.
 
 #### Compile `/mex` ####
-Most of our mex files will depend on
-[libigl](https://github.com/libigl/libigl). The following will assume your
-usign a "standard" unix-y install of libigl as a static library.
 
-In MATLAB issue:
+Most of our mex files will depend on [libigl](https://github.com/libigl/libigl).
+Some depend on [cgal](https://github.com/CGAL/cgal) and
+[embree](https://github.com/embree/embree). We recently switched to a
+cmake-based build.
 
-    cd mex
-    compile_qptoolbox_mex
+See [mex/README.md](mex/README.md) for details.
 
-#### Compile `toolbox_fast_marching` ####
+#### Compile `external/toolbox_fast_marching/` ####
 
 In MATLAB issue:
 
@@ -85,7 +83,8 @@ In MATLAB issue:
     compile_mex
 
 ## Dependencies ##
-This depends on MATLAB and its various toolbox extensions. Many functions
+
+gptoolbox depends on MATLAB and some of its toolbox extensions. Many functions
 should also work with Octave, though this has not been tested.
 
 Functions that rely on `quadprog` have been tested and optimized assuming that
@@ -93,11 +92,12 @@ the Mosek toolbox has been installed, but should also work with the `quadprog`
 in MATLAB's Optimization Toolbox.
 
 Mex files may have other external dependencies (e.g. CGAL, Eigen, libigl). See
-their respective READMEs for more information. When installing mex libraries, 
-you may need to modify the files in `wrappers/` (such as `path_to_libigl.m`) so 
+their respective READMEs for more information. When installing mex libraries,
+you may need to modify the files in `wrappers/` (such as `path_to_libigl.m`) so
 `gptoolbox` knows where to look.
 
 ## Attribution
+
 If you use gptoolbox in your academic projects, please cite the papers we
 implement as appropriate. To cite the library in general, you could use this
 BibTeX entry:
@@ -107,7 +107,7 @@ BibTeX entry:
   title = {{gptoolbox}: Geometry Processing Toolbox},
   author = {Alec Jacobson and others},
   note = {http://github.com/alecjacobson/gptoolbox},
-  year = {2016},
+  year = {2018},
 }
 ```
 
@@ -117,14 +117,17 @@ Unless marked otherwise, all code is Copyright Alec Jacobson 2015.
 We will probably switch to a MPL2 license in the near future.
 
 ## Contact ##
+
 The Geometry Processing Toolbox grew out of Alec Jacobson's private codebase
-during his PhD, but has benefited a lot from various collaborators at NYU and
-ETH Zurich. Now, the Geometry Processing Toolbox is a group endeavour. If
-you're intersted in contributing, please contact Alec Jacobson
-(alecjacobson@gmail.com) or submit a pull request on github.
+during his PhD, but has benefited a lot from various collaborators at NYU, ETH
+Zurich, Columbia, University of Toronto and elsewhere. Now, the Geometry
+Processing Toolbox is a group endeavour. If you're intersted in contributing,
+please contact Alec Jacobson (alecjacobson@gmail.com) or submit a pull request
+on github.
 
 ## Documentation ##
+
 For now, documentation is limited to a per-function basis. For example, to find
-documentation for `cotmatrix` issue:
+documentation for `cotmatrix`, in MATLAB issue:
 
     help cotmatrix
