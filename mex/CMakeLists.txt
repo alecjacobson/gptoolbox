@@ -65,8 +65,8 @@ list(APPEND MEX_SOURCES
   "decimate_libigl.cpp"
   "fit_rotations_mex.cpp"
   "in_element_aabb.cpp"
-  "ray_mesh_intersect.cpp"
   "read_triangle_mesh.cpp"
+  "readMSH.cpp"
   "signed_distance.cpp"
   "simplify_polyhedron.cpp"
   "slim.cpp"
@@ -86,6 +86,7 @@ if(LIBIGL_WITH_EMBREE)
   list(APPEND MEX_SOURCES 
     "ambient_occlusion.cpp"
     "bone_visible_embree.cpp"
+    "ray_mesh_intersect.cpp"
     "reorient_facets.cpp")
   list(APPEND LIBS igl::embree)
   # needed winding number
