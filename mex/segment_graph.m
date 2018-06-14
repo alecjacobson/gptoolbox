@@ -17,4 +17,15 @@
 % Output:
 %   C  #A by 1 list of component ids
 %
+% Example:
+%   [V,F] = load_mesh('~/Dropbox/models/Cosmic blobs/Model9.off');
+%   A = adjacency_dihedral_angle_matrix(V,F);
+%   [AI,AJ,AV] = find(A);
+%   A = sparse(AI,AJ,exp(abs(pi-abs(AV-pi))),size(A,1),size(A,2));
+%   L = -(A - diag(sum(A,2)));
+%   C = segment_graph(L,'Threshold',500,'MinSize',20);
+%   tsurf(F,V,'CData',C);
+%   colormap(cbrewer('Set1',(max(C))));
+%   view(2);
+%   axis equal;
 
