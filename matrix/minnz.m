@@ -13,14 +13,22 @@ function [Y,I] = minnz(X)
   %
   %
   
+  % rebuild using 1/element
   [XI,XJ,XV] = find(X);
   X_i = sparse(XI,XJ,XV.^-1,size(X,1),size(X,2));
+  [infX_i,infI_i] = max(X==inf);
   [maxX_i,maxI_i] = max(X_i);
-  [minX,minI] = min(X);
   maxX_i(maxX_i==0) = inf;
+  maxX_i(infX_i) = 0;
+  maxI_i(infX_i) = infI_i(infX_i);
+  [minX,minI] = min(X);
   minX(minX==0) = inf;
   Y = [maxX_i.^-1;minX];
   [Y,J] = min(Y);
   I = [maxI_i;minI];
   I = I(sub2ind(size(I),J,1:size(I,2)));
+
+
+
+
 end
