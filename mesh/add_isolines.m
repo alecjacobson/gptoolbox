@@ -24,13 +24,17 @@ function p = add_isolines(T,varargin);
     n = size(colormap,1)+1;
     a = caxis;
     iso = linspace(a(1),a(2),n);
+    iso = iso(2:end-1);
     V = t.Vertices;
     F = t.Faces;
     S = t.FaceVertexCData;
     assert(size(S,2) == 1);
     [LS,LD,I] = isolines(V,F,S,iso);
+    old_hold = ishold;
     hold on;
     p{end+1} = plot3([LS(:,1) LD(:,1)]',[LS(:,2) LD(:,2)]',[LS(:,3) LD(:,3)]','Color','k',varargin{:});
-    hold off;
+    if ~old_hold
+      hold off;
+    end
   end
 end
