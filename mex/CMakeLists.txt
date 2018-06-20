@@ -93,6 +93,11 @@ if(LIBIGL_WITH_EMBREE)
   add_definitions("-DWITH_EMBREE")
 endif()
 
+if(LIBIGL_WITH_CORK)
+  list(APPEND LIBS igl::cork)
+  add_definitions("-DWITH_CORK")
+endif()
+
 if(LIBIGL_WITH_CGAL)
   list(APPEND MEX_SOURCES 
     "decimate_cgal.cpp"
