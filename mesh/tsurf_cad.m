@@ -48,9 +48,9 @@ function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
     varargin{:});
   te = tsurf(E(:,[1 2 2]),V,'EdgeColor',blue*0.75);
   to = tsurf([1 1 1],V,'LineWidth',2,'EdgeColor',blue*0.5);
-  view(130,38);
+  view(-9,34);
   axis equal;
-  l = light('Position',[1 4 5.0],'Style','infinite');
+  l = light('Position',[3 -4 5.0],'Style','infinite');
   [h,~,M,g] = add_shadow(tf,l,'Ground',[0 0 -1 min(V(:,3))-2e-3],'Fade','local','Color',[0.8 0.8 0.8]);
   % faint amient occlusion
   AO = ambient_occlusion(W,G,W,per_vertex_normals(W,G),1000);
@@ -100,7 +100,7 @@ function [tf,te,to,sc,I,up] = tsurf_cad(F,V,varargin)
   up = @() ...
     set(to,'Faces', ...
       outline(F((sum(N.*bsxfun(@minus,BC,campos),2)<=0),:))*[1 0 0;0 1 1]) | ...
-    set(h,'FaceAlpha',0.5*(g*[campos 1]'<0)) | ...
+    cell2mat(cellfun(@(h) set(h,'FaceAlpha',0.5*(g*[campos 1]'<0)),h,'UniformOutput',false)) | ...
     set(sc,'FaceAlpha',1.0*(g*[campos 1]'<0));
   up();
   down = @() ...
