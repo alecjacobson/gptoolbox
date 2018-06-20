@@ -60,7 +60,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     }else
     {
       id(si) = -1;
-      t(si) = std::limits<float>::infinity;
+      t(si) = std::numeric_limits<float>::infinity();
       lambda.row(si).setZero();
     }
   }
