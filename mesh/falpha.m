@@ -4,10 +4,10 @@ function str = falpha(alpha,ealpha)
   %
   % str = fphong()
   % 
-  if nargin == 0
+  if nargin < 1
     alpha = 0.6;
   end
-  if nargin == 1
+  if nargin < 2
     ealpha = alpha;
   end
   str = struct('FaceAlpha',alpha,'EdgeAlpha',ealpha);
