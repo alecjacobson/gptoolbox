@@ -10,21 +10,7 @@ function [VT] = vt(V,F)
 %   VT  sparse matrix that contains a 1 in the i-j element if vertices i is
 %     part of face j
 
-%% prepare sparse matrix
-i = ones(10*size(V,1),1);
-j = ones(10*size(V,1),1);
-v = zeros(10*size(V,1),1);
-
-row = 1;
-
-for x=1:size(F,1) % for every face
-    for y1=1:3 % for every pair of neighbours
-        i(row) = x;
-        j(row) = F(x,y1);
-        v(row) = 1;
-        row = row + 1;
-    end
-end
-
-VT = sparse(i,j,v);
+i = (1:size(F,1))';
+j = F;
+VT = sparse([i i i],j,1);
 end
