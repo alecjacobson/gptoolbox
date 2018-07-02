@@ -6,7 +6,8 @@ function [C] = connectedComponent(TT,TAG)
 % [C] = connectedComponent(TT,TAG)
 %
 % Inputs:
-%   TT  face-face topology, Fx3 (you can use the function tt(F) to compute it)
+%   TT  face-face topology, Fx3
+%       (you can use the function triangle_triangle_adjacency(F) to compute it)
 %   TAG  subset of faces where the connected components are computed, Fx1
 % Outputs:
 %   C  cell array of connected components. Every element of the cell array
@@ -30,7 +31,7 @@ for i = I'
         CElem = [i];
         toVisit = [i];
         TAG(i) = VISITED;
-        
+
         while size(toVisit) ~= 0
             current = toVisit(1);
             toVisit = toVisit(2:end);
@@ -39,7 +40,7 @@ for i = I'
                 if (neigh == -1)
                     continue %% border
                 end
-                
+
                 if (TAG(neigh) == TOVISIT)
                     TAG(neigh) = VISITED;
                     CElem = [CElem neigh];
@@ -47,7 +48,7 @@ for i = I'
                 end
             end
         end
-        
+
         C{Crow} = CElem;
         Crow = Crow + 1;
     end
