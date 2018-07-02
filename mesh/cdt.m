@@ -110,7 +110,7 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
     % use cache
     load(cache_name);
   % Otherwise this is the first time we've seen this input "state", so we
-  % execute the function as usual and save the output "state" to the cache 
+  % execute the function as usual and save the output "state" to the cache
   else
     fprintf(fid,'First time. Creating cache...\n');
 
@@ -172,7 +172,7 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
         end
         d = ES(e,1);
         NE = [];
-        % trace back path 
+        % trace back path
         while d~=ES(e,2)
           NE = [NE;d P(d)];
           d = P(d);
@@ -189,7 +189,7 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
       end
       if nargout >= 4
         % Compute element neighbors
-        TN = tt(TT);
+        TN = triangle_triangle_adjacency(TT);
       end
     case 3
 
@@ -336,7 +336,7 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
       %  %IFE = edges(IF);
       %  %IFsegs = mat2cell(IFE,ones(size(IFE,1),1),[2]);
 
-      %  % get orignal faces \ intersecting faces 
+      %  % get orignal faces \ intersecting faces
       %  % Using sort like this assumes that tetgen ignores orientation
       %  FmIF = setdiff(sort(FF,2),sort(IF,2),'rows');
       %  Facets = [];
