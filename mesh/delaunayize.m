@@ -22,12 +22,12 @@ function [V,F] = delaunayize(V,F,varargin)
   tol= 1e-7;
   vis = false;
   keep_E = zeros(0,2);
-  split_edges = false;
+  split_edges_flag = false;
   max_dihedral_angle = inf;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'Tol','Visualize','Keep','SplitEdges','MaxDihedralAngle'}, ...
-    {'tol','vis','keep_E','split_edges','max_dihedral_angle'});
+    {'tol','vis','keep_E','split_edges_flag','max_dihedral_angle'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -72,7 +72,7 @@ function [V,F] = delaunayize(V,F,varargin)
     % list all unique delaunay edges
     NDuE = unique(sort(NDE,2),'rows');
     NDuKB = [];
-    if split_edges
+    if split_edges_flag
       DKB = D & (K | B);
       NDKB = allE(~DKB,:);
       NDuKB = unique(sort(NDKB,2),'rows');
