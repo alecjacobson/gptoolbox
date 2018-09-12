@@ -20,8 +20,9 @@ function Qt = quatslerp(Q0,Q1,t)
   absD = abs(d);
   theta = acos(absD);
   sinTheta = sin(theta);
-  s0 = sin( (1-t) .* theta./sinTheta);
-  s1 = sin(    t  .* theta./sinTheta);
+  % https://github.com/alecjacobson/gptoolbox/issues/74
+  s0 = sin( (1-t) .* theta)./sinTheta;
+  s1 = sin(    t  .* theta)./sinTheta;
   s0(absD>=1) = 1-t(absD>=1);
   s1(absD>=1) =   t(absD>=1);
   s1(d<0) = -s1(d<0);
