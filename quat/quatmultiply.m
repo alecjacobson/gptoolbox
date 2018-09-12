@@ -73,15 +73,15 @@ scalar = q(:,1).*r(:,1) - q(:,2).*r(:,2) - ...
 qout = [scalar  vec];
        
 % enforce unit length
-mag= qout(1)* qout(1) +  qout(2)* qout(2) +  qout(3)* qout(3) +  qout(4)* qout(4);
-
-if( abs(mag-1.0)<0.0001)
-    qout=qout;
-else
-    
-    mag=1.0/sqrt( mag);
-    qout(1)=qout(1)* mag;
-    qout(2)=qout(2)* mag;
-    qout(3)=qout(3)* mag;
-    qout(4)=qout(4)* mag;
-end
+%mag= qout(1)* qout(1) +  qout(2)* qout(2) +  qout(3)* qout(3) +  qout(4)* qout(4);
+%
+%if( abs(mag-1.0)<0.0001)
+%    qout=qout;
+%else
+%   
+%    mag=1.0/sqrt( mag);
+%    qout(1)=qout(1)* mag;
+%    qout(2)=qout(2)* mag;
+%    qout(3)=qout(3)* mag;
+%    qout(4)=qout(4)* mag;
+%end
