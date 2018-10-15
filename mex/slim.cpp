@@ -10,7 +10,7 @@
 #include <igl/harmonic.h>
 #include <igl/map_vertices_to_circle.h>
 #include <igl/boundary_loop.h>
-#include <igl/components.h>
+#include <igl/vertex_components.h>
 #ifdef MEX
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -99,7 +99,7 @@ int main(int argc, char * argv[])
 
   {
     Eigen::MatrixXi C;
-    igl::components(F, C);
+    igl::vertex_components(F, C);
     mexErrMsgTxt(
       C.maxCoeff() == 0,
       "(V,F) should have exactly 1 connected component");
@@ -156,8 +156,8 @@ int main(int argc, char * argv[])
     "Failed to initialize to feasible guess");
 
   igl::SLIMData slim;
-  slim.energy = igl::SLIMData::SYMMETRIC_DIRICHLET;
-  igl::slim_precompute(V,F,U0,slim,igl::SLIMData::SYMMETRIC_DIRICHLET,b,bc,p);
+  slim.energy = igl::SYMMETRIC_DIRICHLET;
+  igl::slim_precompute(V,F,U0,slim,igl::SYMMETRIC_DIRICHLET,b,bc,p);
   igl::slim_solve(slim,iters);
   U = slim.V_o;
 
