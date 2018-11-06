@@ -88,7 +88,9 @@ function [VV,FF,WrV,WrF,JJ] = joints(V,E,varargin)
       end
     end
   end
+  assert(min(theta(:))>eps,'All angles should be >0. Degenerate/co-linear edge(s)?');
   J = R./atan(theta./2);
+  assert(~any(isinf(J(:))),'All offsets should be finite');
 
   offset = @(V,E,J) [ ...
     V(E(:,1),:)+U.*J(:,1); ...
@@ -99,20 +101,19 @@ function [VV,FF,WrV,WrF,JJ] = joints(V,E,varargin)
   WV = offset(V,E,J+th);
   PE = [1:ne;ne+(1:ne)]';
 
+
   [JRV,JRF,JRJ,JRI] = edge_cylinders(JV,PE,'Thickness',2*R,'PolySize',poly);
   [WrV,WrF,WrJ,WrI] = edge_cylinders(WV,PE,'Thickness',2*r,'PolySize',poly);
-  [HOV,HOF,HOH,HOI] = edge_cylinders(HV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
-  [ZOV,ZOF,ZOZ,ZOI] = edge_cylinders(ZV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
+  %[HOV,HOF,HOH,HOI] = edge_cylinders(HV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
+  %[ZOV,ZOF,ZOZ,ZOI] = edge_cylinders(ZV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
 
-  %clf;
-  %hold on;
-  %tsurf(JRF,JRV,'FaceColor',[1 0 0],falpha(0.5,0));
-  %tsurf(WrF,WrV,'FaceColor',[0 1 0],falpha(0.5,0));
-  %tsurf(HOF,HOV,'FaceColor',[0 0 1],falpha(0.5,0));
-  %tsurf(ZOF,ZOV,'FaceColor',[1 1 0],falpha(0.5,0));
-  %hold off;
-  %axis equal;view(2);
-  %error
+  HZE = (1:size(HV,1))' +[0 size(HV,1)];
+  [HZOV,HZOF,HZJ,HZI] = edge_cylinders( ...
+    [HV;ZV],HZE, ...
+    'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
+
+  any(isnan(HZOV))
+  any(isinf(HZOV))
 
   VV = [];
   FF = [];
@@ -120,13 +121,24 @@ function [VV,FF,WrV,WrF,JJ] = joints(V,E,varargin)
   % Loop over vertices
   for i = 1:n
     Vi = [V(i,:);  ...
-      HOV(E(HOI)==i,:) ;  ...
-      ZOV(E(ZOI)==i,:)];
+      HZOV(E(mod(HZI-1,2*ne)+1)==i & HZI>size(HV,1),:)];
     Fi = convhull(Vi);
     FF = [FF;size(VV,1)+Fi];
     VV = [VV;Vi];
     JJ = [JJ;repmat(i,size(Fi,1),1)];
   end
+
+  %clf;
+  %hold on;
+  %tsurf(JRF,JRV,'FaceColor',[1 0 0],falpha(0.5,0));
+  %%tsurf(WrF,WrV,'FaceColor',[0 1 0],falpha(0.5,0));
+  %%tsurf(HOF,HOV,'FaceColor',[0 0 1],falpha(0.5,0));
+  %%tsurf(ZOF,ZOV,'FaceColor',[1 1 0],falpha(0.5,0));
+  %tsurf(HZOF,HZOV,'FaceColor',[0 1 1],falpha(0.5,0));
+  %tsurf(FF,VV,'FaceColor',[1 0 1],falpha(1,1));
+  %hold off;
+  %axis equal;view(2);
+  %error
 
   fprintf('labeling sockets...\n');
   % Build labels at the end of each piece of wood
@@ -156,7 +168,7 @@ function [VV,FF,WrV,WrF,JJ] = joints(V,E,varargin)
 
   fprintf('boolean...\n')
   m = size(FF,1);
-  [VV,FF,mJJ] = mesh_boolean(VV,FF,[JRV;LV],[JRF;size(JRV,1)+LF],'minus');
+  [VV,FF,mJJ] = mesh_boolean([VV;HZOV],[FF;size(VV,1)+HZOF],[JRV;LV],[JRF;size(JRV,1)+LF],'minus');
   [~,C] = connected_components(FF);
   CJ = zeros(max(C),1);
   CJ(C(mJJ<=m)) = JJ(mJJ(mJJ<=m));
