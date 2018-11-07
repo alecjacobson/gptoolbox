@@ -207,7 +207,9 @@ function [CV,CF,CJ,CI] = edge_cylinders(PV,PE,varargin);
   l = sqrt(sum(Evec.^2,2));
   [w,a] = axisanglebetween(Evec,repmat([0 0 1],size(Evec,1),1));
   bad = any(isnan(w),2);
-  w(bad,1) = 0; w(bad,2) = 0; w(bad,3) = 1;
+  w(bad,1) = 1; w(bad,2) = 0; w(bad,3) = 0;
+  a(bad) = (Evec(bad,3)<0)*pi;
+
   % twice as thick
   [x,y,z] = cylinder(thickness/2,poly);
   [CF,CV] = surf2patch(x,y,z,'triangles');
