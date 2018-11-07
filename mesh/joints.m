@@ -1,8 +1,8 @@
-function [VV,FF,WrV,WrF,JJ] = joints(V,E,varargin)
+function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
   % JOINTS Construct joints around a wire mesh given as a graph
   % 
-  % [VV,FF,RV,RF,PRV,PE] = joints(V,E);
-  % [VV,FF,RV,RF,PRV,PE] = joints(V,E,'ParameterName',ParameterValue, ...)
+  % [VV,FF] = joints(V,E);
+  % [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
   %   V  #V by 3 list of wire graph vertex positions
@@ -26,6 +26,8 @@ function [VV,FF,WrV,WrF,JJ] = joints(V,E,varargin)
   %   WrF  #WrF by 3 list of triangle indices into VV of rod mesh
   %   JJ  #FF list of indices into rows of V indicating about which vertex this
   %     joint is.
+  %   WV  #E*2 by 2 list of rod edge endpoint positions
+  %   PE  #E by 2 list of rod edge indices into WV
   %   
 
   % default values
@@ -104,16 +106,14 @@ function [VV,FF,WrV,WrF,JJ] = joints(V,E,varargin)
 
   [JRV,JRF,JRJ,JRI] = edge_cylinders(JV,PE,'Thickness',2*R,'PolySize',poly);
   [WrV,WrF,WrJ,WrI] = edge_cylinders(WV,PE,'Thickness',2*r,'PolySize',poly);
-  %[HOV,HOF,HOH,HOI] = edge_cylinders(HV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
-  %[ZOV,ZOF,ZOZ,ZOI] = edge_cylinders(ZV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
+  [HOV,HOF,HOH,HOI] = edge_cylinders(HV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
+  [ZOV,ZOF,ZOZ,ZOI] = edge_cylinders(ZV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
 
   HZE = (1:size(HV,1))' +[0 size(HV,1)];
+  HZV = [HV;ZV];
   [HZOV,HZOF,HZJ,HZI] = edge_cylinders( ...
-    [HV;ZV],HZE, ...
+    HZV,HZE, ...
     'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
-
-  any(isnan(HZOV))
-  any(isinf(HZOV))
 
   VV = [];
   FF = [];
@@ -130,12 +130,16 @@ function [VV,FF,WrV,WrF,JJ] = joints(V,E,varargin)
 
   %clf;
   %hold on;
-  %tsurf(JRF,JRV,'FaceColor',[1 0 0],falpha(0.5,0));
+  %%tsurf(JRF,JRV,'FaceColor',[1 0 0],falpha(0.5,0));
   %%tsurf(WrF,WrV,'FaceColor',[0 1 0],falpha(0.5,0));
-  %%tsurf(HOF,HOV,'FaceColor',[0 0 1],falpha(0.5,0));
-  %%tsurf(ZOF,ZOV,'FaceColor',[1 1 0],falpha(0.5,0));
-  %tsurf(HZOF,HZOV,'FaceColor',[0 1 1],falpha(0.5,0));
-  %tsurf(FF,VV,'FaceColor',[1 0 1],falpha(1,1));
+  %tsurf(HOF,HOV,'FaceColor',[0 0 1],falpha(0.1,0));
+  %tsurf(ZOF,ZOV,'FaceColor',[1 1 0],falpha(0.1,0));
+  %tsurf(HZOF,HZOV,'FaceColor',[0 1 1],falpha(0.1,0));
+  %scatter3(HV(:,1),HV(:,2),HV(:,3),'.','SizeData',1000);
+  %scatter3(ZV(:,1),ZV(:,2),ZV(:,3),'.','SizeData',500);
+  %scatter3(HZV(:,1),HZV(:,2),HZV(:,3),'.','SizeData',500);
+  %plot_edges(HZV,HZE,'LineWidth',3);
+  %%tsurf(FF,VV,'FaceColor',[1 0 1],falpha(1,1));
   %hold off;
   %axis equal;view(2);
   %error
