@@ -49,7 +49,7 @@ function [T,sqrD] = project_to_lines(P,S,D,varargin)
   assert(dim == size(D,2));
   % number of vectors
   nv = size(S,1);
-  assert(nv == size(D,1));
+  assert(nv == size(D,1),'#S should equal #D');
   % number of points
   np = size(P,1);
   if(nv == 1 && np == 1)
