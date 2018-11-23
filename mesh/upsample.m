@@ -23,6 +23,12 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   %  
   % This is Loop subdivision without moving the points
   %
+  % Example:
+  %   [VVB,FF] = upsample([V speye(size(V,1))],F);
+  %   VV = full(VVB(:,1:size(V,2)));
+  %   B = VVB(:,size(V,2)+1:end);
+  %   max(max(abs(VV - B*V)))
+  %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
   %
   
