@@ -8,39 +8,33 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-find_package(ELTOPO QUIET)
+
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+set(GPTOOLBOX_MEX_ROOT "${PROJECT_SOURCE_DIR}")
+set(GPTOOLBOX_MEX_EXTERNAL "${GPTOOLBOX_MEX_ROOT}/external")
+include(gptoolbox_download_project)
 
 # libigl
-option(LIBIGL_USE_STATIC_LIBRARY "Use libigl as static library" OFF)
-option(LIBIGL_WITH_ANTTWEAKBAR      "Use AntTweakBar"    OFF)
 option(LIBIGL_WITH_CGAL             "Use CGAL"           ON)
-option(LIBIGL_WITH_COMISO           "Use CoMiso"         OFF)
-option(LIBIGL_WITH_CORK             "Use Cork"           OFF)
 option(LIBIGL_WITH_EMBREE           "Use Embree"         ON)
-option(LIBIGL_WITH_LIM              "Use LIM"            OFF)
 option(LIBIGL_WITH_MATLAB           "Use Matlab"         ON)
-option(LIBIGL_WITH_MOSEK            "Use MOSEK"          OFF)
-option(LIBIGL_WITH_NANOGUI          "Use Nanogui menu"   OFF)
-option(LIBIGL_WITH_OPENGL           "Use OpenGL"         OFF)
-option(LIBIGL_WITH_OPENGL_GLFW      "Use GLFW"           OFF)
-option(LIBIGL_WITH_PNG              "Use PNG"            OFF)
-option(LIBIGL_WITH_PYTHON           "Use Python"         OFF)
-option(LIBIGL_WITH_TETGEN           "Use Tetgen"         OFF)
-option(LIBIGL_WITH_TRIANGLE         "Use Triangle"       OFF)
-option(LIBIGL_WITH_VIEWER           "Use OpenGL viewer"  OFF)
-option(LIBIGL_WITH_XML              "Use XML"            OFF)
-option(WITH_ELTOPO                  "Use El Topo"        ${LIBELTOPO_FOUND})
+option(WITH_ELTOPO                  "Use El Topo"        ON)
 
-find_package(LIBIGL REQUIRED)
-if(WITH_ELTOPO)
-  find_package(BLAS REQUIRED )
-endif()
-
+# Find matlab
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
 include_directories(${Matlab_INCLUDE_DIRS})
 
-#set( CMAKE_CXX_COMPILER "${Matlab_MEX_COMPILER}" )
-#set( CMAKE_C_COMPILER   "${Matlab_MEX_COMPILER}" )
+# Download and find libigl
+gptoolbox_download_libigl()
+find_package(LIBIGL REQUIRED)
+
+if(WITH_ELTOPO)
+  # Download and find eltopo
+  find_package(BLAS REQUIRED )
+  gptoolbox_download_eltopo()
+  find_package(ELTOPO REQUIRED)
+endif()
 
 set( CMAKE_SHARED_LIBRARY_SUFFIX ".${Matlab_MEX_EXTENSION}" )  # set suffix to .mexa64
 set( CMAKE_SHARED_LIBRARY_PREFIX )      # remove the "lib" prefix

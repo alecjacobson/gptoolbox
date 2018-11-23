@@ -11,3 +11,4 @@ quat/*
 quat.zip
 mex/build*
 *.*.swo
+mex/external
