@@ -6,7 +6,7 @@ function writeBF(filename,V,WI,P)
   % Write a bone forest to a .bf file
   %
   % Input:
-  %  filename  .tgf file name
+  %  filename  .bf file name
   %  V  # vertices by 3 list of vertex offsets from parents
   %  WI  # vertices list of indices of weights (0 means no weights)
   %  P  # vertices list of indices of bone parents (0 means root)
