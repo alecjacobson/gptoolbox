@@ -8,10 +8,13 @@ function [K,MK,data] = hks(V,F,varargin)
   % Outputs:
   %   K  #V by #K list of HKS feature vectors for each vertex
   %   MK  #K list of mass-weighted spatial sums
-  %   phi_sqr  #V by #lambda list of squared eigen functions
-  %   exp_m_lambda  #lambda list of exp(- eigen values)
-  %   M  #V by #V mass matrix
-  %   L  #V by #V Laplacian matrix
+  %   data
+  %     lambda  #lambda list of eigen values
+  %     phi  #V by #lambda list of eigen functions
+  %     phi_sqr  #V by #lambda list of squared eigen functions
+  %     exp_m_lambda  #lambda list of exp(- eigen values)
+  %     M  #V by #V mass matrix
+  %     L  #V by #V Laplacian matrix
   % 
   % Example:
   %   [K,MK] = hks(V,F);
@@ -49,9 +52,9 @@ function [K,MK,data] = hks(V,F,varargin)
   if isempty(data)
     data.L = cotmatrix(V,F);
     data.M = massmatrix(V,F);
-    [phi,data.lambda] = eigs(-data.L,data.M,k,'sm');
+    [data.phi,data.lambda] = eigs(-data.L,data.M,k,'sm');
     data.lambda = diag(data.lambda);
-    data.phi_sqr = phi.^2;
+    data.phi_sqr = data.phi.^2;
     data.exp_m_lambda = exp(-data.lambda);
   end
   if isempty(tmin)
