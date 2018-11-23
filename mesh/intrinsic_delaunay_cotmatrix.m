@@ -1,4 +1,4 @@
-function [L,F] = intrinsic_delaunay_cotmatrix(V,F,varargin)
+function [L,F,l] = intrinsic_delaunay_cotmatrix(V,F,varargin)
   % INTRINSIC_DELAUNAY_COTMATRIX Construct the intrinsic Delaunay Laplacian,
   % given a mesh (V,F) or (l,F) according to "A discrete Laplace-Beltrami
   % operator for simplicial surfaces" [Bobenko & Springborn 2005] following "An
