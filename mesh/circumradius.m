@@ -1,7 +1,8 @@
-function [R,C] = circumradius(V,T)
-  % CIRCUMRADIUS Return the circumradius of each tet element
+function [R,C,B] = circumradius(V,T)
+  % CIRCUMRADIUS Return the circumradius of each triangle/tet element
   % 
   % R = circumradius(V,T)
+  % [R,C,B] = circumradius(V,T)
   %
   % Input:
   %   V  #V by dim list of vertex positions
@@ -9,6 +10,12 @@ function [R,C] = circumradius(V,T)
   % Output:
   %   R  #T by 1 list of simplex circumradii
   %   C  #T by dim list of simplex circumcenters
+  %   B  #T by simplex-size list of barycentric coordinates so that: 
+  %     C(t,:) = B(t,:) * V(T(t,:),:)
+  %
+  % Known issues:
+  %   B output only supported for triangles
+  %
   
   switch size(T,2)
   case 4
