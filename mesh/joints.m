@@ -118,14 +118,18 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
   VV = [];
   FF = [];
   JJ = [];
+  % Annoying bug if there's just one edge
+  vec = @(X) X(:);
   % Loop over vertices
   for i = 1:n
-    Vi = [V(i,:);  ...
-      HZOV(E(mod(HZI-1,2*ne)+1)==i & HZI>size(HV,1),:)];
-    Fi = convhull(Vi);
-    FF = [FF;size(VV,1)+Fi];
-    VV = [VV;Vi];
-    JJ = [JJ;repmat(i,size(Fi,1),1)];
+    if sum(A(:,i))>1
+      Vi = [V(i,:);  ...
+        HZOV(vec(E(mod(HZI-1,2*ne)+1)==i) & HZI>size(HV,1),:)];
+      Fi = convhull(Vi);
+      FF = [FF;size(VV,1)+Fi];
+      VV = [VV;Vi];
+      JJ = [JJ;repmat(i,size(Fi,1),1)];
+    end
   end
 
   %clf;
@@ -144,11 +148,11 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
   %axis equal;view(2);
   %error
 
-  fprintf('labeling sockets...\n');
   % Build labels at the end of each piece of wood
   LV = [];
   LF = [];
   if label_sockets
+    fprintf('labeling sockets...\n');
     % loop over edges
     for ei = 1:ne
       % loop over each direction
@@ -171,15 +175,17 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
   end
 
   fprintf('boolean...\n')
-  m = size(FF,1);
+  JJ = [JJ;E(HZJ)];
   [VV,FF,mJJ] = mesh_boolean([VV;HZOV],[FF;size(VV,1)+HZOF],[JRV;LV],[JRF;size(JRV,1)+LF],'minus');
   [~,C] = connected_components(FF);
   CJ = zeros(max(C),1);
-  CJ(C(mJJ<=m)) = JJ(mJJ(mJJ<=m));
+  CJ(C(mJJ<=numel(JJ))) = JJ(mJJ(mJJ<=numel(JJ)));
   JJ = CJ(C);
 
 
-  % sanity check
-  fprintf('check...\n')
-  assert(isempty(intersect_other(VV,FF(doublearea(VV,FF)>0,:),WrV,WrF)));
+  % sanity check only makes sense if tol is positive
+  if tol>0
+    fprintf('check...\n')
+    assert(isempty(intersect_other(VV,FF(doublearea(VV,FF)>0,:),WrV,WrF)));
+  end
 end
