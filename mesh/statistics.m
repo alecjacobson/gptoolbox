@@ -14,37 +14,42 @@ function S = statistics(V,F,varargin)
   %       {0.01 radians}
   % Outputs:
   %   S  Struct containing:
-  %     num_vertices  Number of vertices in V
   %     num_faces  Number of triangles in F
+  %     num_vertices  Number of vertices in V
   %     num_edges  Number of unique undirected edges
-  %     num_combinatorially_duplicate_faces  Number of faces minus number of
-  %       combinatorially unique faces
-  %     num_duplicate_vertices  Number vertices minus number of geometrically
-  %       unique vertices
-  %     num_combinatorially_degenerate_faces  Number of faces with 2 or more of
-  %       the same vertices as corners
-  %     num_geometrically_degenerate_faces  Number of faces with area == 0.
-  %       Note that combinatorially degenerate faces will be included.
-  %     num_connected_components Number of connected compenents of mesh as
-  %       graph (includes each unreferenced vertex as a singlton component)
-  %     num_unreferenced_vertices Number of vertices not appearing in F
-  %     num_boundary_edges  Number of boundary edges
-  %     num_nonmanifold_edges Number of non-manifold edges (edges with valence
-  %       >2)
-  %     num_conflictingly_oriented_edges Number of edges with and even number
-  %       of incident faces having conflicting orientation
-  %     num_nonmanifold_vertices Number of non-manifold vertices (vertices
-  %       whose incident faces do not form exaclty one connected component)
-  %     num_handles  Genus of surface, (2-X)/2, where X is Euler characteristic
-  %     num_boundary_loops  Number of connected components in undirected graph
-  %       of boundary edges
   %     num_small_triangles  Number of triangles with area < min_area
   %     num_small_angles  Number of corners with internal angles < min_angle
   %     num_close_vertices  Number of vertices minus number of unique vertices
   %       upto rounding coordinates by min_dist (~L1 distance)
+  %     num_connected_components Number of connected compenents of mesh as
+  %       graph (includes each unreferenced vertex as a singlton component)
+  %     num_handles  Genus of surface, (2-X)/2, where X is Euler characteristic
+  %     euler_characteristic  Euler characteristic
+  %     num_boundary_loops  Number of connected components in undirected graph
+  %       of boundary edges
+  %     num_boundary_edges  Number of boundary edges
+  %     num_ears  Number of topological ears (triangles with single internal
+  %       edge)
+  %     num_nonmanifold_edges Number of non-manifold edges (edges with valence
+  %       >2)
+  %     num_conflictingly_oriented_edges Number of edges with and even number
+  %       of incident faces having conflicting orientation
+  %     num_duplicate_vertices  Number vertices minus number of geometrically
+  %       unique vertices
+  %     num_nonmanifold_vertices Number of non-manifold vertices (vertices
+  %       whose incident faces do not form exaclty one connected component)
+  %     num_unreferenced_vertices Number of vertices not appearing in F
+  %     num_combinatorially_duplicate_faces  Number of faces minus number of
+  %       combinatorially unique faces
+  %     num_geometrically_degenerate_faces  Number of faces with area == 0.
+  %       Note that combinatorially degenerate faces will be included.
+  %     num_combinatorially_degenerate_faces  Number of faces with 2 or more of
+  %       the same vertices as corners
   %     Not 'Fast'
   %       num_selfintersecting_pairs  Number of self intersecting pairs of
   %         triangles
+  %       num_intracomponent_selfintersecting_pairs Number of self intersecting
+  %          pairs of triangles _in the same connected component_
   %
   % Examples:
   %   S = statistics(V,F,'Fast',true)
@@ -109,16 +114,19 @@ function S = statistics(V,F,varargin)
   S.num_boundary_loops = 0;
   S.num_boundary_edges = 0;
   S.num_ears = 0;
-  S.num_non_manifold_edges = 0;
+  S.num_nonmanifold_edges = 0;
   S.num_conflictingly_oriented_edges = 0;
   S.num_duplicate_vertices = 0;
-  S.num_non_manifold_vertices = 0;
+  S.num_nonmanifold_vertices = 0;
   S.num_unreferenced_vertices = 0;
   % Degeneracy related
   S.num_combinatorially_duplicate_faces = 0;
   S.num_geometrically_degenerate_faces = 0;
   S.num_combinatorially_degenerate_faces = 0;
-  %S.num_selfintersecting_pairs = 0;
+  if ~fast
+    S.num_intracomponent_selfintersecting_pairs = 0;
+    S.num_selfintersecting_pairs = 0;
+  end
 
   % easy
   S.num_faces = size(F,1);
@@ -190,9 +198,14 @@ function S = statistics(V,F,varargin)
   if ~fast
     V3 = V;
     V3(:,end+1:3) = 0;
-    Fnd = F(doublearea(V,F)>0,:);
+    nd = dblA>0;
+    Fnd = F(nd,:);
     [~,~,IF] = selfintersect(V3,Fnd,'DetectOnly',true);
     S.num_selfintersecting_pairs = size(IF,1);
+    CF = C(F(:,1));
+    CFnd = CF(nd)';
+    S.num_intracomponent_selfintersecting_pairs =  ...
+      sum(CFnd(IF(:,1))== CFnd(IF(:,2)));
   end
 
 
