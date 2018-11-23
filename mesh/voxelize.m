@@ -1,4 +1,4 @@
-function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
+function [W,BC,DV,Q,r] = voxelize(V,F,side,varargin)
   % VOXELIZE Given a mesh compute a voxelization of that mesh on a regular grid
   % fit to the bounding box.
   %
@@ -29,6 +29,7 @@ function [W,BC,DV,Q] = voxelize(V,F,side,varargin)
   %   BC  prod(side) by dim matrix of cell barycenters
   %   DV  side(1)+1 by side(2)+1 by side(3)+1 matrix of cell corner locations
   %   Q  #Q by 4 list of quads indexing DV
+  %   r  dim-long list of voxel widths in each direction
   %
   % Known issues: the ouput surface mesh will contain non-manifold edges and
   % vertices at voxels that meet at such edges or vertices. 
