@@ -65,6 +65,7 @@ list(APPEND MEX_SOURCES
   "decimate_libigl.cpp"
   "fit_rotations_mex.cpp"
   "in_element_aabb.cpp"
+  "aabb.cpp"
   "read_triangle_mesh.cpp"
   "readMSH.cpp"
   "signed_distance.cpp"
