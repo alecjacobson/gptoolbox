@@ -1,8 +1,8 @@
-function [E] = sharp_edges(V,F,varargin)
+function [SE,II] = sharp_edges(V,F,varargin)
   % SHARP_EDGES Given a mesh, compute sharp edges.
   %
-  % [E] = sharp_edges(V,F)
-  % [E] = sharp_edges(V,F,'ParameterName',ParameterValue, ...)
+  % [SE] = sharp_edges(V,F)
+  % [SE,II] = sharp_edges(V,F,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
   %   V  #V by 3 list of mesh vertex positions 
@@ -10,7 +10,9 @@ function [E] = sharp_edges(V,F,varargin)
   %   Optional:
   %     'Angle'  followed by dihedral angle considered sharp. {pi*0.11}
   % Outputs:
-  %   E  #E by 2 list of edge indices into V 
+  %   SE  #SE by 2 list of edge indices into V 
+  %   II  #II by 2 list of indices into F so that: 
+  %     SE=unique(sort(F(II),2),'rows');
   %
 
   angle = pi*0.11;
@@ -42,5 +44,6 @@ function [E] = sharp_edges(V,F,varargin)
   [CI,~,CV] = find(C.*A);
   II = [CI+mod(CV,3)*size(F,1) CI+mod(CV+1,3)*size(F,1)];
   E = F(II);
+  SE = unique(sort(E,2),'rows');
 
 end
