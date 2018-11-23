@@ -77,6 +77,7 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   % option parameter default values
   bc_type = 'average';
   pre = [];
+  pre.L = [];
   % precomputation for Dirichlet solve
   pre.D = [];
   % precomputation for Neumann solve
@@ -123,49 +124,56 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   % Algorithm 1 using a single backward Euler step"
 
 
-  % "where ???????? is one third the area of all triangles incident on vertex ...
-  % where ???? ??? R|????|??|????| is a diagonal matrix containing the vertex areas"
-  L = cotmatrix(V,F);
-  M = massmatrix(V,F,'barycentric');
-
   % "... with initial conditions u0 = ??(x)"
   % "Note that a Dirac delta appears as a literal one in this system since we
   % are effectively working with integrated quantities"
   u0 = zeros(n,1);
   u0(gamma) = 1;
   
-  Q = M - t*L;
+
+  % "where ???????? is one third the area of all triangles incident on vertex ...
+  % where ???? ??? R|????|??|????| is a diagonal matrix containing the vertex areas"
+  if isempty(pre.L)
+    pre.L = cotmatrix(V,F);
+    pre.M = massmatrix(V,F,'barycentric');
+    pre.Q = pre.M - t*pre.L;
+    pre.G = grad(V,F);
+    pre.Div = div(V,F);
+    pre.Tik = 1e-8*speye(size(V,1));
+    pre.P = -pre.L*0.5 + pre.Tik;
+    % get outline ("boundary") of mesh 
+    switch ss
+    case 3
+      pre.out = unique(reshape(outline(F),[],1));
+    case 4
+      pre.out = unique(boundary_faces(F));
+    end
+  end
+
   % 11/7/2017: Keenan writes that the mass matrix should not be here.
   % B = M*u0;
   B = u0;
 
   if isempty(u)
     if strcmp(bc_type,'dirichlet') || strcmp(bc_type,'average') || strcmp(bc_type,'robin')
-      % get outline ("boundary") of mesh 
-      switch ss
-      case 3
-        out = unique(reshape(outline(F),[],1));
-      case 4
-        out = unique(boundary_faces(F));
-      end
 
       if legacy
         % remove any gamma from outline
-        out = setdiff(out(:),gamma(:));
+        pre.out = setdiff(pre.out(:),gamma(:));
         % find all boundary vertices and append to gamma
-        b = [gamma(:); out]; 
+        b = [gamma(:); pre.out]; 
         % "zero Dirichlet conditions"
         bc = [ones(numel(gamma),1); zeros(numel(b)-numel(gamma),1)];
-        [uD,pre.D] = min_quad_with_fixed(Q,B,b,bc,[],[],pre.D);
+        [uD,pre.D] = min_quad_with_fixed(pre.Q,B,b,bc,[],[],pre.D);
       else
-        b = out;
+        b = pre.out;
         % Q: How should we deal with gamma ??? out ?
         % This gives *reasonable* results, but doesn't look right for fixing
         % entire boundary. Probably more because of the lack of correct boundary
         % conditions for the final poisson solve.
-        bc = -1*ismember(out,gamma);
+        bc = -1*ismember(pre.out,gamma);
         %assert(~any(ismember(gamma,out)));
-        [uD,pre.D] = min_quad_with_fixed(Q,B,b,bc,[],[],pre.D);
+        [uD,pre.D] = min_quad_with_fixed(pre.Q,B,b,bc,[],[],pre.D);
       end
     end
     if strcmp(bc_type,'neumann') || strcmp(bc_type,'average') || strcmp(bc_type,'robin')
@@ -175,9 +183,9 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
       if legacy
         b = gamma(:);
         bc = ones(numel(gamma),1);
-        [uN,pre.N] = min_quad_with_fixed(Q,B,b,bc,[],[],pre.N);
+        [uN,pre.N] = min_quad_with_fixed(pre.Q,B,b,bc,[],[],pre.N);
       else
-        [uN,pre.N] = min_quad_with_fixed(Q,B,[],[],[],[],pre.N);
+        [uN,pre.N] = min_quad_with_fixed(pre.Q,B,[],[],[],[],pre.N);
       end
     end
 
@@ -218,9 +226,7 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   end
 
   % Evaluate the vector field X
-  G = grad(V,F);
-  Div = div(V,F);
-  grad_u = reshape(G*u,size(F,1),size(V,2));
+  grad_u = reshape(pre.G*u,size(F,1),size(V,2));
   grad_u_norm = sqrt(sum(grad_u.^2,2));
   % normalize grad_u
   normalized_grad_u = bsxfun(@rdivide,grad_u,grad_u_norm);
@@ -231,13 +237,17 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   
   % Solve the Poisson equation 
   % divergence of X
-  div_X = Div*X(:);
+  div_X = pre.Div*X(:);
   if legacy
     [phi,pre.poisson] = min_quad_with_fixed( ...
-      -L*0.5,2*div_X,gamma,zeros(numel(gamma),1),[],[],pre.poisson);
+      -pre.L*0.5,2*div_X,gamma,zeros(numel(gamma),1),[],[],pre.poisson);
   else
     [phi,pre.poisson] = ...
-      min_quad_with_fixed(-L*0.5,2*div_X,[],[],[],[],pre.poisson);
+      min_quad_with_fixed(pre.P,2*div_X,[],[],[],[],pre.poisson);
+    %Aeq = sparse(ones(1,size(V,1)));
+    %Beq = 0;
+    %[phi,pre.poisson] = ...
+    %  min_quad_with_fixed(-pre.L*0.5,2*div_X,[],[],Aeq,Beq,pre.poisson);
   end
   D = phi;
   % "Note that ???? is unique only up to an additive constant and should be
