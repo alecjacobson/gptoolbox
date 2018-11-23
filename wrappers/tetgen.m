@@ -78,6 +78,7 @@ function [V,T,F] = tetgen(SV,SF,varargin)
   end
   [status, result] = system(command);
   if status~=0
+    warning(command)
     error(result)
   elseif verbose
     fprintf('%s\n',result);
