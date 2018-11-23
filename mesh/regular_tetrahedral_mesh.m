@@ -94,7 +94,7 @@ function [V,T,F] = regular_tetrahedral_mesh(varargin)
     F3 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
     F3 = [F3;fliplr(F3)+nx*ny*(nz-1)];
 
-    F = [F1;F2;F3];
+    F = [F1;fliplr(F2);F3];
     %BF = boundary_faces(T);
     %setdiff(sort(F,2),sort(BF,2),'rows')
     %setdiff(sort(BF,2),sort(F,2),'rows')
