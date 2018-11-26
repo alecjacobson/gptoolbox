@@ -1,4 +1,3 @@
-#ifdef MEX
 // Force header only version
 #ifdef IGL_STATIC_LIBRARY
 #undef IGL_STATIC_LIBRARY
@@ -120,5 +119,3 @@ void mexFunction(
   }
 
 }
-#endif
-

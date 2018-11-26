@@ -1,5 +1,3 @@
-#ifdef MEX
-
 #include <igl/avg_edge_length.h>
 #include <igl/edges.h>
 #include <igl/copyleft/cgal/wire_mesh.h>
@@ -132,6 +130,3 @@ void mexFunction(
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
 }
-
-#endif
-

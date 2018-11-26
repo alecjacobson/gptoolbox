@@ -1,37 +1,27 @@
-#ifdef MEX
-#  include <mex.h>
-#  include <igl/C_STR.h>
-#  undef assert
-#  define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
-#else
+#include <mex.h>
+#include <igl/C_STR.h>
+#undef assert
+#define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
 #include <igl/read_triangle_mesh.h>
 #include <igl/pathinfo.h>
 #include <igl/writeOFF.h>
 #include <igl/writeOBJ.h>
 #include <igl/writeDMAT.h>
-#endif
 #include <igl/doublearea.h>
 #include <igl/unique_simplices.h>
-#ifdef MEX
-#  define IGL_REDRUM_NOOP
-#endif
+#define IGL_REDRUM_NOOP
 #include <igl/REDRUM.h>
-#ifdef MEX
-#  include <igl/matlab/MexStream.h>
-#  include <igl/matlab/mexErrMsgTxt.h>
-#  include <igl/matlab/validate_arg.h>
-#  include <igl/matlab/parse_rhs.h>
-#endif
+#include <igl/matlab/MexStream.h>
+#include <igl/matlab/mexErrMsgTxt.h>
+#include <igl/matlab/validate_arg.h>
+#include <igl/matlab/parse_rhs.h>
 #include <igl/copyleft/cgal/remesh_self_intersections.h>
 
-#ifdef MEX
-#  include "mex.h"
-#endif
+#include "mex.h"
 
 #include <iostream>
 #include <string>
 
-#ifdef MEX
 void mexFunction(int nlhs, mxArray *plhs[], 
     int nrhs, const mxArray *prhs[])
 {
@@ -40,10 +30,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
   igl::matlab::MexStream mout;
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
 
-#else
-int main(int argc, char * argv[])
-{
-#endif
   using namespace std;
   using namespace Eigen;
   using namespace igl;
@@ -56,7 +42,6 @@ int main(int argc, char * argv[])
 
   string prefix;
   bool use_obj_format = false;
-#ifdef MEX
   if(nrhs < 2)
   {
     mexErrMsgTxt("nrhs < 2");
@@ -102,47 +87,6 @@ int main(int argc, char * argv[])
       i++;
     }
   }
-#else
-  if(argc <= 1)
-  {
-    cerr<<"Usage:"<<endl<<"  selfintersect [path to .off/.obj mesh] "
-      "[0 or 1 for detect only]"<<endl;
-    return 1;
-  }
-  // Apparently CGAL doesn't have a good data structure triangle soup. Their
-  // own examples use (V,F):
-  // http://www.cgal.org/Manual/latest/doc_html/cgal_manual/AABB_tree/Chapter_main.html#Subsection_64.3.7
-  //
-  // Load mesh
-  string filename(argv[1]);
-  if(!read_triangle_mesh(filename,V,F))
-  {
-    //cout<<REDRUM("Reading "<<filename<<" failed.")<<endl;
-    return false;
-  }
-  cout<<GREENGIN("Read "<<filename<<" successfully.")<<endl;
-  {
-    // dirname, basename, extension and filename
-    string dirname,b,ext;
-    pathinfo(filename,dirname,b,ext,prefix);
-    prefix = dirname + "/" + prefix;
-    transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-    use_obj_format = ext == "obj";
-  }
-  if(argc>2)
-  {
-    //http://stackoverflow.com/a/9748431/148668
-    char *p;
-    long d = strtol(argv[2], &p, 10);
-    if (errno != 0 || *p != '\0')
-    {
-      cerr<<"detect only param should be 0 or 1"<<endl;
-    }else
-    {
-      params.detect_only = d!=0;
-    }
-  }
-#endif
   MatrixXi IF;
   VectorXi J,IM;
   if(F.rows()>0)
@@ -152,24 +96,14 @@ int main(int argc, char * argv[])
     doublearea(V,F,A);
     if(A.minCoeff()<=0)
     {
-#ifdef MEX
       mexErrMsgTxt("Geometrically degenerate face found.");
-#else
-      cerr<<"Geometrically degenerate face found."<<endl;
-      return 1;
-#endif
     }
     if(
        (F.array().col(0) == F.array().col(1)).any() ||
        (F.array().col(1) == F.array().col(2)).any() ||
        (F.array().col(2) == F.array().col(0)).any())
     {
-#ifdef MEX
       mexErrMsgTxt("Combinatorially degenerate face found.");
-#else
-      cerr<<"Geometrically degenerate face found."<<endl;
-      return 1;
-#endif
     }
 
     // Now mesh self intersections
@@ -181,26 +115,6 @@ int main(int argc, char * argv[])
       //  <<" of self-intersecting triangles.")<<endl;
       V=tempV;
       F=tempF;
-#ifndef MEX
-      cout<<"writing pair list to "<<(prefix+"-IF.dmat")<<endl;
-      writeDMAT((prefix+"-IF.dmat").c_str(),IF);
-      cout<<"writing map to F list to "<<(prefix+"-J.dmat")<<endl;
-      writeDMAT((prefix+"-J.dmat").c_str(),J);
-      cout<<"writing duplicat index map to "<<(prefix+"-IM.dmat")<<endl;
-      writeDMAT((prefix+"-IM.dmat").c_str(),IM);
-      if(!params.detect_only)
-      {
-        if(use_obj_format)
-        {
-          cout<<"writing mesh to "<<(prefix+"-selfintersect.obj")<<endl;
-          writeOBJ(prefix+"-selfintersect.obj",V,F);
-        }else
-        {
-          cout<<"writing mesh to "<<(prefix+"-selfintersect.off")<<endl;
-          writeOFF(prefix+"-selfintersect.off",V,F);
-        }
-      }
-#endif
     }
 
   // Double-check output
@@ -224,7 +138,6 @@ int main(int argc, char * argv[])
 #endif
   }
 
-#ifdef MEX
   // Prepare left-hand side
   switch(nlhs)
   {
@@ -276,8 +189,4 @@ int main(int argc, char * argv[])
 
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
-
-#else
-  return 0;
-#endif
 }

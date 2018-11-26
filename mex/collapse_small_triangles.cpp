@@ -11,23 +11,16 @@
 #include <igl/writeOFF.h>
 #include <igl/writeOBJ.h>
 #include <igl/writeDMAT.h>
-#ifdef MEX
-#  define IGL_REDRUM_NOOP
-#endif
+#define IGL_REDRUM_NOOP
 #include <igl/REDRUM.h>
-#ifdef MEX
-#  include <igl/matlab/MexStream.h>
-#  include <igl/matlab/parse_rhs.h>
-#  include <igl/matlab/mexErrMsgTxt.h>
-#endif
+#include <igl/matlab/MexStream.h>
+#include <igl/matlab/parse_rhs.h>
+#include <igl/matlab/mexErrMsgTxt.h>
 
-#ifdef MEX
-#  include "mex.h"
-#endif
+#include "mex.h"
 #include <iostream>
 #include <string>
 
-#ifdef MEX
 void mexFunction(int nlhs, mxArray *plhs[], 
     int nrhs, const mxArray *prhs[])
 {
@@ -40,10 +33,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
   igl::matlab::MexStream mout;
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
 
-#else
-int main(int argc, char * argv[])
-{
-#endif
   using namespace std;
   using namespace Eigen;
   using namespace igl;
@@ -56,7 +45,6 @@ int main(int argc, char * argv[])
   string prefix;
   bool use_obj_format = false;
   double eps = FLOAT_EPS;
-#ifdef MEX
   // This parses first two arguements
   parse_rhs_double(prhs,V);
   parse_rhs_index(prhs+1,F);
@@ -71,46 +59,6 @@ int main(int argc, char * argv[])
     }
     eps = *mxGetPr(prhs[2]);
   }
-#else
-  if(argc <= 1 || argc>3)
-  {
-    cerr<<"Usage:"<<endl<<
-      "  collapse_small_triangles [path to mesh]"<<endl<<
-      "or "<<endl<<
-      "  collapse_small_triangles [path to mesh] [eps]"<<endl;
-    return 1;
-  }
-  // Load mesh
-  string filename(argv[1]);
-  if(!read_triangle_mesh(filename,V,F))
-  {
-    cout<<REDRUM("Reading "<<filename<<" failed.")<<endl;
-    return false;
-  }
-  cout<<GREENGIN("Read "<<filename<<" successfully.")<<endl;
-  {
-    // dirname, basename, extension and filename
-    string dirname,b,ext;
-    pathinfo(filename,dirname,b,ext,prefix);
-    prefix = dirname + "/" + prefix;
-    transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-    use_obj_format = ext == "obj";
-  }
-  if(argc == 3)
-  {
-    if(sscanf(argv[2], "%lf", &eps)!=1)
-    {
-      cout<<REDRUM("Parsing "<<argv[2]<<" failed.")<<endl;
-      return 1;
-    }else
-    {
-      cout<<"eps: "<<eps<<endl;
-    }
-  }else
-  {
-    cout<<"Default eps: "<<eps<<endl;
-  }
-#endif
 
 
   // let's first try to merge small triangles
@@ -127,20 +75,8 @@ int main(int argc, char * argv[])
     //    " input triangles to "<<tempF.rows()<<" triangles.")<<endl;
     //}
     F=tempF;
-#ifndef MEX
-    if(use_obj_format)
-    {
-      cout<<"writing mesh to "<<(prefix+"-collapse.obj")<<endl;
-      writeOBJ(prefix+"-collapse.obj",V,F);
-    }else
-    {
-      cout<<"writing mesh to "<<(prefix+"-collapse.off")<<endl;
-      writeOFF(prefix+"-collapse.off",V,F);
-    }
-#endif
   }
 
-#ifdef MEX
   // Prepare left-hand side
   nlhs = 1;
 
@@ -153,9 +89,6 @@ int main(int argc, char * argv[])
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
 
-#else
-  return 0;
-#endif
 }
 
 

@@ -9,8 +9,6 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <algorithm>
 
-// mex(  MEXOPTS{:}, MSSE42, STDCPP11,  LIBIGL_BASE{:},EIGEN_INC, CGAL_INC,CGAL_LIB{:},CGAL_FLAGS,  LIBIGL_LIBCGAL, LIBIGL_LIBBOOLEAN, CORK_INC,CORK_LIB{:},  BOOST_INC,BOOST_LIB{:},  'mesh_boolean.cpp');
-
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/prepare_lhs.h>

@@ -1,5 +1,3 @@
-#ifdef MEX
-
 #include <igl/AABB.h>
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -104,5 +102,3 @@ void mexFunction(
 
   std::cout.rdbuf(outbuf);
 }
-
-#endif

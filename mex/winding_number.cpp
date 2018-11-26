@@ -1,4 +1,3 @@
-#ifdef MEX
 #ifdef WITH_EMBREE
 #  include "winding_number_ray.h"
 #endif
@@ -237,5 +236,3 @@ void mexFunction(
 
   std::cout.rdbuf(outbuf);
 }
-
-#endif

@@ -1,4 +1,3 @@
-#ifdef MEX
 #include <igl/embree/bone_visible.h>
 
 #include <igl/matlab/MexStream.h>
@@ -142,5 +141,3 @@ void mexFunction(
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
 }
-
-#endif

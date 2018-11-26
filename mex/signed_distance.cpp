@@ -1,5 +1,3 @@
-#ifdef MEX
-
 #include <mex.h>
 #include <igl/C_STR.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -238,6 +236,3 @@ void mexFunction(
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
 }
-
-#endif
-

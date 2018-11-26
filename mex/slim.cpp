@@ -11,17 +11,12 @@
 #include <igl/map_vertices_to_circle.h>
 #include <igl/boundary_loop.h>
 #include <igl/vertex_components.h>
-#ifdef MEX
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/prepare_lhs.h>
 #include <igl/matlab/parse_rhs.h>
 #include <igl/matlab/validate_arg.h>
-#else
-#include <igl/matlab/MatlabWorkspace.h>
-#endif
 
-#ifdef MEX
 void mexFunction(
   int nlhs, mxArray *plhs[], 
   int nrhs, const mxArray *prhs[])
@@ -33,18 +28,6 @@ void mexFunction(
   igl::matlab::MexStream mout;        
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
   mexErrMsgTxt(nrhs >= 4,"Four arguments expected");
-#else
-int main(int argc, char * argv[])
-{
-  const auto mexErrMsgTxt = [](const bool v ,const char * msg)
-  {
-    if(!v)
-    {
-      std::cerr<<msg<<std::endl;
-      exit(EXIT_FAILURE);
-    }
-  };
-#endif
   Eigen::MatrixXd V,U0,U,bc;
   Eigen::MatrixXi F;
   Eigen::VectorXi b;
@@ -52,7 +35,6 @@ int main(int argc, char * argv[])
   bool align_guess = true;
   double p = 1e5;
 
-#ifdef MEX
   igl::matlab::parse_rhs_double(prhs+0,V);
   igl::matlab::parse_rhs_index(prhs+1,F);
   igl::matlab::parse_rhs_index(prhs+2,b);
@@ -88,14 +70,6 @@ int main(int argc, char * argv[])
     }
   }
 
-#else
-  igl::matlab::MatlabWorkspace mw;
-  mw.read(argv[1]);
-  mw.find("V",V);
-  mw.find_index("F",F);
-  mw.find_index("b",b);
-  mw.find("bc",bc);
-#endif
 
   {
     Eigen::MatrixXi C;
@@ -161,7 +135,6 @@ int main(int argc, char * argv[])
   igl::slim_solve(slim,iters);
   U = slim.V_o;
 
-#ifdef MEX
   switch(nlhs)
   {
     default:
@@ -182,8 +155,4 @@ int main(int argc, char * argv[])
   }
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
-#else
-  mw.save(U,"U");
-  mw.write(argv[1]);
-#endif
 }

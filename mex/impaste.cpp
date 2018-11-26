@@ -1,5 +1,3 @@
-#ifdef MEX
-
 #include <mex.h>
 #include "paste.h"
 #include <iostream>
@@ -31,5 +29,3 @@ void mexFunction(
     case 0: break;
   }
 }
-
-#endif

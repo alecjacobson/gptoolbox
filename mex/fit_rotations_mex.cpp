@@ -1,22 +1,17 @@
-#ifdef MEX
-#  include <mex.h>
+#include <mex.h>
 #include <igl/C_STR.h>
-#  undef assert
-#  define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
-#endif
+#undef assert
+#define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
 
-#ifdef MEX
-#  include <igl/matlab/MexStream.h>
-#  include <igl/matlab/validate_arg.h>
-#  include <igl/matlab/mexErrMsgTxt.h>
-#  include <igl/matlab/parse_rhs.h>
-#endif
+#include <igl/matlab/MexStream.h>
+#include <igl/matlab/validate_arg.h>
+#include <igl/matlab/mexErrMsgTxt.h>
+#include <igl/matlab/parse_rhs.h>
 #include <igl/fit_rotations.h>
 
 #include <iostream>
 #include <string>
 
-#ifdef MEX
 void mexFunction(int nlhs, mxArray *plhs[], 
     int nrhs, const mxArray *prhs[])
 {
@@ -122,8 +117,5 @@ void mexFunction(int nlhs, mxArray *plhs[],
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
 
-#else
-  return 0;
-#endif
 }
 

@@ -1,5 +1,3 @@
-#ifdef MEX
-
 #include <igl/copyleft/cgal/outer_hull.h>
 
 #include <igl/matlab/MexStream.h>
@@ -130,5 +128,3 @@ void mexFunction(
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
 }
-
-#endif
