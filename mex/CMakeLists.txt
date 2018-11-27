@@ -19,6 +19,7 @@ include(gptoolbox_download_project)
 option(LIBIGL_WITH_CGAL             "Use CGAL"           ON)
 option(LIBIGL_WITH_EMBREE           "Use Embree"         ON)
 option(LIBIGL_WITH_MATLAB           "Use Matlab"         ON)
+option(LIBIGL_WITH_XML              "Use XML"            ON)
 option(WITH_ELTOPO                  "Use El Topo"        ON)
 
 # Find matlab
@@ -42,100 +43,106 @@ set( CMAKE_SHARED_LIBRARY_CXX_FLAGS )       # remove the -fPIC option. mex does 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON)
 set( CMAKE_INSTALL_RPATH "\$ORIGIN" )
 
+function(compile_each I_MEX_SOURCES I_LIBS)
+  foreach(MEX_SOURCE ${I_MEX_SOURCES})
+    message(STATUS "MEX_SOURCE: ${MEX_SOURCE}")
+    get_filename_component(MEX_OUTPUT ${MEX_SOURCE} NAME_WE)
+    add_library(${MEX_OUTPUT} SHARED ${MEX_SOURCE})
+    target_link_libraries(${MEX_OUTPUT} ${I_LIBS})
+    list(APPEND MEX_OUTPUTS ${MEX_OUTPUT})
+  endforeach()
+endfunction()
+
 #file( GLOB MEX_SOURCES *.cpp )
-set(MEX_SOURCES)
-set(LIBS)
-list(APPEND LIBS ${Matlab_LIBRARIES})
+list(APPEND CORE_LIBS ${Matlab_LIBRARIES})
 
 #list(APPEND MEX_SOURCES "impaste.cpp")
-list(APPEND MEX_SOURCES "segment_graph.cpp")
 
 # LIBIGL
 add_definitions("-DMEX")
-list(APPEND LIBS "igl::core" "igl::matlab")
-list(APPEND MEX_SOURCES
-  "bone_visible.cpp"
-  "collapse_small_triangles.cpp"
-  "decimate_libigl.cpp"
-  "fit_rotations_mex.cpp"
-  "in_element_aabb.cpp"
-  "aabb.cpp"
-  "read_triangle_mesh.cpp"
-  "readMSH.cpp"
-  "signed_distance.cpp"
-  "simplify_polyhedron.cpp"
-  "slim.cpp"
-  "solid_angle.cpp"
-  "winding_number.cpp")
+compile_each("\
+aabb.cpp;\
+bone_visible.cpp;\
+collapse_small_triangles.cpp;\
+decimate_libigl.cpp;\
+fit_rotations_mex.cpp;\
+in_element_aabb.cpp;\
+readMSH.cpp;\
+read_triangle_mesh.cpp;\
+segment_graph.cpp;\
+signed_distance.cpp;\
+simplify_polyhedron.cpp;\
+slim.cpp;\
+solid_angle.cpp;\
+"
+  "${CORE_LIBS};igl::core;igl::matlab")
 
 if(WITH_ELTOPO)
-  list(APPEND MEX_SOURCES 
-    "eltopo.cpp"
-    )
   include_directories(${LIBELTOPO_INCLUDE_DIR})
-  list(APPEND LIBS ${LIBELTOPO_LIBRARY})
-  list(APPEND LIBS ${BLAS_LIBRARIES})
+  compile_each(
+    "eltopo.cpp" 
+    "${CORE_LIBS};igl::core;igl::matlab;${LIBELTOPO_LIBRARY};${BLAS_LIBRARIES}")
 endif()
 
 if(LIBIGL_WITH_EMBREE)
-  list(APPEND MEX_SOURCES 
-    "ambient_occlusion.cpp"
-    "bone_visible_embree.cpp"
-    "ray_mesh_intersect.cpp"
-    "reorient_facets.cpp")
-  list(APPEND LIBS igl::embree)
-  # needed winding number
   add_definitions("-DWITH_EMBREE")
+  compile_each("\
+ambient_occlusion.cpp;\
+bone_visible_embree.cpp;\
+ray_mesh_intersect.cpp;\
+reorient_facets.cpp;\
+"
+    "${CORE_LIBS};igl::core;igl::matlab;igl::embree")
 endif()
 
-if(LIBIGL_WITH_CORK)
-  list(APPEND LIBS igl::cork)
-  add_definitions("-DWITH_CORK")
+if(LIBIGL_WITH_EMBREE)
+  if(LIBIGL_WITH_CGAL)
+    compile_each("winding_number.cpp" 
+      "${CORE_LIBS};igl::core;igl::matlab;igl::embree;igl::cgal")
+  else()
+    compile_each("winding_number.cpp" 
+      "${CORE_LIBS};igl::core;igl::matlab;igl::embree")
+  endif()
+else()
+  compile_each("winding_number.cpp" 
+    "${CORE_LIBS};igl::core;igl::matlab")
 endif()
+
+
 
 if(LIBIGL_WITH_CGAL)
-  list(APPEND MEX_SOURCES 
-    "decimate_cgal.cpp"
-    "intersect_other.cpp"
-    "mesh_boolean.cpp"
-    "outer_hull.cpp"
-    "point_mesh_squared_distance.cpp"
-    "selfintersect.cpp"
-    "signed_distance_isosurface.cpp"
-    "snap_rounding.cpp"
-    "trim_with_solid.cpp"
-    "wire_mesh.cpp"
-    )
-  list(APPEND LIBS igl::cgal)
-  # needed winding number
+  if(LIBIGL_WITH_CORK)
+    set(CORK_LIBS igl::cork)
+    add_definitions("-DWITH_CORK")
+  endif()
   add_definitions("-DWITH_CGAL")
+  compile_each("\
+decimate_cgal.cpp;\
+intersect_other.cpp;\
+mesh_boolean.cpp;\
+outer_hull.cpp;\
+point_mesh_squared_distance.cpp;\
+selfintersect.cpp;\
+signed_distance_isosurface.cpp;\
+snap_rounding.cpp;\
+trim_with_solid.cpp;\
+wire_mesh.cpp;\
+"
+    "${CORE_LIBS};igl::core;igl::matlab;igl::cgal;${CORK_LIBS}")
+  if(LIBIGL_WITH_XML)
+    compile_each(
+      "read_mesh_from_xml.cpp"
+      "${CORE_LIBS};igl::core;igl::matlab;igl::cgal;igl::xml")
+  endif()
 endif()
-
-if(LIBIGL_WITH_CGAL AND LIBIGL_WITH_XML)
-  list(APPEND MEX_SOURCES
-    "read_mesh_from_xml.cpp"
-    )
-  list(APPEND LIBS igl::xml)
-endif()
-
-
-message(STATUS "Compiling: ${MEX_SOURCES}")
-
-set(MEX_OUTPUTS)
-foreach(MEX_SOURCE ${MEX_SOURCES})
-  get_filename_component(MEX_OUTPUT ${MEX_SOURCE} NAME_WE)
-  add_library(${MEX_OUTPUT} SHARED ${MEX_SOURCE})
-  target_link_libraries(${MEX_OUTPUT} ${LIBS})
-  list(APPEND MEX_OUTPUTS ${MEX_OUTPUT})
-endforeach()
-
 
 if(APPLE)
   find_library(FOUNDATION_LIBRARY Foundation)
   find_library(APPKIT_LIBRARY AppKit)
   mark_as_advanced (FOUNDATION_LIBRARY APPKIT_LIBRARY)
+  message(STATUS "MEX_SOURCE: impaste.cpp")
   set(MEX_OUTPUT "impaste")
   add_library(${MEX_OUTPUT} SHARED "impaste.cpp" "paste.mm")
   target_link_libraries(${MEX_OUTPUT} 
-    ${LIBS} ${FOUNDATION_LIBRARY} ${APPKIT_LIBRARY})
-ENDIF (APPLE)
+    ${CORE_LIBS} ${FOUNDATION_LIBRARY} ${APPKIT_LIBRARY})
+endif(APPLE)
