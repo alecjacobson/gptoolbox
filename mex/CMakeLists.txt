@@ -48,6 +48,12 @@ function(compile_each I_MEX_SOURCES I_LIBS)
     message(STATUS "MEX_SOURCE: ${MEX_SOURCE}")
     get_filename_component(MEX_OUTPUT ${MEX_SOURCE} NAME_WE)
     add_library(${MEX_OUTPUT} SHARED ${MEX_SOURCE})
+    # Not sure if this should be (WIN32) or (MSVC OR MSYS OR MINGW)
+    # https://stackoverflow.com/a/40152725/148668
+    if(WIN32)
+      # https://stackoverflow.com/a/11095194/148668
+      set_target_properties(${MEX_OUTPUT} PROPERTIES LINK_FLAGS "/export:mexFunction")
+    endif()
     target_link_libraries(${MEX_OUTPUT} ${I_LIBS})
     list(APPEND MEX_OUTPUTS ${MEX_OUTPUT})
   endforeach()
