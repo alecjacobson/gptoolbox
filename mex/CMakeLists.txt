@@ -21,8 +21,14 @@ option(LIBIGL_WITH_EMBREE           "Use Embree"         ON)
 option(LIBIGL_WITH_MATLAB           "Use Matlab"         ON)
 option(LIBIGL_WITH_XML              "Use XML"            ON)
 option(WITH_ELTOPO                  "Use El Topo"        ON)
+option(MATLAB_PROXY                 "Download Matlab Proxy for compilation only" OFF)
 
 # Find matlab
+if(MATLAB_PROXY)
+  set(Matlab_ROOT_DIR "${GPTOOLBOX_MEX_ROOT}/external/matlab")
+  gptoolbox_download_matlab()
+endif()
+
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
 include_directories(${Matlab_INCLUDE_DIRS})
 
