@@ -60,7 +60,7 @@ script:
 # Tutorials and tests
 - mkdir build
 - cd build
-- cmake -DMATLAB_PROXY=ON ..
+- cmake .. -DMATLAB_PROXY=ON -DEMBREE_ISA_AVX=OFF -DEMBREE_ISA_AVX2=OFF -DEMBREE_ISA_AVX512SKX=OFF ../
 - make -j 2
 - ctest --verbose
 - ccache --show-stats
