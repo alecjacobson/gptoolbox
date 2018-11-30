@@ -46,6 +46,10 @@ option(LIBIGL_WITH_MATLAB           "Use Matlab"         ON)
 option(LIBIGL_WITH_XML              "Use XML"            ON)
 option(WITH_ELTOPO                  "Use El Topo"        ON)
 option(MATLAB_PROXY                 "Download Matlab Proxy for compilation only" OFF)
+if( UNIX AND NOT APPLE)
+  # Static boost libs are causing problems on linux
+  option(CGAL_Boost_USE_STATIC_LIBS   "Use Static  Boost libs" OFF)
+endif()
 
 # Find matlab
 if(MATLAB_PROXY)
