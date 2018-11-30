@@ -67,6 +67,11 @@ if(WITH_ELTOPO)
   add_subdirectory(${LIBELTOPO_INCLUDE_DIR} libeltopo)
 endif()
 
+if(UNIX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+endif()
+
 set( CMAKE_SHARED_LIBRARY_SUFFIX ".${Matlab_MEX_EXTENSION}" )  # set suffix to .mexa64
 set( CMAKE_SHARED_LIBRARY_PREFIX )      # remove the "lib" prefix
 set( CMAKE_SHARED_LIBRARY_CXX_FLAGS )       # remove the -fPIC option. mex does not accept the "-fPIC" option
