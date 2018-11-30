@@ -49,6 +49,8 @@ option(MATLAB_PROXY                 "Download Matlab Proxy for compilation only"
 if( UNIX AND NOT APPLE)
   # Static boost libs are causing problems on linux
   option(CGAL_Boost_USE_STATIC_LIBS   "Use Static  Boost libs" OFF)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 endif()
 
 # Find matlab
@@ -69,11 +71,6 @@ if(WITH_ELTOPO)
   gptoolbox_download_eltopo()
   set(LIBELTOPO_INCLUDE_DIR "${GPTOOLBOX_MEX_EXTERNAL}/eltopo/eltopo3d")
   add_subdirectory(${LIBELTOPO_INCLUDE_DIR} libeltopo)
-endif()
-
-if(UNIX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 endif()
 
 set( CMAKE_SHARED_LIBRARY_SUFFIX ".${Matlab_MEX_EXTENSION}" )  # set suffix to .mexa64
