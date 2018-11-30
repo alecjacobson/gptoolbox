@@ -7,14 +7,9 @@
 if(NOT LIBELTOPO_FOUND)
 
 FIND_PATH(LIBELTOPO_INCLUDE_DIR eltopo.h
-   ${PROJECT_SOURCE_DIR}/../../include
-   ${PROJECT_SOURCE_DIR}/../include
-   ${PROJECT_SOURCE_DIR}/include
-   ${PROJECT_SOURCE_DIR}/../../../eltopo/eltopo3d
-   /usr/include
-   /usr/local/include
-   /usr/local/eltopo/eltopo3d
+  ${CMAKE_SOURCE_DIR}/external/eltopo/eltopo3d
 )
+
 
 # Includes must be found
 if(NOT LIBELTOPO_INCLUDE_DIR)
