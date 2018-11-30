@@ -25,6 +25,14 @@ endfunction()
 
 ################################################################################
 
+## Matlab Proxy
+function(gptoolbox_download_matlab)
+	gptoolbox_download_project(matlab
+		GIT_REPOSITORY https://github.com/alecjacobson/matlab.git
+		GIT_TAG        45802ea01e01a294cba283bed3af15e2e040fa35
+	)
+endfunction()
+
 ## LIBIGL
 function(gptoolbox_download_libigl)
 	gptoolbox_download_project(libigl
