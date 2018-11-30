@@ -45,6 +45,6 @@ endfunction()
 function(gptoolbox_download_eltopo)
 	gptoolbox_download_project(eltopo
 		GIT_REPOSITORY https://github.com/alecjacobson/eltopo.git
-		GIT_TAG        fee1d7434b7da9306591cff355cd22d3f3c87428
+		GIT_TAG        e4c2c9a3f01b89bcafb3afa203d2bad887f4133b
 	)
 endfunction()
