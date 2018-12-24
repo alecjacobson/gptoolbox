@@ -1,7 +1,7 @@
 function [P] = prolongation(CV,CF,V,varargin)
   % PROLONGATION Build a linear prolongation operator taking solutions on a
   % coarse mesh (CV,CF) and prolongating (upsampling) them onto vertices of a
-  % fine mesh (V).
+  % fine mesh (V). Useful for multigrid and embedded mesh deformations.
   %
   % P = prolongation(CV,CF,V)
   %
