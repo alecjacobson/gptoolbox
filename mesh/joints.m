@@ -92,6 +92,8 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
   end
   assert(min(theta(:))>eps,'All angles should be >0. Degenerate/co-linear edge(s)?');
   J = R./atan(theta./2);
+  assert(all(max(imag(J)) < 1e-9),'J should be real-ish');
+  J = real(J);
   assert(~any(isinf(J(:))),'All offsets should be finite');
 
   offset = @(V,E,J) [ ...
