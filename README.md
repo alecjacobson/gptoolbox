@@ -50,8 +50,8 @@ installing MATLAB and adding the qptoolbox directory and its subdirectories to
 your MATLAB path is needed for installation. Let's assume you cloned gptoolbox
 at `/usr/local/gptoolbox/`, then you could issue:
 
-    gp_subdirs = split(genpath('/usr/local/gptoolbox/'),':');
-    addpath(strjoin(gp_subdirs(~contains(gp_subdirs,'.git')),':'));
+    gp_subdirs = strsplit(genpath('/usr/local/gptoolbox/'),':');
+    addpath(strjoin(gp_subdirs(cellfun(@isempty,strfind(gp_subdirs,'.git'))),':'));
 
 To make this change permanent, then issue:
 
