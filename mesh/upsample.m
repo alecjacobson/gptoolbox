@@ -164,31 +164,56 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   % http://mathoverflow.net/questions/28615/tetrahedron-splitting-subdivision
   case 3
     % Add a new vertex at the midpoint of each edge
+
+    % List of *not* selected faces
     nsel = setdiff((1:size(F,1))',sel);
-
+    % Selected faces
     Fsel = F(sel,:);
-
+    % All half-edges
     E = [F(:,2) F(:,3);F(:,3) F(:,1);F(:,1) F(:,2)];
+    % Selected half-edges
     Esel = [F(sel,2) F(sel,3);F(sel,3) F(sel,1);F(sel,1) F(sel,2)];
+    % Non-selected half-edges
     Ensel = [F(nsel,2) F(nsel,3);F(nsel,3) F(nsel,1);F(nsel,1) F(nsel,2)];
-    
-    [I] = ismember(sort(Ensel,2),sort(Esel,2),'rows');
-    nn = numel(nsel);
-    M = sparse(repmat(1:nn',1,3),repmat([1 2 3],nn,1),reshape(I,nn,3),nn,3);
+    % Find any non-selected half-edges in the selected ones
+    M = reshape(ismember(sort(Ensel,2),sort(Esel,2),'rows'),[],3);
+
+    % For each face, count the number of half-edges incident on a selected face
     C = sum(M,2);
+    % These faces touch two selected faces so, they'll need to be cut into 3:
+    %     o             o
+    %    / \           /|\
+    %   s   \   -->   o | \
+    %  /     \       / \|  \
+    % o---s---o     o---o---o
     M13 = M(C==2,:);
     S13 = nsel(C==2);
+    % These need to be cut into 2:
+    %     o             o
+    %    / \           /|\
+    %   /   \   -->   / | \
+    %  /     \       /  |  \
+    % o---s---o     o---o---o
     M12 = M(C==1,:);
     S12 = nsel(C==1);
-
     n = size(V,1);
+    % And even if face isn't selected, if all half-edges are getting split then
+    % the face will need to be cut into 4:
+    %     o             o
+    %    / \           / \
+    %   s   s   -->   o---o
+    %  /     \       / \ / \
+    % o---s---o     o---o---o
     S14 = union(sel,nsel(C==3));
-
+    % Finally let's keep a list of the faces that aren't getting split (*not*
+    % the same as the non-selected faces)
     S11 = setdiff((1:size(F,1))',[S14(:);S13(:);S12(:)]);
+
     [U14,F14,EU14] = one_four(size(V,1),V,F(S14,:));
     [U13,F13,EU13] = one_three(size(V,1)+size(U14,1),V,F(S13,:),M13);
     [U12,F12,EU12] = one_two(size(V,1)+size(U14,1)+size(U13,1),V,F(S12,:),M12);
     F11 = F(S11,:);
+
 
     FF = [F14;F13;F12;F11];
     FO = [S14;S14;S14;S14;S13;S13;S13;S12;S12;S11];
