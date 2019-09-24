@@ -160,7 +160,9 @@ if(LIBIGL_WITH_CGAL)
   endif()
   add_definitions("-DWITH_CGAL")
   compile_each("\
+box_intersect.cpp;\
 decimate_cgal.cpp;\
+form_factor.cpp;\
 intersect_other.cpp;\
 mesh_boolean.cpp;\
 outer_hull.cpp;\
