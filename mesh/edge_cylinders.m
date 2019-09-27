@@ -67,7 +67,11 @@ function [CV,CF,CJ,CI] = edge_cylinders(PV,PE,varargin);
     
     %   Copyright 2000-2005 The MathWorks, Inc.
     
-    qout = q./(quatmod( q )* ones(1,4));
+    if isempty(q)
+      qout = q;
+    else
+      qout = q./(quatmod( q )* ones(1,4));
+    end
   end
   function dcm = quat2dcm( q )
     %  QUAT2DCM Convert quaternion to direction cosine matrix.
@@ -161,6 +165,7 @@ function [CV,CF,CJ,CI] = edge_cylinders(PV,PE,varargin);
 
     dcm = quat2dcm(q);
 
+    qout = zeros(0,3);
     if ( size(q,1) == 1 ) 
         % Q is 1-by-4
         qout = (dcm*r')';
@@ -205,24 +210,31 @@ function [CV,CF,CJ,CI] = edge_cylinders(PV,PE,varargin);
   % edge lengths
   Evec = PV(PE(:,2),:)-PV(PE(:,1),:);
   l = sqrt(sum(Evec.^2,2));
-  [w,a] = axisanglebetween(Evec,repmat([0 0 1],size(Evec,1),1));
+  [w,a] = axisanglebetween( ...
+     Evec, ...
+     repmat([0 0 1],size(Evec,1),1));
   bad = any(isnan(w),2);
   w(bad,1) = 1; w(bad,2) = 0; w(bad,3) = 0;
   a(bad) = (Evec(bad,3)<0)*pi;
 
-  % twice as thick
-  [x,y,z] = cylinder(thickness/2,poly);
-  [CF,CV] = surf2patch(x,y,z,'triangles');
-  CI = repmat([1;2],poly,1);
-  [CV,I,J] = remove_duplicate_vertices(CV,eps);
-  CI = CI(I);
-  CF = J(CF);
-  CF = [CF;fill_holes(CV,CF)];
+  if numel(poly) == 1
+    [x,y,z] = cylinder(1,poly);
+    [CF,CV] = surf2patch(x,y,z,'triangles');
+    CI = repmat([1;2],poly,1);
+    [CV,I,J] = remove_duplicate_vertices(CV,eps);
+    CI = CI(I);
+    CF = J(CF);
+    CF = [CF;fill_holes(CV,CF)];
+  else
+    [CV,CF] = triangle(poly,[1:size(poly,1);2:size(poly,1) 1]',[]);
+    [CV,CF] = extrude(CV,CF);
+    CI = [2*ones(size(CV,1)/2,1);1*ones(size(CV,1)/2,1)];
+  end
   ncv = size(CV,1);
   ne = size(PE,1);
   CJ = reshape(repmat(1:ne,size(CF,1),1),ne*size(CF,1),1);
   CF = reshape(permute(bsxfun(@plus,permute((0:ne-1)*size(CV,1),[1 3 2]),CF),[1 3 2]),ne*size(CF,1),3);
-  CV = reshape(permute( bsxfun(@times,permute([ones(ne,2) l],[3 2 1]),CV),[1 3 2]),ne*ncv,3);
+  CV = reshape(permute( bsxfun(@times,permute([ones(ne,2).*thickness/2 l],[3 2 1]),CV),[1 3 2]),ne*ncv,3);
   CI = PE(sub2ind(size(PE),repmat(1:ne,size(CI,1),1),repmat(CI,1,ne)));
   CI = CI(:);
   R  = reshape(permute(repmat(permute(axisangle2quat(w,a),[3 2 1]),ncv,1),[1 3 2]),ne*ncv,4);
