@@ -227,13 +227,14 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
 
   % Evaluate the vector field X
   grad_u = reshape(pre.G*u,size(F,1),size(V,2));
-  grad_u_norm = sqrt(sum(grad_u.^2,2));
-  % normalize grad_u
-  normalized_grad_u = bsxfun(@rdivide,grad_u,grad_u_norm);
-  % correct any zero-norm gradients
-  normalized_grad_u(grad_u_norm == 0,:) = 0;
-  % reverse direction
-  X = -normalized_grad_u;
+  %grad_u_norm = sqrt(sum(grad_u.^2,2));
+  %% normalize grad_u
+  %normalized_grad_u = bsxfun(@rdivide,grad_u,grad_u_norm);
+  %% correct any zero-norm gradients
+  %normalized_grad_u(grad_u_norm == 0,:) = 0;
+  % normalize reverse direction; normalizerow will use robust norm that
+  % avoids underflow.
+  X = -normalizerow(grad_u);
   
   % Solve the Poisson equation 
   % divergence of X
