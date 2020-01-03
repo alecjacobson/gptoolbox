@@ -36,7 +36,7 @@ void mexFunction(
   mexErrMsgTxt(nrhs>=3,"nrhs should be >= 3");
   parse_rhs_double(prhs,V);
   parse_rhs_index(prhs+1,F);
-  mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
+  //mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
   mexErrMsgTxt(F.cols()==3,"F must be #F by 3");
   mexErrMsgTxt(
     mxIsDouble(prhs[2]) && mxGetM(prhs[2])==1 && mxGetN(prhs[2])==1,

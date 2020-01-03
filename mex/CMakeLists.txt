@@ -109,6 +109,7 @@ bone_visible.cpp;\
 collapse_small_triangles.cpp;\
 decimate_libigl.cpp;\
 fit_rotations_mex.cpp;\
+icp.cpp;\
 in_element_aabb.cpp;\
 readMSH.cpp;\
 read_triangle_mesh.cpp;\

@@ -4,6 +4,7 @@
 
 #include <igl/parallel_for.h>
 #include <igl/winding_number.h>
+#include <igl/fast_winding_number.h>
 #include <igl/WindingNumberAABB.h>
 #include <igl/matlab/validate_arg.h>
 #include <igl/matlab/MexStream.h>
@@ -47,7 +48,8 @@ void parse_rhs(
   bool & ray_cast,
   bool & ray_parity,
   int & num_rays,
-  bool & twod_rays)
+  bool & twod_rays,
+  bool & fast)
 {
   using namespace std;
   using namespace igl;
@@ -75,6 +77,7 @@ void parse_rhs(
   ray_parity = false;
   num_rays = 32;
   twod_rays = false;
+  fast = false;
   {
     int i = 3;
     while(i<nrhs)
@@ -83,7 +86,14 @@ void parse_rhs(
         "Parameter names should be char strings");
       // Cast to char
       const char * name = mxArrayToString(prhs[i]);
-      if(strcmp("Hierarchical",name) == 0)
+      if(strcmp("Fast",name) == 0)
+      {
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        fast = (mxLogical)*mxGetPr(prhs[++i]);
+        mexErrMsgTxt(!fast || dim==3,
+          "Fast only supported for dim = 3");
+      }else if(strcmp("Hierarchical",name) == 0)
       {
         validate_arg_logical(i,nrhs,prhs,name);
         validate_arg_scalar(i,nrhs,prhs,name);
@@ -117,7 +127,7 @@ void parse_rhs(
       }else
       {
         mexErrMsgTxt(false,
-          C_STR("Unsupported parameter: "<<name));
+          C_STR("Un-supported parameter: "<<name));
       }
       i++;
     }
@@ -138,10 +148,10 @@ void mexFunction(
 
   Eigen::MatrixXd V,O;
   Eigen::MatrixXi F;
-  bool hierarchical, ray_cast, ray_parity, twod_rays;
+  bool hierarchical, ray_cast, ray_parity, twod_rays, fast;
   int num_rays;
   parse_rhs(
-    nrhs,prhs,V,F,O, hierarchical, ray_cast, ray_parity, num_rays, twod_rays);
+    nrhs,prhs,V,F,O, hierarchical, ray_cast, ray_parity, num_rays, twod_rays, fast);
   const int dim = V.cols();
 
   //// Set up openmp
@@ -201,7 +211,10 @@ void mexFunction(
 #endif
   }else
   {
-    if(hierarchical && dim == 3)
+    if(fast && dim==3)
+    {
+      igl::fast_winding_number(V,F,O,W);
+    }else if(hierarchical && dim == 3)
     {
       // Initialize hierarchy
       WindingNumberAABB< Eigen::RowVector3d, Eigen::MatrixXd, Eigen::MatrixXi>

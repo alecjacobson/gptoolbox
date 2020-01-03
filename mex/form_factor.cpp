@@ -1,6 +1,8 @@
+#include <mex.h>
+#include "segment_list.h"
+#include "box_up.h"
 #include <Eigen/Core>
 #include <iostream>
-#include <mex.h>
 #include <igl/C_STR.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #undef assert
@@ -19,6 +21,18 @@
 #include <algorithm>
 namespace igl
 {
+// FORM_FACTOR
+//
+// [F,V,BC,N] = form_factor(P,E)
+//
+// Inputs:
+//   P  #P by 2 list of 2D vertices
+//   E  #E by 2 list of edge indices into P
+// Outputs:
+//   F  #E by #E matrix of integrated form factor values
+//   V  #E by #E matrix of visibility values
+//   BC  #E by 2 list of edge barycenters
+//   N  #E by 2 list of length-weighted normals
 template <
   typename DerivedP,
   typename DerivedE,
@@ -57,6 +71,7 @@ inline void form_factor(
   typedef CGAL::Point_2<Kernel>    Point_2;
   typedef CGAL::Segment_2<Kernel>  Segment_2; 
   typedef std::vector<Segment_2> Segments;
+  typedef typename std::vector<CGAL::Segment_2<Kernel> > Segments;
   typedef typename Segments::iterator SegmentsIterator;
   typedef typename Segments::const_iterator SegmentsConstIterator;
   typedef 
@@ -68,36 +83,11 @@ inline void form_factor(
   typedef std::map<std::pair<Index,Index>,std::vector<Index> >  EdgeMap;
   typedef std::pair<Index,Index> EMK;
 
-  const auto edges_to_cgal_segment_list = [](
-    const DerivedP & P,
-    const DerivedE & E,
-    Segments & segments)
-  {
-    segments.reserve(E.rows());
-    for(int i = 0;i<E.rows();i++)
-    {
-      segments.emplace_back(
-        Point_2(P(E(i,1),0),P(E(i,1),1)),
-        Point_2(P(E(i,0),0),P(E(i,0),1)));
-    }
-  };
-    
-  const auto box_up = [](Segments & T, std::vector<Box> & boxes) -> void
-  {
-    boxes.reserve(T.size());
-    for ( 
-      SegmentsIterator tit = T.begin(); 
-      tit != T.end(); 
-      ++tit)
-    {
-      boxes.push_back(Box(tit->bbox(), tit));
-    }
-  };
-
   Segments scene_segments;
-  edges_to_cgal_segment_list(P,E,scene_segments);
   std::vector<Box> scene_boxes;
-  box_up(scene_segments,scene_boxes);
+  igl::copyleft::cgal::segment_list(P,E,scene_segments);
+
+  igl::copyleft::cgal::box_up(scene_segments,scene_boxes);
 
   // rays as segments
   Segments ray_segments;
@@ -115,7 +105,7 @@ inline void form_factor(
   }
   assert(ray_segments.size() == (m*(m-1)/2));
   std::vector<Box> ray_boxes;
-  box_up(ray_segments,ray_boxes);
+  igl::copyleft::cgal::box_up(ray_segments,ray_boxes);
   V.setConstant(m,m,true);
   const auto cb = [&](const Box &scene_box, const Box &ray_box) -> void
   {
@@ -178,7 +168,8 @@ void mexFunction(
   using namespace igl;
   using namespace igl::matlab;
   using namespace Eigen;
-  MatrixXd P,E;
+  MatrixXd P;
+  MatrixXi E;
   igl::matlab::MexStream mout;        
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
   //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
