@@ -73,9 +73,13 @@ function t = tsurf(F,V,varargin)
   if(dim==2 || (dim ==3 && sum(abs(V(:,3))) == 0))
     V = [V(:,1) V(:,2) 0*V(:,1)];
     dim = 2;
-  elseif(dim>3 || dim<2 ) 
+  elseif ( (dim>3 || dim<2 ))
+      if dim==4 && all(V(:,4)==1.0)
+          V = V(:,1:3);
+      else
     error('V must be #V x 3 or #V x 2');
     return;
+      end
   end
 
   %tets = size(F,2) ==4 && (size(F,1)*4 > 1.01*size(boundary_faces(F),1));
