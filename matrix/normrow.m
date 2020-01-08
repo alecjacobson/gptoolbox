@@ -18,6 +18,7 @@ function [ B ] = normrow( A )
     %B = sqrt(sum(A.^2,2));
     M = max(abs(A),[],2);
     B = M.*sqrt(sum((A./M).^2,2));
+    B(M==0) = 0;
   end
 end
 
