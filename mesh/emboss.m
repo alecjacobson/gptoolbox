@@ -1,4 +1,4 @@
-function [VV,FF,J] = emboss(V,F,str,varargin)
+function [VV,FF,J,P,M,AO,TV,TF,r,i,ni,R] = emboss(V,F,str,varargin)
   % EMBOSS Find a spot on a mesh to emboss with given text
   %
   % [VV,FF] = emboss(V,F,str)
@@ -38,17 +38,24 @@ function [VV,FF,J] = emboss(V,F,str,varargin)
     v=v+1;
   end
 
+  % Generate 10000 uniformly random samples 
   [P,I] = random_points_on_mesh(V,F,10000,'Color','blue');
+  % Compute the normals per-face
   N = normalizerow(normals(V,F));
+  % Find the 160 closest points
   [K,D] = knnsearch(P,P,'K',160);
+  % Compute normals at each point
   NIK = reshape(N(I(K),:),[size(K) 3]);
+  % Compute a weighted fall-off per point
   W = exp(-(4*D./max(D,[],2)).^2);
+  % Compute the ambient occlusion per point
   AO = ambient_occlusion(V,F,P,N(I,:),1000);
   M = sum(W.*acos(min(max(sum(NIK.*permute(N(I,:),[1 3 2]),3),-1),1)).^2,2)+AO;
   [r,i] = max(D(:,end).*(M==min(M)));
   r = min(r,max_r);
 
-  [w,a] = axisanglebetween(N(I(i),:),[0 0 1]);
+  ni = N(I(i),:);
+  [w,a] = axisanglebetween(ni,[0 0 1],[1 0 0]);
   R = axisangle2matrix(w,a);
   [TV,TF] = text_to_mesh(str,'FontName',fontname,'TriangleFlags',' ');
   TV = TV-0.5*(max(TV)-min(TV));
