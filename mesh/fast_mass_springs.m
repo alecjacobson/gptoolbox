@@ -27,12 +27,21 @@ function [U,data] = fast_mass_springs(V,E,b,bc,varargin)
   % default values
   R = [];
   data = [];
+  % quadratic term
+  Q = sparse(0);
+  % linear term
+  l = sparse(0);
+  % stiffness
+  k = 1;
   % Initial guess 
   U = V;
+  max_iter = 100;
+  Aeq = [];
+  Beq = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'EdgeLengths','Data','U0'}, ...
-    {'R','data','U'});
+    {'Aeq','Beq','EdgeLengths','Stiffness','Data','Q','l','MaxIter','U0'}, ...
+    {'Aeq','Beq','R','k','data','Q','l','max_iter','U'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -47,18 +56,24 @@ function [U,data] = fast_mass_springs(V,E,b,bc,varargin)
     v=v+1;
   end 
 
+
   % number of vertices
   m = size(V,1);
   % number of springs
   s = size(E,1);
+  assert((numel(k) == 1)||(numel(k) == s));
 
   if isempty(data)
     % compute rest edge norms
     if isempty(R)
       data.R = sqrt(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2));
+    else
+      data.R = R;
     end
     % Inversely proportional to length (then squared)
-    K = data.R.^-0.5;
+    %
+    % Huh? In the paper, A is really just the incidence matrix with ±1
+    K = sqrt(k).*data.R.^-0.5;
     %% Uniform for now
     %K = ones(s,1);
     % Spring signed incidence matrix
@@ -66,12 +81,16 @@ function [U,data] = fast_mass_springs(V,E,b,bc,varargin)
     % "Laplacian"
     data.L = A*A';
     S = diag(sparse(K));
+    % Suspicious that sqrt(k) shows up here but k shows up in L
     data.J = A*S;
-    data.mqwf = [];
+    if iscell(Aeq)
+      data.mqwf = cell(size(Aeq));
+    else
+      data.mqwf = [];
+    end
   end
 
   iter = 0;
-  max_iter = 100;
   while true
     % Fix U and find D ("local" step)
     % recompute edge vectors
@@ -79,7 +98,16 @@ function [U,data] = fast_mass_springs(V,E,b,bc,varargin)
     % normalize
     D = bsxfun(@times,D,data.R./sqrt(sum(D.^2,2)));
     % Fix D and find U ("global" step)
-    [U,data.mqwf] = min_quad_with_fixed(0.5*data.L,-data.J*D,b,bc,[],[],data.mqwf);
+    if iscell(Aeq)
+      U = zeros(size(V));
+      for c = 1:size(V,2)
+        [U(:,c),data.mqwf{c}] =  min_quad_with_fixed( ...
+          0.5*data.L+Q,-data.J*D(:,c)+l(:,c),b,bc(:,c),Aeq{c},Beq{c},data.mqwf{c});
+      end
+    else
+      [U,data.mqwf] = min_quad_with_fixed(0.5*data.L+Q,-data.J*D+l,b,bc,Aeq,Beq,data.mqwf);
+    end
+
     iter = iter + 1;
     if iter == max_iter
       break;
