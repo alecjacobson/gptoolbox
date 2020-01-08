@@ -15,8 +15,14 @@ function [bs,ts] = split_backfacing(ts)
     N = normals(t.Vertices,t.Faces);
     back = sum(N.*bsxfun(@minus,BC,campos),2)>0;
     b = copyobj(t,t.Parent);
-    t.Faces = t.Faces(~back,:);
-    b.Faces = b.Faces( back,:);
+    face_color = (size(t.FaceVertexCData,1) == size(t.Faces,1) || size(t.CData,1) == size(t.Faces,1)) && strcmp(t.FaceColor,'flat');
+    if face_color
+      set(t,'Faces',t.Faces(~back,:),'FaceVertexCData',t.FaceVertexCData(~back,:),'CData',t.CData(~back,:));
+      set(b,'Faces',b.Faces( back,:),'FaceVertexCData',b.FaceVertexCData( back,:),'CData',b.CData( back,:));
+    else
+      set(t,'Faces',t.Faces(~back,:));
+      set(b,'Faces',b.Faces( back,:));
+    end
     bs{end+1} = b;
   end
 end
