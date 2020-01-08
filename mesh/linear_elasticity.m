@@ -6,10 +6,10 @@ function [U,Ud,data] = linear_elasticity(V,F,b,bc,varargin)
   % [U,Ud,K] = linear_elasticity(V,F,b,bc,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
-  %   V  #V by 2 list of vertex positions
-  %   F  #F by 3 list of triangle element indices into V
+  %   V  #V by d list of vertex positions
+  %   F  #F by d+1 list of element indices into V
   %   b  #b list of indices into V of fixed vertices
-  %   bc #bc by 2 list of fixed vertex positions
+  %   bc #bc by d list of fixed vertex positions
   %   Optional:
   %     'Lambda'  followed by first Lamé parameter {1.7423333}, scalar
   %       (homogeneous) or #F by 1 list of per-element values
@@ -19,20 +19,21 @@ function [U,Ud,data] = linear_elasticity(V,F,b,bc,varargin)
   %       list of per-element values
   %     'Nu'  followed by Poisson's ratio, scalar (homogeneous) or #F by 1 list
   %       of per-element values
-  %     'U0'  followed by #V by 2 list of previous displacements
-  %     'Ud0'  followed by #V by 2 list of previous velocities: (U0 - Um1)/dt
-  %     'BodyForces'  followed by #V by 2 list of body forces
+  %     'U0'  followed by #V by d list of previous displacements
+  %     'Ud0'  followed by #V by d list of previous velocities: (U0 - Um1)/dt
+  %     'BodyForces'  followed by #V by d list of body forces
   %     'TimeStep' followed by time step {0.1}
+  %     'Data'  see output {[]}
   % Outputs:
-  %   U  #V by 2 list of vertex displacements
-  %   Ud  #V by 2 list of vertex velocities
+  %   U  #V by d list of vertex displacements
+  %   Ud  #V by d list of vertex velocities
   %   data  precomputation data
-  %     data.A  #F*3 by #F*3 diagonal element area matrix
-  %     data.K  #V*2 by #V*2 sparse stiffness matrix
-  %     data.M  #V*2 by #V*2 sparse mass matrix
-  %     data.strain  #F*3 by #V*2 sparse strain matrix
+  %     data.A  #F*(d*(d+1)/2) by #F*(d*(d+1)/2) diagonal element area matrix
+  %     data.K  #V*d by #V*d sparse stiffness matrix
+  %     data.M  #V*d by #V*d sparse mass matrix
+  %     data.strain  #F*(d*(d+1)/2) by #V*d sparse strain matrix
   %     data.dt  timestep
-  %     data.C  #F*3 by #F*3 sparse constituitive model matrix 
+  %     data.C  #F**(d*(d+1)/2) by #F**(d*(d+1)/2) sparse constituitive model matrix 
   %     data.mqwf  precomputation for implicit solve (from min_quad_with_fixed)
   %     data.solve  function handle for conducting implicit step
   % 
@@ -51,8 +52,6 @@ function [U,Ud,data] = linear_elasticity(V,F,b,bc,varargin)
   %     drawnow;
   %   end
   %   
-
-  assert(size(V,2) == 2,'Only 2D meshes are supported');
 
   data = [];
   % Time step
@@ -89,6 +88,7 @@ function [U,Ud,data] = linear_elasticity(V,F,b,bc,varargin)
     v=v+1;
   end
 
+
   first_solve = false;
   if isempty(data)
     first_solve = true;
@@ -101,112 +101,12 @@ function [U,Ud,data] = linear_elasticity(V,F,b,bc,varargin)
       lambda = young.*nu./((1+nu).*(1-2.*nu));
       mu = .5.*young./(1+nu);
     end
+    % young = mu*(3*lambda+2*mu)/(lambda+mu);
+    % nu = lambda/(2*(lambda+mu));
 
-    % This matches the matlab code by Jonas Koko, in
-    % "Vectorized Matlab Codes for Linear Two-Dimensional Elasticity"
+    [data.K,data.C,data.strain,data.A,data.M] = ...
+      linear_elasticity_stiffness(V,F,'Lambda',lambda,'Mu',mu);
 
-    % Gradient/divergence operator
-    G = grad(V,F);
-
-    % Strain tensor 
-    %
-    %   ϵ = ½(∇u + (∇u)')
-    %   ϵ = ½ // ∂u₁/∂x₁  ∂u₂/∂x₁ \  + / ∂u₁/∂x₁  ∂u₁/∂x₂ \\
-    %         \\ ∂u₁/∂x₂  ∂u₂/∂x₂ /    \ ∂u₂/∂x₁  ∂u₂/∂x₂ //
-    %
-    %                                "Voigt" notation
-    %   ϵ₁₁ = ∂u₁/∂x₁              = ϵ₁
-    %   ϵ₂₂ = ∂u₂/∂x₂              = ϵ₂
-    %   ϵ₁₂ = ½(∂u₂/∂x₁ + ∂u₁/∂x₁) = ½ ϵ₃
-    %   ϵ₂₁ = ϵ₁₂                  = ½ ϵ₃
-    %  
-    G1 = G(1:size(F,1),:);
-    G2 = G(size(F,1)+(1:size(F,1)),:);
-    Z = sparse(size(F,1),size(V,1));
-    % 3#F by 2#V
-    data.strain = [G1 Z;Z G2;G2 G1];
-
-    % Stiffness tensor
-    %
-    %    σ = C:ϵ        %  A:B = Aij Bij 
-    %                   %      = ∑∑ Aij Bij, where in this case Aij is a 2x2
-    %                   %                    matrix, and Bij is a scalar
-    %  
-    % For each face we have:
-    %   
-    %    2x2 = 2x2x2x2 2x2
-    %    σf  = Cf : ϵf
-    %    σ = ∑∑ Cij ϵij, where Cij is a 2x2 matrix
-    %    σkl = ∑∑ Cijkl ϵij, where Cijkl is a scalar
-    %
-    % But really ϵf and σf are just 3 distinct values:
-    %
-    %   σ₁ = [ϵ₁ ϵ₂ ϵ₃] [ c₁₁ ; c₁₂ ; c₁₃ ]
-    %   σ₂ = [ϵ₁ ϵ₂ ϵ₃] [ c₂₁ ; c₂₂ ; c₂₃ ]
-    %   σ₃ = [ϵ₁ ϵ₂ ϵ₃] [ c₃₁ ; c₃₂ ; c₃₃ ]
-    %
-    %    /σ₁\     /c₁₁ c₁₂ c₁₃\  /ϵ₁\
-    %   | σ₂ | = | c₂₁ c₂₂ c₂₃ || ϵ₂ |
-    %    \σ₃/     \c₃₁ c₃₂ c₃₃/  \ϵ₃/
-    %  
-    % So if σ is a 3#F by 1 vector and ϵ is a 3#F vector then:
-    %  
-    %   σ = C ϵ
-    %        /C₁₁ C₁₂ C₁₃\  /ϵ₁\
-    %   σ = | C₂₁ C₂₂ C₂₃ || ϵ₂ |
-    %        \C₃₁ C₃₂ C₃₃/  \ϵ₃/
-    % 
-    %  where C is 3#F by 3#F matrix and Cij = diagonal #F by #F matrix.
-    %
-    % For Isotropic homogeneous media, we have that:
-    %
-    %   σij = λ δij ϵkk + 2μ ϵij
-    %   σij = λ δij (∑ ϵkk) + 2μ ϵij
-    % 
-    % where λ is Lamé's first parameter and μ is the shear modulus: the bulk
-    % modulus is thus K := λ + ⅔ μ
-    %
-    % Or in Voigt notation:
-    % 
-    %   σ₁ = σ₁₁ = λ (ϵ₁ + ϵ₂) + 2μ ϵ₁
-    %   σ₂ = σ₂₂ = λ (ϵ₁ + ϵ₂) + 2μ ϵ₂
-    %   σ₃ = σ₁₂ = λ (ϵ₁ + ϵ₂) + 2μ ϵ₁₂
-    %            = λ (ϵ₁ + ϵ₂) + μ ϵ₃
-    %
-    %        //λ  λ 0\   /2μ  0  0\\  
-    %  σ =  || λ  λ 0 |+|  0 2μ  0 || ϵ
-    %        \\0  0 0/   \ 0  0  μ//
-    %
-    %
-    %Z = sparse(size(F,1),size(F,1));
-    %I = speye(size(F,1));
-    %C = lambda*[[I I Z;I I Z;Z Z Z]] + mu*[2*I Z Z;Z 2*I Z;Z Z I];
-    %C = lambda*[1 1 0;1 1 0;0 0 0] + mu*diag([2 2 1]);
-    %data.C = kroneye(C,size(F,1));
-    I = speye(size(F,1));
-    lambda = diag(sparse(lambda));
-    mu = diag(sparse(mu));
-    data.C = [ ...
-      (lambda+2*mu)*I        lambda*I  0*I; ...
-             lambda*I (lambda+2*mu)*I  0*I; ...
-                  0*I             0*I mu*I];
-
-    %   ∇⋅σ = /∇⋅/σ₁₁\  ∇⋅/σ₁₂\\
-    %         \  \σ₂₁/    \σ₂₂//
-    % 
-    % If D is the divergence operator then D is 2#V by 3#F, where σ is 3#F by 1
-    % vectorized stress tensor using Voigt notation:
-    %
-    %   X = D σ
-    %
-    Z = sparse(size(V,1),size(F,1));
-    D = [G1' Z G2';Z G2' G1'];
-    A = diag(sparse(doublearea(V,F)/2));
-    data.A = blkdiag(A,A,A);
-    data.K = D * data.A * data.C * data.strain;
-
-    data.M = massmatrix(V,F);
-    data.M = repdiag(data.M,size(V,2));
 
     % ∇⋅σ + F = ü
     % Ku₂ + MF = M(u₂-2u₁+u₀)/dt²
