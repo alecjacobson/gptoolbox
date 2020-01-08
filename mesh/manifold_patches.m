@@ -18,7 +18,7 @@ function [C,A,uE2F,uE] = manifold_patches(F)
 
   % simplex size
   ss = size(F,2);
-  assert(ss == 3);
+  assert(ss == 3 || ss == 2);
 
   [A,uE2F,uE] = facet_adjacency_matrix(F,'ManifoldOnly',true);
   % Connected components are patches
