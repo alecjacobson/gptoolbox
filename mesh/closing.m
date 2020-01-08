@@ -1,4 +1,26 @@
 function [CV,CF,OV,OF] = closing(V,F,sigma,varargin)
+  % CLOSING Create a mesh of the morphological closing of a given mesh (V,F).
+  % Conducted by dilating by simga+epsilon and then eroding by sigma
+  %
+  % [CV,CF] = closing(V,F,sigma)
+  % [CV,CF,OV,OF] = closing(V,F,sigma,'ParameterName',ParameterValue, ...)
+  %
+  % Inputs:
+  %   V  #V by 3 list of mesh vertex positions
+  %   F  #F by 3 list of triangle indices into V
+  %   sigma  radius of structuring element
+  %   Optional:
+  %     'Epsilon'  followed by epsilon value {small number % of sigma}
+  %     'SignedDistanceType'  see signed_distance_isosurface.m
+  %     'ContouringMethod'  see signed_distance_isosurface.m
+  %     'GridSize'  see signed_distance_isosurface.m
+  % Outputs:
+  %   CV  #CV by 3 list of closing vertex positions
+  %   CF  #CF by 3 list of triangle indices into CV
+  %   OV  #OV by 3 list of intermediary dilation vertex positions
+  %   OF  #OF by 3 list of triangle indices into OV
+  %
+
   
 
   epsilon = [];
