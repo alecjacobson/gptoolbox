@@ -22,5 +22,6 @@ function [U,G] = unzip_corners(A)
   % C  #F*3 by 2 list of vertex indices and uv indices
   C = reshape(A,[],size(A,3));
   [U,~,J] = unique(C,'rows');
-  G = J(reshape(1:size(A,1)*3,[],3));
+  ss = size(A,2);
+  G = J(reshape(1:size(A,1)*ss,[],ss));
 end
