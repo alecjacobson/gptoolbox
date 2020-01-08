@@ -1,11 +1,11 @@
-function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
+function [VV,FF,WrV,WrF,JJ,WV,PE,mbV,mbF,WrJ] = joints(V,E,varargin)
   % JOINTS Construct joints around a wire mesh given as a graph
   % 
   % [VV,FF] = joints(V,E);
   % [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
-  %   V  #V by 3 list of wire graph vertex positions
+  %   V  #V by 3 list of wire graph vertex positions in mm
   %   E  #E by 2 list of edge indices into V
   %   Optional:
   %     'EmbossHeight' followed by height of embossed letters
@@ -38,10 +38,11 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
   th = [];
   emboss_height = [];
   label_sockets = false;
+  save_all = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'EmbossHeight' ,'JointThickness','LabelSockets','Overhang','PolySize','Radius','Tol'}, ...
-    {'emboss_height','th','label_sockets','hang','poly','r','tol'});
+    {'EmbossHeight','JointThickness','LabelSockets','Overhang','PolySize','Radius','SaveAll','Tol'}, ...
+    {'emboss_height','th','label_sockets','hang','poly','r','save_all','tol'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -54,6 +55,21 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
       error('Unsupported parameter: %s',varargin{v});
     end
     v=v+1;
+  end
+
+  if isempty(r)
+    assert(size(poly,2) == 2,'poly should contain a 2d polyon');
+    assert(size(poly,1) > 2,'poly should contain a 2d polyon');
+    r = max(normrow(poly));
+    % now poly is unit length
+    poly = poly/r;
+  end
+  if numel(poly)>1
+    assert(size(poly,2) == 2,'poly should contain a 2d polyon');
+    assert(size(poly,1) > 2,'poly should contain a 2d polyon');
+    npoly = size(poly,1);
+  else
+    npoly = poly;
   end
 
   if isempty(th)
@@ -73,7 +89,8 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
   A = adjacency_matrix(E);
   n = size(V,1);
   ne = size(E,1);
-  theta = inf(ne,2);
+  %theta = inf(ne,2);
+  cos_theta = -inf(ne,2);
   E2V = sparse(repmat(1:ne,2,1)',E,[ones(ne,1),-ones(ne,1)],ne,n);
 
   % loop over edges
@@ -86,40 +103,74 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
       N = setdiff(find(E2V(:,i)),ei);
       for nei = reshape(N,1,[])
         flip = (E(nei,c) == i)*2-1;
-        theta(ei,c) = min(theta(ei,c),acos(flip*sum(U(ei,:).*U(nei,:),2)));
+        %theta(ei,c) = min(theta(ei,c),acos(flip*sum(U(ei,:).*U(nei,:),2)));
+        cos_theta(ei,c) = max(cos_theta(ei,c),(flip*sum(U(ei,:).*U(nei,:),2)));
       end
     end
   end
-  assert(min(theta(:))>eps,'All angles should be >0. Degenerate/co-linear edge(s)?');
-  J = R./atan(theta./2);
-  assert(all(max(imag(J)) < 1e-9),'J should be real-ish');
-  J = real(J);
+  %assert(min(theta(:))>eps,'All angles should be >0. Degenerate/co-linear edge(s)?');
+  assert(1-max(cos_theta(:))>eps,'All angles should be >0. Degenerate/co-linear edge(s)?');
+  %% WTF!?! atan of an angle?
+  %J = R./atan(theta./2);
+  %theta(abs(theta)>(pi/2)) = pi/2;
+  cos_theta( cos_theta < 0 ) = 0;
+  theta = acos(cos_theta);
+  %min(abs(theta(theta~=0)))*180/pi
+  J = R.*sqrt((1+cos_theta)./(1-cos_theta));
+  %J = R./tan(abs(theta./2));
+  %assert(all(max(imag(J)) < 1e-9),'J should be real-ish');
+  %J = real(J);
   assert(~any(isinf(J(:))),'All offsets should be finite');
 
   offset = @(V,E,J) [ ...
     V(E(:,1),:)+U.*J(:,1); ...
     V(E(:,2),:)-U.*J(:,2)];
-  ZV = offset(V,E,min(J-th*sqrt(2),2*R));
   HV = offset(V,E,J+hang);
-  JV = offset(V,E,J);
-  WV = offset(V,E,J+th);
+  %% Q: Why is there a +th here? 
+  %% A: The +th means we're _shrinking_ the rods, but, still, shouldn't it be
+  %%    +tol/2 if anything? Or better, shouldn't JV account for -tol/2 ?
+  %WV = offset(V,E,J+th);
+  %JV = offset(V,E,J);
+  WV = offset(V,E,J);
+  JV = offset(V,E,J-tol/2);
+  %% Q: Why did I introduce this complicated min(J...) ?
+  %% A: Because otherwise there can be a sharp angle directly behind the hole.
+  %%                 ___________________
+  %% thin wall --->/*__________________
+  %%              / |
+  %%             /  |__________________
+  %%            /   ___________________
+  %%           /    |
+  %%          / __  |
+  %%         | |  | |
+  %% Q: I still don't understand the sqrt(2) though, is it just an extra scale
+  %%    factor >1?
+  ZV = offset(V,E,min(J-tol/2-th*sqrt(2),2*R));
   PE = [1:ne;ne+(1:ne)]';
 
 
+  % Geometry of rods + tolerance that will be subtracted
   [JRV,JRF,JRJ,JRI] = edge_cylinders(JV,PE,'Thickness',2*R,'PolySize',poly);
+  % The actual geometry of the rods
   [WrV,WrF,WrJ,WrI] = edge_cylinders(WV,PE,'Thickness',2*r,'PolySize',poly);
-  [HOV,HOF,HOH,HOI] = edge_cylinders(HV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
-  [ZOV,ZOF,ZOZ,ZOI] = edge_cylinders(ZV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
+  %[HOV,HOF,HOH,HOI] = edge_cylinders(HV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
+  %[ZOV,ZOF,ZOZ,ZOI] = edge_cylinders(ZV,PE,'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
 
   HZE = (1:size(HV,1))' +[0 size(HV,1)];
+  % Avoid extra spin for edges going the other direction (the fact that I have
+  % to do this hints that my axisanglebetween in edge_cylinders is not finding
+  % the minimal twist solution...)
+  HZE(1:end/2,:) = fliplr(HZE(1:end/2,:));
   HZV = [HV;ZV];
+  %hr = (1+2*(1-cos(pi/npoly)))*(r+th+tol)
+  hr = r+th+tol;
   [HZOV,HZOF,HZJ,HZI] = edge_cylinders( ...
     HZV,HZE, ...
-    'Thickness',2*(1+2*(1-cos(pi/poly)))*(r+th+tol),'PolySize',poly);
+    'Thickness',2*hr,'PolySize',poly);
 
-  VV = [];
-  FF = [];
-  JJ = [];
+  CV = [];
+  CF = [];
+  CJ = [];
   % Annoying bug if there's just one edge
   vec = @(X) X(:);
   % Loop over vertices
@@ -128,9 +179,9 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
       Vi = [V(i,:);  ...
         HZOV(vec(E(mod(HZI-1,2*ne)+1)==i) & HZI>size(HV,1),:)];
       Fi = convhull(Vi);
-      FF = [FF;size(VV,1)+Fi];
-      VV = [VV;Vi];
-      JJ = [JJ;repmat(i,size(Fi,1),1)];
+      CF = [CF;size(CV,1)+Fi];
+      CV = [CV;Vi];
+      CJ = [CJ;repmat(i,size(Fi,1),1)];
     end
   end
 
@@ -177,12 +228,18 @@ function [VV,FF,WrV,WrF,JJ,WV,PE] = joints(V,E,varargin)
   end
 
   fprintf('boolean...\n')
-  JJ = [JJ;E(HZJ)];
-  [VV,FF,mJJ] = mesh_boolean([VV;HZOV],[FF;size(VV,1)+HZOF],[JRV;LV],[JRF;size(JRV,1)+LF],'minus');
+  JJ = [CJ;E(HZJ)];
+  mbV = [CV;HZOV];
+  mbF = [CF;size(CV,1)+HZOF];
+  [VV,FF,mJJ] = mesh_boolean(mbV,mbF,[JRV;LV],[JRF;size(JRV,1)+LF],'minus');
   [~,C] = connected_components(FF);
   CJ = zeros(max(C),1);
   CJ(C(mJJ<=numel(JJ))) = JJ(mJJ(mJJ<=numel(JJ)));
   JJ = CJ(C);
+
+  if ~isempty(save_all)
+    save(save_all);
+  end
 
 
   % sanity check only makes sense if tol is positive
