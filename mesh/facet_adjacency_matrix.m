@@ -51,6 +51,7 @@ function [A,uE2F,uE] = facet_adjacency_matrix(F,varargin)
     uE2F = sparse(IC(:),repmat(1:size(F,1),1,ss)',1);
   case 2
     % We're really dealing with edges, so E-->vertices, F-->edges
+    uE = 1:max(F(:));
     uE2F = sparse(F,repmat(1:size(F,1),2,1)',1);
   end
 
