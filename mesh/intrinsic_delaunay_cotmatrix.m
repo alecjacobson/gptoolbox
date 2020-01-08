@@ -41,7 +41,7 @@ function [L,F,l] = intrinsic_delaunay_cotmatrix(V,F,varargin)
   end
 
   while true
-    D = is_delaunay([],F,'SideLengths',l);
+    D = is_intrinsic_delaunay([],F,'SideLengths',l);
     if all(D(:))
       break;
     end
