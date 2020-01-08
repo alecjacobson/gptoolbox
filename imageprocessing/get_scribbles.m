@@ -1,7 +1,7 @@
-function [SI,S,C] = get_scribbles(im,varargin)
+function [SI,S] = get_scribbles(im,varargin)
   % Display an image and ask the user to draw scribbles then hit enter
   %
-  % [SI,S,C] = get_scribbles(im)
+  % [SI,S] = get_scribbles(im)
   %
   % Inputs:
   %   im  w by h by channels image
@@ -10,7 +10,7 @@ function [SI,S,C] = get_scribbles(im,varargin)
   % Outputs:
   %   SI  w by h scribbles mask (0 no scribble, otherwise scribble id)
   %   S  w by h scribbles mask in RGB
-  %   C  colors corresponding to each scribble
+  %   %C  colors corresponding to each scribble
   %
 
   f = gcf;
@@ -43,6 +43,7 @@ function [SI,S,C] = get_scribbles(im,varargin)
   P = {};
   p = {};
   pc = 0;
+  C = cbrewer('Set1',50);
 
   done = false;
   while(~done)
@@ -69,10 +70,11 @@ function [SI,S,C] = get_scribbles(im,varargin)
   set(gcf,'Color',old_color);
   set(gcf,'GraphicsSmoothing',old_aa);
   %S = S(1:size(im,1),1:size(im,2),:);
-  SI = rgb2ind(S,pc+1);
-  if(numel(unique(SI(:))) ~= pc+1)
-    warning(['IDs not right']);
-  end
+  SI = rgb2ind(S,[0 0 0;C],'nodither');
+  %SI = rgb2ind(S,pc+1);
+  %if(numel(unique(SI(:))) ~= pc+1)
+  %  warning(['IDs not right']);
+  %end
 
   % match class of input
   switch class(im)
@@ -91,6 +93,7 @@ function [SI,S,C] = get_scribbles(im,varargin)
   otherwise
     warning(['Input is strange class: ' class(im)]);
   end
+
 
   % Callback for mouse press
   function ondown(src,ev)
@@ -146,11 +149,12 @@ function [SI,S,C] = get_scribbles(im,varargin)
   end
 
   function nc = next_color()
-    if (pc-1) <= 20
-      nc = [(pc-1)/20 0 1];
-    else
-      nc = [1 (pc-1)/40 1];
-    end
+    nc = C(pc,:);
+    %if (pc-1) <= 20
+    %  nc = [(pc-1)/20 0 1];
+    %else
+    %  nc = [1 (pc-1)/40 1];
+    %end
   end
 
   function finish()
