@@ -21,9 +21,9 @@ if size(V,2) == 2
   warning('Appending 0s as z-coordinate');
   V(:,end+1:3) = 0;
 else
-  assert(size(V,2) == 3);
+  %assert(size(V,2) == 3);
 end
-fprintf( f, 'v %0.17g %0.17g %0.17g\n', V');
+fprintf( f, ['v' repmat(' %0.17g',1,size(V,2)) '\n'], V');
 
 hasN =  exist('N','var') && ~isempty(N);
 hasUV = exist('UV','var') && ~isempty(UV);
