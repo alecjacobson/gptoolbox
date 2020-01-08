@@ -54,7 +54,7 @@ function B = barycentric_coordinates(P,varargin)
     A1 = edge_lengths([P;V2],[1:n;n+[1:n]]');
     A2 = edge_lengths([V1;P],[1:n;n+[1:n]]');
     A = edge_lengths([V1;V2],[1:n;n+[1:n]]');
-    if size(P,2)>1 && max(abs(sum([A1 A3],2)-A))>1e-14
+    if size(P,2)>1 && max(abs(sum([A1 A2],2)-A))>1e-14
       warning('Possibly negative coordinates. Not supported in dim~=1');
     end
     B = bsxfun(@rdivide,[A1 A2],A);
