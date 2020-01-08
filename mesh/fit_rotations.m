@@ -17,7 +17,7 @@ function [R,SS] = fit_rotations(S,varargin)
   %
 
   % Even faster way to check if mex exists
-  if fit_rotations_mex
+  if fit_rotations_mex && nargin == 1
     nr = size(S,3);
     dim = size(S,1);
     SS = reshape(permute(S,[3 1 2]),[nr*dim dim]);
