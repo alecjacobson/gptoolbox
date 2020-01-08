@@ -1,5 +1,15 @@
 function [V,F,C] = beach_ball(long_div_6)
-% [V,F,C] = beach_ball(long_div_6)
+  % BEACH_BALL Generate a beach ball mesh with color
+  %
+  % [V,F,C] = beach_ball(long_div_6)
+  %
+  % Input:
+  %   long_div_6  number of longitude edges divided by 6
+  % Output:
+  %   V  #V by 3 list of vertex positions
+  %   F  #F by 3 list of triangle indices into rows of V
+  %   C  #F by 3 list of rgb colors
+  %   
   long = long_div_6*6;
   [X,Y,Z] = sphere(long);
   [F,V] = surf2patch(X,Y,Z,'triangles');
