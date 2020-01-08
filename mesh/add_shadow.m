@@ -71,6 +71,7 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
   end
   T = T(:);
 
+        ca = caxis;
   if ~exist('L','var') || isempty(L)
     c = get(gca,'Children');
     L = c(arrayfun(@(x) isa(x,'matlab.graphics.primitive.Light'),c));
@@ -142,7 +143,6 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
         case 'infinite'
           D = 1.0-D;
         end
-        ca = caxis;
         C = bsxfun(@plus,color,bsxfun(@times,D,background_color-color));
         switch class(t)
         case 'matlab.graphics.primitive.Patch'
