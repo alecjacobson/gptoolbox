@@ -1,4 +1,4 @@
-function [H,L,BT,CC] = arap_hessian(V,F,varargin)
+function [H,L,BT,CC,R] = arap_hessian(V,F,varargin)
   % ARAP_HESSIAN Compute the Hessian of an as-rigid-as-possible energy defined
   % for a mesh (V,F), according to "Shape Decomposition using Modal Analysis"
   % [Huang et al. 2009].
@@ -82,9 +82,15 @@ function [H,L,BT,CC] = arap_hessian(V,F,varargin)
     % Hacky way to handle 2D
     V(:,3) = 0;
     assert(size(F,2) == 3);
-   [H,L,BT,CC] = arap_hessian(V,F,varargin{:});
+   [H,L,BT,CC,R] = arap_hessian(V,F,varargin{:});
+   if ~isempty(R)
+      R = R(1:2,1:2,:);
+   end
    H = H(1:end*2/3,1:end*2/3);
    return;
+  end
+  if dim == 3 && size(U,2) == 2 && all(V(:,3)==0)
+    U(:,3) = 0;
   end
   % Simplex size
   ss = size(F,2);
