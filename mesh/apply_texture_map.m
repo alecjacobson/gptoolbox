@@ -19,6 +19,7 @@ function [IO,A] = apply_texture_map(tsh,UV,T)
   [I,A,FI,B] = shader(tsh);
   [II,~,IV] = find(FI(:));
   B1 = B(:,:,1);B2 = B(:,:,2);B3 = B(:,:,3);
+  F = tsh.Faces;
   PUV = zeros(numel(B1),2);
   PUV(II,:) =  ...
     UV(F(IV,1),:).*B1(II) + UV(F(IV,2),:).*B2(II) + UV(F(IV,3),:).*B3(II);
