@@ -18,6 +18,10 @@ the build routine is (from the bash command line):
 
 This will output the mex functions in this (`mex/`) directory.
 
+CMake's `FindMatlab.cmake` is not very good. You might have to do something like:
+
+    cmake ../ -DMatlab_ROOT_DIR=/apps/matlab-R2018b/
+
 ### Dependencies 
 
 Nearly all of the functions depend on stl, Eigen and libigl.  Beyond that some
