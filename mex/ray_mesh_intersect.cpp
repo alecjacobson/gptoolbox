@@ -6,6 +6,8 @@
 #undef assert
 #define assert( isOK ) ( (isOK) ? (void)0 : (void) mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
 #include <igl/matlab/MexStream.h>
+#include <igl/parallel_for.h>
+
 #include <Eigen/Core>
 #include <limits>
 #include <mex.h>
@@ -13,6 +15,7 @@
 void mexFunction(int nlhs, mxArray *plhs[],
     int nrhs, const mxArray *prhs[])
 {
+  mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
   // This is useful for debugging whether Matlab is caching the mex binary
   //mexPrintf("%s %s\n",__TIME__,__DATE__);
   igl::matlab::MexStream mout;
@@ -44,7 +47,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
   EmbreeIntersector ei;
   ei.init(V,F,true);
-  for(int si = 0;si<n;si++)
+  //for(int si = 0;si<n;si++)
+  igl::parallel_for(n,[&](const int si)
   {
     Eigen::Vector3f s = source.row(si);
     Eigen::Vector3f d = dir.row(si);
@@ -64,6 +68,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
       lambda.row(si).setZero();
     }
   }
+  );
 
 
   switch(nlhs)
