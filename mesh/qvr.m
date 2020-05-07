@@ -8,8 +8,10 @@ function q = qvr(X,U,varargin)
 
   switch size(X,2)
   case 3
-    q = quiver3(X(:,1),X(:,2),X(:,3),U(:,1),U(:,2),U(:,3),varargin{:});
+    qq = quiver3(X(:,1),X(:,2),X(:,3),U(:,1),U(:,2),U(:,3),varargin{:});
   case 2
-    q = quiver(X(:,1),X(:,2),U(:,1),U(:,2),varargin{:});
+    qq = quiver(X(:,1),X(:,2),U(:,1),U(:,2),varargin{:});
   end
+  
+  if nargout>0, q = qq; end
 end
