@@ -8,8 +8,10 @@ function s = sct(V,varargin)
 
   switch size(V,2)
   case 3
-    s = scatter3(V(:,1),V(:,2),V(:,3),varargin{:});
+    ss = scatter3(V(:,1),V(:,2),V(:,3),varargin{:});
   case 2
-    s = scatter(V(:,1),V(:,2),varargin{:});
+    ss = scatter(V(:,1),V(:,2),varargin{:});
   end
+  
+  if nargout>0, s = ss; end
 end 
