@@ -1,0 +1,30 @@
+function [Imc,A] = apply_matcap(tsh,mc)
+  if ~isfloat(mc)
+    mc = im2double(mc);
+  end
+  psh.FaceColor = tsh.FaceColor;
+  psh.FaceLighting = tsh.FaceLighting;
+  tsh.FaceColor = 'w';
+  tsh.FaceLighting = 'none';
+  [I,A,FI,B] = shader(tsh);
+  [II,~,IV] = find(FI(:));
+  V = tsh.Vertices;
+  F = tsh.Faces;
+  [AZ,EL] = view;
+  M = eye(3,4)*viewmtx(AZ,EL)'*eye(4,3);
+  N = per_vertex_normals(V,F)*M;
+  B1 = B(:,:,1);B2 = B(:,:,2);B3 = B(:,:,3);
+  PN = zeros(numel(B1),3);
+  PN(II,:) = normalizerow( ...
+    N(F(IV,1),:).*B1(II) + N(F(IV,2),:).*B2(II) + N(F(IV,3),:).*B3(II));
+  PN = reshape(PN,size(B)).*A;
+  
+  [Xmc,Ymc] = meshgrid(linspace(-1,1,size(mc,2)),linspace(-1,1,size(mc,1)));
+  Imc = [];
+  Imc(:,:,1) = interp2(Xmc,Ymc,mc(:,:,1),PN(:,:,1),-PN(:,:,2)).*A + I(:,:,1).*~A;
+  Imc(:,:,2) = interp2(Xmc,Ymc,mc(:,:,2),PN(:,:,1),-PN(:,:,2)).*A + I(:,:,2).*~A;
+  Imc(:,:,3) = interp2(Xmc,Ymc,mc(:,:,3),PN(:,:,1),-PN(:,:,2)).*A + I(:,:,3).*~A;
+  tsh.FaceColor = psh.FaceColor;
+  tsh.FaceLighting = psh.FaceLighting;
+end
+
