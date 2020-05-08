@@ -1,4 +1,14 @@
 function [Imc,A] = apply_matcap(tsh,mc)
+% [Imc,A] = apply_matcap(tsh,mc)
+%
+% Inputs:
+%   tsh  handle to a triangle mesh trisurf/patch object
+%   mc  mc-height by mc-width by 3 rgb texture image
+% Outputs:
+%   IO  gcf-height by gcf-width by 3 rgb image of current frame with mesh
+%     but face colors are replaced by texture color
+%   A  gcf-height by gcf-widsth boolean image of where the mesh (faces) are.
+%  
   if ~isfloat(mc)
     mc = im2double(mc);
   end
