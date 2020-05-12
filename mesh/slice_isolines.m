@@ -90,12 +90,14 @@ function [U,G,J,BC,SU,L] = slice_isolines(V,F,SV,val,varargin)
   SU = SV;
   J = 1:size(F,1);
   L = ones(size(F,1),1);
+  BC = 1;
   for v = 1:numel(val)
     prev_J = J;
     prev_L = L;
-    [U,G,J,BC,SU,L] = single_val(U,G,SU,val(v));
+    [U,G,J,BCC,SU,L] = single_val(U,G,SU,val(v));
     L = prev_L(J)+(L-1);
     J = prev_J(J);
+    BC = BCC*BC;
   end
 
   if manifold
