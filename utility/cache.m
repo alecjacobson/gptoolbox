@@ -1,5 +1,6 @@
 function varargout = cache(fun,varargin)
-  % CACHE
+  % CACHE Rather than call an expensive function again, load its output from the
+  % last time it was called with the same input.
   %
   % Replace
   %   [out1,out2, ...] = myfun(in1,in2, ...)
@@ -17,7 +18,7 @@ function varargout = cache(fun,varargin)
   %
   tmpf = [tempname('.') '.mat'];
   NARGOUT = nargout;
-  save(tmpf,'varargin','NARGOUT');
+  save(tmpf,'fun','varargin','NARGOUT');
   % get md5 checksum on input "state" to use as filename for cache
   [s,cache_name] = system([ ...
     'dd  if=' tmpf ' 2>/dev/null skip=128 bs=1 | /usr/local/bin/md5sum | ' ...
