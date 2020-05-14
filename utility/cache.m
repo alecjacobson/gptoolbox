@@ -1,4 +1,6 @@
 function varargout = cache(fun,varargin)
+  % CACHE
+  %
   % Replace
   %   [out1,out2, ...] = myfun(in1,in2, ...)
   % with
