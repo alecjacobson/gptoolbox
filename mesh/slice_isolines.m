@@ -70,7 +70,7 @@ function [U,G,J,BC,SU,L] = slice_isolines(V,F,SV,val,varargin)
         (sJ(:,1)==3 & sJ(:,2)==2),3,1);
       G(flip,:) = fliplr(G(flip,:));
     end
-    SF = SV(F);
+    SF = reshape(SV(F),size(F));
     I12 = sum(SF<val,2) == 1;
     % U is the running set of vertices
     U = V;
