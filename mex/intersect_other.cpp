@@ -63,6 +63,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   };
   parse_mesh(prhs,VA,FA);
   parse_mesh(prhs+2,VB,FB);
+  params.detect_only = nlhs <= 1;
 
   if(nrhs>NUM_REQ)
   {
