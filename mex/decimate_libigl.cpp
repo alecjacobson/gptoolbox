@@ -1,4 +1,5 @@
 #include <igl/decimate.h>
+#include <igl/copyleft/progressive_hulls.h>
 #include <igl/qslim.h>
 #include <Eigen/Core>
 #include <iostream>
@@ -50,8 +51,9 @@ void mexFunction(
   enum DecimateMethod
   {
     DECIMATE_METHOD_NAIVE = 0,
-    DECIMATE_METHOD_QSLIM = 1,
-    NUM_DECIMATE_METHODS = 2
+    DECIMATE_METHOD_PROGRESSIVE_HULLS = 1,
+    DECIMATE_METHOD_QSLIM = 2,
+    NUM_DECIMATE_METHODS = 3
   } method = DECIMATE_METHOD_NAIVE;
   {
     int i = 3;
@@ -67,6 +69,9 @@ void mexFunction(
         if(strcmp("naive",type_name)==0)
         {
           method = DECIMATE_METHOD_NAIVE;
+        }else if(strcmp("progressive-hulls",type_name)==0)
+        {
+          method = DECIMATE_METHOD_PROGRESSIVE_HULLS;
         }else if(strcmp("qslim",type_name)==0)
         {
           method = DECIMATE_METHOD_QSLIM;
@@ -88,11 +93,14 @@ void mexFunction(
     case DECIMATE_METHOD_NAIVE:
       decimate(V,F,max_m,W,G,J,I);
       break;
+    case DECIMATE_METHOD_PROGRESSIVE_HULLS:
+      copyleft::progressive_hulls(V,F,max_m,W,G,J);
+      break;
     case DECIMATE_METHOD_QSLIM:
       qslim(V,F,max_m,W,G,J,I);
       break;
     default:
-      mexErrMsgTxt(false,"Unkown method.");
+      mexErrMsgTxt(false,"Unknown method.");
       break;
   }
 
