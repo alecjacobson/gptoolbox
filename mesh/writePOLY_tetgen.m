@@ -20,7 +20,8 @@ function writePOLY_tetgen(filename,V,F,H,varargin)
   %   H  #H by dim list of volume hole positions
   %   Optional:
   %     'BoundaryMarkers' followed by #facets list of boundary markers
-  %      
+  %     'BoundaryMarkersNodes' followed by #facets list of boundary markers
+  %     'RegionList' followed by #regions list of region vertex positions and (optional) region numbers and attributes
   %
   % Example:
   %   % constrained Delaunay tetrahedralization of a triangle mesh
@@ -47,12 +48,22 @@ function writePOLY_tetgen(filename,V,F,H,varargin)
 
   v = 1;
   BM = [];
+  BMN = [];
+  RL = [];
   while v <= numel(varargin)
     switch varargin{v}
     case 'BoundaryMarkers'
       assert((v+1)<=numel(varargin));
       v = v+1;
       BM = varargin{v};
+    case 'BoundaryMarkersNodes'
+      assert((v+1)<=numel(varargin));
+      v = v+1;
+      BMN = varargin{v};
+    case 'RegionList'
+      assert((v+1)<=numel(varargin));
+      v = v+1;
+      RL = varargin{v};
     otherwise
       error(['Unsupported parameter: ' varargin{v}]);
     end
@@ -65,7 +76,7 @@ function writePOLY_tetgen(filename,V,F,H,varargin)
   % dimensions in V, should be 3
   dim = size(V,2);
   if isempty(V)
-    dim == 3;
+    dim = 3;
   end
 
   if dim ~= 3
@@ -74,12 +85,19 @@ function writePOLY_tetgen(filename,V,F,H,varargin)
 
   % vertices section
   fprintf(poly_file_handle,'# vertices\n');
-  format = '%d %.17g %.17g %.17g\n';
-
   fprintf(poly_file_handle,'# Part 1 - node list\n');
-  fprintf(poly_file_handle,'%d %d 0 0\n', size(V,1),size(V,2));
+  fprintf(poly_file_handle,'%d %d 0 %d\n', size(V,1),size(V,2),~isempty(BMN));
+  format = '%d %.17g %.17g %.17g\n';
   if ~isempty(V)
-    fprintf(poly_file_handle,format,[1:size(V,1);V']);
+      if ~isempty(BMN)
+          assert(numel(BMN)==size(V,1));
+          formatV = '%d %.17g %.17g %.17g %d\n';
+          fprintf(poly_file_handle,formatV,[1:size(V,1);V';BMN']);
+      else
+          formatV=format;
+          fprintf(poly_file_handle,formatV,[1:size(V,1);V']);
+          
+      end
   end
 
   fprintf(poly_file_handle,'# Part 2 - facet list\n');
@@ -88,13 +106,13 @@ function writePOLY_tetgen(filename,V,F,H,varargin)
     fprintf(poly_file_handle,'%d %d\n',size(F,1),~isempty(BM));
     assert(numel(BM)==size(F,1) || isempty(BM));
     % build format
-    fformat = ['1 0'];
+    fformat = '1 0';
     if ~isempty(BM)
       fformat = [fformat ' %d'];
     end
     fformat = [fformat '\n ' num2str(size(F,2))];
     for p=1:size(F,2)
-      fformat = [fformat ' %d'];
+      fformat = [fformat ' %d']; %#ok<AGROW>
     end
     fformat = [fformat '\n'];
     % print all at once
@@ -128,11 +146,14 @@ function writePOLY_tetgen(filename,V,F,H,varargin)
     assert(isempty(V) || size(H,2) == size(V,2));
     fprintf(poly_file_handle,format,[1:size(H,1);H']);
   end
-  % not supported
+  % [num regions]
   fprintf(poly_file_handle,'# Part 4 - region list\n');
-  fprintf(poly_file_handle,'0\n');
-
+  fprintf(poly_file_handle,'%d\n',size(RL,1));
+  if ~isempty(RL)
+    % [region #] [region x] [region y] [region z] [region attribute] and/or [region number]
+    formatRL = ['%d' repmat(' %.17g',1,size(RL,2)) '\n'];
+    fprintf(poly_file_handle,formatRL,[1:size(RL,1);RL']);
+  end
   fprintf(poly_file_handle,'\n');
   fclose(poly_file_handle);
 end
-
