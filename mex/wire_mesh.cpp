@@ -19,7 +19,7 @@ void parse_rhs(
   const mxArray *prhs[], 
   Eigen::MatrixXd & WV,
   Eigen::MatrixXi & WE,
-  double & th,
+  Eigen::VectorXd & th,
   int & poly_size,
   bool & solid)
 {
@@ -42,7 +42,7 @@ void parse_rhs(
 
   // defaults
   // Thickness
-  th = 0.1*igl::avg_edge_length(WV,WE);
+  th = (Eigen::VectorXd(1,1)<<0.1*igl::avg_edge_length(WV,WE)).finished();
   // Size of extrusion polygon
   poly_size = 4;
   solid = true;
@@ -57,8 +57,11 @@ void parse_rhs(
       if(strcmp("Thickness",name) == 0)
       {
         validate_arg_double(i,nrhs,prhs,name);
-        validate_arg_scalar(i,nrhs,prhs,name);
-        th = (double)*mxGetPr(prhs[++i]);
+        //validate_arg_scalar(i,nrhs,prhs,name);
+        i++;
+        parse_rhs_double(prhs+i,th);
+        mexErrMsgTxt( (th.size()==1)||(th.size()==WE.rows()),
+          "th should be scalar or size of WE");
       }else if(strcmp("PolySize",name) == 0)
       {
         validate_arg_double(i,nrhs,prhs,name);
@@ -95,7 +98,7 @@ void mexFunction(
   MatrixXd WV,V;
   MatrixXi WE,F;
   VectorXi J;
-  double th;
+  VectorXd th;
   int poly_size;
   bool solid;
   parse_rhs(
