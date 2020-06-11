@@ -38,7 +38,7 @@ void mexFunction(
     }
     case 1:
     {
-      igl::prepare_lhs_double(cubics,plhs+0);
+      prepare_lhs_double(cubics,plhs+0);
       // Fall through
     }
     case 0: break;
