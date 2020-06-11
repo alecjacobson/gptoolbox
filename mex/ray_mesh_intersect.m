@@ -1,4 +1,4 @@
-% RAY_MESH_INTERSECT 
+% RAY_MESH_INTERSECT  Find first hit (if it exists) for each ray.
 %
 % [flag, t, lambda] = ray_mesh_intersect(src, dir, V, F);
 %
