@@ -20,7 +20,7 @@ This will output the mex functions in this (`mex/`) directory.
 
 CMake's `FindMatlab.cmake` is not very good. You might have to do something like:
 
-    cmake ../ -DMatlab_ROOT_DIR=/apps/matlab-R2018b/
+    cmake ../ -DMatlab_ROOT_DIR=/apps/matlab-R2019b/
 
 ### Dependencies 
 
@@ -34,13 +34,22 @@ You may need to install Boost. For example on Mac OS X using homebrew,
 
 ## Troubleshooting
 
-### Matlab Versions
+### MATLAB Versions
 
-Cmake unfortunately requires a hardcoded version mapping between Matlab's numerical
+Cmake unfortunately requires a hardcoded version mapping between MATLAB's numerical
 versions (e.g., 9.5) and their named versions (e..g, 2018b). This mapping gets
 stale a couple of times a year, so if you find that cmake can't figure out your
-Matlab version, and you have a fairly recent version of Matlab, it's very likely
+MATLAB version, and you have a fairly recent version of MATLAB, it's very likely
 that you'll need to update the mapping. To do so, update the `MATLAB_VERSIONS_MAPPING`
 variable in `mex/cmake/FindMATLAB.cmake` and add your version number. You can
-check your Matlab version using the `version` command.
+check your MATLAB version using the `version` command.
 
+If you get an error like
+
+    CMake Error at ... (message):
+    Could NOT find Matlab (missing: Matlab_INCLUDE_DIRS Matlab_MEX_LIBRARY
+    Matlab_MEX_EXTENSION Matlab_ROOT_DIR MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
+    (found version "NOTFOUND")
+
+Then you might consider setting `Matlab_ROOT_DIR` explicitly to help cmake find
+MATLAB.
