@@ -57,7 +57,10 @@ void parse_rhs(
       {
         validate_arg_char(i,nrhs,prhs,name);
         const char * type_name = mxArrayToString(prhs[++i]);
-        if(strcmp("pseudonormal",type_name)==0)
+        if(strcmp("unsigned",type_name)==0)
+        {
+          type = igl::SIGNED_DISTANCE_TYPE_UNSIGNED;
+        }else if(strcmp("pseudonormal",type_name)==0)
         {
           type = igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL;
         }else if(strcmp("winding_number",type_name)==0)
