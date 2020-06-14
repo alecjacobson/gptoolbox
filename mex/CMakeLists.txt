@@ -3,6 +3,9 @@ set(CMAKE_BUILD_TYPE_INIT Release)
 project(gptoolbox_mex)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+# templated lambdas
+set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 # Move output to this dir (gptoolbox/mex)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -183,6 +186,7 @@ selfintersect.cpp;\
 signed_distance_isosurface.cpp;\
 snap_rounding.cpp;\
 trim_with_solid.cpp;\
+upper_envelope.cpp;\
 wire_mesh.cpp;\
 "
     "${CORE_LIBS};igl::core;igl::matlab;igl::cgal;${CORK_LIBS}")
