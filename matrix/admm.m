@@ -1,5 +1,10 @@
 function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
-
+  % ADMM solver for convex problems of the form:
+  %
+  % min_X,Z f(X) + g(X) subject to A*X + B*X = c
+  %
+  % [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
+  %
   % Inputs:
   %   argmin_X  Function handle returning the optimizer of:
   %      argmin  f(X) + ρ/2‖ A*X + B*Z - c + U‖²
@@ -37,10 +42,11 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
   %   
 
   max_iter = 2000;
+  callback = @(X,Z,U) [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'MaxIter'}, ...
-    {'max_iter'});
+    {'MaxIter' ,'Callback'}, ...
+    {'max_iter','callback'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -62,14 +68,27 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
   btao_inc = 2;
   btao_dec = 2;
 
+
   % Initial conditions
-  if isempty(state)
+  if isempty(state) || ~isfield(state,'X')
     state.X = rand(size(A,2),size(c,2));
+  end
+  if isempty(state) || ~isfield(state,'Z')
     state.Z = rand(size(B,2),size(c,2));
+  end
+  if isempty(state) || ~isfield(state,'U')
     state.U = zeros(size(c,1),size(c,2));
+  end
+  if isempty(state) || ~isfield(state,'rho_prev')
     state.rho_prev = nan;
+  end
+  if isempty(state) || ~isfield(state,'rho')
     state.rho = 1;
+  end
+  if isempty(state) || ~isfield(state,'argmin_X_data')
     state.argmin_X_data = [];
+  end
+  if isempty(state) || ~isfield(state,'argmin_Z_data')
     state.argmin_Z_data = [];
   end
 
@@ -80,6 +99,7 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
     [state.Z,state.argmin_Z_data] = argmin_Z(state.X,state.U,state.rho,state.argmin_Z_data);
     state.U_prev = state.U;
     state.U = state.U+A*state.X+B*state.Z-c;
+    callback(state.X,state.Z,state.U);
     state.rho_prev = state.rho;
       %Sprev = state.Z_prev(1:4780,:);
       %Eprev = state.Z_prev(4780+(1:4780),:);
