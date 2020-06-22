@@ -42,7 +42,7 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
   %   
 
   max_iter = 2000;
-  callback = @(X,Z,U) [];
+  callback = @(state) [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'MaxIter' ,'Callback'}, ...
@@ -94,12 +94,13 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
 
   cnorm = norm(c,'fro');
   for iter = 1:max_iter
+    state.iter = iter;
     [state.X,state.argmin_X_data] = argmin_X(state.Z,state.U,state.rho,state.argmin_X_data);
     state.Z_prev = state.Z;
     [state.Z,state.argmin_Z_data] = argmin_Z(state.X,state.U,state.rho,state.argmin_Z_data);
     state.U_prev = state.U;
     state.U = state.U+A*state.X+B*state.Z-c;
-    callback(state.X,state.Z,state.U);
+    callback(state);
     state.rho_prev = state.rho;
       %Sprev = state.Z_prev(1:4780,:);
       %Eprev = state.Z_prev(4780+(1:4780),:);
@@ -108,7 +109,7 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
       %dual_residual = sqrt(state.rho*sum((S(:)-Sprev(:)).^2+(E(:)-Eprev(:)).^2))
     dual_residual = state.rho*norm(A'*B*(state.Z_prev - state.Z),'fro');
     residual = norm(A*state.X+B*state.Z-c,'fro');
-    if mod(iter,check_interval) == 0
+    if mod(state.iter,check_interval) == 0
       if residual > bmu*dual_residual
         state.rho = btao_inc*state.rho;
         % From python code: https://github.com/tneumann/cmm/blob/master/cmmlib/cmm.py
