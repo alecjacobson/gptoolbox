@@ -17,7 +17,7 @@ function s = path_to_triangle()
     % I guess this means linux
     [status, s] = system('which triangle');
     s = strtrim(s);
-    if isempty(s)
+    if status ~= 0
       guesses = { ...
         '/usr/local/bin/triangle', ...
         '/opt/local/bin/triangle'};

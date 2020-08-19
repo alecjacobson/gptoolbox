@@ -50,6 +50,8 @@ function [param,mosek_exists] = default_quadprog_param()
       %param.MSK_DPAR_INTPNT_QO_TOL_NEAR_REL = 1e-10;
       param.MSK_DPAR_INTPNT_QO_TOL_PFEAS = 1e-14;
       param.MSK_DPAR_INTPNT_QO_TOL_REL_GAP = 1e-14;
+    elseif strfind(which('mosekopt'),'mosek/9')
+      param.MSK_IPAR_NUM_THREADS = num_threads;
     else
       param.MSK_IPAR_INTPNT_NUM_THREADS = num_threads;
       param.Diagnostics = 'on';
