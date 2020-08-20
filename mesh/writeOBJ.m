@@ -1,4 +1,4 @@
-function writeOBJ(filename, V,F,UV,TF,N,NF)
+function writeOBJ(filename, V,F,UV,TF,N,NF,comment)
   % WRITEOBJ writes an OBJ file with vertex/face information
   %
   % writeOBJ(filename,V,F,UV,N)
@@ -16,6 +16,9 @@ function writeOBJ(filename, V,F,UV,TF,N,NF)
 %disp(['writing: ',filename]);
 f = fopen( filename, 'w' );
 
+if exist('comment','var') && ~isempty(comment)
+  fprintf(f,'# %s\n',comment);
+end
 
 if size(V,2) == 2
   warning('Appending 0s as z-coordinate');
