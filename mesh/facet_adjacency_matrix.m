@@ -9,7 +9,7 @@ function [A,uE2F,uE] = facet_adjacency_matrix(F,varargin)
   %   F  #F by 3 list of triangles
   %   Optional:
   %     'ManifoldOnly' followed by whether to only consider adjacency across
-  %     manifold edges (valence <=2)
+  %     manifold edges (valence <=2) {false}
   % Outputs:
   %   A  #F by #F adjacency matrix 
   %   uE2F  #E by #F matrix so that (e,f) = 1 means face f is adjacent to
