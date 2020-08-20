@@ -172,7 +172,7 @@ function [W,BC,DV,Q,r] = voxelize(V,F,side,varargin)
       % this should be floodfilling instead.
   
       %W = winding_number(V,F,BC);
-      WDV = reshape(winding_number(V,F,DV),[side(2) side(1) side(3)]+1);
+      WDV = reshape(winding_number(V,F,DV,'Fast',true),[side(2) side(1) side(3)]+1);
       WDV = abs(WDV) >= 0.5;
       W = ( ...
         WDV(1:end-1,1:end-1,1:end-1) | ...
