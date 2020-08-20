@@ -14,14 +14,20 @@ function [R,t] = fit_rigid(V,U)
   %   [R,t] = fit_rigid(V,U);
   %   UU = bsxfun(@plus,U*R,t);
 
-  % sum up outerproducts of vector from each vertex to center of mass in U and
-  % V
-  S = bsxfun(@minus,U,mean(U))'*bsxfun(@minus,V,mean(V));
-  % Find closest rotation
-  R = fit_rotation(S');
+  method = 'point-to-point';
 
-  % translation is just difference of center of mass (assuming uniform mass
-  % distribution)
-  t = mean(V)-mean(U)*R;
+  switch method
+  case 'point-to-point'
+    % sum up outerproducts of vector from each vertex to center of mass in U and
+    % V
+    S = bsxfun(@minus,U,mean(U))'*bsxfun(@minus,V,mean(V));
+    % Find closest rotation
+    R = fit_rotation(S');
+
+    % translation is just difference of center of mass (assuming uniform mass
+    % distribution)
+    t = mean(V)-mean(U)*R;
+  case 'point-to-plane'
+  end
 
 end
