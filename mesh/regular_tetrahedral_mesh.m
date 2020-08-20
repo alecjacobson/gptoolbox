@@ -38,6 +38,23 @@ function [V,T,F] = regular_tetrahedral_mesh(varargin)
     ny = varargin{2};
     nz = varargin{3};
   end
+  method = 'rotationally-symmetric';
+  params_to_variables = containers.Map( ...
+    {'Method'}, ...
+    {'method'});
+  v = 4;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
 
   % Create a grid
   [x,y,z] = meshgrid(linspace(0,1,nx),linspace(0,1,ny),linspace(0,1,nz));
@@ -52,52 +69,74 @@ function [V,T,F] = regular_tetrahedral_mesh(varargin)
   v6 = idx(1:end-1,2:end,2:end);v6=v6(:);
   v7 = idx(2:end,1:end-1,2:end);v7=v7(:);
   v8 = idx(2:end,2:end,2:end);v8=v8(:);
-  T = [ ...
-    v1  v3  v8  v7; ...
-    v1  v8  v5  v7; ...
-    v1  v3  v4  v8; ...
-    v1  v4  v2  v8; ...
-    v1  v6  v5  v8; ...
-    v1  v2  v6  v8];
+  switch method
+  case 'five'
+    T = [ ... 
+      v5 v3 v2 v1; ...
+      v3 v2 v8 v5; ...
+      v3 v4 v8 v2; ...
+      v3 v8 v7 v5; ...
+      v2 v6 v8 v5; ...
+      ];
+    F = boundary_faces(T);
+  case 'reflectionally-symmetric'
+    T = [ ...
+      v3 v4 v7 v1; ...
+      v4 v5 v7 v1; ...
+      v4 v8 v7 v5; ...
+      v2 v6 v8 v5; ...
+      v4 v2 v8 v5; ...
+      v4 v2 v5 v1];
+    F = boundary_faces(T);
+    
+  case 'rotationally-symmetric'
+    T = [ ...
+      v1  v3  v8  v7; ...
+      v1  v8  v5  v7; ...
+      v1  v3  v4  v8; ...
+      v1  v4  v2  v8; ...
+      v1  v6  v5  v8; ...
+      v1  v2  v6  v8];
 
-  % delaunayn IS BROKEN, REALLY SHOULD NOT USE THIS
-  %if(nx==2 && ny==2 && nz==2)
-  %  warning(['delaunayn vomits on 2x2x2...' ...
-  %    'adding center point at [0.5,0.5,0.5].']);
-  %  V = [V;0.5,0.5,0.5];
-  %end
-  %T = delaunayn(V);
+    % delaunayn IS BROKEN, REALLY SHOULD NOT USE THIS
+    %if(nx==2 && ny==2 && nz==2)
+    %  warning(['delaunayn vomits on 2x2x2...' ...
+    %    'adding center point at [0.5,0.5,0.5].']);
+    %  V = [V;0.5,0.5,0.5];
+    %end
+    %T = delaunayn(V);
 
-  % Much faster (~17x) than calling boundary_faces
-  if nargout>2
-    I = bsxfun(@plus,1:ny,(0:nx*ny:(nx*ny*(nz-1)))');
-    ISE = I(1:end-1,1:end-1);
-    INE = I(1:end-1,2:end);
-    ISW = I(2:end,1:end-1);
-    INW = I(2:end,2:end);
-    F1 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
-    F1 = [F1;fliplr(F1)+ny*(nx-1)];
+    % Much faster (~17x) than calling boundary_faces
+    if nargout>2
+      I = bsxfun(@plus,1:ny,(0:nx*ny:(nx*ny*(nz-1)))');
+      ISE = I(1:end-1,1:end-1);
+      INE = I(1:end-1,2:end);
+      ISW = I(2:end,1:end-1);
+      INW = I(2:end,2:end);
+      F1 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
+      F1 = [F1;fliplr(F1)+ny*(nx-1)];
 
-    I = bsxfun(@plus,1:ny:(nx-1)*ny+1,(0:nx*ny:(nx*ny*(nz-1)))');
-    ISE = I(1:end-1,1:end-1);
-    INE = I(1:end-1,2:end);
-    ISW = I(2:end,1:end-1);
-    INW = I(2:end,2:end);
-    F2 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
-    F2 = [F2;fliplr(F2)+(ny-1)];
+      I = bsxfun(@plus,1:ny:(nx-1)*ny+1,(0:nx*ny:(nx*ny*(nz-1)))');
+      ISE = I(1:end-1,1:end-1);
+      INE = I(1:end-1,2:end);
+      ISW = I(2:end,1:end-1);
+      INW = I(2:end,2:end);
+      F2 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
+      F2 = [F2;fliplr(F2)+(ny-1)];
 
-    I = bsxfun(@plus,1:ny:(nx-1)*ny+1,(0:ny-1)');
-    ISE = I(1:end-1,1:end-1);
-    INE = I(1:end-1,2:end);
-    ISW = I(2:end,1:end-1);
-    INW = I(2:end,2:end);
-    F3 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
-    F3 = [F3;fliplr(F3)+nx*ny*(nz-1)];
+      I = bsxfun(@plus,1:ny:(nx-1)*ny+1,(0:ny-1)');
+      ISE = I(1:end-1,1:end-1);
+      INE = I(1:end-1,2:end);
+      ISW = I(2:end,1:end-1);
+      INW = I(2:end,2:end);
+      F3 = [ISE(:) INW(:) ISW(:);ISE(:) INE(:) INW(:)];
+      F3 = [F3;fliplr(F3)+nx*ny*(nz-1)];
 
-    F = [F1;fliplr(F2);F3];
-    %BF = boundary_faces(T);
-    %setdiff(sort(F,2),sort(BF,2),'rows')
-    %setdiff(sort(BF,2),sort(F,2),'rows')
+      F = [F1;fliplr(F2);F3];
+      %BF = boundary_faces(T);
+      %setdiff(sort(F,2),sort(BF,2),'rows')
+      %setdiff(sort(BF,2),sort(F,2),'rows')
+    end
   end
 
   % determine neighbors using fact that vertices are in order
