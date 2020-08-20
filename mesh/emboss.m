@@ -19,11 +19,12 @@ function [VV,FF,J,P,M,AO,TV,TF,r,i,ni,R] = emboss(V,F,str,varargin)
   fontname = [];
   engrave = false;
   max_r = inf;
+  black_list = [];
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Engrave','Height','FontName','MaxRadius'}, ...
-    {'engrave','th','fontname','max_r'});
+    {'BlackList','Engrave','Height','FontName','MaxRadius'}, ...
+    {'black_list','engrave','th','fontname','max_r'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -38,23 +39,28 @@ function [VV,FF,J,P,M,AO,TV,TF,r,i,ni,R] = emboss(V,F,str,varargin)
     v=v+1;
   end
 
+  if islogical(black_list)
+    black_list = find(black_list);
+  end
+  FW = F(setdiff(1:end,black_list),:);
+
   % Generate 10000 uniformly random samples 
-  [P,I] = random_points_on_mesh(V,F,10000,'Color','blue');
+  [P,I] = random_points_on_mesh(V,FW,10000,'Color','blue');
   % Compute the normals per-face
-  N = normalizerow(normals(V,F));
+  NW = normalizerow(normals(V,FW));
   % Find the 160 closest points
   [K,D] = knnsearch(P,P,'K',160);
   % Compute normals at each point
-  NIK = reshape(N(I(K),:),[size(K) 3]);
+  NWIK = reshape(NW(I(K),:),[size(K) 3]);
   % Compute a weighted fall-off per point
   W = exp(-(4*D./max(D,[],2)).^2);
   % Compute the ambient occlusion per point
-  AO = ambient_occlusion(V,F,P,N(I,:),1000);
-  M = sum(W.*acos(min(max(sum(NIK.*permute(N(I,:),[1 3 2]),3),-1),1)).^2,2)+AO;
+  AO = ambient_occlusion(V,F,P,NW(I,:),1000);
+  M = sum(W.*acos(min(max(sum(NWIK.*permute(NW(I,:),[1 3 2]),3),-1),1)).^2,2)+AO;
   [r,i] = max(D(:,end).*(M==min(M)));
   r = min(r,max_r);
 
-  ni = N(I(i),:);
+  ni = NW(I(i),:);
   [w,a] = axisanglebetween(ni,[0 0 1],[1 0 0]);
   R = axisangle2matrix(w,a);
   [TV,TF] = text_to_mesh(str,'FontName',fontname,'TriangleFlags',' ');
