@@ -39,8 +39,8 @@ function D = is_extrinsic_delaunay(V,F,varargin)
   [~,B] = on_boundary(F);
 
   % append point at infinity to deal with Meshes with boundaries
-  if ~isempty(O);
-    FF = [F;repmat(size(V,1),size(O,1),1) O(:,[2 1])];
+  if ~isempty(O)
+    FF = [F;repmat(size(V,1)+1,size(O,1),1) O(:,[2 1])];
     VV = [V;inf inf];
     DD = is_extrinsic_delaunay(VV,FF,varargin{:});
     assert(all(size(DD)==size(FF)));
