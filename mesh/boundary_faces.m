@@ -29,7 +29,9 @@ function [F,J,K] = boundary_faces(T)
   case 3
     % Elements are triangles, boundary "facets" are edges
     F = outline(T);
-    assert(nargout<=1);
+    [~,I] = ismember(F,[T(:,[2 3]);T(:,[3 1]);T(:,[1 2])],'rows');
+    J = mod(I-1,size(T,1))+1;
+    K = floor((I-1)/size(T,1))+1;
   case 4
     % get all faces
     allF = [ ...
