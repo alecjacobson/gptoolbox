@@ -12,6 +12,12 @@ function [Imc,A] = apply_matcap(tsh,mc)
   if ~isfloat(mc)
     mc = im2double(mc);
   end
+  face_based = isempty(tsh.VertexNormals);
+  if face_based
+    N = -tsh.FaceNormals;
+  else
+    N = -tsh.VertexNormals;
+  end
   psh.FaceColor = tsh.FaceColor;
   psh.FaceLighting = tsh.FaceLighting;
   tsh.FaceColor = 'w';
@@ -22,11 +28,16 @@ function [Imc,A] = apply_matcap(tsh,mc)
   F = tsh.Faces;
   [AZ,EL] = view;
   M = eye(3,4)*viewmtx(AZ,EL)'*eye(4,3);
-  N = per_vertex_normals(V,F)*M;
+  %N = per_vertex_normals(V,F)*M;
+  N = N*M;
   B1 = B(:,:,1);B2 = B(:,:,2);B3 = B(:,:,3);
   PN = zeros(numel(B1),3);
-  PN(II,:) = normalizerow( ...
-    N(F(IV,1),:).*B1(II) + N(F(IV,2),:).*B2(II) + N(F(IV,3),:).*B3(II));
+  if face_based
+    PN(II,:) = normalizerow( N(IV,:));
+  else
+    PN(II,:) = normalizerow( ...
+      N(F(IV,1),:).*B1(II) + N(F(IV,2),:).*B2(II) + N(F(IV,3),:).*B3(II));
+  end
   PN = reshape(PN,size(B)).*A;
   
   [Xmc,Ymc] = meshgrid(linspace(-1,1,size(mc,2)),linspace(-1,1,size(mc,1)));
