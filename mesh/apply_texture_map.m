@@ -26,6 +26,7 @@ function [IO,A] = apply_texture_map(tsh,UV,T)
   PUV = reshape(PUV,[size(B,1),size(B,2),size(PUV,2)]).*A;
   [XT,YT] = meshgrid(1:size(T,2),size(T,1):-1:1);
   IT = [];
+  T = im2double(T);
   IT(:,:,1) = interp2(XT,YT,T(:,:,1),PUV(:,:,1),PUV(:,:,2)).*A;
   IT(:,:,2) = interp2(XT,YT,T(:,:,2),PUV(:,:,1),PUV(:,:,2)).*A;
   IT(:,:,3) = interp2(XT,YT,T(:,:,3),PUV(:,:,1),PUV(:,:,2)).*A;
