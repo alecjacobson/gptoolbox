@@ -1,9 +1,9 @@
-function [W,F,V,E,H] = bwmesh(A,varargin)
+function [W,F,V,E,H,im] = bwmesh(A,varargin)
   % BWMESH Construct a mesh from a black and white image.
   %
   % [W,F] = bwmesh(A)
   % [W,F] = bwmesh(png_filename)
-  % [W,F,V,E,H] = bwmesh(...,'ParameterName',ParameterValue,...)
+  % [W,F,V,E,H,im] = bwmesh(...,'ParameterName',ParameterValue,...)
   %
   % Inputs:
   %   A  a h by w black and white image (grayscale double images will be
@@ -30,6 +30,7 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   %     in holes: e.g. a bull's eye sign.
   %
 
+  im = [];
   if ischar(A)
     % read alpha channel
     [im,~,A] = imread(A);
@@ -91,7 +92,7 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
         end
         % don't consider degenerate boundaries
         area = sum(prod(Vb([2:end 1],:)+Vb*[-1 0;0 1],2))/2;
-        if size(unique(Vb,'rows'),1)>2 && area>eps
+        if size(unique(Vb,'rows'),1)>2 && area>1e-10
           Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
           E = [E;size(V,1)+Eb];
           V = [V;Vb];
