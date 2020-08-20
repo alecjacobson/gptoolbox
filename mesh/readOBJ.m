@@ -30,10 +30,11 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
 
   % default values
   quads = false;
+  ss = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Quads'}, ...
-    {'quads'});
+    {'Quads','SimplexSize'}, ...
+    {'quads','ss'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -56,11 +57,14 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
   numnf = 0;
 
   % simplex size
-  if quads
-    ss = 4;
-  else
-    ss = 3;
+  if isempty(ss)
+    if quads
+      ss = 4;
+    else
+      ss = 3;
+    end
   end
+
   % Amortized array allocation
   V = zeros(10000,3);
   F = zeros(10000,ss);
@@ -102,25 +106,25 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
           N(numn,:) = [n'];
       elseif strcmp( type, 'f' ) == 1
           [t, count] = sscanf(line,'%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d');
-          if (count>2)
+          if (count>=2*3)
               tf = t(2:3:end);
               nf = t(3:3:end);
               t = t(1:3:end);
           else
               [t, count] = sscanf(line, '%d/%d %d/%d %d/%d %d/%d %d/%d');
-              if (count>2)
+              if (count>=2*2)
                   tf = t(2:2:end);
                   t = t(1:2:end);
                   nf = -ones(numel(t),1);
               else
                 [t, count] = sscanf(line, '%d//%d %d//%d %d//%d %d//%d %d//%d');
-                if (count>2)
+                if (count>=2*2)
                     nf = t(2:2:end);
                     t = t(1:2:end);
                     tf = -ones(numel(t),1);
                 else
                     [t, count] = sscanf( line, '%d %d %d %d %d %d %d %d %d %d %d\n' );
-                    if (count>2)
+                    if (count>=2)
                       tf = -ones(numel(t),1);
                       nf = -ones(numel(t),1);
                     else
