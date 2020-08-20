@@ -1,4 +1,4 @@
-function W = kharmonic(V,F,b,bc,k,varargin)
+function [W,L] = kharmonic(V,F,b,bc,k,varargin)
   % KHARMONIC k-harmonic coordinates, "Harmonic Coordinates for Character
   % Articulation" by Joshi et al, and "An Intuitive Framework for Real-Time
   % Freeform Modeling" section 3 "Precomputed basis functions" by Botsch and
@@ -21,7 +21,9 @@ function W = kharmonic(V,F,b,bc,k,varargin)
   %      'Condensed' followed by whether to use the statically condensed
   %      (positive definite, therefore faster) system rather than the full
   %      KKT system (symmetric though not positive definite, but more stable
-  %      numerically).
+  %      numerically). {true}
+  %      'IntrinsicDelaunay' followed by whether to use intrinsic Delaunay
+  %        cotmatrix {false}
   % Outputs:
   %  W  weights, # vertices by # handles matrix of weights
   %
@@ -36,10 +38,11 @@ function W = kharmonic(V,F,b,bc,k,varargin)
   end
 
   condensed = true;
+  use_id = false;
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Condensed'}, {'condensed'});
+    {'Condensed','IntrinsicDelaunay'}, {'condensed','use_id'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -66,8 +69,13 @@ function W = kharmonic(V,F,b,bc,k,varargin)
     n = max(F(:));
     M = speye(n);
   else
-    L = cotmatrix(V,F);
-    M = massmatrix(V,F);
+    if use_id
+      [L,iF,il] = intrinsic_delaunay_cotmatrix(V,F);
+      M = massmatrix_intrinsic(il,iF,size(V,1),'voronoi');
+    else
+      L = cotmatrix(V,F);
+      M = massmatrix(V,F);
+    end
     % NORMALIZE MASSMATRIX (THIS IS IMPORTANT!!)
     M = M./max(abs(diag(M)));
   end
