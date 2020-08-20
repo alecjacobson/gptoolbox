@@ -1,4 +1,4 @@
-function [VV,FF,WrV,WrF,JJ,WV,PE,mbV,mbF,WrJ] = joints(V,E,varargin)
+function [VV,FF,WrV,WrF,JJ,WV,PE,mbV,mbF,WrJ,HJ] = joints(V,E,varargin)
   % JOINTS Construct joints around a wire mesh given as a graph
   % 
   % [VV,FF] = joints(V,E);
@@ -231,11 +231,16 @@ function [VV,FF,WrV,WrF,JJ,WV,PE,mbV,mbF,WrJ] = joints(V,E,varargin)
   JJ = [CJ;E(HZJ)];
   mbV = [CV;HZOV];
   mbF = [CF;size(CV,1)+HZOF];
+  HJ = [zeros(numel(CJ),1);HZJ;-ones(size([JRF;size(JRV,1)+LF],1),1)];
+
   [VV,FF,mJJ] = mesh_boolean(mbV,mbF,[JRV;LV],[JRF;size(JRV,1)+LF],'minus');
   [~,C] = connected_components(FF);
   CJ = zeros(max(C),1);
   CJ(C(mJJ<=numel(JJ))) = JJ(mJJ(mJJ<=numel(JJ)));
   JJ = CJ(C);
+  HJ = HJ(mJJ);
+ 
+  
 
   if ~isempty(save_all)
     save(save_all);
