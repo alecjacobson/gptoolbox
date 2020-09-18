@@ -118,6 +118,7 @@ compile_each("\
 aabb.cpp;\
 angle_derivatives.cpp;\
 bone_visible.cpp;\
+blue_noise.cpp;\
 collapse_small_triangles.cpp;\
 decimate_libigl.cpp;\
 dual_laplacian.cpp;\
