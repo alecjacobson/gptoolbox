@@ -43,10 +43,12 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
 
   max_iter = 2000;
   callback = @(state) [];
+  tol_abs = 1e-8;
+  tol_rel = 1e-6;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'MaxIter' ,'Callback'}, ...
-    {'max_iter','callback'});
+    {'MaxIter' ,'Callback','TolAbs','TolRel'}, ...
+    {'max_iter','callback','tol_abs','tol_rel'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -61,8 +63,6 @@ function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
     v=v+1;
   end
 
-  tol_abs = 1e-8;
-  tol_rel = 1e-6;
   check_interval = 10;
   bmu = 5;
   btao_inc = 2;
