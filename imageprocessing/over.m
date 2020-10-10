@@ -29,5 +29,9 @@ function [C,alpha_C] = over(A,alpha_A,B,alpha_B)
   C = bsxfun(@times,A,alpha_A) + bsxfun(@times,B,alpha_B.*(1-alpha_A));
   % composite alpha masks
   alpha_C = alpha_A + alpha_B.*(1-alpha_A);
+  zero2one = @(A) (A==0).*1 + (A~=0).*A;
+  div = @(C,alpha_C) C./zero2one(alpha_C);
+  C = div(C,alpha_C);
+
 
 end

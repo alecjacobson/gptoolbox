@@ -41,6 +41,10 @@ function [G,GI] = fd_grad(side)
   % See also: fd_laplacian
   %
 
+  % augh.... side convention below is [w h t]  not matching fd_laplacian and
+  % fd_plot_stencil etc. which use [h w t]
+  side = side([2 1 3:end]);
+
   function B = vec(A)
     B = A(:)';
   end
@@ -63,6 +67,7 @@ function [G,GI] = fd_grad(side)
       GI = [GI size(G,1)];
     end 
   case 3
+    assert('wtf is going on with `side`')
     I = sub2ind([side(2) side(1) side(3)],1:n)';
     I = reshape(I,side([2 1 3]));
     for d = 1:3

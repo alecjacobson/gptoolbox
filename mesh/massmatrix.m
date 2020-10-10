@@ -32,12 +32,25 @@ function M = massmatrix(V,F, type)
     switch ss
     case 3 
       type = 'voronoi';
-    case 4
+    case {2,4}
       type = 'barycentric';
     end
   end
 
   switch ss
+  case 2
+    l = edge_lengths(V,F);
+    switch type
+    case {'voronoi','barycentric'}
+      M = sparse(F(:),F(:),[l l]/size(V,2),size(V,1),size(V,1));
+    case 'full'
+      % renaming indices of vertices of triangles for convenience
+      i1 = F(:,1); i2 = F(:,2);
+      i = [i1 i2 i1 i2];
+      j = [i2 i1 i1 i2];
+      v = [l/4 l/4 l/2 l/2];
+      M = sparse(i,j,v,size(V,1),size(V,1));
+    end
   case 3
     % should change code below, so we don't need this transpose
     if(size(F,1) == 3)

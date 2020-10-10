@@ -1,9 +1,9 @@
-function [W,F,V,E,H] = bwmesh(A,varargin)
+function [W,F,V,E,H,im] = bwmesh(A,varargin)
   % BWMESH Construct a mesh from a black and white image.
   %
   % [W,F] = bwmesh(A)
   % [W,F] = bwmesh(png_filename)
-  % [W,F,V,E,H] = bwmesh(...,'ParameterName',ParameterValue,...)
+  % [W,F,V,E,H,im] = bwmesh(...,'ParameterName',ParameterValue,...)
   %
   % Inputs:
   %   A  a h by w black and white image (grayscale double images will be
@@ -30,9 +30,13 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
   %     in holes: e.g. a bull's eye sign.
   %
 
+  im = [];
   if ischar(A)
     % read alpha channel
-    [~,~,A] = imread(A);
+    [im,~,A] = imread(A);
+    if isempty(A)
+      A = ones(size(im,1),size(im,2));
+    end
   end
   A = im2double(A);
 
@@ -58,55 +62,61 @@ function [W,F,V,E,H] = bwmesh(A,varargin)
     v=v+1;
   end
 
-  % B contains list of boundary loops then hole loops, N number of outer
-  % boundaries (as opposed to hole boundaries)
-  [B,~,N] = bwboundaries(A>0.5);
-  % If you don't have the image processing toolbox you can use this (slower)
-  % version:
-  %[B,~,N] = gp_bwboundaries(A>0.5);
+  if isempty(A)
+    [X,Y] = meshgrid(1:size(im,2),1:size(im,1));
+    [F,W] = surf2patch(X,Y,X*0,'triangles');
+    W = W(:,1:2);
+  else
+    % B contains list of boundary loops then hole loops, N number of outer
+    % boundaries (as opposed to hole boundaries)
+    [B,~,N] = bwboundaries(A>0.5);
+    % If you don't have the image processing toolbox you can use this (slower)
+    % version:
+    %[B,~,N] = gp_bwboundaries(A>0.5);
 
-  V = [];
-  E = [];
-  H = [];
-  for b = 1:numel(B)
-    if size(B{b},1)>2
-      Vb = B{b};
-      Vb = bsxfun(@plus,Vb*[0 -1;1 0],[-0.5,size(A,1)+0.5]);
-      if smoothing_iters > 0
-        Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
-        Vb = curve_smooth(Vb,Eb,'MaxIters',smoothing_iters);
-      end
-    
-      if tol > 0 
-        Vb = dpsimplify(Vb([1:end 1],:),tol);
-        Vb = Vb(1:end-1,:);
-      end
-      % don't consider degenerate boundaries
-      area = sum(prod(Vb([2:end 1],:)+Vb*[-1 0;0 1],2))/2;
-      if size(unique(Vb,'rows'),1)>2 && area>eps
-        Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
-        E = [E;size(V,1)+Eb];
-        V = [V;Vb];
-        if b > N
-          H = [H;point_inside_polygon(Vb)];
+    V = [];
+    E = [];
+    H = [];
+    for b = 1:numel(B)
+      if size(B{b},1)>2
+        Vb = B{b};
+        Vb = bsxfun(@plus,Vb*[0 -1;1 0],[-0.5,size(A,1)+0.5]);
+        if smoothing_iters > 0
+          Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
+          Vb = curve_smooth(Vb,Eb,'MaxIters',smoothing_iters);
+        end
+      
+        if tol > 0 
+          Vb = dpsimplify(Vb([1:end 1],:),tol);
+          Vb = Vb(1:end-1,:);
+        end
+        % don't consider degenerate boundaries
+        area = sum(prod(Vb([2:end 1],:)+Vb*[-1 0;0 1],2))/2;
+        if size(unique(Vb,'rows'),1)>2 && area>1e-10
+          Eb = [1:size(Vb,1);2:size(Vb,1) 1]';
+          E = [E;size(V,1)+Eb];
+          V = [V;Vb];
+          if b > N
+            H = [H;point_inside_polygon(Vb)];
+          end
         end
       end
     end
+    %fprintf('triangle...\n');
+    if isempty(triangle_flags)
+      % triangulate the polygon
+      % get average squared edge length as a guess at the maximum area constraint
+      % for the triangulation
+      median_sqr_edge_length = median(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2))/2.0;
+      quality = 30;
+      triangle_flags = sprintf('-q%da%0.17f',quality,median_sqr_edge_length);
+    end
+  
+    % Why do I need to do this?
+    [V,~,J] = remove_duplicate_vertices(V,0);
+    % remap faces
+    E = J(E);
+  
+    [W,F] = triangle(V,E,H,'Flags',triangle_flags,'Quiet');
   end
-  %fprintf('triangle...\n');
-  if isempty(triangle_flags)
-    % triangulate the polygon
-    % get average squared edge length as a guess at the maximum area constraint
-    % for the triangulation
-    median_sqr_edge_length = median(sum((V(E(:,1),:)-V(E(:,2),:)).^2,2))/2.0;
-    quality = 30;
-    triangle_flags = sprintf('-q%da%0.17f',quality,median_sqr_edge_length);
-  end
-
-  % Why do I need to do this?
-  [V,~,J] = remove_duplicate_vertices(V,0);
-  % remap faces
-  E = J(E);
-
-  [W,F] = triangle(V,E,H,'Flags',triangle_flags,'Quiet');
 end

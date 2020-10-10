@@ -50,29 +50,53 @@ function [N,x0] = affine_null_space(A,b,varargin)
 
   switch method
   case 'luq'
-    % Special sparse LUQ decomposition
-    [L,U,Q] = luq(A,1,tol);
-    % Rank
-    nc = find(any(abs(U)>tol,2),1,'last');
-    if isempty(nc)
-      nc = 0;
-      m = size(A,1)-nc;
-      if nargout>=2
-        x0 = ones(m,1);
-      end
-      N = speye(size(A,1),m);
-    else
-      if nargout>=2
-        y0 = U(1:nc,1:nc)\(speye(nc,size(L,1))*(L\b));
-        x0 = Q\[y0;zeros(size(Q,1)-nc,size(b,2))];
-      end
-      QQ = Q^-1;
-      N = QQ(:,nc+1:end);
-    end
-    %big = max(abs(N));
-    %if big > 0
-    %  N = N/big;
+    %% Special sparse LUQ decomposition
+    %tol
+    %[L,U,Q] = luq(A,1,tol);
+    %% Rank
+    %nc = find(any(abs(U)>tol,2),1,'last');
+    %nc
+    %if isempty(nc)
+    %  nc = 0;
+    %  m = size(A,1)-nc;
+    %  if nargout>=2
+    %    x0 = ones(m,1);
+    %  end
+    %  N = speye(size(A,1),m);
+    %else
+    %  if nargout>=2
+    %    y0 = U(1:nc,1:nc)\(speye(nc,size(L,1))*(L\b));
+    %    x0 = Q\[y0;zeros(size(Q,1)-nc,size(b,2))];
+    %  end
+    %  QQ = Q^-1;
+    %  N = QQ(:,nc+1:end);
     %end
+    %%big = max(abs(N));
+    %%if big > 0
+    %%  N = N/big;
+    %%end
+
+    % FAR MORE ACCURATE THAN luq(A,...); see doc of spspaces (L is more accurate
+    % than Q)
+    [L,U,Q] = luq(A',0,tol);
+    % this looks gross but somehow doesn't destroy sparsity
+    LL = L^-1;
+    S = max(abs(U),[],2);
+    if ~isempty(S)
+      J = find(S<=tol);
+    else
+      J = (1:size(S,1))';
+    end    
+    N = LL(J,:)';
+    nc = find(any(abs(U)>tol,2),1,'last');
+    Unc = U(1:nc,1:nc);
+    Lnc = L(:,1:nc);
+    %x0 = A'*(((A')'*A')\b);
+    %x0 = L*U*Q*((Q'*U'*L'*L*U*Q)\b);
+    %x0 = L*U*(((U'*L'*L*U)\(Q'\b)));
+    %x0 = Lnc*Unc*(((Unc'*Lnc'*Lnc*Unc)\(Q'\b)));
+    %x0 = Lnc*(((Lnc'*Lnc)\(Unc'\(Q'\b))));
+    x0 = LL'*(speye(size(L,2),size(Unc,1))*(Unc'\(Q'\b)));
   case 'rrlu'
     % "Strong rank revealing LU factorizations" [Miranian & Gu 2002]
     % https://math.berkeley.edu/~luiza/RRLU.pdf

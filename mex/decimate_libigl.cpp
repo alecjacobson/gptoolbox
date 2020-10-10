@@ -1,16 +1,15 @@
 #include <igl/decimate.h>
+#include <igl/copyleft/progressive_hulls.h>
 #include <igl/qslim.h>
 #include <Eigen/Core>
 #include <iostream>
 #include <set>
 
-#ifdef MEX
-#  include <mex.h>
-#  include <igl/C_STR.h>
-#  include <igl/matlab/mexErrMsgTxt.h>
-#  undef assert
-#  define assert( isOK ) ( (isOK) ? (void)0 : (void) ::mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
-#endif
+#include <mex.h>
+#include <igl/C_STR.h>
+#include <igl/matlab/mexErrMsgTxt.h>
+#undef assert
+#define assert( isOK ) ( (isOK) ? (void)0 : (void) ::mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
 
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/parse_rhs.h>
@@ -38,7 +37,7 @@ void mexFunction(
   mexErrMsgTxt(nrhs>=3,"nrhs should be >= 3");
   parse_rhs_double(prhs,V);
   parse_rhs_index(prhs+1,F);
-  mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
+  //mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
   mexErrMsgTxt(F.cols()==3,"F must be #F by 3");
   mexErrMsgTxt(
     mxIsDouble(prhs[2]) && mxGetM(prhs[2])==1 && mxGetN(prhs[2])==1,
@@ -52,8 +51,9 @@ void mexFunction(
   enum DecimateMethod
   {
     DECIMATE_METHOD_NAIVE = 0,
-    DECIMATE_METHOD_QSLIM = 1,
-    NUM_DECIMATE_METHODS = 2
+    DECIMATE_METHOD_PROGRESSIVE_HULLS = 1,
+    DECIMATE_METHOD_QSLIM = 2,
+    NUM_DECIMATE_METHODS = 3
   } method = DECIMATE_METHOD_NAIVE;
   {
     int i = 3;
@@ -69,6 +69,9 @@ void mexFunction(
         if(strcmp("naive",type_name)==0)
         {
           method = DECIMATE_METHOD_NAIVE;
+        }else if(strcmp("progressive-hulls",type_name)==0)
+        {
+          method = DECIMATE_METHOD_PROGRESSIVE_HULLS;
         }else if(strcmp("qslim",type_name)==0)
         {
           method = DECIMATE_METHOD_QSLIM;
@@ -90,11 +93,14 @@ void mexFunction(
     case DECIMATE_METHOD_NAIVE:
       decimate(V,F,max_m,W,G,J,I);
       break;
+    case DECIMATE_METHOD_PROGRESSIVE_HULLS:
+      copyleft::progressive_hulls(V,F,max_m,W,G,J);
+      break;
     case DECIMATE_METHOD_QSLIM:
       qslim(V,F,max_m,W,G,J,I);
       break;
     default:
-      mexErrMsgTxt(false,"Unkown method.");
+      mexErrMsgTxt(false,"Unknown method.");
       break;
   }
 

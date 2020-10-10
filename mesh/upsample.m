@@ -15,6 +15,9 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   %     'KeepDuplicates' followed by either true or {false}}
   %     'OnlySelected' followed by a list of simplex indices into F to
   %       subdivide.
+  %         or
+  %       followed by a function handle @(V,F) ... returning such a list (also
+  %       called on subsequent recursively calls).
   %     'Iterations' followed by number of recursive calls {1}
   % Outputs:
   %  VV  #VV by dim list new vertex positions, original V always comes first.
@@ -22,6 +25,27 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   %  FO  #FF list of indices into F of original "parent" simplex
   %  
   % This is Loop subdivision without moving the points
+  %
+  % Example:
+  %   [VVB,FF] = upsample([V speye(size(V,1))],F);
+  %   VV = full(VVB(:,1:size(V,2)));
+  %   B = VVB(:,size(V,2)+1:end);
+  %   max(max(abs(VV - B*V)))
+  %
+  % Example:
+  %   % Selected faces
+  %   sel = find(rand(size(F,1),1)>0.5);
+  %   % Selected edges on 3D mesh (V,F)
+  %   [uE,~,EMAP] = unique(sort(reshape(F(:,[2 3 1 3 1 2]),[],2),2),'rows');
+  %   uEM = sparse(EMAP,1,repmat(sparse(sel,1,1,size(F,1),1),3,1),size(uE,1),1)>0;
+  %   MF = full(reshape(uEM(EMAP),[],3));
+  %   % Selected edges on texture mesh (TV,TF)
+  %   [uE,~,EMAP] = unique(sort(reshape(TF(:,[2 3 1 3 1 2]),[],2),2),'rows');
+  %   uEM = sparse(EMAP,1,repmat(sparse(sel,1,1,size(TF,1),1),3,1),size(uE,1),1)>0;
+  %   MTF = full(reshape(uEM(EMAP),[],3));
+  %   M = MF | MTF;
+  %   [sTV,sTF] = upsample(TV,TF,'OnlySelected',M);
+  %   [sV,sF] = upsample(V,F,'OnlySelected',M);
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
   %
@@ -119,6 +143,7 @@ function [VV,FF,FO] = upsample(V,F,varargin)
 
   keep_duplicates = false;
   sel = [];
+  M = [];
   iters = 1;
    % default values
   % Map of parameter names to variable names
@@ -141,6 +166,11 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   if isempty(sel)
     sel = (1:size(F,1))';
   end
+  if all(size(sel) == size(F))
+    M = sel;
+    sel = [];
+    assert(iters <= 1,'Specifying M, not compatible with #iterations > 1');
+  end
 
   if iters<1
     FF = F;
@@ -149,6 +179,11 @@ function [VV,FF,FO] = upsample(V,F,varargin)
     return;
   end
 
+  sel_fun = [];
+  if isa(sel,'function_handle')
+    sel_fun = sel;
+    sel = sel_fun(V,F);
+  end
   if islogical(sel)
     sel = find(sel);
   end
@@ -158,31 +193,55 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   % http://mathoverflow.net/questions/28615/tetrahedron-splitting-subdivision
   case 3
     % Add a new vertex at the midpoint of each edge
-    nsel = setdiff((1:size(F,1))',sel);
 
-    Fsel = F(sel,:);
+    if isempty(M)
+      % Build unique edge map
+      [uE,~,EMAP] = unique(sort(reshape(F(:,[2 3 1 3 1 2]),[],2),2),'rows');
+      % All unique edges incident on a selected face
+      uEM = sparse(EMAP,1,repmat(sparse(sel,1,1,size(F,1),1),3,1),size(uE,1),1)>0;
+      % Selected half-edges
+      M = full(reshape(uEM(EMAP),[],3));
+    else
+      assert(islogical(M), 'M should be logical');
+      assert(all(size(M) == size(F)),'M should be #F by 3');
+    end
 
-    E = [F(:,2) F(:,3);F(:,3) F(:,1);F(:,1) F(:,2)];
-    Esel = [F(sel,2) F(sel,3);F(sel,3) F(sel,1);F(sel,1) F(sel,2)];
-    Ensel = [F(nsel,2) F(nsel,3);F(nsel,3) F(nsel,1);F(nsel,1) F(nsel,2)];
-    
-    [I] = ismember(sort(Ensel,2),sort(Esel,2),'rows');
-    nn = numel(nsel);
-    M = sparse(repmat(1:nn',1,3),repmat([1 2 3],nn,1),reshape(I,nn,3),nn,3);
+    % For each face, count the number of half-edges incident on a selected face
     C = sum(M,2);
+    % These faces touch two selected faces so, they'll need to be cut into 3:
+    %     o             o
+    %    / \           /|\
+    %   s   \   -->   o | \
+    %  /     \       / \|  \
+    % o---s---o     o---o---o
     M13 = M(C==2,:);
-    S13 = nsel(C==2);
+    S13 = find(C==2);
+    % These need to be cut into 2:
+    %     o             o
+    %    / \           /|\
+    %   /   \   -->   / | \
+    %  /     \       /  |  \
+    % o---s---o     o---o---o
     M12 = M(C==1,:);
-    S12 = nsel(C==1);
+    S12 = find(C==1);
+    % And even if face isn't selected, if all half-edges are getting split then
+    % the face will need to be cut into 4:
+    %     o             o
+    %    / \           / \
+    %   s   s   -->   o---o
+    %  /     \       / \ / \
+    % o---s---o     o---o---o
+    S14 = find(C==3);
+    % Finally let's keep a list of the faces that aren't getting split (*not*
+    % the same as the non-selected faces)
+    S11 = setdiff((1:size(F,1))',[S14(:);S13(:);S12(:)]);
 
     n = size(V,1);
-    S14 = union(sel,nsel(C==3));
-
-    S11 = setdiff((1:size(F,1))',[S14(:);S13(:);S12(:)]);
-    [U14,F14,EU14] = one_four(size(V,1),V,F(S14,:));
-    [U13,F13,EU13] = one_three(size(V,1)+size(U14,1),V,F(S13,:),M13);
-    [U12,F12,EU12] = one_two(size(V,1)+size(U14,1)+size(U13,1),V,F(S12,:),M12);
+    [U14,F14,EU14] = one_four( n                        ,V,F(S14,:));
+    [U13,F13,EU13] = one_three(n+size(U14,1)            ,V,F(S13,:),M13);
+    [U12,F12,EU12] = one_two(  n+size(U14,1)+size(U13,1),V,F(S12,:),M12);
     F11 = F(S11,:);
+
 
     FF = [F14;F13;F12;F11];
     FO = [S14;S14;S14;S14;S13;S13;S13;S12;S12;S11];
@@ -219,7 +278,7 @@ function [VV,FF,FO] = upsample(V,F,varargin)
       % No duplicates in 2D case
     else
       Fsel = F(sel,:);
-      nsel = setdiff(1:size(F,1),sel);
+      nsel = setdiff(1:size(F,1),sel)';
       Fnsel = F(nsel,:);
       [VV,FF,FO] = upsample(V,Fsel,'KeepDuplicates',keep_duplicates);
       FF = [Fnsel;FF];
@@ -231,11 +290,19 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   if isempty(sel)
     sel = 1:size(F,1);
   end
-  [VV,FF,FOr] = upsample( ...
-    VV,FF, ...
-    'OnlySelected',find(ismember(FO,sel)), ...
-    'Iterations',iters-1, ...
-    'KeepDuplicates',keep_duplicates);
+  if isempty(sel_fun)
+    [VV,FF,FOr] = upsample( ...
+      VV,FF, ...
+      'OnlySelected',find(ismember(FO,sel)), ...
+      'Iterations',iters-1, ...
+      'KeepDuplicates',keep_duplicates);
+  else
+    [VV,FF,FOr] = upsample( ...
+      VV,FF, ...
+      'OnlySelected',sel_fun, ...
+      'Iterations',iters-1, ...
+      'KeepDuplicates',keep_duplicates);
+  end
   FO = FO(FOr);
 
 end

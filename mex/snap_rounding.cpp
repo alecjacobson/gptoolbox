@@ -9,8 +9,6 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <algorithm>
 
-// mex(  MEXOPTS{:}, MSSE42, STDCPP11,  LIBIGL_BASE{:},EIGEN_INC, CGAL_INC,CGAL_LIB{:},CGAL_FLAGS,  LIBIGL_LIBCGAL, LIBIGL_LIBBOOLEAN, CORK_INC,CORK_LIB{:},  BOOST_INC,BOOST_LIB{:},  'mesh_boolean.cpp');
-
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/prepare_lhs.h>
@@ -70,7 +68,3 @@ void mexFunction(
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
 }
-
-#ifdef IGL_STATIC_LIBRARY
-template void igl::copyleft::cgal::snap_rounding<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
-#endif

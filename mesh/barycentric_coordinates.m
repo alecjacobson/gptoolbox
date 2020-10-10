@@ -19,6 +19,13 @@ function B = barycentric_coordinates(P,varargin)
     assert(size(P,2) == size(varg{1},2), 'All inputs should be same dimension');
   end
 
+  function v = volume(ad,bd,cd)
+    r =[bd(:,2).*cd(:,3)-bd(:,3).*cd(:,2), ...
+        bd(:,3).*cd(:,1)-bd(:,1).*cd(:,3), ...
+        bd(:,1).*cd(:,2)-bd(:,2).*cd(:,1)];
+    v = -sum(ad.*r,2)./6;
+  end
+
   n = size(P,1);
   switch numel(varargin)
   case 4
@@ -26,12 +33,16 @@ function B = barycentric_coordinates(P,varargin)
     V2 = varargin{2};
     V3 = varargin{3};
     V4 = varargin{4};
-    T = bsxfun(@plus,(1:n)',(0:3)*n);
-    A1 = volume([V2;V4;V3;P],T);
-    A2 = volume([V1;V3;V4;P],T);
-    A3 = volume([V1;V4;V2;P],T);
-    A4 = volume([V1;V2;V3;P],T);
-    A  = volume([V1;V2;V3;V4],T);
+    V1P = V1-P;
+    V2P = V2-P;
+    V3P = V3-P;
+    V4P = V4-P;
+    %T = bsxfun(@plus,(1:n)',(0:3)*n);
+    A1 = volume(V2P,V4P,V3P);
+    A2 = volume(V1P,V3P,V4P);
+    A3 = volume(V1P,V4P,V2P);
+    A4 = volume(V1P,V2P,V3P);
+    A  = volume(V1-V4,V2-V4,V3-V4);
     if size(P,2)>3 && max(abs(sum([A1 A2 A3 A4],2)-A))>1e-14
       warning('Possibly negative coordinates. Not supported in dim~=3');
     end
@@ -54,7 +65,7 @@ function B = barycentric_coordinates(P,varargin)
     A1 = edge_lengths([P;V2],[1:n;n+[1:n]]');
     A2 = edge_lengths([V1;P],[1:n;n+[1:n]]');
     A = edge_lengths([V1;V2],[1:n;n+[1:n]]');
-    if size(P,2)>1 && max(abs(sum([A1 A3],2)-A))>1e-14
+    if size(P,2)>1 && max(abs(sum([A1 A2],2)-A))>1e-14
       warning('Possibly negative coordinates. Not supported in dim~=1');
     end
     B = bsxfun(@rdivide,[A1 A2],A);

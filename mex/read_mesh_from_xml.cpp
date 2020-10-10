@@ -1,4 +1,3 @@
-#ifdef MEX
 // Force header only version
 #ifdef IGL_STATIC_LIBRARY
 #undef IGL_STATIC_LIBRARY
@@ -15,7 +14,9 @@
 #include <igl/xml/serialize_xml.h>
 #include <Eigen/Core>
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
 #include <wordexp.h>
+#endif
 #include <iostream>
 
 // http://www.alecjacobson.com/weblog/?p=4477
@@ -73,11 +74,13 @@ void mexFunction(
   mexErrMsgTxt(nrhs >= 1, "The number of input arguments must be >=1.");
   mexErrMsgTxt(mxIsChar(prhs[0]),"File name should be string");
   string filename;
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
   {
     wordexp_t exp_result;
     wordexp(mxArrayToString(prhs[0]), &exp_result, 0);
     filename = exp_result.we_wordv[0];
   }
+#endif
 
 
 
@@ -120,5 +123,3 @@ void mexFunction(
   }
 
 }
-#endif
-

@@ -14,6 +14,17 @@ function [ N ] = normals(V,F,varargin)
   % Output:
   %  N  #F x 3 list of face normals
   %
+  % Example:
+  %   timeit(@() normalizerow(normals(UV,UF)))
+  %   % faster unit normals
+  %   cross2 = @(a,b,c) ...
+  %     [a(:,2).*b(:,3)-a(:,3).*b(:,2), ...
+  %      a(:,3).*b(:,1)-a(:,1).*b(:,3), ...
+  %      a(:,1).*b(:,2)-a(:,2).*b(:,1)];
+  %   nrmlev = @(p1,p2,p3) cross2(p2-p1,p3-p1);
+  %   unrml = @(V,F) normalizerow(nrmlev(V(F(:,1),:),V(F(:,2),:),V(F(:,3),:)));
+  %   timeit(@() unrml(UV,UF))
+
 
   function D = sum3(A,B,C)
     % SUM3 Entrywise sum of three matrices in a stable way: sorting entries by
@@ -44,6 +55,12 @@ function [ N ] = normals(V,F,varargin)
       error('Unsupported parameter: %s',varargin{v});
     end
     v=v+1;
+  end
+
+  if size(F,2)==2
+    N = V(F(:,2),:)-V(F(:,1),:);
+    N = N*[0 -1;1 0];
+    return;
   end
   
   p1 = V(F(:,1),:);

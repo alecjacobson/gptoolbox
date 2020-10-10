@@ -165,13 +165,11 @@ universe *segment_graph(int num_vertices, int num_edges, edge *edges,
 
 // mexopts = gptoolbox_mexopts('Static',false,'Debug',true);
 // mex('segment_graph.cpp',mexopts{:});
-#ifdef MEX
-#  include <mex.h>
-#  include <igl/C_STR.h>
-#  include <igl/matlab/mexErrMsgTxt.h>
-#  undef assert
-#  define assert( isOK ) ( (isOK) ? (void)0 : (void) ::mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
-#endif
+#include <mex.h>
+#include <igl/C_STR.h>
+#include <igl/matlab/mexErrMsgTxt.h>
+#undef assert
+#define assert( isOK ) ( (isOK) ? (void)0 : (void) ::mexErrMsgTxt(C_STR(__FILE__<<":"<<__LINE__<<": failed assertion `"<<#isOK<<"'"<<std::endl) ) )
 
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <igl/matlab/parse_rhs.h>

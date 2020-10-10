@@ -60,7 +60,6 @@ function [FF,I,l] = flip_edges(F,E,varargin)
     assert(isempty(nonmanifold_edges(FF)));
   end
   I = 1:numel(F);
-  l = [];
   if isempty(E)
     return;
   end
@@ -93,14 +92,14 @@ function [FF,I,l] = flip_edges(F,E,varargin)
       [EE,mI] = conservative_edge_matching(E);
     end
 
-    if ~isempty(V)
-      tsurf(FF,V,'FaceColor','r');
-      hold on;
-      plot_edges(V,EE,'LineWidth',3);
-      hold off;
-      axis equal;
-      input('');
-    end
+    %if ~isempty(V)
+    %  tsurf(FF,V,'FaceColor','r');
+    %  hold on;
+    %  plot_edges(V,EE,'LineWidth',3);
+    %  hold off;
+    %  axis equal;
+    %  input('');
+    %end
 
     % Pop those from E
     E = E(setdiff(1:end,mI),:);
@@ -185,6 +184,7 @@ function [FF,I,l] = flip_edges(F,E,varargin)
       % cos(alpha+delta)
       cos_a_d = (1-tan_a_d_2.^2)./(1+tan_a_d_2.^2);
       f = sqrt(b.^2 + c.^2 - 2.*b.*c.*cos_a_d);
+      %[a;b;c;d;e;tan_a_2;tan_d_2;tan_a_d_2;cos_a_d;f]
 
       % Need to swap, so be lazy and copy
       old_l = l;
@@ -207,14 +207,14 @@ function [FF,I,l] = flip_edges(F,E,varargin)
       assert(isempty(nonmanifold_edges(FF)));
     end
 
-    if ~isempty(V)
-      tsurf(FF,V,'FaceColor','r');
-      hold on;
-      plot_edges(V,new_EE,'LineWidth',3);
-      hold off;
-      axis equal;
-      input('');
-    end
+    %if ~isempty(V)
+    %  tsurf(FF,V,'FaceColor','r');
+    %  hold on;
+    %  plot_edges(V,new_EE,'LineWidth',3);
+    %  hold off;
+    %  axis equal;
+    %  input('');
+    %end
 
     if iter >= max_iter
       break;

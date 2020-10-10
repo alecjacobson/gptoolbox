@@ -1,4 +1,4 @@
-function writeOBJ(filename, V,F,UV,TF,N,NF)
+function writeOBJ(filename, V,F,UV,TF,N,NF,comment)
   % WRITEOBJ writes an OBJ file with vertex/face information
   %
   % writeOBJ(filename,V,F,UV,N)
@@ -16,14 +16,17 @@ function writeOBJ(filename, V,F,UV,TF,N,NF)
 %disp(['writing: ',filename]);
 f = fopen( filename, 'w' );
 
+if exist('comment','var') && ~isempty(comment)
+  fprintf(f,'# %s\n',comment);
+end
 
 if size(V,2) == 2
   warning('Appending 0s as z-coordinate');
   V(:,end+1:3) = 0;
 else
-  assert(size(V,2) == 3);
+  %assert(size(V,2) == 3);
 end
-fprintf( f, 'v %0.17g %0.17g %0.17g\n', V');
+fprintf( f, ['v' repmat(' %0.17g',1,size(V,2)) '\n'], V');
 
 hasN =  exist('N','var') && ~isempty(N);
 hasUV = exist('UV','var') && ~isempty(UV);
@@ -51,22 +54,28 @@ if hasN && (~exist('NF','var') || isempty(NF))
     NF = F;
 end
 
-for k=1:size(F,1)
-    if ( (~hasN) && (~hasUV) ) || (any(TF(k,:)<=0,2) && any(NF(k,:)<=0,2))
-        fmt = repmat(' %d',1,size(F,2));
-        fprintf( f,['f' fmt '\n'], F(k,:));
-    elseif ( hasUV && (~hasN || any(NF(k,:)<=0,2)))
-        fmt = repmat(' %d/%d',1,size(F,2));
-        fprintf( f, ['f' fmt '\n'], [F(k,:);TF(k,:)]);
-    elseif ( (hasN) && (~hasUV || any(TF(k,:)<=0,2)))
-        fmt = repmat(' %d//%d',1,size(F,2));
-        fprintf( f, ['f' fmt '\n'],[F(k,:);TF(k,:)]');
-    elseif ( (hasN) && (hasUV) )
-        assert(all(NF(k,:)>0));
-        assert(all(TF(k,:)>0));
-        fmt = repmat(' %d/%d/%d',1,size(F,2));
-        fprintf( f, ['f' fmt '\n'],[F(k,:);TF(k,:);NF(k,:)]);
-    end
+if ~hasN && ~hasUV
+  % A lot faster if we just have faces and they're all triangles
+  fmt = repmat(' %d',1,size(F,2));
+  fprintf( f,['f' fmt '\n'], F');
+else
+  for k=1:size(F,1)
+      if ( (~hasN) && (~hasUV) ) || (any(TF(k,:)<=0,2) && any(NF(k,:)<=0,2))
+          fmt = repmat(' %d',1,size(F,2));
+          fprintf( f,['f' fmt '\n'], F(k,:));
+      elseif ( hasUV && (~hasN || any(NF(k,:)<=0,2)))
+          fmt = repmat(' %d/%d',1,size(F,2));
+          fprintf( f, ['f' fmt '\n'], [F(k,:);TF(k,:)]);
+      elseif ( (hasN) && (~hasUV || any(TF(k,:)<=0,2)))
+          fmt = repmat(' %d//%d',1,size(F,2));
+          fprintf( f, ['f' fmt '\n'],[F(k,:);TF(k,:)]');
+      elseif ( (hasN) && (hasUV) )
+          assert(all(NF(k,:)>0));
+          assert(all(TF(k,:)>0));
+          fmt = repmat(' %d/%d/%d',1,size(F,2));
+          fprintf( f, ['f' fmt '\n'],[F(k,:);TF(k,:);NF(k,:)]);
+      end
+  end
 end
 
 

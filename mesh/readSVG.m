@@ -9,11 +9,20 @@ function [P,S,C,E] = readSVG(filename)
   %   P  #P list of polylines, if the polygon is closed the the last point will
   %      be the same as the first.
   %   S  #P by 3 list of stroke colors
-  %   C  #C by 2 list of control points of all polys
-  %   E  #E by 2 list of edge indices of all polys into C
+  %   C  #C list of cubic bezir paths
   %
+  % Note: order is **not** maintained
+  %
+  % Example:
+  %   % read polylines from an svg 
+  %   [P,S] = readSVG('polylines.svg');
 
   tic;
+  % xmlread appears to be buggy if filename contains ~ etc.
+  if isunix
+    [~,filename] = system(sprintf('find %s',filename));
+    filename = strtrim(filename);
+  end
   xDoc = xmlread(filename);
   toc
   
@@ -27,7 +36,14 @@ function [P,S,C,E] = readSVG(filename)
     y = sscanf(char(rect.getAttribute('y')),'%g');
     w = sscanf(char(rect.getAttribute('width')),'%g');
     h = sscanf(char(rect.getAttribute('height')),'%g');
-    Pi = [x y;x+w y;x+w y+h;x y+h;x y];
+    [T,foundT] = sscanf(char(rect.getAttribute('transform')),'matrix(%g %g %g %g %g %g)');
+    if foundT == 0
+      T = eye(2,3);
+    else
+      assert(foundT == 6)
+      T = reshape(T,2,3);
+    end
+    Pi = [[x y;x+w y;x+w y+h;x y+h;x y] ones(5,1)]*T';
     P{end+1} = Pi;
     hex = char(rect.getAttribute('stroke'));
     if ~isempty(hex)
@@ -61,12 +77,15 @@ function [P,S,C,E] = readSVG(filename)
     end
   end
 
-
+  % Combine all into segment complex
   C = [];
   E = [];
-  for pi = 1:numel(P)
-    E = [E;size(C,1)+[1:size(P{pi},1)-1;2:size(P{pi},1)]'];
-    C = [C;P{pi}];
+  for ii = 1:numel(P)
+    E = [E;size(C,1)+[1:size(P{ii},1)-1;2:size(P{ii},1)]'];
+    C = [C;P{ii}];
   end
+    
+  
+
 
 end

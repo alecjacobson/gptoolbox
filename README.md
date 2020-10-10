@@ -1,5 +1,7 @@
 # gptoolbox - Geometry Processing Toolbox
 
+[![Build Status](https://travis-ci.org/alecjacobson/gptoolbox.svg?branch=master)](https://travis-ci.org/alecjacobson/gptoolbox)
+
 <https://github.com/alecjacobson/gptoolbox/>
 
 This is a toolbox of useful matlab functions for geometry processing. There are

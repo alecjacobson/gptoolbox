@@ -22,7 +22,7 @@ function [W] = readDMAT(filename)
   if ~feof(fp)
     [size_B,c_B] = fscanf(fp,'%d %d',[1 2]);
     size_B = fliplr(size_B);
-    if c_B==2
+    if c_B==2 && all(size_B>0)
       assert(~any(size_W));
       assert(isempty(W));
       % Finish reading header: read '\n' char

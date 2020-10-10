@@ -14,13 +14,28 @@ function [L,E,EMAP] = crouzeix_raviart_cotmatrix(V,F)
   %
   % Examples:
   %   % mesh in (V,F)
-  %   [~,~,Ucr] = svd(full(Lcr));
+  %   [Lcr,E,EMAP] = crouzeix_raviart_cotmatrix(V,F);
+  %   [Mcr,E,EMAP] = crouzeix_raviart_massmatrix(V,F);
+  %   [Ucr,~] = eigs(Lcr,Mcr,5,'sm');
   %   % Convert between edge values and vertex values
   %   E2V = sparse(E(:),repmat(1:size(E,1),1,2)',1,size(V,1),size(E,1));
   %   E2V = bsxfun(@rdivide,E2V,sum(E2V,2));
   %   V2E = sparse(E(:),repmat(1:size(E,1),1,2)',1,size(V,1),size(E,1))';
   %   V2E = bsxfun(@rdivide,V2E,sum(V2E,2));
   %   tsurf(F,[V(:,1:2) E2V*Ucr(:,end-1)])
+  %   
+  %   % Display discontinous solution
+  %   FF = reshape(1:numel(F),size(F));
+  %   VV = V(F,:);
+  %   EMAP = reshape(EMAP,size(F));
+  %   A = sparse( ...
+  %     [FF FF FF], ...
+  %     EMAP(:,[1 2 3 2 3 1 3 1 2]), ...
+  %     repmat(-[1 1 1 -1 -1 -1 -1 -1 -1],size(F,1),1), ...
+  %     size(VV,1), ...
+  %     size(E,1));
+  %   tsurf(FF,[VV(:,1:2) A*Ucr(:,end-1)])
+  %   
   %
   %
   % See also: edge_laplacian, is_boundary_edge, crouzeix_raviart_massmatrix,

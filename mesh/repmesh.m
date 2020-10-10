@@ -1,4 +1,4 @@
-function [VV,FF] = repmesh(V,F,C)
+function [VV,FF,IV,IF] = repmesh(V,F,C)
   % REPMESH Repeat a mesh by translating it by each vector in C
   %
   % [VV,FF] = repmesh(V,F,C)
@@ -10,6 +10,8 @@ function [VV,FF] = repmesh(V,F,C)
   % Outputs:
   %   VV  #VV*#C by dim list of mesh vertex positions
   %   FF  #F*#C by ss list of simplex indices
+  %   IV  #VV list of indices into rows of C
+  %   IF  #FF list of indices into rows of C
   %
   %
   % Example:
@@ -26,6 +28,9 @@ function [VV,FF] = repmesh(V,F,C)
   %   % Color based on which vector was used (per-face)
   %   tsurf(FF,VV,'CData',floor(((1:size(FF,1))-1)/size(F,1))')
   % 
-  FF = reshape(F'+permute((0:size(C,1)-1)*size(V,1),[1 3 2]),3,[])';
-  VV = reshape(V'+permute(C,[2 3 1]),3,size(V,1)*size(C,1))';
+  FF = reshape(F'+permute((0:size(C,1)-1)*size(V,1),[1 3 2]),size(F,2),[])';
+  assert(size(V,2) == size(C,2));
+  VV = reshape(V'+permute(C,[2 3 1]),size(V,2),size(V,1)*size(C,1))';
+  IV = reshape(repmat(1:size(C,1),size(V,1),1),[],1);
+  IF = reshape(repmat(1:size(C,1),size(F,1),1),[],1);
 end

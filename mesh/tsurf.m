@@ -14,6 +14,7 @@ function t = tsurf(F,V,varargin)
   %     'FaceIndices' followed by 
   %                   0 -> off
   %                   1 -> text and grey background
+  %                  -1 -> text and grey background (decremented by 1)
   %                  >1 -> text
   %     ... additional options passed on to trisurf
   % Outputs:
@@ -73,9 +74,13 @@ function t = tsurf(F,V,varargin)
   if(dim==2 || (dim ==3 && sum(abs(V(:,3))) == 0))
     V = [V(:,1) V(:,2) 0*V(:,1)];
     dim = 2;
-  elseif(dim>3 || dim<2 ) 
+  elseif ( (dim>3 || dim<2 ))
+      if dim==4 && all(V(:,4)==1.0)
+          V = V(:,1:3);
+      else
     error('V must be #V x 3 or #V x 2');
     return;
+      end
   end
 
   %tets = size(F,2) ==4 && (size(F,1)*4 > 1.01*size(boundary_faces(F),1));
@@ -95,22 +100,26 @@ function t = tsurf(F,V,varargin)
   end
   end
 
+  FI = 1:size(F,1);
+  if face_indices<0
+    FI = FI-1;
+  end
   if tets
     t_copy = tetramesh(F,V,'FaceAlpha',0.5);
     FC = barycenter(V,F);
-    if(face_indices==1)
-      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
+    if(abs(face_indices)==1)
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((FI)'),'BackgroundColor',[.7 .7 .7]);
     elseif(face_indices)
-      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((FI)'));
     end
     set(gcf,'Renderer','OpenGL');
   else
     t_copy = trisurf(F,V(:,1),V(:,2),V(:,3));
     FC = barycenter(V,F);
-    if(face_indices==1)
-      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'),'BackgroundColor',[.7 .7 .7]);
+    if(abs(face_indices)==1)
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((FI)'),'BackgroundColor',[.7 .7 .7]);
     elseif(face_indices)
-      text(FC(:,1),FC(:,2),FC(:,3),num2str((1:size(F,1))'));
+      text(FC(:,1),FC(:,2),FC(:,3),num2str((FI)'));
     end
   end
   
@@ -121,10 +130,11 @@ function t = tsurf(F,V,varargin)
 
   if vertex_indices
     visible = reshape(unique(F),[],1);
-    if(vertex_indices==1)
-      text(V(visible,1),V(visible,2),V(visible,3),num2str(visible),'BackgroundColor',[.8 .8 .8]);
+    VI = visible - (vertex_indices<0);
+    if(abs(vertex_indices)==1)
+      text(V(visible,1),V(visible,2),V(visible,3),num2str(VI),'BackgroundColor',[.8 .8 .8]);
     elseif(vertex_indices)
-      text(V(visible,1),V(visible,2),V(visible,3),num2str(visible));
+      text(V(visible,1),V(visible,2),V(visible,3),num2str(VI));
     end
   end
   % uncomment these to switch to a better 3d surface viewing mode
@@ -185,8 +195,9 @@ function t = tsurf(F,V,varargin)
         if size(V3,2) == 2
           V3(:,3) = 0*V(:,1);
         end
-        fprintf('Opening mesh in meshplot...\n');
-        meshplot(V3,t_copy.Faces);
+        fprintf('Opening mesh in viewmesh...\n');
+        writeOBJ('.vm.obj',V3,F);
+        system('/usr/local/bin/viewmesh .vm.obj');
       otherwise
         warning(['Unknown key: ' ev.Character]);
       end

@@ -1,8 +1,8 @@
-function [SV,SF,SVJ] = clean(V,F,varargin)
-  % CLEAN  Clean up a given mesh (V,F)
+function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
+  % CLEAN_MESH  Clean up a given mesh (V,F)
   %
-  % [SV,SF,SVJ] = clean(V,F)
-  % [SV,SF,SVJ] = clean(V,F,'ParameterName',ParameterValue, ...)
+  % [SV,SF,SVJ] = clean_mesh(V,F)
+  % [SV,SF,SVJ] = clean_mesh(V,F,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
   %   V  #V by 3 list of mesh positions
@@ -32,7 +32,7 @@ function [SV,SF,SVJ] = clean(V,F,varargin)
   %
   %
   % Example:
-  %  [SV,SF,SVJ] = clean(V,F);
+  %  [SV,SF,SVJ] = clean_mesh(V,F);
   %  [DV,DT,DF,DN] = cdt(SV,SF);
   %  % remap final vertices and final tets to work with original faces
   %  IM = [SVJ(:)' max(SVJ)+1:size(DV,1)];
@@ -45,7 +45,7 @@ function [SV,SF,SVJ] = clean(V,F,varargin)
   %  VDT = RIM(DT);
   %
   %  % Remove only degeneracies and duplicates
-  %  [SV,SF] = clean(V,F,'MinDist',0,'MinArea',0,'MinAngle',0, ...
+  %  [SV,SF] = clean_mesh(V,F,'MinDist',0,'MinArea',0,'MinAngle',0, ...
   %    'SelfIntersections','ignore','SmallTriangles','remove');
   %
 

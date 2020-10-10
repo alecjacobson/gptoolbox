@@ -15,7 +15,10 @@ function [ B ] = normrow( A )
   case 2
     B = hypot(A(:,1),A(:,2));
   otherwise
-    B = sqrt(sum(A.^2,2));
+    %B = sqrt(sum(A.^2,2));
+    M = max(abs(A),[],2);
+    B = M.*sqrt(sum((A./M).^2,2));
+    B(M==0) = 0;
   end
 end
 

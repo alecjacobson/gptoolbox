@@ -2,6 +2,7 @@
 % pairs of intersecting faces. Note that self-intersections are ignored.
 % 
 % [IF] = intersect_other(V,F,U,G,'ParameterName',ParameterValue, ...)
+% [IF,VVAB,FFAB,JAB,IMAB] = intersect_other(V,F,U,G,'ParameterName',ParameterValue, ...)
 %
 % Inputs:
 %   V  #V by 3 list of vertex positions
@@ -14,6 +15,11 @@
 % Outputs:
 %   IF  #intersecting face pairs by 2 list of intersecting face pairs,
 %     indexing F and G
+%   VVAB  #VVAB by 3 list of vertex positions
+%   FFAB  #FFAB by 3 list of triangle indices into VVA
+%   JAB  #FFAB list of indices into [FA;FB] denoting birth triangle
+%   IMAB  #VVAB list of indices stitching duplicates (resulting from
+%     mesh intersections) together
 %
 % See also: selfintersect
 

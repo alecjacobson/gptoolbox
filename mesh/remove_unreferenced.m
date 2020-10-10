@@ -1,8 +1,8 @@
-function [RV,IM,J] = remove_unreferenced(V,F)
+function [RV,IM,J,IMF] = remove_unreferenced(V,F)
   % REMOVE_UNREFERENCED Removes any rows in V that are not referenced in R.
   % **Warning:** This implementation is O(#V) regardless of #F
   %
-  % [RV,IM,J] = remove_unreferenced(V,F)
+  % [RV,IM,J,IMF] = remove_unreferenced(V,F)
   %
   % Inputs:
   %   V  #V by dim list of "vertex positions"
@@ -53,5 +53,7 @@ function [RV,IM,J] = remove_unreferenced(V,F)
   % Remove unreferenced
   RV = RV(1:max(IM(F(:))),:);
   J(IM) = 1:n;
-  J = J(1:max(IM(F(:))));
+  IMF = IM(F);
+  J = J(1:max(IMF(:)));
+
 end

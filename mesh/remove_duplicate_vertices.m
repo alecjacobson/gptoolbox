@@ -8,7 +8,8 @@ function [SV,SVI,SVJ] = remove_duplicate_vertices(V,epsilon,varargin)
   %
   % Inputs:
   %   V  #V by dim list of vertex positions
-  %   epsilon  uniqueness tolerance (significant digit)
+  %   epsilon  uniqueness tolerance 1e0 --> integer match, 1e-1 --> match up to 
+  %     first decimal, ... , 0 --> exact match.
   %   Optional:
   %     'WhiteList' Only merge vertices from the following selection (not
   %     working correctly, yet)
@@ -49,7 +50,7 @@ function [SV,SVI,SVJ] = remove_duplicate_vertices(V,epsilon,varargin)
     if nargin==1 || epsilon == 0
       [SV,SVI,SVJ] = unique(V,'rows','stable');
     else
-      [~,SVI,SVJ] = unique(round(V/(10*epsilon)),'rows','stable');
+      [~,SVI,SVJ] = unique(round(V/(epsilon)),'rows','stable');
       SV = V(SVI,:);
     end
   else

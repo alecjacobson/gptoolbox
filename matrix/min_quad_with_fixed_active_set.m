@@ -100,7 +100,7 @@ function [Z,F,Lambda] = min_quad_with_fixed_active_set( ...
   if ~isfield(F,'as_ux')
     F.as_ux= [];
   end
-  max_iter = 100;
+  max_iter = 1000;
   inactive_threshold = eps;
   stop_threshold = eps;
   active_threshold = eps;

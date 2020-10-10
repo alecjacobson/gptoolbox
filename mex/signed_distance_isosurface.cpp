@@ -1,5 +1,3 @@
-#ifdef MEX
-
 #include <igl/copyleft/cgal/signed_distance_isosurface.h>
 #include <igl/copyleft/offset_surface.h>
 #include <igl/matlab/validate_arg.h>
@@ -219,5 +217,3 @@ void mexFunction(
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
 }
-
-#endif

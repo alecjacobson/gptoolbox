@@ -73,11 +73,15 @@ function [VV,QQ,SS,J] = catmull_clark(V,Q,iter)
       sparse(TT,repmat(1:nt,3,1)',1,n,nt)];
     % number of faces incident on each vertex
     val = sum(V2F,2);
+    % http://www.alecjacobson.com/weblog/?p=3235
+    pou_rows =  @(A) spdiags (1./sum (A,2), 0, size(A,1), size(A,1)) * A ;
     % normalize to take average
-    V2F = bsxfun(@rdivide,V2F,sum(V2F,2));
+    %V2F = bsxfun(@rdivide,V2F,sum(V2F,2));
+    V2F = pou_rows(V2F);
     % compute midpoints of original vertices
-    ME = full(sparse(E(:,[1 2 1 2]),E(:,[1 2 2 1]),1,n,n));
-    ME = bsxfun(@rdivide,ME,sum(ME,2));
+    ME = sparse(E(:,[1 2 1 2]),E(:,[1 2 2 1]),1,n,n);
+    %ME = bsxfun(@rdivide,ME,sum(ME,2));
+    ME = pou_rows(ME);
     % Weighting 
     W = bsxfun(@rdivide,[(val-3) ones(n,1) 2*ones(n,1)],val);
     SV = ...

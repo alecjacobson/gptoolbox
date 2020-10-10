@@ -7,7 +7,6 @@ function f = figpng(filename,varargin)
   %   f  flag whether file already existed
   % 
   frame = getframe(gcf);
-  f = exist(filename,'file');
   imwrite(frame.cdata,filename);
 end
 

@@ -1,4 +1,4 @@
-function [V,F] = cube(x,y,z)
+function [V,F,Q] = cube(x,y,z)
   % CUBE Construct a mesh of the unit cube. Sides are ordered like sides of a
   % die (one of many dice).
   %
@@ -11,6 +11,7 @@ function [V,F] = cube(x,y,z)
   % Outputs:
   %   V  x*y*z by 3 list of vertex positions
   %   F  #F by 3 list of triangle indices
+  %   Q  #Q by 3 list of quad indices
   %
   % 
   if nargin<2
@@ -32,11 +33,14 @@ function [V,F] = cube(x,y,z)
     F = [F;size(V,1)+CF];
     V = [V;(CV-0.5)*R+0.5];
   end
+  Q = [F(1:2:end-1,[1 2]) F(2:2:end,[2 3])];
   
   % Should be able to do this procedurally
   [V,~,J] = remove_duplicate_vertices(V,1e-12);
+  Q = J(Q);
   F = J(F);
   % oops inside out
   F = fliplr(F);
+  Q = fliplr(Q);
 
 end

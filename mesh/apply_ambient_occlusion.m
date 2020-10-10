@@ -130,6 +130,9 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
     c = get(gca,'Children');
     t = c(arrayfun(@(x) isa(x,'matlab.graphics.primitive.Patch'),c));
   end
+  if iscell(t)
+    t = [t{:}];
+  end
 
   AOin = AO;
   AO = {};

@@ -1,5 +1,3 @@
-#ifdef MEX
-
 #include <igl/copyleft/cgal/mesh_boolean.h>
 #include <igl/copyleft/cgal/remesh_self_intersections.h>
 #include <igl/copyleft/cgal/mesh_boolean_type_to_funcs.h>
@@ -272,6 +270,3 @@ void mexFunction(
   // Restore the std stream buffer Important!
   std::cout.rdbuf(outbuf);
 }
-
-#endif
-

@@ -1,7 +1,7 @@
-function [V,F] = strip(P,E)
-  % STRIP build a strip of triangles given a curve
+function [V,F] = triangle_strip(P,E)
+  % TRIANGLE_STRIP build a strip of triangles given a curve
   %
-  % [V,F] = strip(P,E)
+  % [V,F] = triangle_strip(P,E)
   % 
   % Inputs:
   %   P  #points by 2 list of 2d points

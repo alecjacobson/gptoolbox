@@ -1,6 +1,5 @@
 function N = per_vertex_normals(V,F,varargin)
-  % PER_VERTEX_NORMALS  Compute per-vertex (area-weighted) normals over a mesh
-  % (V,F)
+  % PER_VERTEX_NORMALS  Compute per-vertex (area-weighted) normals over a mesh % (V,F)
   %
   % N = per_vertex_normals(V,F)
   %
@@ -37,16 +36,22 @@ function N = per_vertex_normals(V,F,varargin)
     v=v+1;
   end
 
+  ss = size(F,2);
   FN = normalizerow(normals(V,F)+eps);
   switch weighting
   case 'uniform'
-    W = ones(size(F,1),3);
+    W = ones(size(F,1),ss);
   case 'angle'
     W = internalangles(V,F);
   case 'area'
-    W = repmat(doublearea(V,F),1,3);
+    switch ss
+    case 3
+      W = repmat(doublearea(V,F),1,3);
+    case 2
+      W = repmat(edge_lengths(V,F),1,2);
+    end
   end
-  W = sparse(F(:),repmat(1:size(F,1),1,3),W,size(V,1),size(F,1));
+  W = sparse(F(:),repmat(1:size(F,1),1,ss),W,size(V,1),size(F,1));
   N = normalizerow(W*FN);
 
 end

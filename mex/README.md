@@ -18,34 +18,38 @@ the build routine is (from the bash command line):
 
 This will output the mex functions in this (`mex/`) directory.
 
+CMake's `FindMatlab.cmake` is not very good. You might have to do something like:
+
+    cmake ../ -DMatlab_ROOT_DIR=/apps/matlab-R2019b/
+
 ### Dependencies 
 
-Some of these functions depend on:
+Nearly all of the functions depend on stl, Eigen and libigl.  Beyond that some
+may depend on CGAL, Embree, and El Topo. The `cmake ..` command above should
+take care of _downloading_ these dependencies into `gptoolbox/mex/external/`.
 
- - cmake
- - c++11
-   - VS2012 or newer (windows users only)
- - Eigen
- - libigl
- - CGAL
-   - boost
- - Embree
- - El Topo
- - Cork
- - Mac OS X Foundation and AppKit frameworks
+You may need to install Boost. For example on Mac OS X using homebrew,
 
-### libigl
+    brew install boost
 
-Libigl is by default a _header only_ library. You do not need to compile it to
-use it (though you do need to compile and link to any dependencies, e.g. CGAL).
+## Troubleshooting
 
-### cmake says Matlab not found?!
+### MATLAB Versions
 
-cmake has a built in Module to find Matlab. Unfortunately, it only finds
-versions of Matlab that have been released at the time you installed cmake. So
-if you have a newer Matlab version than your cmake you can:
+Cmake unfortunately requires a hardcoded version mapping between MATLAB's numerical
+versions (e.g., 9.5) and their named versions (e..g, 2018b). This mapping gets
+stale a couple of times a year, so if you find that cmake can't figure out your
+MATLAB version, and you have a fairly recent version of MATLAB, it's very likely
+that you'll need to update the mapping. To do so, update the `MATLAB_VERSIONS_MAPPING`
+variable in `mex/cmake/FindMATLAB.cmake` and add your version number. You can
+check your MATLAB version using the `version` command.
 
-1. update cmake (e.g., `brew upgrade cmake`), 
-2. add your version to the Module: add a line to `/usr/local/share/cmake/Modules/FindMatlab.cmake`, or
-3. directly tell cmake where matlab: (e.g., instead of issuing `cmake ..`, issue
-   `cmake .. -DMatlab_ROOT_DIR=/Applications/MATLAB_R2018b.app/`)
+If you get an error like
+
+    CMake Error at ... (message):
+    Could NOT find Matlab (missing: Matlab_INCLUDE_DIRS Matlab_MEX_LIBRARY
+    Matlab_MEX_EXTENSION Matlab_ROOT_DIR MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
+    (found version "NOTFOUND")
+
+Then you might consider setting `Matlab_ROOT_DIR` explicitly to help cmake find
+MATLAB.

@@ -47,7 +47,13 @@ function [V,F] = delaunayize(V,F,varargin)
       tsurf(F,V);
       drawnow;
     end
-    [D,allE]= is_delaunay(V,F,'Tol',eps,'BoundaryDefault',false);
+    switch size(V,2)
+    case 3
+      [D,allE]= is_intrinsic_delaunay(V,F,'Tol',eps,'BoundaryDefault',false);
+    case 2
+      D = is_extrinsic_delaunay(V,F,'Tol',eps);
+      allE = [F(:,[2 3]);F(:,[3 1]);F(:,[1 2])];
+    end
     [~,B] = on_boundary(F);
     % Find edges to be kept
     K = reshape(ismember(sort(allE,2),keep_E,'rows'),[],3);

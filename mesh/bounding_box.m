@@ -39,18 +39,15 @@ function [BB,BF,BQ] = bounding_box(V,varargin)
   C = combn([0 1],dim) == 1;
   BB = bsxfun(@times,C,minV) + bsxfun(@times,~C,maxV);
   
-  % lazy faces
-  D = DelaunayTri(BB);
-  switch size(D.Triangulation,2)
+  switch size(BB,2)
+  case 2
+    BF = [2,1;4,2;1,3;3,4];
   case 3
-    BF = outline(D.Triangulation);
-  case 4
-    BF = boundary_faces(D.Triangulation);
+    BF = [2,1,3;4,2,3;1,2,5;5,3,1;4,6,2;5,2,6;4,3,7;5,7,3;5,6,7;4,8,6;8,4,7;7,6,8];
     BQ = [1 3 4 2;7 5 6 8;1 5 7 3;6 2 4 8;3 7 8 4;5 1 2 6];
   otherwise
-    error('Not supported');
+    error('Only 2D and 3D objects are supported.');
   end
-
-
+  
 
 end
