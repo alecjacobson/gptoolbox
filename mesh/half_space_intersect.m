@@ -137,7 +137,7 @@ function [VV,FF,birth,UT,E] = half_space_intersect(V,F,p,n,varargin)
       un  = plane(1:3)/norm(plane(1:3));
       z = [0 0 1];
       c = dot(un,z);
-      if abs(1-abs(c))>eps
+      if 1-abs(c)>eps
         v = cross(un,z);
         s = norm(v);
         cp = @(v) [0 -v(3) v(2);v(3) 0 -v(1);-v(2) v(1) 0];
