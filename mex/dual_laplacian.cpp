@@ -2,7 +2,7 @@
 #include "mex.h"
 #include <igl/matlab/parse_rhs.h>
 #include <igl/matlab/prepare_lhs.h>
-#include <igl/matlab/mexStream.h>
+#include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
 #include <Eigen/Core>
 #include <Eigen/Sparse>

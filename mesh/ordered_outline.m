@@ -12,7 +12,7 @@ function [B,L] = ordered_outline(F)
   %
   % Example:
   %   V = [0 0; 1 0; 1 1 ; 0 1; 4 0; 4 4; 0 4];
-  %   F = [1 2 3; 1 2 4; 6 5 7];
+  %   F = [1 2 3; 1 3 4; 5 6 7];
   %   [B,L] = ordered_outline(F);
   %   hold on
   %   for l = 1:(numel(L)-1)
