@@ -15,7 +15,7 @@
 void mexFunction(int nlhs, mxArray *plhs[],
     int nrhs, const mxArray *prhs[])
 {
-  mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
+  //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
   // This is useful for debugging whether Matlab is caching the mex binary
   //mexPrintf("%s %s\n",__TIME__,__DATE__);
   igl::matlab::MexStream mout;
