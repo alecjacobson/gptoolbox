@@ -116,14 +116,14 @@ function [U,Q] = lscm(V,F,b,bc,Aeq,Beq,varargin)
     Q = [Gx -Gy;Gy Gx]'*TA*[Gx -Gy;Gy Gx];
   
     % solve
-    U = min_quad_with_fixed(Q,zeros(2*n,1),[b b+n],bc(:));
+    U = min_quad_with_fixed(Q,zeros(2*n,1),[b(:);b(:)+n],bc(:));
     % reshape into columns
     U = reshape(U,n,2);
   case 'mullen'
     A = vector_area_matrix(F);
     L = repdiag(cotmatrix(V,F),2);
     Q = -L - 2*A;
-    U = min_quad_with_fixed(Q,zeros(2*n,1),[b b+n],bc(:),Aeq,Beq);
+    U = min_quad_with_fixed(Q,zeros(2*n,1),[b(:);b(:)+n],bc(:),Aeq,Beq);
     % reshape into columns
     U = reshape(U,n,2);
   case 'desbrun'
