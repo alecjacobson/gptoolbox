@@ -34,6 +34,6 @@ function [U,E,J] = slice_triangles(V,F,plane,varargin)
   W = W(:,2:4);
   R = sign(sum(W.*N,2))>0;
   E(R,:) = fliplr(E(R,:));
-  E = unique(E,'rows');
-
+  [E, perm] = unique(E,'rows');
+  J = J(perm);
 end
