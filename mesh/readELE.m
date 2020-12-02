@@ -54,8 +54,8 @@ function [E,A] = readELE(filename)
   if isempty(E)
     A = [];
   else
+    A = E(:,(1+size_e)+1:(1+size_e)+num_a);
     E = E(:,1+(1:size_e))+offset;
-    A = E(:,(1+size_e)+1:num_a);
   end
 end
 
