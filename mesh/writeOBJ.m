@@ -60,7 +60,7 @@ if ~hasN && ~hasUV
   fprintf( f,['f' fmt '\n'], F');
 else
   for k=1:size(F,1)
-      if ( (~hasN) && (~hasUV) ) || (any(TF(k,:)<=0,2) && any(NF(k,:)<=0,2))
+      if ( (~hasN) && (~hasUV) ) || ((hasUV && any(TF(k,:)<=0,2)) && (hasN && any(NF(k,:)<=0,2)))
           fmt = repmat(' %d',1,size(F,2));
           fprintf( f,['f' fmt '\n'], F(k,:));
       elseif ( hasUV && (~hasN || any(NF(k,:)<=0,2)))
@@ -68,7 +68,7 @@ else
           fprintf( f, ['f' fmt '\n'], [F(k,:);TF(k,:)]);
       elseif ( (hasN) && (~hasUV || any(TF(k,:)<=0,2)))
           fmt = repmat(' %d//%d',1,size(F,2));
-          fprintf( f, ['f' fmt '\n'],[F(k,:);TF(k,:)]');
+          fprintf( f, ['f' fmt '\n'],[F(k,:);NF(k,:)]);
       elseif ( (hasN) && (hasUV) )
           assert(all(NF(k,:)>0));
           assert(all(TF(k,:)>0));
