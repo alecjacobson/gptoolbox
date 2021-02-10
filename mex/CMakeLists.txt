@@ -8,9 +8,10 @@ set( CMAKE_CXX_STANDARD 14 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 # Move output to this dir (gptoolbox/mex)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+# Solution for multitarget-generators like VS2019 From: https://stackoverflow.com/questions/47175912/using-cmake-how-to-stop-the-debug-and-release-subdirectories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${PROJECT_SOURCE_DIR}>)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY $<1:${PROJECT_SOURCE_DIR}>)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${PROJECT_SOURCE_DIR}>)
 
 # https://stackoverflow.com/q/46724267/148668
 include(CheckCXXCompilerFlag)
@@ -73,7 +74,10 @@ endif()
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
 
 # Download and find libigl
-gptoolbox_download_libigl()
+find_package(LIBIGL)
+if (NOT LIBIGL_FOUND)
+	gptoolbox_download_libigl()
+endif()
 find_package(LIBIGL REQUIRED)
 
 if(WITH_ELTOPO)
