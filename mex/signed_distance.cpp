@@ -63,6 +63,9 @@ void parse_rhs(
         }else if(strcmp("pseudonormal",type_name)==0)
         {
           type = igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL;
+        }else if(strcmp("fwn",type_name)==0)
+        {
+          type = igl::SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER;
         }else if(strcmp("winding_number",type_name)==0)
         {
           type = igl::SIGNED_DISTANCE_TYPE_WINDING_NUMBER;
