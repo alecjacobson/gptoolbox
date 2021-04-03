@@ -53,6 +53,7 @@ option(LIBIGL_WITH_CGAL             "Use CGAL"           ON)
 option(LIBIGL_WITH_EMBREE           "Use Embree"         ON)
 # just to get it to download tetgen
 option(LIBIGL_WITH_TETGEN           "Use Tegen"          ON)
+option(LIBIGL_WITH_TRIANGLE         "Use Triangle"       ON)
 option(LIBIGL_WITH_MATLAB           "Use Matlab"         ON)
 option(LIBIGL_WITH_XML              "Use XML"            ON)
 option(WITH_ELTOPO                  "Use El Topo"        ON)
@@ -94,7 +95,14 @@ function(compile_each I_MEX_SOURCES I_LIBS )
   foreach(MEX_SOURCE ${I_MEX_SOURCES})
     message(STATUS "MEX_SOURCE: ${MEX_SOURCE}")
     get_filename_component(MEX_OUTPUT ${MEX_SOURCE} NAME_WE)
-    add_library(${MEX_OUTPUT} SHARED ${MEX_SOURCE})
+    message(STATUS "MEX_OUTPUT: ${MEX_OUTPUT}")
+    if(${MEX_OUTPUT} STREQUAL "tetgen")
+      set(MEX_OUTPUT "tetgen_mex")
+      add_library(${MEX_OUTPUT} SHARED ${MEX_SOURCE})
+      set_target_properties(${MEX_OUTPUT} PROPERTIES OUTPUT_NAME "tetgen")
+    else()
+      add_library(${MEX_OUTPUT} SHARED ${MEX_SOURCE})
+    endif()
     # Not sure if this should be (WIN32) or (MSVC OR MSYS OR MINGW)
     # https://stackoverflow.com/a/40152725/148668
     if(WIN32)
@@ -142,6 +150,20 @@ if(WITH_ELTOPO)
     "eltopo.cpp" 
     "${CORE_LIBS};igl::core;igl::matlab;libeltopo;${BLAS_LIBRARIES}"
     )
+endif()
+
+if(LIBIGL_WITH_TETGEN)
+  compile_each("\
+tetgen.cpp;\
+"
+  "${CORE_LIBS};igl::core;igl::matlab;igl::tetgen")
+endif()
+
+if(LIBIGL_WITH_TRIANGLE)
+  compile_each("\
+triangulate.cpp;\
+"
+  "${CORE_LIBS};igl::core;igl::matlab;igl::triangle")
 endif()
 
 if(LIBIGL_WITH_EMBREE)
