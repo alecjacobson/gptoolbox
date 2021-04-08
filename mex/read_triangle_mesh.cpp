@@ -3,6 +3,9 @@
 #include <igl/read_triangle_mesh.h>
 #include <igl/matlab/prepare_lhs.h>
 #include <Eigen/Core>
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#  include <wordexp.h>
+#endif
 
 
 void mexFunction(
@@ -22,6 +25,11 @@ void mexFunction(
 
   // Read the file path
   char* file_path = mxArrayToString(prhs[0]);
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+  wordexp_t exp_result;
+  wordexp(file_path, &exp_result, 0);
+  file_path = exp_result.we_wordv[0];
+#endif
 
   MatrixXd V;
   MatrixXi F;
