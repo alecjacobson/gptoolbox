@@ -8,6 +8,9 @@ if(LIBIGL_FOUND)
 endif()
 
 find_path(LIBIGL_INCLUDE_DIR igl/readOBJ.h
+    HINTS
+        ${LIBIGL_DIR}
+        ENV LIBIGL_DIR
     PATHS
         ${CMAKE_SOURCE_DIR}/external/libigl
         ${CMAKE_SOURCE_DIR}/../..
