@@ -138,7 +138,7 @@ void mexFunction(
   switch(nlhs)
   {
     case 2:
-      prepare_lhs_double(M,plhs+0);
+      prepare_lhs_double(M,plhs+1);
     case 1:
       prepare_lhs_double(L,plhs+0);
     default:break;
