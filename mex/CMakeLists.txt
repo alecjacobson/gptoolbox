@@ -96,13 +96,7 @@ function(compile_each I_MEX_SOURCES I_LIBS )
     message(STATUS "MEX_SOURCE: ${MEX_SOURCE}")
     get_filename_component(MEX_OUTPUT ${MEX_SOURCE} NAME_WE)
     message(STATUS "MEX_OUTPUT: ${MEX_OUTPUT}")
-    if(${MEX_OUTPUT} STREQUAL "tetgen")
-      set(MEX_OUTPUT "tetgen_mex")
-      add_library(${MEX_OUTPUT} SHARED ${MEX_SOURCE})
-      set_target_properties(${MEX_OUTPUT} PROPERTIES OUTPUT_NAME "tetgen")
-    else()
-      add_library(${MEX_OUTPUT} SHARED ${MEX_SOURCE})
-    endif()
+    add_library(${MEX_OUTPUT} SHARED ${MEX_SOURCE})
     # Not sure if this should be (WIN32) or (MSVC OR MSYS OR MINGW)
     # https://stackoverflow.com/a/40152725/148668
     if(WIN32)
@@ -154,7 +148,7 @@ endif()
 
 if(LIBIGL_WITH_TETGEN)
   compile_each("\
-tetgen.cpp;\
+tetrahedralize.cpp;\
 "
   "${CORE_LIBS};igl::core;igl::matlab;igl::tetgen")
 endif()
