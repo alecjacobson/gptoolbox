@@ -12,6 +12,7 @@
 %     'Method' followed by one of:
 %        {'naive'}  simply collapse small edges and place vertices at midpoint
 %        'qslim'  Quadric error metric
+%        'progressive-hulls'  Progressive hulls
 % Outputs:
 %   W  #W by 3 list of vertex positions
 %   G  #G by 3 list of triangle indices into W
