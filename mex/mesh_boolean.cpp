@@ -188,7 +188,6 @@ void mexFunction(
 
   igl::matlab::MexStream mout;        
   std::streambuf *outbuf = cout.rdbuf(&mout);
-  //mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
 
   std::vector<MatrixXd> Vlist;
   std::vector<MatrixXi> Flist;
@@ -215,10 +214,11 @@ void mexFunction(
   {
     cout<<"parsed input."<<endl;
   }
+  bool success = false;
   switch(boolean_lib)
   {
     case BOOLEAN_LIB_TYPE_LIBIGL:
-      igl::copyleft::cgal::mesh_boolean(
+      success = igl::copyleft::cgal::mesh_boolean(
         Vlist,Flist,wind_func,keep_func,VC,FC,J);
       break;
 #ifdef WITH_CORK
@@ -228,7 +228,7 @@ void mexFunction(
         "Must provide exactly two meshes for cork.");
       assert(Vlist.size() == 2);
       assert(Flist.size() == 2);
-      igl::copyleft::cork::mesh_boolean(
+      success = igl::copyleft::cork::mesh_boolean(
         Vlist[0],Flist[0],
         Vlist[1],Flist[1],
         type,VC,FC);
@@ -239,6 +239,7 @@ void mexFunction(
       mexErrMsgTxt(false,"Unknown boolean lib.");
       break;
   }
+  mexErrMsgTxt(success,"mesh_boolean failed.");
   if(debug)
   {
     cout<<"Computed boolean."<<endl;
