@@ -12,6 +12,7 @@ function [W] = winding_number(V,F,O,varargin)
   %  Optional inputs:
   %    'Hierarchical'  followed by true or false. Use hierarchical evaluation.
   %      for mex: {true}, for matlab this is not supported 
+  %    'Fast' followed by whether to use fast-winding-number {false}
   %    'RayCast' followed by true or flase. Use ray cast version of approximate
   %      evaluation: {false}
   %    'TwoDRays' followed by true or false. Use 2d rays only.
