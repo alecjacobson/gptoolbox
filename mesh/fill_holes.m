@@ -1,17 +1,40 @@
-function HF = fill_holes(SV,SF)
+function HF = fill_holes(SV,SF,varargin)
   % FILL_HOLES Try to fill holes using a very simple technique, followed by a
   % "robust" back up. Neither is guaranteed to avoid things like
   % self-intersections, but the resulting mesh should be manifold at holes if
   % the input hole boundaries are manifold to begin with. Should probably try
   % to remove any duplicate vertices before calling. 
   %
+  % HF = fill_holes(SV,SF,varargin)
+  %
   % Inputs:
   %   SV  #SV by 3 list of mesh vertex positions
   %   SF  #SF by 3 list of mesh triangle indices into SV
+  %   Optional:
+  %     'Skip' followed by list of indices into SV of vertices which if they
+  %     appear on a boundary curve then that boundary curve should not be filled
+  %     as a hole.
   % Outputs:
   %   HF  #HF by 3 list of indices into SV of triangles filling holes in
   %     (SV,SF).
   % 
+
+  skip = [];
+  params_to_variables = containers.Map( ...
+    {'Skip'},{'skip'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
 
   O = outline(SF);
   CO = connected_components(O);
@@ -20,12 +43,27 @@ function HF = fill_holes(SV,SF)
   HF = [];
   for c = 1:max(CO)
     E = O(CO==c,:);
+    if any(ismember(E(:),skip))
+      continue;
+    end
     [EV,IM] = remove_unreferenced(SV,E);
     J = [];
     J(IM) = 1:size(SV,1);
     E = IM(E);
     [~,A] = affine_fit(EV);
-    [EVV,EF] = triangle(EV*A,E,[],'Quiet');
+
+    tV = EV*A;
+    % triangulate doesn't like exact duplicates.
+    %
+    % I've forgotten how the if statement below handles intersecting boundary
+    % curves, but it seems to work fine...
+    e = 1e-16;
+    while size(unique(tV,'rows'),1) ~= size(tV,1)
+      tV = tV+e*(2*rand(size(tV,1),size(tV,2))-1);
+      e = e*2;
+    end
+    [EVV,EF] = triangulate(tV,E);
+
     if size(EVV,1) ~= size(EV,1)
       EF = [];
       EE = E;
