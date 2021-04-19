@@ -1,10 +1,12 @@
-function [VV,QQ,SS,J] = catmull_clark(V,Q,iter)
-  % CATMULL_CLARK Perform iter iterations of catmull-clark subdivision on a
+function [VV,QQ,SS,J] = catmull_clark(varargin)
+  % CATMULL_CLARK Perform iterations of catmull-clark subdivision on a
   % regular, manifold quad mesh (V,Q)
   %
   % Inputs:
   %   V  #V by dim list of mesh vertex positions
   %   Q  #Q by 4 list of quad indices into V
+  %   Optional:
+  %     'Iterations'  followed by number of iterations to conduct {1}
   % Outputs:
   %   VV  #VV by dim list of output mesh vertex positions
   %   QQ  #QQ by 4 list of quad mesh indices into VV
@@ -12,15 +14,49 @@ function [VV,QQ,SS,J] = catmull_clark(V,Q,iter)
   %   J  #QQ list of indices of birth parents into Q
   % 
 
-  if (~exist('iter','var'))
-      iter = 1;
+  V = varargin{1};
+  if nargin>2 && ~ischar(varargin{3})
+    poly_input = true;
+    PI = varargin{2};
+    PC = varargin{3};
+    v = 4;
+  else
+    assert(nargin>=2);
+    Q = varargin{2};
+    poly_input = false;
+    v = 3;
   end
+
+  iters = 1;
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( {'Iterations'}, {'iters'});
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
   VV = V;
   SS = speye(size(V,1));
-  QQ = Q;
-  J = (1:size(Q,1))';
+  if poly_input
+    QQ = [];
+    J = [];
+  else
+    QQ = Q;
+    J = (1:size(Q,1))';
+  end
 
-  for i=1:iter
+  for i=1:iters
+    if i==1 && poly_input
+      continue;
+    end
     % assume all are quads OR tris
     FF = QQ;
       
@@ -43,6 +79,10 @@ function [VV,QQ,SS,J] = catmull_clark(V,Q,iter)
     nq = size(QQ,1);
     nt = size(TT,1);
     assert(nf == (nq+nt));
+    % face barycenter
+    SF = [ ...
+      sparse(repmat(1:nq,1,4),QQ(:)',1/4*ones(1,nq*4),nq,n); ...
+      sparse(repmat(1:nt,1,3),TT(:)',1/3*ones(1,nt*3),nt,n)];
 
     % get "quad edges" aka half-edges
     QE = [QQ(:,1:2);QQ(:,2:3);QQ(:,3:4);QQ(:,[4 1])];
@@ -59,14 +99,21 @@ function [VV,QQ,SS,J] = catmull_clark(V,Q,iter)
     E2F = zeros(ne,2);
     flip = FE(:,1)~=E(FE2E,1);
     E2F(sub2ind(size(E2F),FE2E,flip+1)) = FEF;
-
-    % face barycenter
-    SF = [ ...
-      sparse(repmat(1:nq,1,4),QQ(:)',1/4*ones(1,nq*4),nq,n); ...
-      sparse(repmat(1:nt,1,3),TT(:)',1/3*ones(1,nt*3),nt,n)];
+    Eout = accumarray(FE2E,1,[size(E,1) 1])==1;
+    in = find(~Eout);
+    out = find(Eout);
     % Average of original edge points and edge-flap face barycenters
-    SE = sparse(repmat(1:ne,1,4),[E(:);n+E2F(:)]',1/4*ones(1,ne*4),ne,n+nf) ...
+    SE = ...
+      (sparse( ...
+        repmat(in,4,1), ...
+        [E(in,1);E(in,2);n+[E2F(in,1);E2F(in,2)]], ...
+        1/4*ones(numel(in)*4,1),ne,n+nf) + ...
+      sparse( ...
+        repmat(out,2,1), ...
+        [E(out,1);E(out,2)], ...
+        repmat(1/2,numel(out)*2,1),ne,n+nf)) ...
       *[speye(n);SF];
+
 
     V2F = [ ...
       sparse(QQ,repmat(1:nq,4,1)',1,n,nq) ...
@@ -84,9 +131,18 @@ function [VV,QQ,SS,J] = catmull_clark(V,Q,iter)
     ME = pou_rows(ME);
     % Weighting 
     W = bsxfun(@rdivide,[(val-3) ones(n,1) 2*ones(n,1)],val);
-    SV = ...
-      sparse(repmat(1:n,3,1)',reshape((1:3*n)',n,3), W,n,3*n)* ...
-      [speye(n);V2F*SF;ME];
+    Vout = false(n,1);
+    Vout(E(Eout,:)) = true;
+    in = find(~Vout);
+    out = find(Vout);
+    % 1/8-------3/4-------1/8
+    %    1/2--1/2  1/2--1/2
+    %       1/4 1/2 1/4
+    SV = ( ...
+      sparse(repmat(in,1,3),in+(0:2)*n, W(in,:),n,3*n) + ...
+      sparse(E(Eout,[1 2 1 2]),E(Eout,[1 2 2 1]),0.125,n,3*n) + ...
+      sparse(out,out,0.5,n,3*n)) ...
+      *[speye(n);V2F*SF;ME];
 
     S = [SV;SF;SE];
     VV = S*VV;
