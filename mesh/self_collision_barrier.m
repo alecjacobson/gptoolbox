@@ -40,6 +40,15 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     IJ = [IJ  n+IJ];
     X = V(IJ);
 
+    %% Sanity check
+    %p = X(:,1:2:end);
+    %c = X(:,2:2:end);
+    %pc = p-c;
+    %d = sqrt(sum(pc.^2,2));
+    %if ~isempty(d) && max(d) > tol && nargout > 1
+    %  error
+    %end
+
     % From here, only touch X
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     sX = sym('X',[1 4]);
@@ -100,6 +109,19 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     % [x x x y y y]
     IJK = [IJK n+[IJK]];
     X = V(IJK);
+
+    %% Sanity check
+    %p = X(:,1:3:end);
+    %a = X(:,2:3:end);
+    %b = X(:,3:3:end);
+    %pa = p-a;
+    %ba = b-a;
+    %t = sum(pa.*ba,2)./sum(ba.^2,2);
+    %pc = pa - ba.*t;
+    %d = sqrt(sum(pc.^2,2));
+    %if ~isempty(d) && max(d) > tol && nargout > 1
+    %  error
+    %end
 
     % From here, only touch X
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -192,6 +214,8 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
 
   cap = T==0 | T==1;
   IJKline = [b(I(~cap,1)) E(I(~cap,2),:)];
+
+  sqrD = sqrD(keep);
 
   Icap = I(cap,:);
   Tcap = T(cap);
