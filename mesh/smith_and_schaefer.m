@@ -57,6 +57,9 @@ function [U,data] = smith_and_schaefer(V,F,U0,varargin)
   if ~isfield(data,'iters_since_stall') || isempty(data.iters_since_stall)
     data.iters_since_stall = 0;
   end
+  if ~isfield(data,'K') || isempty(data.K)
+    data.K = 10;
+  end
 
   U = U0;
   % ∞ if intersecting, 0 otherwise
@@ -137,7 +140,7 @@ function [U,data] = smith_and_schaefer(V,F,U0,varargin)
       if ~quiet
         fprintf('% 4d.%02d: %g\n',iter,data.iters_since_stall,data.f);
       end
-      if data.iters_since_stall>=10
+      if data.iters_since_stall>= data.K
         data.u = max(data.u/2,1e-8);
         data.iters_since_stall = 0;
         if ~quiet
