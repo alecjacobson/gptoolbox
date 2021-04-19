@@ -1,5 +1,5 @@
 #include <igl/copyleft/cgal/signed_distance_isosurface.h>
-#include <igl/copyleft/offset_surface.h>
+#include <igl/offset_surface.h>
 #include <igl/matlab/validate_arg.h>
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
@@ -175,7 +175,7 @@ void mexFunction(
     default:
     case CONTOURING_METHOD_MARCHING_CUBES:
       {
-        igl::copyleft::offset_surface(IV,IF,level,grid_size,type,V,F,GV,side,S);
+        igl::offset_surface(IV,IF,level,grid_size,type,V,F,GV,side,S);
       }
       break;
     case CONTOURING_METHOD_CGAL:

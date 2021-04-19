@@ -192,6 +192,7 @@ if(LIBIGL_WITH_CGAL)
     add_definitions("-DWITH_CORK")
   endif()
   add_definitions("-DWITH_CGAL")
+#segment_segment_intersection.cpp;\
   compile_each("\
 box_intersect.cpp;\
 decimate_cgal.cpp;\
