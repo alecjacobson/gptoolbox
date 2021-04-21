@@ -15,7 +15,7 @@ function [V,T,F] = readMESH( filename )
 
   % First line is mandatory header
   MESHheader = eat_comments(fp,'#');
-  MESHheader = regexprep(MESHheader,'[\n\r]+','')
+  MESHheader = regexprep(MESHheader,'[\n\r]+','');
   if(strcmp(MESHheader,'MeshVersionFormatted 1')==0)
     error('First line should be "MeshVersionFormatted 1" not ("%s")...',MESHheader);
   end
