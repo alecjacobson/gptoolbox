@@ -98,6 +98,12 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     end
     d2fdX2 = double(d2fdX2_fun(X));
 
+
+    d2fdX2 = reshape(d2fdX2,[],4*4);
+    if psd_project
+      d2fdX2 = psd_project_rows(d2fdX2);
+    end
+
     HI = repmat(IJ,[1 1 size(IJ,2)]);
     HJ = permute(repmat(IJ,[1 1 size(IJ,2)]),[1 3 2]);
     H = fast_sparse(HI(:),HJ(:),d2fdX2(:),2*n,2*n);
@@ -176,18 +182,24 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     end
     d2fdX2 = double(d2fdX2_fun(X));
 
+    d2fdX2 = reshape(d2fdX2,[],6*6);
+    if psd_project
+      d2fdX2 = psd_project_rows(d2fdX2);
+    end
+
     HI = repmat(IJK,[1 1 size(IJK,2)]);
     HJ = permute(repmat(IJK,[1 1 size(IJK,2)]),[1 3 2]);
     H = fast_sparse(HI(:),HJ(:),d2fdX2(:),2*n,2*n);
 
   end
 
+  psd_project = true;
   % The max is not needed because we're handling that explicitly
   % 
   % Smith and Schaefer
-  barrier = @(d,tol) (tol./d - 1).^2;
+  %barrier = @(d,tol) (tol./d - 1).^2;
   % IPC
-  %barrier = @(D) -(D-tol).^2.*log(D./tol);
+  barrier = @(D,tol) -(D-tol).^2.*log(D./tol);
 
   b = unique(E);
   [b1,b2] = box_each_element(V,b);

@@ -54,6 +54,9 @@ function [U,data] = smith_and_schaefer(V,F,U0,varargin)
   if ~isfield(data,'u') || isempty(data.u)
     data.u = 1e-1;
   end
+  if ~isfield(data,'iter') || isempty(data.iter)
+    data.iter = 0;
+  end
   if ~isfield(data,'iters_since_stall') || isempty(data.iters_since_stall)
     data.iters_since_stall = 0;
   end
@@ -73,7 +76,8 @@ function [U,data] = smith_and_schaefer(V,F,U0,varargin)
   u2w = @(u) u/(u+1);
 
   data.converged = false;
-  for iter = 1:max_iters
+  for iter = data.iter+(1:max_iters)
+    data.iter = iter;
     U0 = reshape(U,[],2);
     [fsd,Gsd,Hsd] = symmetric_dirichlet(U0,F,V);
     [fb,Gb,Hb] = self_collision_barrier(U0,O,tol);
@@ -138,7 +142,7 @@ function [U,data] = smith_and_schaefer(V,F,U0,varargin)
       data.iters_since_stall = data.iters_since_stall+1;
       U = reshape(U1,[],2);
       if ~quiet
-        fprintf('% 4d.%02d: %g\n',iter,data.iters_since_stall,data.f);
+        fprintf('% 4d.%02d: %g\n',data.iter,data.iters_since_stall,data.f);
       end
       if data.iters_since_stall>= data.K
         data.u = max(data.u/2,1e-8);

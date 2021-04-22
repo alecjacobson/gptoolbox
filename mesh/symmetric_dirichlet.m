@@ -7,7 +7,9 @@ function [f,G,H] = symmetric_dirichlet(U,F,P)
   % Inputs:
   %   U  #V by 2 list of input 2D mesh vertex positions
   %   F  #F by 3 list of triangle indices into rows of U/P
-  %   P  #P by 3 list of input 3D mesh vertex positions
+  %   P  #P by 2|3 list of input 3D mesh vertex positions
+  %    or
+  %      #F*3 by 2|3 list of input 3D mesh corner positions: P = V(F,:)
   % Outputs:
   %   f  scalar total objective value
   %   G  #U*2 gradient 
@@ -19,14 +21,22 @@ function [f,G,H] = symmetric_dirichlet(U,F,P)
   % generated file.
   %
 
+
+  % Add column of zeros if necessary
+  P(:,end+1:3) = 0;
+  if size(P,1) == size(U,1)
+    % [ x x x  y y y z z z]
+    PI = reshape(F(:)+(0:size(P,2)-1)*size(P,1),size(F,1),size(P,2)*size(F,2));
+    %P = reshape(P(F,:),size(F,1),[]);
+    P = P(PI);
+  elseif size(P,1) == numel(F)
+    P = reshape(P,size(F,1),[]);
+  end
+
   % [ x x x  y y y]
   nu = numel(U);
   UI = reshape(F(:)+(0:size(U,2)-1)*size(U,1),size(F,1),size(U,2)*size(F,2));
   U = U(UI);
-
-  % [ x x x  y y y z z z]
-  PI = reshape(F(:)+(0:size(P,2)-1)*size(P,1),size(F,1),size(P,2)*size(F,2));
-  P = P(PI);
 
   % From here, only touch X
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,6 +98,12 @@ function [f,G,H] = symmetric_dirichlet(U,F,P)
     return;
   end
   d2fdU2 = double(d2fdU2_fun(U));
+
+  psd_project = true;
+  d2fdU2 = reshape(d2fdU2,[],6*6);
+  if psd_project
+    d2fdU2 = psd_project_rows(d2fdU2);
+  end
 
   HI = repmat(UI,[1 1 size(UI,2)]);
   HJ = permute(repmat(UI,[1 1 size(UI,2)]),[1 3 2]);
