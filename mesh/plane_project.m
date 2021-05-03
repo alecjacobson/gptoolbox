@@ -9,7 +9,7 @@ function [U,UF,I] = plane_project(V,F)
   % Outputs:
   %   U  #F*3 by 2 list of triangle positions
   %   UF  #F by 3 list of mesh indices into U
-  %   I  #V by #F such that I(i,j) = 1 implies U(j,:) corresponds to V(i,:)
+  %   I  #V by #F*3 such that I(i,j) = 1 implies U(j,:) corresponds to V(i,:)
   %
   % Examples:
   %   % Laplace-Beltrami is intrinsic
