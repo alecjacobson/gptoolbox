@@ -18,6 +18,7 @@
   "readPOLY_triangle":{"inputs":[{"name":"filename","type":"filepath=*.poly"}]},
   "readSTL":{"inputs":[{"name":"filename","type":"filepath=*.stl"}]},
   "readSVG":{"inputs":[{"name":"filename","type":"filepath=*.svg"}]},
+  "readSVG_cubics":{"inputs":[{"name":"filename","type":"filepath=*.svg"}]},
   "readWRL":{"inputs":[{"name":"filename","type":"filepath=*.wrl"}]},
   "read_mesh_from_xml":{"inputs":[{"name":"filename","type":"filepath=*.xml"}]},
   "write3DS":{"inputs":[{"name":"filename","type":"filepath=*.3ds"}]},
@@ -37,6 +38,7 @@
   "writeSEL":{"inputs":[{"name":"filename","type":"filepath=*.sel"}]},
   "writeSMF":{"inputs":[{"name":"filename","type":"filepath=*.smf"}]},
   "writeSTL":{"inputs":[{"name":"filename","type":"filepath=*.stl"}]},
+  "writeSVG_cubics":{"inputs":[{"name":"filename","type":"filepath=*.svg"}]},
   "writeTGF":{"inputs":[{"name":"filename","type":"filepath=*.tgf"}]},
 
   "blank_so_every_line_can_have_a_comma":{}
