@@ -33,6 +33,20 @@ function [V,F] = load_mesh(filename,varargin)
     v = v + 1;
   end
 
+  % if mex libigl reader exists use that (up to 25x faster for .obj)
+  if exist('read_triangle_mesh','file')==3
+    try
+      [V,F] = read_triangle_mesh(GetFullPath(filename));
+      if ~isempty(V) && ~isempty(F)
+        return;
+      end
+      % else keep trying below
+    catch e
+      warning(e.message);
+      % else keep trying below
+    end
+  end
+  
   [~,~,ext] = fileparts(filename);
   ext = lower(ext);
   switch ext
