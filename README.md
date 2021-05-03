@@ -48,10 +48,9 @@ application:
 The vast majority of this code is __straight MATLAB__ (`*.m` files). Thus, only
 installing MATLAB and adding the qptoolbox directory and its subdirectories to
 your MATLAB path is needed for installation. Let's assume you cloned gptoolbox
-at `/usr/local/gptoolbox/`, then you could issue:
+at `/Users/ajx/Repos/gptoolbox/`, then you could issue:
 
-    gp_subdirs = split(genpath('/usr/local/gptoolbox/'),':');
-    addpath(strjoin(gp_subdirs(~contains(gp_subdirs,'.git')),':'));
+    addpath(strjoin(strcat(['/Users/ajx/Repos/gptoolbox/'],{'external','imageprocessing', 'images', 'matrix', 'mesh', 'mex', 'quat','utility','wrappers'}),':'))
 
 To make this change permanent, then issue:
 
@@ -109,7 +108,7 @@ BibTeX entry:
   title = {{gptoolbox}: Geometry Processing Toolbox},
   author = {Alec Jacobson and others},
   note = {http://github.com/alecjacobson/gptoolbox},
-  year = {2018},
+  year = {2021},
 }
 ```
 
