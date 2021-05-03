@@ -23,6 +23,19 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
   %   end
   %   hold off
   %   set(gca,'YDir','reverse')
+  %
+  % Example:
+  %   h=5;
+  %   [P,C] = readSVG_cubics('~/Downloads/r.svg');
+  %   [V,E] = spline_to_poly(P,C,0.01);
+  %   V(:,2)=max(V(:,2))-V(:,2);
+  %   [V,F] = triangle(V,E,[],'Flags',sprintf('-q33 -a%0.17f',median(edge_lengths(V,E))^2));
+  %   [V,F] = extrude(V,F,'Levels',ceil(h/mean(mean(edge_lengths(V,F)))));
+  %   V(:,3)=V(:,3)*h;
+  %   tsurf(F,V);
+  %   axis equal;
+  %   writeOBJ('~/Repos/shape-editing-examples/r.obj',V,F);
+  %   
 
   function f = get_not_none(kid,key)
     style = char(kid.getAttribute('style'));
@@ -34,10 +47,14 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     f = true;
   end
 
-  function f = get_color(kid,key)
+  function f = get_color(kid,key,empty_val)
     style = char(kid.getAttribute('style'));
     [~,~,~,~,match] = regexp(style,[key ': *([^;]*);']);
-    if isempty(match) || isempty(match{1}) || strcmp(match{1}{1},'none') || match{1}{1}(1) ~= '#'
+    if isempty(match)
+      f = empty_val;
+      return;
+    end
+    if isempty(match{1}) || strcmp(match{1}{1},'none') || match{1}{1}(1) ~= '#'
       f = nan(1,3);
       return;
     end
@@ -56,19 +73,47 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     s = str2num(match{1}{1});
   end
 
+  function [Pi,Ci] = ellipse_to_path(cx,cy,rx,ry)
+    % special fraction
+    s =  1193/2160;
+    Pi = [1,0;1,s;s,1;0,1;-s,1;-1,s;-1,0;-1,-s;-s,-1;0,-1;s,-1;1,-s;1,0];
+    Ci = [1,2,3,4;4,5,6,7;7,8,9,10;10,11,12,13];
+    Pi = Pi.*[rx ry]+[cx cy];
+  end
+
+  function [Pi,Ci] = parse_ellipse_as_spline(ellipse)
+    cx = sscanf(char(ellipse.getAttribute('cx')),'%g');
+    cy = sscanf(char(ellipse.getAttribute('cy')),'%g');
+    rx = sscanf(char(ellipse.getAttribute('rx')),'%g');
+    ry = sscanf(char(ellipse.getAttribute('ry')),'%g');
+    [Pi,Ci] = ellipse_to_path(cx,cy,rx,ry);
+  end
+  function [Pi,Ci] = parse_circle_as_spline(circle)
+    cx = sscanf(char(circle.getAttribute('cx')),'%g');
+    cy = sscanf(char(circle.getAttribute('cy')),'%g');
+    r = sscanf(char(circle.getAttribute('r')),'%g');
+    if isempty(r)
+      r = 0;
+    end
+    [Pi,Ci] = ellipse_to_path(cx,cy,r,r);
+  end
+
   function Pi = parse_rect_as_polygon(rect)
     x = sscanf(char(rect.getAttribute('x')),'%g');
     y = sscanf(char(rect.getAttribute('y')),'%g');
     w = sscanf(char(rect.getAttribute('width')),'%g');
     h = sscanf(char(rect.getAttribute('height')),'%g');
-    [T,foundT] = sscanf(char(rect.getAttribute('transform')),'matrix(%g %g %g %g %g %g)');
+    Pi = [x y;x+w y;x+w y+h;x y+h;x y];
+  end
+
+  function T = get_transform(kid)
+    [T,foundT] = sscanf(char(kid.getAttribute('transform')),'matrix(%g %g %g %g %g %g)');
     if foundT == 0
       T = eye(2,3);
     else
       assert(foundT == 6)
       T = reshape(T,2,3);
     end
-    Pi = [[x y;x+w y;x+w y+h;x y+h;x y] ones(5,1)]*T';
   end
 
   function Pi = parse_polygon(poly)
@@ -128,13 +173,17 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         %  % close it with a straight curve
         %  fprintf('should be closing...')
         %end
+      case 'ellipse'
+        [Pii,Cii] = parse_ellipse_as_spline(kid);
+      case 'circle'
+        [Pii,Cii] = parse_circle_as_spline(kid);
       case 'path'
         % I'm assuming path will not actually store something straight
         d = char(kid.getAttribute('d'));
         %if k == 6
         %  keyboard
         %end
-         [Pii,Cii] = parse_path(d);
+        [Pii,Cii] = parse_path(d);
         %clf;hold on;arrayfun(@(c) set(plot_cubic(Pii(Cii(c,:),:)),'Color','b'),1:size(Cii,1));hold off;
         %pause
       case 'g'
@@ -157,10 +206,12 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         fprintf('Skipping %s...\n',name);
         continue;
       end
-      Si = get_color(kid,'stroke');
-      Fi = get_color(kid,'fill');
+      Si = get_color(kid,'stroke',nan(1,3));
+      Fi = get_color(kid,'fill',[0 0 0]);
       Wi = get_scalar(kid,'stroke-miterlimit');
       Di = get_not_none(kid,'display');
+      Ti = get_transform(kid);
+      Pii = [Pii ones(size(Pii,1),1)]*Ti';
 
       if ~isempty(Cii)
         k = k+1;
