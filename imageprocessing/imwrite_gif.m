@@ -10,9 +10,7 @@ function imwrite_gif(S,filename,varargin)
   %   % Read an animation
   %   [X,M] = imread('peaks.gif');
   %   % Convert to raw color image sequence
-  %   Y = cell2mat(permute(arrayfun(@(C) ...
-  %     ind2rgb( ...
-  %       X(:,:,:,C),M(:,:,C)),1:size(X,4),'UniformOutput',false),[1 4 3 2]));
+  %   Y = permute(reshape(M(X(:)+1,:),[size(X,1),size(X,2),size(X,4),3]),[1 2 4 3]);
   %   % Trim animation to fit
   %   C = imtrim(Y);
   %   % Write back to animated .gif
