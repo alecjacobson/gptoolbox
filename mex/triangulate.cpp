@@ -63,10 +63,17 @@ void mexFunction(
     }
   }
 
+
   Eigen::MatrixXd TV;
   Eigen::MatrixXi TF;
   Eigen::VectorXi TVM,TEM;
-  igl::triangle::triangulate(V,E,H,VM,EM,flags,TV,TF,TVM,TEM);
+  try
+  {
+    igl::triangle::triangulate(V,E,H,VM,EM,flags,TV,TF,TVM,TEM);
+  }catch(std::runtime_error e)
+  {
+    ::mexErrMsgTxt((std::string("triangle failed: ")+e.what()).c_str());
+  }
 
   switch(nlhs)
   {
