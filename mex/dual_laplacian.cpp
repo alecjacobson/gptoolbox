@@ -143,4 +143,5 @@ void mexFunction(
       prepare_lhs_double(L,plhs+0);
     default:break;
   }
+  std::cout.rdbuf(outbuf);
 }
