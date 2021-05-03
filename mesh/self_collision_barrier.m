@@ -49,23 +49,23 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     %  error
     %end
 
-    % From here, only touch X
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sX = sym('X',[1 4]);
-    stol = sym('tol',[1 1]);
-    sp = sX(1:2:end);
-    sc = sX(2:2:end);
-    spc = sp-sc;
-    sd = sqrt(sum(spc.^2,2));
-    sf = barrier(sd,stol);
-
-    hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
-
     % Writing the symbol
     path = mfilename('fullpath');
     aux = [path '_cap_sym.m'];
     % should also check date...
     if ~exist(aux,'file')
+      % From here, only touch X
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      sX = sym('X',[1 4]);
+      stol = sym('tol',[1 1]);
+      sp = sX(1:2:end);
+      sc = sX(2:2:end);
+      spc = sp-sc;
+      sd = sqrt(sum(spc.^2,2));
+      sf = barrier(sd,stol);
+
+      hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
+
       aux_handle = ...
         matlabFunction(sf,gradient(sf,sX),hess(sf,sX),'vars',{sX,stol},'File',aux);
     else
@@ -129,27 +129,26 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     %  error
     %end
 
-    % From here, only touch X
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sX = sym('X',[1 6]);
-    stol = sym('tol',[1 1]);
-    sp = sX(1:3:end);
-    sa = sX(2:3:end);
-    sb = sX(3:3:end);
-    spa = sp-sa;
-    sba = sb-sa;
-    st = sum(spa.*sba,2)./sum(sba.^2,2);
-    spc = spa - sba.*st;
-    sd = sqrt(sum(spc.^2,2));
-    sf = barrier(sd,stol);
-
-    hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
-
     % Writing the symbol
     path = mfilename('fullpath');
     aux = [path '_line_sym.m'];
     % should also check date...
     if ~exist(aux,'file')
+      % From here, only touch X
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      sX = sym('X',[1 6]);
+      stol = sym('tol',[1 1]);
+      sp = sX(1:3:end);
+      sa = sX(2:3:end);
+      sb = sX(3:3:end);
+      spa = sp-sa;
+      sba = sb-sa;
+      st = sum(spa.*sba,2)./sum(sba.^2,2);
+      spc = spa - sba.*st;
+      sd = sqrt(sum(spc.^2,2));
+      sf = barrier(sd,stol);
+
+      hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
       aux_handle = ...
         matlabFunction(sf,gradient(sf,sX),hess(sf,sX),'vars',{sX,stol},'File',aux);
     else

@@ -38,35 +38,34 @@ function [f,G,H] = symmetric_dirichlet(U,F,P)
   UI = reshape(F(:)+(0:size(U,2)-1)*size(U,1),size(F,1),size(U,2)*size(F,2));
   U = U(UI);
 
-  % From here, only touch X
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  sU = sym('U',[1 6]);
-  sP = sym('P',[1 9]);
-  sU1 = sU(1:3:end);
-  sU2 = sU(2:3:end);
-  sU3 = sU(3:3:end);
-  sP1 = sP(1:3:end);
-  sP2 = sP(2:3:end);
-  sP3 = sP(3:3:end);
-  
-  % squared area
-  sD2U = (0.5*((sU2-sU1)*[0 1;-1 0]*(sU3-sU1).')).^2;
-  sqrlen = @(sX) sum(sX.^2,2);
-  sD2P = sqrlen(0.5*cross(sP2-sP1,sP3-sP1,2));
-  sf = (1+sD2P./sD2U) .*  ( ...
-    (sqrlen(sU3-sU1).*sqrlen(sP2-sP1) + sqrlen(sU2-sU1).*sqrlen(sP3-sP1))./ ...
-      (4*sqrt(sD2P)) - ...
-    (sum((sU3-sU1).*(sU2-sU1),2).*sum((sP3-sP1).*(sP2-sP1),2))./ ...
-      (2*sqrt(sD2P)));
-
-  hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
-
-
   % Writing the symbol
   path = mfilename('fullpath');
   aux = [path '_sym.m'];
   % should also check date...
   if ~exist(aux,'file')
+    % From here, only touch X
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sU = sym('U',[1 6]);
+    sP = sym('P',[1 9]);
+    sU1 = sU(1:3:end);
+    sU2 = sU(2:3:end);
+    sU3 = sU(3:3:end);
+    sP1 = sP(1:3:end);
+    sP2 = sP(2:3:end);
+    sP3 = sP(3:3:end);
+    
+    % squared area
+    sD2U = (0.5*((sU2-sU1)*[0 1;-1 0]*(sU3-sU1).')).^2;
+    sqrlen = @(sX) sum(sX.^2,2);
+    sD2P = sqrlen(0.5*cross(sP2-sP1,sP3-sP1,2));
+    sf = (1+sD2P./sD2U) .*  ( ...
+      (sqrlen(sU3-sU1).*sqrlen(sP2-sP1) + sqrlen(sU2-sU1).*sqrlen(sP3-sP1))./ ...
+        (4*sqrt(sD2P)) - ...
+      (sum((sU3-sU1).*(sU2-sU1),2).*sum((sP3-sP1).*(sP2-sP1),2))./ ...
+        (2*sqrt(sD2P)));
+  
+    hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
+  
     aux_handle = ...
       matlabFunction(sf,gradient(sf,sU),hess(sf,sU),'vars',{sU,sP},'File',aux);
   else
