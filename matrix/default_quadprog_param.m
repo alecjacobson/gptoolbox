@@ -7,7 +7,7 @@ function [param,mosek_exists] = default_quadprog_param()
   %   param stuct containing some nice default mosek params
   %   mosek_exists  whether mosek exists
   %
-
+  persistent num_threads
   % Tolerance parameter
   % >1e0 NONSOLUTION
   % 1e-1 artifacts in deformation
@@ -17,17 +17,19 @@ function [param,mosek_exists] = default_quadprog_param()
   % 1e-14 smallest allowed value
   if(exist('mosekopt','file'))
 
-    % always use one core and always leave one core
-    num_threads = max(feature('numCores')-1,1);
-    if(isunix)
-      % Get the real number of cores
-      [r,c] = system('sysctl hw.ncpu | awk ''{print $2}''');
-      if r==0
-        c = str2double(c);
-        if ~isnan(c)
-          num_threads = max(c-1,1);
+    if isempty(num_threads)
+        % always use one core and always leave one core
+        num_threads = max(feature('numCores')-1,1);
+        if(isunix)
+          % Get the real number of cores
+          [r,c] = system('sysctl hw.ncpu | awk ''{print $2}''');
+          if r==0
+            c = str2double(c);
+            if ~isnan(c)
+              num_threads = max(c-1,1);
+            end
+          end
         end
-      end
     end
     % Different parameter for mosek 7
     if strfind(which('mosekopt'),'mosek/6')
