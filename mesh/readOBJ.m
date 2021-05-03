@@ -78,15 +78,20 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
   fp = fopen( filename, 'r' );
   type = fscanf( fp, '%s', 1 );
   count = 0;
+  maxdim = -1;
   while strcmp( type, '' ) == 0
       line = fgets(fp);
       if strcmp( type, 'v' ) == 1
-          v = sscanf( line, '%lf %lf %lf' );
+          [v,dim] = sscanf( line, '%lf %lf %lf' );
           numv = numv+1;
+          maxdim = max(maxdim,dim);
           if(numv>size(V,1))
-            V = cat(1,V,zeros(10000,3));
+            V = cat(1,V,zeros(10000,dim));
           end
-          V(numv,:) = [v(1:3)'];
+          if maxdim > size(V,2)
+            V(:,end+1:maxdim) = 0;
+          end
+          V(numv,1:dim) = [v(1:dim)'];
       elseif strcmp( type, 'vt')
           v = sscanf( line, '%f %f %f' );
           numuv = numuv+1;
@@ -231,7 +236,7 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
   %try
   %    F = cell2mat(F);
   %end
-  V = V(1:numv,:);
+  V = V(1:numv,1:maxdim);
   F = F(1:numf,:);
   UV = UV(1:numuv,:);
   TF = TF(1:numtf,:);
