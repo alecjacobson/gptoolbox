@@ -88,8 +88,9 @@ function [U,data] = smith_and_schaefer(V,F,U0,varargin)
       stalled = false;
       w = u2w(data.u);
       Htilde = ((1-w)*H0+w*speye(size(H0)));
-      Dec = decomposition(Htilde,'ldl','upper');
-      dU = Dec\(-G0);
+      %Dec = decomposition(Htilde,'chol','upper');
+      %dU = Dec\(-G0);
+      dU = Htilde\(-G0);
   
       % Pure gradient descent
       %[fsd,Gsd] = symmetric_dirichlet(U0,F,V);
