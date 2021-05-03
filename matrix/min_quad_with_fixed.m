@@ -250,8 +250,12 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
         else
           % LDL is faster than LU for moderate #constraints < #unknowns
           NA = A([F.unknown F.lagrange],[F.unknown F.lagrange]);
-          assert(issparse(NA));
-          [F.L,F.D,F.P,F.S] = ldl(NA);
+          if issparse(NA)
+             [F.L,F.D,F.P,F.S] = ldl(NA);
+          else
+             [F.L,F.D,F.P] = ldl(NA);
+             F.S = eye(size(NA));
+          end
           F.ldl = true;
         end
       else
@@ -299,7 +303,12 @@ function [Z,F,Lambda,Lambda_known] = min_quad_with_fixed(A,B,known,Y,Aeq,Beq,F)
       %fprintf('Proj: %g secs\n',toc);
       %tic;
       % QRA seems to be PSD
-      [F.L,p,F.S] = chol(QRAuu,'lower');
+      if issparse(QRAuu)
+        [F.L,p,F.S] = chol(QRAuu,'lower');
+      else
+        [F.L,p] = chol(QRAuu,'lower');
+        F.S = eye(size(F.L));
+      end
       F.U = F.L';
       F.P = F.S';
       F.Q = F.S;
