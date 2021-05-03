@@ -33,6 +33,10 @@ function t = tsurf(F,V,varargin)
   %
   % See also: trisurf
   %
+  
+  if issparse(V)
+      V = full(V);
+  end
 
 
   vertex_indices = 0;
@@ -145,6 +149,12 @@ function t = tsurf(F,V,varargin)
     strcmp(get(gca,'YLimMode'),'auto') && ...
     strcmp(get(gca,'ZLimMode'),'auto')
     axis tight;
+  end
+
+  % surgery on varargin
+  cdata_v = find(cellfun(@(c) ischar(c) && strcmpi(c,'cdata'),varargin),1,'last');
+  if ~isempty(cdata_v) && (cdata_v+1)<=numel(varargin)
+    varargin{cdata_v+1} = double(varargin{cdata_v+1});
   end
 
   if v<=numel(varargin)
