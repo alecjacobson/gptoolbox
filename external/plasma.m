@@ -1,4 +1,8 @@
 function cm_data=plasma(m)
+% cm_data=plasma(m)
+%
+% See also: inferno, magma, plasma, viridis
+
 % Copyright (c) 2016, Ander Biguri
 % All rights reserved.
 % 
