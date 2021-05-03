@@ -36,8 +36,7 @@ function BW = readVOX(filename)
   fclose(f);
 
   BW = reshape(BW,fliplr(header));
-  BW = flipud(BW);
-  BW = permute(BW,[1 3 2]);
+  BW = permute(BW,[2 3 1]);
   % Flip and convert to logical
   BW = BW==0;
 end
