@@ -140,7 +140,9 @@ function S = statistics(V,F,varargin)
   C = zeros(size(V,1),1);
   C(1:max(F(:)),:) = connected_components(F);
   C(C==0) = max(C)+(1:sum(C==0));
-  S.num_unreferenced_vertices = sum(sparse(C,1,1)==1);
+  is_unreferenced = sparse(F,1,1,size(V,1),1)==0;
+  %S.num_unreferenced_vertices = sum(sparse(C,1,1)==1)
+  S.num_unreferenced_vertices = sum(is_unreferenced);
   S.num_connected_components = max(C);
 
   E = [F(:,[2 3]); F(:,[3 1]); F(:,[1 2])];
@@ -165,8 +167,11 @@ function S = statistics(V,F,varargin)
   % could feasibly be oriented (a meshed self-intersection).
   S.num_conflictingly_oriented_edges = nnz(OA);
 
-  S.num_nonmanifold_vertices = sum(is_vertex_nonmanifold(F)) - ...
-    S.num_unreferenced_vertices;
+  isnmv = is_vertex_nonmanifold(F);
+  if numel(isnmv)<size(V,1);
+    isnmv(numel(isnmv)+1:size(V,1)) = 0;
+  end
+  S.num_nonmanifold_vertices = sum(isnmv & ~is_unreferenced);
 
   [~,BC] = conncomp( (DA==1)+(DA==1)' );
   S.num_boundary_loops = sum(sparse(BC,1,1)>1);
