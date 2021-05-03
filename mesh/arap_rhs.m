@@ -50,22 +50,24 @@ function [b,K] = arap_rhs(varargin)
   % number of dimensions
   Vdim = size(V,2);
   dim = Vdim;
+  weight = [];
 
-  ii = 4;
-  while(ii <= nargin)
-    switch varargin{ii}
-    case 'Energy'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      energy = varargin{ii};
-    case 'Dim'
-      ii = ii + 1;
-      assert(ii<=nargin);
-      dim = varargin{ii};
-    otherwise
-      error(['Unsupported parameter: ' varargin{ii}]);
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Energy','Dim','Weight'}, ...
+    {'energy','dim','weight'});
+  v = 4;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace 
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
     end
-    ii = ii + 1;
+    v=v+1;
   end
 
   % number of rotations
@@ -96,6 +98,10 @@ function [b,K] = arap_rhs(varargin)
     else
       assert(dim == 2);
     end
+  end
+
+  if ~isempty(weight)
+    K = K .* repmat(reshape(weight,1,nr),1,dim*dim);
   end
 
   if(~isempty(R))

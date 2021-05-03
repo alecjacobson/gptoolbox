@@ -111,14 +111,16 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
   data = [];
   Aeq = [];
   Beq = [];
+  ref_data = [];
+  weight = [];
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'Energy','V0','Data','Tikhonov','Groups','Tol', ...
      'MaxIter','Dynamic','TimeStep','Vm1','RemoveRigid','Debug', ...
-     'Aeq','Beq','Flat','Youngs'}, ...
+     'Aeq','Beq','Flat','Ref','Weight','Youngs'}, ...
     {'energy','U','data','alpha_tik','G','tol','max_iterations','fext', ...
-    'h','Vm1','remove_rigid','debug','Aeq','Beq','flat','youngs'});
+    'h','Vm1','remove_rigid','debug','Aeq','Beq','flat','ref_data','weight','youngs'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -164,13 +166,19 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
     k = max(data.G);
   end
 
-  if flat
-    [ref_V,ref_F,ref_map] = plane_project(V,F);
-    assert(strcmp(energy,'elements'),'flat only makes sense with elements');
+  ref_map = [];
+  if isempty(ref_data)
+    if flat
+      [ref_V,ref_F,ref_map] = plane_project(V,F);
+      assert(strcmp(energy,'elements'),'flat only makes sense with elements');
+    else
+      ref_V = V;
+      ref_F = F;
+    end
   else
-    ref_map = 1;
-    ref_V = V;
-    ref_F = F;
+    ref_V = ref_data{1};
+    ref_F = ref_data{2};
+    ref_map = ref_data{3};
   end
   dim = size(ref_V,2);
 
@@ -213,7 +221,17 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
   end
 
   if ~isfield(data,'L') || isempty(data.L)
-    data.L = cotmatrix(V,F);
+    if isempty(weight)
+      data.L = cotmatrix(ref_V,ref_F);
+    else
+      wA = doublearea(ref_V,ref_F);
+      wG = grad(ref_V,ref_F);
+      data.L = -0.5*wG'*( repmat(wA.*weight,dim,1) .* wG);
+    end
+
+    if ~isempty(ref_map)
+      data.L = ref_map*data.L*ref_map';
+    end
   end
 
   rr.b = cell(dim,1);
@@ -284,7 +302,7 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
     %assert(size(ref_V,2) == dim);
     data.CSM = ...
       covariance_scatter_matrix(ref_V,ref_F,'Energy',energy);
-    if flat
+    if ~isempty(ref_map)
       data.CSM = data.CSM * repdiag(ref_map',dim);
     end
     
@@ -299,8 +317,8 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
 
   % precompute rhs premultiplier
   if ~isfield(data,'K') || isempty(data.K)
-    [~,data.K] = arap_rhs(ref_V,ref_F,[],'Energy',energy);
-    if flat
+    [~,data.K] = arap_rhs(ref_V,ref_F,[],'Energy',energy,'Weight',weight);
+    if ~isempty(ref_map)
       data.K = repdiag(ref_map,dim) * data.K;
     end
   end
@@ -385,6 +403,7 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
       end
     else 
       if isempty(Aeq)
+        cellfun(@(v) assignin('base',v,evalin('caller',v)),{'zQ','zL'});
         [U,data.preF] = min_quad_with_fixed( ...
           zQ, ...
           zL,b,bc,Aeq,Beq,data.preF);
