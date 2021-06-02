@@ -99,7 +99,15 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
   save(tmpf,'-regexp',sprintf('^%s$|',variables{:}),'-ascii');
   % get md5 checksum on input "state", we append .cache.mat to the check sum
   % because we'll use the checksum as the cache file name
-  [s,cache_name] = system(['/sbin/md5 -r ' tmpf ' | awk ''{printf "."$1".cache.mat"}''']);
+  if ismac
+    [~,cache_name] = system(['/sbin/md5 -r ' tmpf ' | awk ''{printf "."$1".cache.mat"}''']);
+  elseif isunix
+    [~,cache_name] = system(['md5sum ' tmpf ' | awk ''{printf "."$1".cache.mat"}''']);
+  else
+    [~,cache_name] = system(['CertUtil -hashfile ' tmpf ' MD5']);
+    cache_name = feval(@(x) ['.' x{2} '.cache.mat'], ...
+        strsplit(cache_name, '\n'));
+  end
   % clean up
   delete(tmpf);
   clear s tmpf variables;
