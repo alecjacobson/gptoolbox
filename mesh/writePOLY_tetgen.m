@@ -110,7 +110,7 @@ function writePOLY_tetgen(filename,V,F,H,varargin)
     if ~isempty(BM)
       fformat = [fformat ' %d'];
     end
-    fformat = [fformat '\n ' num2str(size(F,2))];
+    fformat = [fformat '\n' num2str(size(F,2))];
     for p=1:size(F,2)
       fformat = [fformat ' %d']; %#ok<AGROW>
     end
