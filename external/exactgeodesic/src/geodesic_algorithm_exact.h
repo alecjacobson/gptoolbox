@@ -7,6 +7,7 @@
 #include "geodesic_algorithm_exact_elements.h"
 #include <vector>
 #include <cmath>
+#include <cstring>
 #include <assert.h>
 #include <set>
 
