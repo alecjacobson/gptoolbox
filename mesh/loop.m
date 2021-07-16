@@ -64,10 +64,18 @@ for i=1:iter
     %Sint = bsxfun(@times,A,beta) + diag(sparse(1-val.*beta));
     %S(interior,:) = Sint(interior,:);
     % construct interior coefficients directly
-    Seven(interior,:) = ...
-        bsxfun(@times,A(interior,:),beta(interior)) + ...
-        sparse(1:ni,original(interior),1-val(interior).*beta(interior),ni,no);
-
+    
+    % Old bsxfun approach (much slower!)
+    %Seven(interior,:) = ...
+    %    bsxfun(@times,A(interior,:),beta(interior)) + ...
+    %    sparse(1:ni,original(interior),1-val(interior).*beta(interior),ni,no);
+    
+    A_interior=A(interior,:); %Get only interior part of A
+    [rowIndices,~,~]=find(A_interior>0); %Get column insices for all non-zero entries
+    A_beta_interior=A_interior; %Initialize array for multiplication of A with beta
+    A_beta_interior(A_interior>0)=A_interior(A_interior>0).*beta(interior(rowIndices)); %Process multiplication only for non-zero entries
+    Seven(interior,:) = A_beta_interior + sparse(1:ni,original(interior),1-val(interior).*beta(interior),ni,no);
+    
     % construct boundary coefficients
     Sboundary = ...
         sparse([O(:,1);O(:,2)],[O(:,2);O(:,1)],1/8,n,n) + ...
