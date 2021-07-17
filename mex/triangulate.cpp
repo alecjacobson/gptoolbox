@@ -1,5 +1,6 @@
 #include "mex.h"
 #include <igl/matlab/parse_rhs.h>
+#include <igl/matlab_format.h>
 #include <igl/matlab/prepare_lhs.h>
 #include <igl/matlab/validate_arg.h>
 #include <igl/matlab/MexStream.h>
@@ -106,6 +107,16 @@ void mexFunction(
   Eigen::MatrixXi TF;
   Eigen::MatrixXi TE;
   Eigen::VectorXi TVM,TEM;
+  // triangle will annoyingly mark all boundary edges (e.g., "-c" flag) with 1.
+  // Shift all the input labels so that min is at 2. Then we'll shift back and
+  // mark boundaries with EM.maxCoeff()+1
+  int shift,max_EM;
+  if(EM.size())
+  {
+    shift = EM.minCoeff()+2;
+    max_EM = EM.maxCoeff();
+    EM.array() += shift;
+  }
   switch(method)
   {
     default:
@@ -123,6 +134,11 @@ void mexFunction(
     case CGAL_EPICK:
       igl::copyleft::cgal::triangulate<CGAL::Epick>(V,E,H,flags.find('c')!=std::string::npos,TV,TF);
     break;
+  }
+  for(int e = 0;e<TEM.size();e++)
+  {
+    if(TEM(e) == 1){ TEM(e) = max_EM+1;}
+    else{ TEM(e) -= shift;}
   }
 
   switch(nlhs)
