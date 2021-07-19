@@ -154,10 +154,18 @@ tetrahedralize.cpp;\
 endif()
 
 if(LIBIGL_WITH_TRIANGLE)
-  compile_each("\
+  if(LIBIGL_WITH_CGAL)
+    add_definitions("-DWITH_CGAL")
+    compile_each("\
 triangulate.cpp;\
 "
-  "${CORE_LIBS};igl::core;igl::matlab;igl::triangle")
+    "${CORE_LIBS};igl::core;igl::matlab;igl::triangle;igl::cgal")
+  else()
+    compile_each("\
+triangulate.cpp;\
+"
+    "${CORE_LIBS};igl::core;igl::matlab;igl::triangle")
+  endif()
 endif()
 
 if(LIBIGL_WITH_EMBREE)
