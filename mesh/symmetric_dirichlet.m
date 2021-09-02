@@ -1,15 +1,16 @@
-function [f,G,H] = symmetric_dirichlet(U,F,P)
+function [f,G,H] = symmetric_dirichlet(U,F,P,varargin)
   % SYMMETRIC_DIRICHLET Compute the symmetric Dirichlet energy (and its
   % derivatives) for 2D parameterization of a given *strictly feasible** 2D
   % mesh.  See "Bijective Parameterization with Free Boundaries" [Smith and
   % Schaefer 2015].
   %
   % Inputs:
-  %   U  #V by 2 list of input 2D mesh vertex positions
+  %   U  #V by 2 list of input 2D mesh vertex displacements
   %   F  #F by 3 list of triangle indices into rows of U/P
   %   P  #P by 2|3 list of input 3D mesh vertex positions
   %    or
   %      #F*3 by 2|3 list of input 3D mesh corner positions: P = V(F,:)
+  %      e.g., the output of plane_project.m
   % Outputs:
   %   f  scalar total objective value
   %   G  #U*2 gradient 
@@ -20,6 +21,25 @@ function [f,G,H] = symmetric_dirichlet(U,F,P)
   % the symbolic-math part of this file, you must delete this automatically
   % generated file.
   %
+
+  psd_project = true;
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'PSD'}, ...
+    {'psd_project'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
 
 
   % Add column of zeros if necessary
@@ -45,12 +65,14 @@ function [f,G,H] = symmetric_dirichlet(U,F,P)
   if ~exist(aux,'file')
     % From here, only touch X
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sU = sym('U',[1 6]);
-    sP = sym('P',[1 9]);
-    sU1 = sU(1:3:end);
-    sU2 = sU(2:3:end);
-    sU3 = sU(3:3:end);
-    sP1 = sP(1:3:end);
+    sU = sym('U',[1 6]); % [x₁ x₂ x₃ y₁ y₂ y₃]
+    sP = sym('P',[1 9]); % [x₁ x₂ x₃ y₁ y₂ y₃ z₁ z₂ z₃]
+    % [sU1,sU2,sU3] = deal(sU(1:3:end),sU(2:3:end),sU(3:3:end));
+    % [sP1,sP2,sP3] = deal(sP(1:3:end),sP(2:3:end),sP(3:3:end));
+    sU1 = sU(1:3:end); % [u₁ u₄] = [x₁ y₁]
+    sU2 = sU(2:3:end); % [u₂ u₅] = [x₂ y₂]
+    sU3 = sU(3:3:end); % [u₃ u₆] = [x₃ y₃]
+    sP1 = sP(1:3:end); % [p₁ p₄ p₇] = [x₁ y₁ z₁]
     sP2 = sP(2:3:end);
     sP3 = sP(3:3:end);
     
@@ -98,7 +120,6 @@ function [f,G,H] = symmetric_dirichlet(U,F,P)
   end
   d2fdU2 = double(d2fdU2_fun(U));
 
-  psd_project = true;
   d2fdU2 = reshape(d2fdU2,[],6*6);
   if psd_project
     d2fdU2 = psd_project_rows(d2fdU2);
