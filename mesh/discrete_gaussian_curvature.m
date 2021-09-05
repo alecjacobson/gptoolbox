@@ -13,7 +13,10 @@ function k = discrete_gaussian_curvature(V,F)
   %
 
   %K_G(x_i) = (2π - ∑θj)
-  k = 2*pi - sparse(F,1,internalangles(V,F),size(V,1),1);
+  %ks = 2*pi - sparse(F,1,internalangles(V,F),size(V,1),1);
+  % slightly faster
+  vec = @(X) X(:);
+  k = 2*pi - accumarray(vec(F),vec(internalangles(V,F)),[size(V,1) 1],[],0);
   b = unique(outline(F));
   k(b) = k(b)-pi;
 

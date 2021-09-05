@@ -37,7 +37,7 @@ endfunction()
 function(gptoolbox_download_libigl)
 	gptoolbox_download_project(libigl
 		GIT_REPOSITORY https://github.com/libigl/libigl.git
-		GIT_TAG        78c5137453818a9d4d53ad3eb0930e2cd3945040
+		GIT_TAG        a3f19b2bed7c89a1a11b0d71cfb495419da60d37
 	)
 endfunction()
 

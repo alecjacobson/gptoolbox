@@ -47,6 +47,10 @@ function [VV,FF,FO] = upsample(V,F,varargin)
   %   [sTV,sTF] = upsample(TV,TF,'OnlySelected',M);
   %   [sV,sF] = upsample(V,F,'OnlySelected',M);
   %
+  % Example:
+  %   [VV,FF] = upsample( ...
+  %     V,F,'Iterations',10,'OnlySelected',@(V,F) doublearea(V,F)>0.05);
+  %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
   %
   

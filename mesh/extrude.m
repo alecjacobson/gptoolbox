@@ -1,9 +1,9 @@
-function [VV,FF] = extrude(V,F,varargin)
+function [VV,FF,J] = extrude(V,F,varargin)
   % EXTRUDE Extrude a 2d mesh in the z direction by 1, connecting boundaries
   % apropriately 
   %
   % [VV,FF] = extrude(V,F)
-  % [VV,FF] = extrude(V,F,'ParmeterName',ParameterValue,...)
+  % [VV,FF,J] = extrude(V,F,'ParmeterName',ParameterValue,...)
   %
   % Inputs:
   %   V  #V by 2 list of 2d vertex positions
@@ -16,6 +16,7 @@ function [VV,FF] = extrude(V,F,varargin)
   % Outputs:
   %   VV #VV by 3 list of 3d vertex positions
   %   FF  #FF by 3 list of triangle indices into VV
+  %   J  #VV indices into V
   %
 
   cap = [];
@@ -41,7 +42,8 @@ function [VV,FF] = extrude(V,F,varargin)
     cap = size(F,2) > 2;
   end
 
-  assert(size(V,2) == 2, 'Vertices should be 2d');
+  %assert(size(V,2) == 2, 'Vertices should be 2d');
+
   %% Copy top and bottom
   %  VV = [V 1+0*V(:,1);V 0*V(:,1)];
   switch size(F,2)
@@ -61,16 +63,20 @@ function [VV,FF] = extrude(V,F,varargin)
   % Rearrange vertices on bottom
   [VB,FB,OB,IM] = faces_first(V,F,O);
   n = size(V,1);
+  JB = (1:n)';
 
   no = numel(unique(OB));
 
   VL = [ ...
       repmat(VB(1:max(OB(:)),:),[levels 1]) ...
         reshape(repmat(linspace(1-1/levels,0,levels),[no,1]),[no*levels 1])];
+  JL = repmat((1:no)',levels,1);
   if cap
     VV = [VB ones(n,1);VL(1:no*(levels-1),:);VB zeros(n,1)];
+    J = [JB;JL(1:no*(levels-1));JB];
   else
     VV = [VB ones(n,1);VL];
+    J = [JB;JL];
   end
   FO = ones(2*size(OB,1)*levels,size(F,2));
   for level = 1:levels
@@ -102,8 +108,9 @@ function [VV,FF] = extrude(V,F,varargin)
     RIM = 1:(n+levels*no);
     RIM(IM) = 1:n;
   end
-  VV(RIM,:) = VV;
-  FF = RIM(FF);
 
+  VV(RIM,:) = VV;
+  J(RIM,:) = RIM(J);
+  FF = RIM(FF);
 
 end

@@ -1,9 +1,9 @@
-function [SV,SVI,SVJ] = remove_duplicate_vertices(V,epsilon,varargin)
+function [SV,SVI,SVJ,SVJF] = remove_duplicate_vertices(V,epsilon,varargin)
   % REMOVE_DUPLICATE_VERTICES Remove duplicate vertices upto a uniqueness
   % tolerance (epsilon)
   %
   % SV = remove_duplicate_vertices(V,epsilon)
-  % [SV,SVI,SVJ] = ...
+  % [SV,SVI,SVJ,SVJF] = ...
   %   remove_duplicate_vertices(V,epsilon,'ParameterName',ParameterValue,...)
   %
   % Inputs:
@@ -13,10 +13,12 @@ function [SV,SVI,SVJ] = remove_duplicate_vertices(V,epsilon,varargin)
   %   Optional:
   %     'WhiteList' Only merge vertices from the following selection (not
   %     working correctly, yet)
+  %     'F'  followed by list of indices into rows of V
   % Outputs:
   %   SV  #SV by dim new list of vertex positions
   %   SVI #SV by 1 list of indices so SV = V(SVI,:) 
   %   SVJ #V by 1 list of indices so V = SV(SVJ,:)
+  %   SVJF  #F-sized matrix simply SVJF = SVJ(F);
   %
   % Example:
   %   % Mesh in (V,F)
@@ -27,10 +29,11 @@ function [SV,SVI,SVJ] = remove_duplicate_vertices(V,epsilon,varargin)
 
   % default values
   whitelist = [];
+  F = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'WhiteList'}, ...
-    {'whitelist'});
+    {'WhiteList','F'}, ...
+    {'whitelist','F'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -61,5 +64,8 @@ function [SV,SVI,SVJ] = remove_duplicate_vertices(V,epsilon,varargin)
     [SVW,SVIW,SVJW] = remove_duplicate_vertices(VW,epsilon);
     SJ = 1:size(V,1);
     SJ(whitelist) = JW(SVJ);
+  end
+  if nargout>=4
+    SVJF = SVJ(F);
   end
 end

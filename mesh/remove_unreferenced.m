@@ -28,6 +28,7 @@ function [RV,IM,J,IMF] = remove_unreferenced(V,F)
     RV = zeros(0,size(V,2));
     IM = (1:size(V,1))';
     J = zeros(1,0);
+    IMF = zeros(1,0);
     return;
   end
   % get list of unique vertex indices that occur in faces

@@ -51,7 +51,7 @@ function [U,FF,J] = split_edges(V,F,E,varargin)
   % Non-manifold edges in query
   NM = EP(sub2ind(size(EP),E(:,1),E(:,2)))~=0;
   if any(NM)
-    warning('Non-manifold, boundary edge flips ignored.');
+    warning('Non-manifold, boundary edge splits ignored.');
     E = E(~NM,:);
   end
 

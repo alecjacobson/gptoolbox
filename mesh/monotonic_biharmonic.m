@@ -75,7 +75,7 @@ function [W,f] = monotonic_biharmonic(varargin)
   extrema_bc = bc;
   max_iter = inf;
   % check for mosek and set its parameters
-  [param,mosek_exists] = default_mosek_param();
+  [param,mosek_exists] = default_quadprog_param();
   if mosek_exists
     opt_type = 'conic';
   else
@@ -164,7 +164,7 @@ function [W,f] = monotonic_biharmonic(varargin)
 
   % Build discrete laplacian and mass matrices used by all handles' solves
   if(size(F,2)==4)
-    fprintf('Solving over volume...\n');
+    %fprintf('Solving over volume...\n');
     L = cotmatrix3(V,F);
     M = massmatrix3(V,F,'barycentric');
     % Build pieces of sqrt(L) for odd powers
@@ -280,13 +280,13 @@ function [W,f] = monotonic_biharmonic(varargin)
         step_base = 2;
         num_edges = round(step_base^(1.1*(iter+1))-1);
         if num_edges < numel(AiI)
-          fprintf('Num edges in subgraph: %d\n',num_edges);
+          %fprintf('Num edges in subgraph: %d\n',num_edges);
           randorder = randperm(numel(AiI));
           sel = randorder(1:num_edges);
           Ai = sparse(AiI(sel),AiJ(sel),AiV(sel),size(Ai,1),size(Ai,2));
         else
           num_edges  = numel(AiI);
-          fprintf('Num edges in fullgraph: %d\n',numel(AiI));
+          %fprintf('Num edges in fullgraph: %d\n',numel(AiI));
           fullgraph = true;
         end
       end
@@ -309,13 +309,13 @@ function [W,f] = monotonic_biharmonic(varargin)
         switch opt_type
         case 'legacy-quad'
           if(mosek_exists)
-            fprintf('Quadratic optimization using mosek...\n');
+            %fprintf('Quadratic optimization using mosek...\n');
           else
-            fprintf('Quadratic optimization using matlab...\n');
+            %fprintf('Quadratic optimization using matlab...\n');
           end
-          fprintf( [ ...
-            '  minimize:     x''LM\\Lx\n' ...
-            'subject to: xi <= xj, ???j, j parent to i\n' ]);
+          %fprintf( [ ...
+          %  '  minimize:     x''LM\\Lx\n' ...
+          %  'subject to: xi <= xj, ???j, j parent to i\n' ]);
           [x,fval,err] = quadprog(Q,l(:,i),leq_scale*Aleq,-monotonicity_epsilon+leq_scale*bleq, ...
             Aeq,bc(:,i),lx,ux,[],param);
           if(err ~= 1)
@@ -327,9 +327,9 @@ function [W,f] = monotonic_biharmonic(varargin)
               ]);
           end
         case {'quad','conic'}
-          fprintf( [ ...
-            '  minimize:     ||Fx||^2\n' ...
-            'subject to: xi <= xj, ???j, j parent to i\n' ]);
+          %fprintf( [ ...
+          %  '  minimize:     ||Fx||^2\n' ...
+          %  'subject to: xi <= xj, ???j, j parent to i\n' ]);
           [x,f] = conic( ...
             FF,l(:,i), ...
             [],[], ...
@@ -352,14 +352,14 @@ function [W,f] = monotonic_biharmonic(varargin)
       % Unpublished home-brewed active set solver, likely this will not work.
       % Safe to ignore
       case 'active-set'
-        fprintf('Quadratic optimization using active set...\n');
+        %fprintf('Quadratic optimization using active set...\n');
         [x,preF] = min_quad_with_fixed_active_set(Q,zeros(n,1),b,bc(:,i),[],[],[],[]);
       otherwise
         error(['Unsupported algorithm type: ''' algorithm '''']);
       end
       % set weights to solution in weight matrix
       W(:,i) = x(1:n);
-      fprintf('Lap time: %gs\n',toc);
+      %fprintf('Lap time: %gs\n',toc);
 
       if ~subgraph && ~iterate_constraints
         break;
@@ -392,7 +392,7 @@ function [W,f] = monotonic_biharmonic(varargin)
 
       % Unpublished, safe to ignore
       if iter == max_iter
-        fprintf('Reached maximum iterations (%d) with convergence\n',max_iter);
+        %fprintf('Reached maximum iterations (%d) with convergence\n',max_iter);
         break;
       end
       iter = iter + 1;
@@ -400,7 +400,7 @@ function [W,f] = monotonic_biharmonic(varargin)
   end
   t = toc;
   % Print some time information
-  fprintf('Total elapsed time: %gs\n',t);
-  fprintf('Average time per handle: %gs\n',t/m);
+  %fprintf('Total elapsed time: %gs\n',t);
+  %fprintf('Average time per handle: %gs\n',t/m);
 
 end

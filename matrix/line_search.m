@@ -1,4 +1,4 @@
-function [step_size,X,obj,step] = line_search(obj_fun,proj_fun,X0,step0,max_step_size)
+function [step_size,X,obj,step,iter,max_iter] = line_search(obj_fun,proj_fun,X0,step0,max_step_size)
   % LINE_SEARCH Given an objective function (obj_fun) to minimize and
   % constraints to project onto (proj_fun) and an intial guess (X0) determine a
   % feasible step_size to move along a desired direcxtion (step0)
@@ -20,7 +20,8 @@ function [step_size,X,obj,step] = line_search(obj_fun,proj_fun,X0,step0,max_step
   
   step_size = max_step_size;
   obj0 = obj_fun(proj_fun(X0));
-  for iter = 1:20
+  max_iter = 20;
+  for iter = 1:max_iter
     step = step_size*step0;
     X = proj_fun(X0+step);
     obj  = obj_fun(X);

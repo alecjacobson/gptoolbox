@@ -44,8 +44,16 @@ function [P,C] = parse_path(dstr)
   mi = size(P,1);
   C = [];
   z_seen = false;
+  % I guess L is some kind of default...
+  prev_key = 'L';
   while ~isempty(dstr)
     [key,dstr] = parse_key(dstr);
+    % A command letter may be eliminated if an identical command letter would
+    % otherwise precede it; for instance, the following contains an unnecessary
+    % second "L" command:
+    if isempty(key) && ~isempty(prev_key)
+      key = prev_key;
+    end
     Pabs = P(end,:);
     switch key
     case {'C','c'}
@@ -102,6 +110,7 @@ function [P,C] = parse_path(dstr)
     %key
     %clf;hold on;arrayfun(@(c) set(plot_cubic(P(C(c,:),:)),'Color','b'),1:size(C,1));hold off;
     %pause
+    prev_key = key;
   end
     
 

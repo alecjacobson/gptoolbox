@@ -133,6 +133,7 @@ void mexFunction(
   parse_rhs_double(prhs+0,V);
   parse_rhs_index(prhs+1,T);
   Eigen::SparseMatrix<double> L,M;
+  mexErrMsgTxt(T.cols() == 4, "T should be indices into a tet-mesh");
   dualLaplace(V,T,L,M);
 
   switch(nlhs)
@@ -143,4 +144,5 @@ void mexFunction(
       prepare_lhs_double(L,plhs+0);
     default:break;
   }
+  std::cout.rdbuf(outbuf);
 }

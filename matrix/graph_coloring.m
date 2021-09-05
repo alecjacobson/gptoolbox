@@ -37,8 +37,9 @@ function [C,nc] = graph_coloring(A,nc)
 
   onc = nc;
   % worst case just increase number of colors
-  for outer = 1:10
-    % Might as well rety a few times for this nc
+  max_outer = 10;
+  for outer = 1:max_outer
+    % Might as well retry a few times for this nc
     for retry = 1:10
       C = ceil(nc*rand(n,1));
       for iter = 1:2*ceil(sqrt(size(A,1)))
@@ -57,6 +58,9 @@ function [C,nc] = graph_coloring(A,nc)
       break;
     end
     nc = nc+1;
+    if nc>max_outer
+      error('Failed to converge.\n');
+    end
   end
   if nc ~= onc
     warning('Had to increasing number of colors')

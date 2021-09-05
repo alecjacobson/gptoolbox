@@ -135,6 +135,8 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
         tsh.MarkerEdgeColor = color;
       end
       hold off;
+
+
       switch fade
       case {'local','infinite'}
         D = matrixnormalize( ...
@@ -155,6 +157,12 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
         end
         caxis(ca);
       end
+      % wireframe
+      if t.FaceAlpha == 0 || (ischar(t.FaceColor) & strcmp(t.FaceColor,'none'))
+        tsh.FaceAlpha = 0;
+        tsh.EdgeColor = color;
+      end
+
       h = {h{:} tsh};
       M(:,:,end+1) = shadow_mat;
     end

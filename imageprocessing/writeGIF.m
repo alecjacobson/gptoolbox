@@ -26,6 +26,6 @@ function writeGIF(filename,X,M,D)
   %    M(:,:,[1:end end end:-1:1]), ...
   %    sparse([size(Y,4)+1 2*size(Y,4)+1],1,0.5,2*size(Y,4)+1,1)); 
   % 
-  imwrite(X(:,:,:,1),M(:,:,1),filename,'DelayTime',D(1));
+  imwrite(X(:,:,:,1),M(:,:,1),filename,'DelayTime',D(1),'Loop',Inf);
   arrayfun(@(f) imwrite(X(:,:,:,f),M(:,:,min(f,end)),filename,'Delay',D(min(f,end)),'WriteMode','append'),2:size(X,4));
 end

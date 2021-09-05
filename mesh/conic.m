@@ -38,7 +38,7 @@ function [Z,f] = conic(varargin)
   b = varargin{9};
   bc = varargin{10};
 
-  param = default_mosek_param();
+  param = default_quadprog_param();
   quiet = 'echo(0)';
   opt_type = 'conic';
 
@@ -112,7 +112,7 @@ function [Z,f] = conic(varargin)
     prob.bux(b) = bc;
     prob.blx(b) = bc;
 
-    fprintf('Conic optimization using mosek...\n');
+    %fprintf('Conic optimization using mosek...\n');
   case 'conic-debug'
     prob = [];
     t_indices = n+(1:nt);
@@ -134,7 +134,7 @@ function [Z,f] = conic(varargin)
     prob.bux(b) = bc;
     prob.blx(b) = bc;
 
-    fprintf('Conic-debug optimization using mosek...\n');
+    %fprintf('Conic-debug optimization using mosek...\n');
   case 'quad'
 
     prob = [];
@@ -149,7 +149,7 @@ function [Z,f] = conic(varargin)
     % Enforce fixed values
     prob.bux(b) = bc;
     prob.blx(b) = bc;
-    fprintf('Quadratic optimization using mosek...\n');
+    %fprintf('Quadratic optimization using mosek...\n');
   end
 
   if isfield(param,'Display');

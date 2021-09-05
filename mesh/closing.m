@@ -12,8 +12,10 @@ function [CV,CF,OV,OF] = closing(V,F,sigma,varargin)
   %   Optional:
   %     'Epsilon'  followed by epsilon value {small number % of sigma}
   %     'SignedDistanceType'  see signed_distance_isosurface.m
+  %       {'pseudonormal'}
   %     'ContouringMethod'  see signed_distance_isosurface.m
-  %     'GridSize'  see signed_distance_isosurface.m
+  %       {'marching_cubes'}
+  %     'GridSize'  see signed_distance_isosurface.m {100}
   % Outputs:
   %   CV  #CV by 3 list of closing vertex positions
   %   CF  #CF by 3 list of triangle indices into CV

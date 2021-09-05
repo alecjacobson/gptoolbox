@@ -35,6 +35,10 @@ function x = merl_quadprog(varargin)
   v = 3;
   while v <= numel(varargin)
     switch varargin{v}
+    case 'MaxIter'
+      assert((v+1)<=numel(varargin));
+      v = v+1;
+      max_iter = varargin{v};
     case 'X0'
       assert((v+1)<=numel(varargin));
       v = v+1;

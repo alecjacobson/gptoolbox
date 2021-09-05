@@ -1,4 +1,9 @@
 function cm_data=viridis(m)
+% cm_data=viridis(m)
+%
+% See also: inferno, magma, plasma, viridis, turbo
+
+
 % Copyright (c) 2016, Ander Biguri
 % All rights reserved.
 % 

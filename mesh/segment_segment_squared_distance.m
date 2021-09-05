@@ -130,6 +130,12 @@ function [sqrD,V,C1,C2,T] = segment_segment_squared_distance(S1,D1,S2,D2)
   %sqrD = sum(dP.*dP,2);
 
   % From: https://www.mathworks.com/matlabcentral/fileexchange/32487-shortest-distance-between-two-line-segments
+
+  if size(S1,1) == 1
+    S1 = repmat(S1,size(S2,1),1);
+    D1 = repmat(D1,size(S2,1),1);
+  end
+
   p1 = S1;
   p2 = D1;
   p3 = S2;

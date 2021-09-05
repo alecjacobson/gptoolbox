@@ -49,23 +49,23 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     %  error
     %end
 
-    % From here, only touch X
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sX = sym('X',[1 4]);
-    stol = sym('tol',[1 1]);
-    sp = sX(1:2:end);
-    sc = sX(2:2:end);
-    spc = sp-sc;
-    sd = sqrt(sum(spc.^2,2));
-    sf = barrier(sd,stol);
-
-    hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
-
     % Writing the symbol
     path = mfilename('fullpath');
     aux = [path '_cap_sym.m'];
     % should also check date...
     if ~exist(aux,'file')
+      % From here, only touch X
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      sX = sym('X',[1 4]);
+      stol = sym('tol',[1 1]);
+      sp = sX(1:2:end);
+      sc = sX(2:2:end);
+      spc = sp-sc;
+      sd = sqrt(sum(spc.^2,2));
+      sf = barrier(sd,stol);
+
+      hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
+
       aux_handle = ...
         matlabFunction(sf,gradient(sf,sX),hess(sf,sX),'vars',{sX,stol},'File',aux);
     else
@@ -98,6 +98,12 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     end
     d2fdX2 = double(d2fdX2_fun(X));
 
+
+    d2fdX2 = reshape(d2fdX2,[],4*4);
+    if psd_project
+      d2fdX2 = psd_project_rows(d2fdX2);
+    end
+
     HI = repmat(IJ,[1 1 size(IJ,2)]);
     HJ = permute(repmat(IJ,[1 1 size(IJ,2)]),[1 3 2]);
     H = fast_sparse(HI(:),HJ(:),d2fdX2(:),2*n,2*n);
@@ -123,27 +129,26 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     %  error
     %end
 
-    % From here, only touch X
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sX = sym('X',[1 6]);
-    stol = sym('tol',[1 1]);
-    sp = sX(1:3:end);
-    sa = sX(2:3:end);
-    sb = sX(3:3:end);
-    spa = sp-sa;
-    sba = sb-sa;
-    st = sum(spa.*sba,2)./sum(sba.^2,2);
-    spc = spa - sba.*st;
-    sd = sqrt(sum(spc.^2,2));
-    sf = barrier(sd,stol);
-
-    hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
-
     % Writing the symbol
     path = mfilename('fullpath');
     aux = [path '_line_sym.m'];
     % should also check date...
     if ~exist(aux,'file')
+      % From here, only touch X
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      sX = sym('X',[1 6]);
+      stol = sym('tol',[1 1]);
+      sp = sX(1:3:end);
+      sa = sX(2:3:end);
+      sb = sX(3:3:end);
+      spa = sp-sa;
+      sba = sb-sa;
+      st = sum(spa.*sba,2)./sum(sba.^2,2);
+      spc = spa - sba.*st;
+      sd = sqrt(sum(spc.^2,2));
+      sf = barrier(sd,stol);
+
+      hess = @(sf,sX) cell2sym(arrayfun(@(g) gradient(g,sX),gradient(sf,sX),'UniformOutput',false));
       aux_handle = ...
         matlabFunction(sf,gradient(sf,sX),hess(sf,sX),'vars',{sX,stol},'File',aux);
     else
@@ -176,18 +181,24 @@ function [f,G,H] = self_collision_barrier(V,E,tol)
     end
     d2fdX2 = double(d2fdX2_fun(X));
 
+    d2fdX2 = reshape(d2fdX2,[],6*6);
+    if psd_project
+      d2fdX2 = psd_project_rows(d2fdX2);
+    end
+
     HI = repmat(IJK,[1 1 size(IJK,2)]);
     HJ = permute(repmat(IJK,[1 1 size(IJK,2)]),[1 3 2]);
     H = fast_sparse(HI(:),HJ(:),d2fdX2(:),2*n,2*n);
 
   end
 
+  psd_project = true;
   % The max is not needed because we're handling that explicitly
   % 
   % Smith and Schaefer
-  barrier = @(d,tol) (tol./d - 1).^2;
+  %barrier = @(d,tol) (tol./d - 1).^2;
   % IPC
-  %barrier = @(D) -(D-tol).^2.*log(D./tol);
+  barrier = @(D,tol) -(D-tol).^2.*log(D./tol);
 
   b = unique(E);
   [b1,b2] = box_each_element(V,b);

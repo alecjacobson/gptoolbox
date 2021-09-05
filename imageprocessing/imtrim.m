@@ -23,6 +23,13 @@ function [C,top, bottom, left, right] = imtrim(im,varargin)
   %
   %   Copyright Alec Jacobson, 2010
   %
+  % Example:
+  %  % Load in a one-way animation
+  %  [X,M] = imread('bunny.gif');
+  %  % Trim to animations extent
+  %  Y = imtrim(X,'Map',M,'Threshold',0);
+  %  writeGIF('output.gif',Y,M,0);
+  %
 
   location = 'NorthWest';
   threshold = [];

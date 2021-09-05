@@ -1,4 +1,4 @@
-function [V,F] = text_to_mesh(str,varargin)
+function [V,F,V0,F0] = text_to_mesh(str,varargin)
   % TEXT_TO_MESH Create an 3D mesh the given text
   %
   % [V,F] = text_to_mesh(str)
@@ -26,10 +26,13 @@ function [V,F] = text_to_mesh(str,varargin)
   filename = 'text_to_image-tmp.png';
   r = 1;
   triangle_flags = '';
+  siters=10;
+  tol = 0.2;
+  levels = 1;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Dilation','FontName','PointSize','TriangleFlags'}, ...
-    {'r','fontname','pointsize','triangle_flags'});
+    {'Dilation','FontName','PointSize','SmoothingIters','Tol','TriangleFlags'}, ...
+    {'r','fontname','pointsize','siters','tol','triangle_flags'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -45,11 +48,11 @@ function [V,F] = text_to_mesh(str,varargin)
   end
 
   im = text_to_image(str,'FontName',fontname,'PointSize',pointsize);
-  [V,F] = bwmesh( ...
+  [V0,F0] = bwmesh( ...
     imdilate(padarray(~im,[r,r]),strel('disk',r)), ...
-    'Tol',0.2, ...
-    'SmoothingIters',10, ...
+    'Tol',tol, ...
+    'SmoothingIters',siters, ...
     'TriangleFlags',triangle_flags);
-  [V,F] = extrude(V,F);
+  [V,F] = extrude(V0,F0,'Levels',levels);
 
 end

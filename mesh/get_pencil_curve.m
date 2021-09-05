@@ -1,4 +1,4 @@
-function [P,p] = get_pencil_curve(f)
+function [P,p] = get_pencil_curve(f,varargin)
   % GET_PENCIL_CURVE Get a curve (sequence of points) from the user by dragging
   % on the current plot window
   %
@@ -23,7 +23,7 @@ function [P,p] = get_pencil_curve(f)
     a = gca;
     
     % set equal axis
-    axis equal;
+    %axis equal;
     % freeze axis
     axis manual;
     % set view to XY plane
@@ -84,7 +84,7 @@ function [P,p] = get_pencil_curve(f)
     P = [P;cp(1,:)];
     if isempty(p)
       hold on;
-      p = plot(P(:,1),P(:,2));
+      p = plot(P(:,1),P(:,2),varargin{:});
       hold off;
     else
       set(p,'Xdata',P(:,1),'Ydata',P(:,2));
