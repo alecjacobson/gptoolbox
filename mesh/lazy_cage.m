@@ -1,5 +1,8 @@
 function [dV,dF,b] = lazy_cage(V,F,m,varargin)
-  % LAZY_CAGE  Build a cage that strictly encloses an input triangle soup.
+  % LAZY_CAGE  Build a cage that strictly encloses an input triangle soup. This
+  % is lazy because it's reducing the problem to a 1D search rather than an
+  % optimization like "progressive hulls" or "nested cages". Also it was easy to
+  % implement with existing tools.
   %
   % [dV,dF,b,IV,IF] = lazy_cage(V,F,m,varargin)
   % 
@@ -68,7 +71,14 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
       bounds(1) = b;
       continue;
     end
-    [dV,dF,dJ] = decimate_libigl(IV,IF,m,'Method','naive');
+    switch decimation_method
+    case 'remesh'
+      A = sum(doublearea(IV,IF))/2;
+      h = sqrt(4*A/sqrt(3)/m);
+      [dV,dF] = remesh(IV,IF,h);
+    otherwise
+      [dV,dF,dJ] = decimate_libigl(IV,IF,m,'Method',decimation_method);
+    end
     if ~isempty(intersect_other(dV,dF,V,F,'FirstOnly',true))
       %fprintf('dV,dF intersects V,F\n');
       bounds(1) = b;
