@@ -52,6 +52,7 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
     end
     v=v+1;
   end
+  F_nd = F(doublearea(V,F)>0,:);
 
   % binary search on offset parameter
   bounds = [0 init_max_b];
@@ -66,7 +67,7 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
       [~,vols] = arrayfun(@(c) centroid(IV,IF(C==c,:)),(1:max(C))','UniformOutput',0);
       [IV,~,~,IF] = remove_unreferenced(IV,IF(cell2mat(vols(C))>0,:));
     end
-    if ~isempty(intersect_other(IV,IF,V,F,'FirstOnly',true))
+    if ~isempty(intersect_other(IV,IF,V,F_nd,'FirstOnly',true))
       %fprintf('IV,IF intersects V,F\n');
       bounds(1) = b;
       continue;
@@ -79,7 +80,7 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
     otherwise
       [dV,dF,dJ] = decimate_libigl(IV,IF,m,'Method',decimation_method);
     end
-    if ~isempty(intersect_other(dV,dF,V,F,'FirstOnly',true))
+    if ~isempty(intersect_other(dV,dF,V,F_nd,'FirstOnly',true))
       %fprintf('dV,dF intersects V,F\n');
       bounds(1) = b;
       continue;
