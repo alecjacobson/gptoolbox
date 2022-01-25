@@ -68,14 +68,14 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
       bounds(1) = b;
       continue;
     end
-    [dV,dF,dJ] = decimate_libigl(IV,IF,m,'Method','naive');
-    if ~isempty(intersect_other(dV,dF,V,F,'FirstOnly',true))
-      %fprintf('dV,dF intersects V,F\n');
+    [cV,cF,dJ] = decimate_libigl(IV,IF,m,'Method',decimation_method);
+    if ~isempty(intersect_other(cV,cF,V,F,'FirstOnly',true))
+      %fprintf('cV,cF intersects V,F\n');
       bounds(1) = b;
       continue;
     end
     % self-union to handle any new self-intersections
-    [dV,dF] = mesh_boolean(dV,dF,[],[],'union');
+    [dV,dF] = mesh_boolean(cV,cF,[],[],'union');
     % success
     bounds(2) = b;
   end
