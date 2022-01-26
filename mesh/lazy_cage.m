@@ -1,5 +1,8 @@
 function [dV,dF,b] = lazy_cage(V,F,m,varargin)
-  % LAZY_CAGE  Build a cage that strictly encloses an input triangle soup.
+  % LAZY_CAGE  Build a cage that strictly encloses an input triangle soup. This
+  % is lazy because it's reducing the problem to a 1D search rather than an
+  % optimization like "progressive hulls" or "nested cages". Also it was easy to
+  % implement with existing tools.
   %
   % [dV,dF,b,IV,IF] = lazy_cage(V,F,m,varargin)
   % 
@@ -49,6 +52,7 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
     end
     v=v+1;
   end
+  F_nd = F(doublearea(V,F)>0,:);
 
   % binary search on offset parameter
   bounds = [0 init_max_b];
@@ -63,14 +67,21 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
       [~,vols] = arrayfun(@(c) centroid(IV,IF(C==c,:)),(1:max(C))','UniformOutput',0);
       [IV,~,~,IF] = remove_unreferenced(IV,IF(cell2mat(vols(C))>0,:));
     end
-    if ~isempty(intersect_other(IV,IF,V,F,'FirstOnly',true))
+    if ~isempty(intersect_other(IV,IF,V,F_nd,'FirstOnly',true))
       %fprintf('IV,IF intersects V,F\n');
       bounds(1) = b;
       continue;
     end
-    [cV,cF,dJ] = decimate_libigl(IV,IF,m,'Method',decimation_method);
-    if ~isempty(intersect_other(cV,cF,V,F,'FirstOnly',true))
-      %fprintf('cV,cF intersects V,F\n');
+    switch decimation_method
+    case 'remesh'
+      A = sum(doublearea(IV,IF))/2;
+      h = sqrt(4*A/sqrt(3)/m);
+      [dV,dF] = remesh(IV,IF,h);
+    otherwise
+      [dV,dF,dJ] = decimate_libigl(IV,IF,m,'Method',decimation_method);
+    end
+    if ~isempty(intersect_other(dV,dF,V,F_nd,'FirstOnly',true))
+      %fprintf('dV,dF intersects V,F\n');
       bounds(1) = b;
       continue;
     end
