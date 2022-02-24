@@ -28,9 +28,9 @@ Nearly all of the functions depend on stl, Eigen and libigl.  Beyond that some
 may depend on CGAL, Embree, and El Topo. The `cmake ..` command above should
 take care of _downloading_ these dependencies into `gptoolbox/mex/external/`.
 
-You may need to install Boost. For example on Mac OS X using homebrew,
+You may need to install Boost, mpfr and gmp. For example on Mac OS X using homebrew,
 
-    brew install boost
+    brew install boost mpfr gmp
 
 ## Troubleshooting
 
