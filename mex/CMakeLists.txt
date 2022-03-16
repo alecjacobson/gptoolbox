@@ -129,6 +129,7 @@ fit_cubic_bezier.cpp;\
 icp.cpp;\
 in_element_aabb.cpp;\
 psd_project_rows.cpp;\
+principal_curvature.cpp;\
 readMSH.cpp;\
 read_triangle_mesh.cpp;\
 segment_graph.cpp;\
@@ -146,7 +147,7 @@ if(WITH_ELTOPO)
     )
 endif()
 
-if(LIBIGL_TETGEN)
+if(LIBIGL_COPYLEFT_TETGEN)
   compile_each("\
 tetrahedralize.cpp;\
 "
