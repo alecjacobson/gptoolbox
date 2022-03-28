@@ -18,4 +18,6 @@
 %   TV  #TV by 2 list of output points (V should appear as first rows)
 %   TF  #TF by 3 list of triangles as indices into rows of TV
 %   TVM  #TV list of output vertex markers
-%   TEM  #TE list of output edge markers
+%   TE  #TE list of output segments (inputs and boundary)
+%   TEM  #TE list of output edge markers. Implicit boundaries (e.g., from "-c")
+%     will be marked as max(EM)+1

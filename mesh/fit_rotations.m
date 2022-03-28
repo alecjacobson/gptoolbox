@@ -16,16 +16,6 @@ function [R,SS] = fit_rotations(S,varargin)
   %   SS  dim by dim by #rotations list of svd diagonals
   %
 
-  % Even faster way to check if mex exists
-  if fit_rotations_mex && nargin == 1
-    nr = size(S,3);
-    dim = size(S,1);
-    SS = reshape(permute(S,[3 1 2]),[nr*dim dim]);
-    R = fit_rotations_mex(SS,varargin{:});
-    R = reshape(R,[dim dim nr]);
-    return;
-  end
-
 
   dim = size(S,1);
   assert(dim == size(S,2));
@@ -49,6 +39,16 @@ function [R,SS] = fit_rotations(S,varargin)
       error('Unsupported parameter: %s',varargin{v});
     end
     v=v+1;
+  end
+
+  % Even faster way to check if mex exists
+  if fit_rotations_mex && ~allow_flips
+    nr = size(S,3);
+    dim = size(S,1);
+    SS = reshape(permute(S,[3 1 2]),[nr*dim dim]);
+    R = fit_rotations_mex(SS,varargin{:});
+    R = reshape(R,[dim dim nr]);
+    return;
   end
 
   %R = cellfun(@fit_rotation,S,'UniformOutput',false);

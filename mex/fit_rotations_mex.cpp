@@ -70,6 +70,15 @@ void mexFunction(int nlhs, mxArray *plhs[],
         validate_arg_scalar(i,nrhs,prhs,name);
         mxLogical * v = (mxLogical *)mxGetData(prhs[++i]);
         single_precision = *v;
+      } else if(strcmp("Mex",name) == 0)
+      {
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        mxLogical * v = (mxLogical *)mxGetData(prhs[++i]);
+        if(!(*v))
+        {
+          mexErrMsgTxt("Oops, we're already in the mex");
+        }
       }else
       {
         mexErrMsgTxt(C_STR("Unsupported parameter: "<<name));
@@ -82,7 +91,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
   if(dim == 2)
   {
-    igl::fit_rotations(S,single_precision,R);
+    igl::fit_rotations_planar(S,R);
   }else
   {
     if(single_precision)

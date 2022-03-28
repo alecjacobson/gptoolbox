@@ -33,14 +33,6 @@ function(gptoolbox_download_matlab)
 	)
 endfunction()
 
-## LIBIGL
-function(gptoolbox_download_libigl)
-	gptoolbox_download_project(libigl
-		GIT_REPOSITORY https://github.com/libigl/libigl.git
-		GIT_TAG        2ce04b54fc99e3b6643a6c699f4b5b9e950dd63b
-	)
-endfunction()
-
 ## EL TOPO
 function(gptoolbox_download_eltopo)
 	gptoolbox_download_project(eltopo
