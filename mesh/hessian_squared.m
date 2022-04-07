@@ -52,10 +52,15 @@ function [Q,H,M4,D,A,G,int] = hessian_squared(V,F,varargin)
   % end
 
 
-  A = repdiag(diag(sparse(doublearea(V,F)*0.5)),dim);
+  switch size(F,2)
+  case 3
+    A = repdiag(diag(sparse(doublearea(V,F)*0.5)),dim);
+  case 4
+    A = repdiag(diag(sparse(volume(V,F))),dim);
+  end
   H = D'*A*G;
 
-  b = unique(outline(F));
+  b = unique(boundary_faces(F));
   int = setdiff(1:n,b);
   int = [int(:); extraints];
   int4 = (0:(dim^2-1))*n + int;
