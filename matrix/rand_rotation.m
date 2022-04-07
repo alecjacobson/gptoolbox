@@ -21,7 +21,8 @@ function R = rand_rotation(n)
   r = diag(R);
   L = diag(r./abs(r));
   R = Q*L;
-  R = R*det(R);
-  %assert(abs(det(R)-1)<1e-10)
+  i = randperm(n,1);
+  R(i,:) = R(i,:)*det(R);
+  assert(abs(det(R)-1)<1e-10)
 
 end
