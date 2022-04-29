@@ -1,4 +1,4 @@
-function [w,a] = axisanglebetween(u,v,nan_replacement)
+function [w,a,R] = axisanglebetween(u,v,nan_replacement)
   % AXISANGLEBETWEEN compute the axis and angle representation of the rotation
   % between two vectors
   %
@@ -51,4 +51,7 @@ function [w,a] = axisanglebetween(u,v,nan_replacement)
   w(S,2) = 0;
   w(S,3) = 1;
   a(S) = 0;
+  if nargout >2
+    R = axisangle2matrix(w,a);
+  end
 end

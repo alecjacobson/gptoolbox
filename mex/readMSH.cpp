@@ -32,16 +32,23 @@ void mexFunction(
 #endif
 
   MatrixXd V;
-  MatrixXi F;
+  MatrixXi T,F;
+  VectorXi Ttag,Ftag;
 
   // Read the mesh
-  if(!igl::readMSH(file_path,V,F))
+  if(!igl::readMSH(file_path,V,F,T,Ftag,Ttag))
   {
     mexErrMsgIdAndTxt("MATLAB:mexcpp:fileio", "igl::readMSH failed.");
   }
   // Return the matrices to matlab
   switch(nlhs)
   {
+    case 5:
+      igl::matlab::prepare_lhs_index(Ttag,plhs+4);
+    case 4:
+      igl::matlab::prepare_lhs_index(Ftag,plhs+3);
+    case 3:
+      igl::matlab::prepare_lhs_index(T,plhs+2);
     case 2:
       igl::matlab::prepare_lhs_index(F,plhs+1);
     case 1:

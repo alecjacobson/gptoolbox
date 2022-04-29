@@ -1,9 +1,10 @@
-function [V,T,F] = readMSH(filename)
+function [V,F,T,Ftag,Ttag] = readMSH(filename)
   % Input:
   %   filename path to gmsh .msh file
   % Outputs:
   %   V  #V by 3 list of vertex positions
-  %   T  #T by 3 list of tet mesh indices into V
+  %   F  #T by 3 list of tet mesh indices into V
+  %   T  #T by 4 list of tet mesh indices into V
    
   %function expect_line(f,str)
   %  line = fscanf(f,'%s\n',1);

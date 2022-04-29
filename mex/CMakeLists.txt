@@ -49,13 +49,13 @@ set(GPTOOLBOX_MEX_EXTERNAL "${GPTOOLBOX_MEX_ROOT}/external")
 include(gptoolbox_download_project)
 
 # libigl
-option(LIBIGL_WITH_CGAL             "Use CGAL"           ON)
-option(LIBIGL_WITH_EMBREE           "Use Embree"         ON)
+option(LIBIGL_COPYLEFT_CGAL             "Use CGAL"           ON)
+option(LIBIGL_EMBREE           "Use Embree"         ON)
 # just to get it to download tetgen
-option(LIBIGL_WITH_TETGEN           "Use Tegen"          ON)
-option(LIBIGL_WITH_TRIANGLE         "Use Triangle"       ON)
-option(LIBIGL_WITH_MATLAB           "Use Matlab"         ON)
-option(LIBIGL_WITH_XML              "Use XML"            ON)
+option(LIBIGL_COPYLEFT_TETGEN           "Use Tegen"          ON)
+option(LIBIGL_RESTRICTED_TRIANGLE         "Use Triangle"       ON)
+option(LIBIGL_RESTRICTED_MATLAB           "Use Matlab"         ON)
+option(LIBIGL_XML              "Use XML"            ON)
 option(WITH_ELTOPO                  "Use El Topo"        ON)
 option(MATLAB_PROXY                 "Download Matlab Proxy for compilation only" OFF)
 if( UNIX AND NOT APPLE)
@@ -74,8 +74,7 @@ endif()
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
 
 # Download and find libigl
-gptoolbox_download_libigl()
-find_package(LIBIGL REQUIRED)
+include(libigl)
 
 if(WITH_ELTOPO)
   # Download and find eltopo
@@ -129,6 +128,8 @@ fit_rotations_mex.cpp;\
 fit_cubic_bezier.cpp;\
 icp.cpp;\
 in_element_aabb.cpp;\
+psd_project_rows.cpp;\
+principal_curvature.cpp;\
 readMSH.cpp;\
 read_triangle_mesh.cpp;\
 segment_graph.cpp;\
@@ -137,30 +138,38 @@ simplify_polyhedron.cpp;\
 slim.cpp;\
 solid_angle.cpp;\
 "
-  "${CORE_LIBS};igl::core;igl::matlab")
+  "${CORE_LIBS};igl::core;igl_restricted::matlab")
 
 if(WITH_ELTOPO)
   compile_each(
     "eltopo.cpp" 
-    "${CORE_LIBS};igl::core;igl::matlab;libeltopo;${BLAS_LIBRARIES}"
+    "${CORE_LIBS};igl::core;igl_restricted::matlab;libeltopo;${BLAS_LIBRARIES}"
     )
 endif()
 
-if(LIBIGL_WITH_TETGEN)
+if(LIBIGL_COPYLEFT_TETGEN)
   compile_each("\
 tetrahedralize.cpp;\
 "
-  "${CORE_LIBS};igl::core;igl::matlab;igl::tetgen")
+  "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_copyleft::tetgen")
 endif()
 
-if(LIBIGL_WITH_TRIANGLE)
-  compile_each("\
+if(LIBIGL_RESTRICTED_TRIANGLE)
+  if(LIBIGL_COPYLEFT_CGAL)
+    add_definitions("-DWITH_CGAL")
+    compile_each("\
 triangulate.cpp;\
 "
-  "${CORE_LIBS};igl::core;igl::matlab;igl::triangle")
+    "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_restricted::triangle;igl_copyleft::cgal")
+  else()
+    compile_each("\
+triangulate.cpp;\
+"
+    "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_restricted::triangle")
+  endif()
 endif()
 
-if(LIBIGL_WITH_EMBREE)
+if(LIBIGL_EMBREE)
   add_definitions("-DWITH_EMBREE")
   compile_each("\
 ambient_occlusion.cpp;\
@@ -168,29 +177,25 @@ bone_visible_embree.cpp;\
 ray_mesh_intersect.cpp;\
 reorient_facets.cpp;\
 "
-    "${CORE_LIBS};igl::core;igl::matlab;igl::embree")
+    "${CORE_LIBS};igl::core;igl_restricted::matlab;igl::embree")
 endif()
 
-if(LIBIGL_WITH_EMBREE)
-  if(LIBIGL_WITH_CGAL)
+if(LIBIGL_EMBREE)
+  if(LIBIGL_COPYLEFT_CGAL)
     compile_each("winding_number.cpp" 
-      "${CORE_LIBS};igl::core;igl::matlab;igl::embree;igl::cgal")
+      "${CORE_LIBS};igl::core;igl_restricted::matlab;igl::embree;igl_copyleft::cgal")
   else()
     compile_each("winding_number.cpp" 
-      "${CORE_LIBS};igl::core;igl::matlab;igl::embree")
+      "${CORE_LIBS};igl::core;igl_restricted::matlab;igl::embree")
   endif()
 else()
   compile_each("winding_number.cpp" 
-    "${CORE_LIBS};igl::core;igl::matlab")
+    "${CORE_LIBS};igl::core;igl_restricted::matlab")
 endif()
 
 
 
-if(LIBIGL_WITH_CGAL)
-  if(LIBIGL_WITH_CORK)
-    set(CORK_LIBS igl::cork)
-    add_definitions("-DWITH_CORK")
-  endif()
+if(LIBIGL_COPYLEFT_CGAL)
   add_definitions("-DWITH_CGAL")
 #segment_segment_intersection.cpp;\
   compile_each("\
@@ -208,11 +213,11 @@ trim_with_solid.cpp;\
 upper_envelope.cpp;\
 wire_mesh.cpp;\
 "
-    "${CORE_LIBS};igl::core;igl::matlab;igl::cgal;${CORK_LIBS}")
-  if(LIBIGL_WITH_XML)
+    "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_copyleft::cgal;${CORK_LIBS}")
+  if(LIBIGL_XML)
     compile_each(
       "read_mesh_from_xml.cpp"
-      "${CORE_LIBS};igl::core;igl::matlab;igl::cgal;igl::xml")
+      "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_copyleft::cgal;igl::xml")
   endif()
 endif()
 
