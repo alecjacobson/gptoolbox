@@ -54,7 +54,7 @@ function [RV,IM,J,IMF] = remove_unreferenced(V,F)
   % Remove unreferenced
   RV = RV(1:max(IM(F(:))),:);
   J(IM) = 1:n;
-  IMF = IM(F);
+  IMF = reshape(IM(F),size(F));
   J = J(1:max(IMF(:)));
 
 end
