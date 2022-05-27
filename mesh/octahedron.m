@@ -1,4 +1,9 @@
 function [V,F] = octahedron()
+  % [V,F] = octahedron()
+  % 
+  % Outputs:
+  %   V  6 by 3 list of mesh vertex positions
+  %   F  8 by 3 list of mesh face indices into rows of V
   V = [eye(3);-eye(3)];
   F = [
      1     2     3
