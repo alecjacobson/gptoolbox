@@ -14,6 +14,9 @@ function [V,F,Q] = cube(x,y,z)
   %   Q  #Q by 3 list of quad indices
   %
   % 
+  if nargin<1
+    x = 2;
+  end
   if nargin<2
     y = x;
   end
