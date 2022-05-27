@@ -20,6 +20,11 @@ function [C,nc] = graph_coloring(A,nc)
   % Outputs:
   %   C  #V list of color ids into (1:nc)
   %   nc  effective number of colors >= input nc
+  %
+  % Examples:
+  %   C = graph_coloring(facet_adjacency_matrix(F),9);
+  %   tsurf(F,V,'CData',C);
+  %   colormap(cbrewer('Set1',max(C)));
 
   n = size(A,1);
   [FI,FJ] = find(triu(A,1));
