@@ -1,4 +1,4 @@
-function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
+function [Phi,lambda,E] = sparse_eigs(L,D,k,mu,varargin)
   % Sparse (aka "compressed") "eigenmodes" minimizing:
   %
   % min_φ  tr( φ' L φ ) + μ ‖φ‖₁  subject to φ' D φ = I
@@ -22,6 +22,10 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   %        L1 norm to match that of the first mode (i=1): ‖φi‖₁ = ‖φ₁‖₁
   %        "Compressed Vibration Modes of Elastic Bodies" [Brandt & Hildebrandt
   %        2017]
+  %     'ConductMatching' followed by whether to conduct Hungarian matching
+  %       after each SVD call.
+  %     'Aeq' followed by #Aeq by #L linear equality constraints (right hand
+  %       side is zero: Aeq Φ = 0)
   % Outputs:
   %   Phi  #L by k modes sorted in decreasing order by energy value
   %   lambda  k by k diagonal matrix of energy values (in some way analogous to
@@ -31,13 +35,16 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
   method = 'neumann';
   constrained = false;
   max_iter = 2000;
+  conduct_matching = false;
   % Whether to use admm.m, augh... it's slower because of function handles!
   admm_function = false;
   quadprog_max_iter = 100;
+  in_Aeq = [];
+  in_beq = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'ADMM','Method' ,'Constrained','MaxIter','QuadProgMaxIter'}, ...
-    {'admm_function','method','constrained','max_iter','quadprog_max_iter'});
+    {'ADMM','Method' ,'ConductMatching','Constrained','MaxIter','QuadProgMaxIter','Aeq'}, ...
+    {'admm_function','method','conduct_matching','constrained','max_iter','quadprog_max_iter','in_Aeq'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -50,6 +57,9 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
       error('Unsupported parameter: %s',varargin{v});
     end
     v=v+1;
+  end
+  if isempty(in_beq)
+    in_beq = zeros(size(in_Aeq,1),k);
   end
 
   % PRECOMPUTATION
@@ -101,11 +111,15 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
     % Update E (11)
     if data.rho ~= data.rho_prev
       A = data.rho*I + L + L';
-      [cL,p,cS] = chol(A,'lower');
-      cU = cL';
-      cP = cS';
-      cQ = cS;
-      data.chol_solve = @(X) cQ * (cU \ (cL \ ( cP * X)));
+      if isempty(in_Aeq)
+        cD = decomposition(A,'chol');
+        data.chol_solve = @(X) cD \ X;
+      else
+        Z = sparse(size(in_Aeq,1),size(in_Aeq,1));
+        cD = decomposition([A in_Aeq';in_Aeq Z],'ldl');
+        toprows = @(X) X(1:size(A,1),:);
+        data.chol_solve = @(X) toprows(cD \ [X;in_beq]);
+      end
       num_refactors = num_refactors+1;
     end
     E = data.chol_solve(data.rho*(Phi + UE));
@@ -208,6 +222,17 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
         Wisqrt = isqrt(W);
         Psi = (Y * (V * Wisqrt * VT'));
         Phi = Disqrt * Psi;
+
+        % This happens for non-trivial in_Aeq...
+        if conduct_matching
+          cost = pdist2(Phi',0.5*(E+S)');
+          match = matchpairs(cost,1e16);
+          %% Swap to match
+          %if any(match(:,1) ~= match(:,2))
+          %  fprintf('swap..\n');
+          %end
+          Phi(:,match(:,2)) = Phi(:,match(:,1));
+        end
   
         %e10 = @(Phi,E,S,UE,US) rho/2 * frob_sqr([Phi;M*Phi] - [E;S] + [UE;US]);
         %e10_before = e10(Phi,E,S,UE,US);
@@ -229,11 +254,21 @@ function [Phi,lambda] = sparse_eigs(L,D,k,mu,varargin)
         % Update E (11)
         if rho ~= rho_prev
           A = rho*I + L + L';
-          [cL,p,cS] = chol(A,'lower');
-          cU = cL';
-          cP = cS';
-          cQ = cS;
-          chol_solve = @(X) cQ * (cU \ (cL \ ( cP * X)));
+          if isempty(in_Aeq)
+            %cD = decomposition(A,'chol');
+            %chol_solve = @(X) cD \ X;
+            [cL,p,cS] = chol(A,'lower');
+            cU = cL';
+            cP = cS';
+            cQ = cS;
+            chol_solve = @(X) cQ * (cU \ (cL \ ( cP * X)));
+          else
+            Z = sparse(size(in_Aeq,1),size(in_Aeq,1));
+            % Maybe this would also be faster to spell out
+            cD = decomposition([A in_Aeq';in_Aeq Z],'ldl');
+            toprows = @(X) X(1:size(A,1),:);
+            chol_solve = @(X) toprows(cD \ [X;in_beq]);
+          end
           num_refactors = num_refactors+1;
         end
         Eprev = E;

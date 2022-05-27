@@ -151,7 +151,7 @@ function [VV,FF,birth,UT,E] = half_space_intersect(V,F,p,n,varargin)
       if any(sum(adjacency_matrix(E),2) < 2)
         warning('Open boundary... cap will be wrong...');
       end
-      [~,SF] = triangle(UT,E,[],'Flags','-Yc');
+      [~,SF] = triangulate(UT,E,'Flags','-Yc');
       RIM = full(sparse(IM,1,1:numel(IM)));
       % Index back onto U
       SF = RIM(SF);

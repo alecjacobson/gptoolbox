@@ -26,6 +26,27 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   parse_rhs_index(prhs+1,F); // Aquí se pasa del prhs a la matriz F de Eigen
   mexErrMsgTxt(V.cols()==3,"V must be #V by 3");
   mexErrMsgTxt(F.cols()==3,"F must be #F by 3");
+
+  {
+    int i = 2;
+    while(i<nrhs)
+    {
+      mexErrMsgTxt(mxIsChar(prhs[i]),"Parameter names should be strings");
+      // Cast to char
+      const char * name = mxArrayToString(prhs[i]);
+      if(strcmp("Radius",name) == 0)
+      {
+        validate_arg_scalar(i,nrhs,prhs,name);
+        validate_arg_double(i,nrhs,prhs,name);
+        radius = (int)*mxGetPr(prhs[++i]);
+      }else
+      {
+        mexErrMsgTxt(false,C_STR("Unknown parameter: "<<name));
+      }
+      i++;
+    }
+  }
+
   
   igl::principal_curvature(V,F,PD1,PD2,PV1,PV2,radius,useKring);
 
