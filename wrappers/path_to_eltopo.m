@@ -8,10 +8,6 @@ function s = path_to_eltopo()
   % See also: eltopo
 
   if ispc
-    warning([ ...
-      'Dear Ladislav, is there a standard place to put executables on a pc?' ...
-      'Could you put eltopo there and change this accordingly?' ...
-      'Thanks, Alec']);
     s = 'c:/prg/lib/eltopo/'
   elseif ismac
     s = find_first_path({'/usr/local/eltopo'});
