@@ -5,9 +5,9 @@ function [V,F,Q] = cube(x,y,z)
   % [V,F] = cube(x,y,z)
   % 
   % Inputs:
-  %   x  number of vertices along x-axis
-  %   y  number of vertices along y-ayis
-  %   z  number of vertices along z-azis
+  %   x  number of vertices along x-axis {2}
+  %   y  number of vertices along y-ayis {x}
+  %   z  number of vertices along z-azis {y}
   % Outputs:
   %   V  x*y*z by 3 list of vertex positions
   %   F  #F by 3 list of triangle indices
