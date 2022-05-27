@@ -19,8 +19,8 @@ function [flag] = bone_visible(V,F,s,d);
   dim = size(V,2);
   assert(size(s,2) == dim);
   assert(size(d,2) == dim);
-  assert(size(F,2) == 3);
   if dim == 3 && 3==exist('bone_visible_embree','file')
+    assert(size(F,2) == 3);
     bone_visible_embree(V,F,s,d);
     return;
   elseif dim == 3 && 3==exist('bone_visible_embree','file')
@@ -33,9 +33,11 @@ function [flag] = bone_visible(V,F,s,d);
     % number of mesh vertices
     nv =  size(V,1);
 
-    if dim == 2
+    if dim == 2 && size(F,2) == 3
       % get polygon edges of outline of 2D mesh
       O = outline(F);
+    else
+      O = F;
     end
 
     flag = zeros(nv,1);
