@@ -139,11 +139,12 @@ void mexFunction(
   const bool box2d = mxGetM(prhs[1])==1 && mxGetN(prhs[1])==1;
   if(box2d)
   {
+    mexErrMsgTxt(lhs<=1,"nlhs should be ≤1");
     Eigen::MatrixXd V;
     parse_rhs_double(prhs+0,V);
     const int dim = V.cols();
     int k = 30;
-    mexErrMsgTxt(dim==2,"dim should be == 2|3");
+    mexErrMsgTxt(dim==2,"dim should be == 2");
     if(nrhs>3)
     {
       int i = 2;
