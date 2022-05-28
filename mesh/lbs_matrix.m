@@ -34,6 +34,7 @@ function M = lbs_matrix(V,W)
   %  % A is #W*4 by 3 stack of transposed affine transformations
   %  A = reshape(cat(2,permute(quat2mat(Q),[2 1 3]),permute(T,[2 3 1])),3,[])';
   %  % M is #V by #W*4 skinning matrix
+  %  % M = (𝟙_(#W)ᵀ ⊗ [V 𝟙]) ∘ (W ⊗ 𝟙_(d+1)ᵀ)
   %  M = reshape([V ones(size(V,1),1)].*permute(W,[1 3 2]),size(V,1),[]);
   %  U = M*A;
   %  
