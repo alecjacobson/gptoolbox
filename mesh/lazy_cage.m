@@ -31,14 +31,15 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
 
   % Larger → slower and more accurate
   gs = ceil(sqrt(m)*3.17);
+  cmcf = false;
   init_max_b = norm(max(V)-min(V))/2;
   decimation_method = 'qslim';
   max_iter = 10;
   solid = true;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'GridSize','DecimationMethod','MaxOffset','MaxIter','Solid'}, ...
-    {'gs','decimation_method','init_max_b','max_iter','solid'});
+    {'CMCF','GridSize','DecimationMethod','MaxOffset','MaxIter','Solid'}, ...
+    {'cmcf','gs','decimation_method','init_max_b','max_iter','solid'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -53,6 +54,7 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
     v=v+1;
   end
   F_nd = F(doublearea(V,F)>0,:);
+
 
   % binary search on offset parameter
   bounds = [0 init_max_b];
@@ -78,9 +80,13 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
       h = sqrt(4*A/sqrt(3)/m);
       [dV,dF] = remesh(IV,IF,h);
     otherwise
-      [dV,dF,dJ] = decimate_libigl(IV,IF,m,'Method',decimation_method);
+      if cmcf 
+        IV = [IV normrow(max(IV)-min(IV)) * conformalized_mean_curvature_flow(IV,IF)];
+      end
+      [cV,cF,dJ] = decimate_libigl(IV,IF,m,'Method',decimation_method);
+      cV = cV(:,1:size(V,2));
     end
-    if ~isempty(intersect_other(dV,dF,V,F_nd,'FirstOnly',true))
+    if ~isempty(intersect_other(cV,cF,V,F_nd,'FirstOnly',true))
       %fprintf('dV,dF intersects V,F\n');
       bounds(1) = b;
       continue;
