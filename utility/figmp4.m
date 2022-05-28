@@ -24,6 +24,7 @@ function vobj = figmp4(name,vobj,nf)
   if isempty(vobj)
     vobj = VideoWriter(name,'MPEG-4');
     vobj.Quality = 100;
+    %vobj = VideoWriter(name,'Archival');
     vobj.open;
   end
   im = getfield(getframe(gcf),'cdata');

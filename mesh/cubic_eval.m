@@ -1,4 +1,4 @@
-function P = cubic_eval(C,t);
+function P = cubic_eval(C,t)
   % CUBIC_EVAL Evaluate a cubic Bezier curve.
   %
   % P = cubic_eval(C,t);

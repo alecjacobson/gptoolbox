@@ -9,6 +9,8 @@ function [V,F,I] = capsule(n,a)
   %   F  #F by 3 list of triangle indices into rows of V
   %   I  #F list I(f) = 1,2 or 3 indicating bottom hemisphere, cylindrical part,
   %     top hemisphere, respectively.
+  %
+  % See also: stadium
   R = 1;
   s = 1;
   s = ceil( (2*n)/(2*pi*R)* a);

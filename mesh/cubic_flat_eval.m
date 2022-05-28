@@ -15,12 +15,12 @@ function [P,T] = cubic_flat_eval(C,tol)
   %
   if cubic_is_flat(C,tol)
     P = C([1 4],:);
-    T = [0 1];
+    T = [0;1];
   else
     [C1,C2] = cubic_split(C,0.5);
     [P1,T1] = cubic_flat_eval(C1,tol);
     [P2,T2] = cubic_flat_eval(C2,tol);
     P = [P1;P2(2:end,:)];
-    T = [T1*0.5;0.5+T2(2:end,:)];
+    T = [T1*0.5;0.5+0.5*T2(2:end)];
   end
 end

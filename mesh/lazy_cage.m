@@ -92,6 +92,7 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
       continue;
     end
     % self-union to handle any new self-intersections
+    [cV,cF] = deal(dV,dF);
     [dV,dF] = mesh_boolean(cV,cF,[],[],'union');
     % success
     bounds(2) = b;

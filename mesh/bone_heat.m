@@ -36,7 +36,7 @@ function [W,PP] = bone_heat(V,F,C,P,BE,CE)
   m = np+nb;
 
   % determine if we can use accelerated visibility test
-  if 3==exist('bone_visible_embree','file')
+  if 3==exist('bone_visible_embree','file') && size(V,2) == 3
     bone_visible_func = @bone_visible_embree;
   else
     bone_visible_func = @bone_visible;

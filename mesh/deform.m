@@ -122,6 +122,9 @@ classdef deform < handle
   %   
   %
 
+  properties(GetAccess=public,SetAccess=public)
+    gif = [];
+  end
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Read only class fields
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -626,6 +629,10 @@ classdef deform < handle
           ii = ii + 1;
           assert(ii<=num_ri);
           this.BE = remaining_inputs{ii};
+        case 'GIF'
+          ii = ii + 1;
+          assert(ii<=num_ri);
+          this.gif = remaining_inputs{ii};
         case 'CageEdges'
           ii = ii + 1;
           assert(ii<=num_ri);
@@ -1044,11 +1051,21 @@ classdef deform < handle
       end
       if(size(this.PE,1) > 0)
         % plot lines for pseudo edges
-        this.PE_plot = plot( ...
-          [this.C(this.P(this.PE(:,1)),1) this.C(this.P(this.PE(:,2)),1)]', ...
-          [this.C(this.P(this.PE(:,1)),2) this.C(this.P(this.PE(:,2)),2)]', ...
-          '--r', ...
-          'LineWidth',5);
+        switch size(this.C,2)
+        case 2
+          this.PE_plot = plot( ...
+            [this.C(this.P(this.PE(:,1)),1) this.C(this.P(this.PE(:,2)),1)]', ...
+            [this.C(this.P(this.PE(:,1)),2) this.C(this.P(this.PE(:,2)),2)]', ...
+            '--r', ...
+            'LineWidth',5);
+        case 3
+          this.PE_plot = plot3( ...
+            [this.C(this.P(this.PE(:,1)),1) this.C(this.P(this.PE(:,2)),1)]', ...
+            [this.C(this.P(this.PE(:,1)),2) this.C(this.P(this.PE(:,2)),2)]', ...
+            [this.C(this.P(this.PE(:,1)),3) this.C(this.P(this.PE(:,2)),3)]', ...
+            '--r', ...
+            'LineWidth',5);
+        end
       end
       if(size(this.CE,1) > 0)
         % plot lines for cage edges
@@ -1558,6 +1575,11 @@ classdef deform < handle
         set(this.PE_plot,{'YData'}, num2cell([ ...
           this.new_C(this.P(this.PE(:,1)),2) ...
           this.new_C(this.P(this.PE(:,2)),2)],2));
+        if size(this.C,2) == 3 
+          set(this.PE_plot,{'ZData'}, num2cell([ ...
+            this.new_C(this.P(this.PE(:,1)),3) ...
+            this.new_C(this.P(this.PE(:,2)),3)],2));
+        end
       end
       % update cage edge plots
       if(size(this.CE,1)>0)
@@ -1573,6 +1595,9 @@ classdef deform < handle
         set(this.CE_plot_inner,{'YData'}, num2cell([ ...
           this.new_C(this.P(this.CE(:,1)),2) ...
           this.new_C(this.P(this.CE(:,2)),2)],2));
+      end
+      if ~isempty(this.gif)
+        figgif(this.gif);
       end
     end
 
@@ -1622,3 +1647,103 @@ classdef deform < handle
   end% protected
 
 end% classdef deform
+
+function U = lbs(V,T,W)
+  M = reshape([V ones(size(V,1),1)].*permute(W,[1 3 2]),size(V,1),[]);
+  T = reshape(T,size(V,2),[])';
+  U = M*T;
+end
+
+% https://gist.github.com/jthomson93/4d9880d37955a73f1d33af0e85dc49f6
+function q = dcm2quat( dcm )
+%  DCM2QUAT Convert direction cosine matrix to quaternion.
+%   Q = DCM2QUAT( N ) calculates the quaternion, Q, for given
+%   direction cosine matrix, N.   Input N is a 3-by-3-by-M matrix of
+%   orthogonal direction cosine matrices.  The direction cosine matrix performs the
+%   coordinate transformation of a vector in inertial axes to a vector in
+%   body axes.  Q returns an M-by-4 matrix containing M quaternions. Q has
+%   its scalar number as the first column.
+%
+%   Examples:
+%
+%   Determine the quaternion from direction cosine matrix:
+%      dcm = [0 1 0; 1 0 0; 0 0 1];
+%      q = dcm2quat(dcm)
+%
+%   Determine the quaternions from multiple direction cosine matrices:
+%      dcm        = [ 0 1 0; 1 0 0; 0 0 1];
+%      dcm(:,:,2) = [ 0.4330    0.2500   -0.8660; ...
+%                     0.1768    0.9186    0.3536; ...
+%                     0.8839   -0.3062    0.3536];
+%      q = dcm2quat(dcm)
+%
+%   See also ANGLE2DCM, DCM2ANGLE, QUAT2DCM, QUAT2ANGLE, ANGLE2QUAT.
+
+%   Copyright 2000-2010 The MathWorks, Inc.
+
+if any(~isreal(dcm) || ~isnumeric(dcm))
+    error(message('aero:dcm2quat:isNotReal'));
+end
+
+if ((size(dcm,1) ~= 3) || (size(dcm,2) ~= 3))
+    error(message('aero:dcm2quat:wrongDimension'));
+end
+
+for i = size(dcm,3):-1:1
+
+    q(i,4) =  0;
+
+    tr = trace(dcm(:,:,i));
+
+    if (tr > 0)
+        sqtrp1 = sqrt( tr + 1.0 );
+
+        q(i,1) = 0.5*sqtrp1;
+        q(i,2) = (dcm(2, 3, i) - dcm(3, 2, i))/(2.0*sqtrp1);
+        q(i,3) = (dcm(3, 1, i) - dcm(1, 3, i))/(2.0*sqtrp1);
+        q(i,4) = (dcm(1, 2, i) - dcm(2, 1, i))/(2.0*sqtrp1);
+    else
+        d = diag(dcm(:,:,i));
+        if ((d(2) > d(1)) && (d(2) > d(3)))
+            % max value at dcm(2,2,i)
+            sqdip1 = sqrt(d(2) - d(1) - d(3) + 1.0 );
+
+            q(i,3) = 0.5*sqdip1;
+
+            if ( sqdip1 ~= 0 )
+                sqdip1 = 0.5/sqdip1;
+            end
+
+            q(i,1) = (dcm(3, 1, i) - dcm(1, 3, i))*sqdip1;
+            q(i,2) = (dcm(1, 2, i) + dcm(2, 1, i))*sqdip1;
+            q(i,4) = (dcm(2, 3, i) + dcm(3, 2, i))*sqdip1;
+        elseif (d(3) > d(1))
+            % max value at dcm(3,3,i)
+            sqdip1 = sqrt(d(3) - d(1) - d(2) + 1.0 );
+
+            q(i,4) = 0.5*sqdip1;
+
+            if ( sqdip1 ~= 0 )
+                sqdip1 = 0.5/sqdip1;
+            end
+
+            q(i,1) = (dcm(1, 2, i) - dcm(2, 1, i))*sqdip1;
+            q(i,2) = (dcm(3, 1, i) + dcm(1, 3, i))*sqdip1;
+            q(i,3) = (dcm(2, 3, i) + dcm(3, 2, i))*sqdip1;
+        else
+            % max value at dcm(1,1,i)
+            sqdip1 = sqrt(d(1) - d(2) - d(3) + 1.0 );
+
+            q(i,2) = 0.5*sqdip1;
+
+            if ( sqdip1 ~= 0 )
+                sqdip1 = 0.5/sqdip1;
+            end
+
+            q(i,1) = (dcm(2, 3, i) - dcm(3, 2, i))*sqdip1;
+            q(i,3) = (dcm(1, 2, i) + dcm(2, 1, i))*sqdip1;
+            q(i,4) = (dcm(3, 1, i) + dcm(1, 3, i))*sqdip1;
+        end
+    end
+end
+end

@@ -20,7 +20,12 @@ function [mV,mF,VV,FF] = meshfix_components(V,F)
     Fi = F(C==i,:);
     [Vi,I] = remove_unreferenced(V,Fi);
     Fi = reshape(I(Fi),size(Fi));
-    [VV{i},FF{i}] = meshfix(Vi,Fi);
+    try
+      [VV{i},FF{i}] = meshfix(Vi,Fi);
+    catch
+      VV{i} = zeros(0,3);
+      FF{i} = zeros(0,3);
+    end
   end
   mV = cell2mat(VV);
   n = cumsum([0 cellfun(@(V) size(V,1),{VV{:}})]);

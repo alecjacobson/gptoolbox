@@ -133,14 +133,16 @@ function [UV,F, res, edge_norms] = create_irregular_grid( xRes, yRes, varargin)
   if(yWrap || xWrap)
     preserve_boundary = 'Y';
   end
+  triangle_flags = [triangle_flags preserve_boundary '-Q' min_angle];
 
-  %[UV,F] = execute_triangle( ...
-  %  [['-p' preserve_boundary 'q'] num2str(min_angle)], temp_file_name_prefix);
-  [UV,F] = triangle( ...
-     [temp_file_name_prefix '.poly'],'Quality',min_angle,'Flags',triangle_flags);
-    %['-pq' num2str(min_angle)], temp_file_name_prefix);
-  % remove poly file and obj file
-  delete([temp_file_name_prefix '.poly']);
+  [UV,F] = triangulate(UV(:,1:2),boundary_segments,'Flags',triangle_flags);
+  %%[UV,F] = execute_triangle( ...
+  %%  [['-p' preserve_boundary 'q'] num2str(min_angle)], temp_file_name_prefix);
+  %[UV,F] = triangle( ...
+  %   [temp_file_name_prefix '.poly'],'Quality',min_angle,'Flags',triangle_flags);
+  %  %['-pq' num2str(min_angle)], temp_file_name_prefix);
+  %% remove poly file and obj file
+  %delete([temp_file_name_prefix '.poly']);
 
   % edges numbered same as opposite vertices
   edge_norms = [ ...

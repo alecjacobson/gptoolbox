@@ -1,4 +1,4 @@
-function [W,BC,DV,Q,r] = voxelize(V,F,side,varargin)
+function [W,BC,DV,Q,r,B] = voxelize(V,F,side,varargin)
   % VOXELIZE Given a mesh compute a voxelization of that mesh on a regular grid
   % fit to the bounding box.
   %
@@ -191,51 +191,33 @@ function [W,BC,DV,Q,r] = voxelize(V,F,side,varargin)
       % TODO: Could at least ignore already-inside cells.
       DF = [Q(:,[3 2 1]);Q(:,[4 3 1])];
       IF = intersect_other(V,F,DV,DF);
+      JF = IF(:,1);
       IF = mod(IF(:,2)-1,size(Q,1))+1;
-      W = reshape(W,[side(2) side(1) side(3)]);
+      B = zeros(side(2),side(1),side(3));
       % Force winding number to mark voxels intersecting boundary as inside
       % (This should just be replaced with rasterizing the surface)
-      iQT = IF(IF<=size(QT,1));
-      iQF = IF(IF>size(QT,1) & IF<=size(QT,1)+size(QF,1))-size(QT,1);
-      iQL = IF(IF>size(QT,1)+size(QF,1))-size(QT,1)-size(QF,1);
-      %W(:) = 0;
-      %warning('winding number = 0');
-  
-      [II,JJ,KK] = ind2sub([side(2)+1 side(1)   side(3)  ],iQT);
-      KK = KK(II<=side(2));
-      JJ = JJ(II<=side(2));
-      II = II(II<=side(2));
-      W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
-      [II,JJ,KK] = ind2sub([side(2)+1 side(1)   side(3)  ],iQT);
-      II = II-1;
-      KK = KK(II<=side(2));
-      JJ = JJ(II<=side(2));
-      II = II(II<=side(2));
-      W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
-  
-      [II,JJ,KK] = ind2sub([side(2)   side(1)+1 side(3)  ],iQL);
-      II = II(JJ<=side(1));
-      KK = KK(JJ<=side(1));
-      JJ = JJ(JJ<=side(1));
-      W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
-      [II,JJ,KK] = ind2sub([side(2)   side(1)+1 side(3)  ],iQL);
-      JJ = JJ-1;
-      II = II(JJ<=side(1));
-      KK = KK(JJ<=side(1));
-      JJ = JJ(JJ<=side(1));
-      W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
-  
-      [II,JJ,KK] = ind2sub([side(2)   side(1)   side(3)+1],iQF);
-      II = II(KK<=side(3));
-      JJ = JJ(KK<=side(3));
-      KK = KK(KK<=side(3));
-      W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
-      [II,JJ,KK] = ind2sub([side(2)   side(1)   side(3)+1],iQF);
-      KK = KK-1;
-      II = II(KK<=side(3));
-      JJ = JJ(KK<=side(3));
-      KK = KK(KK<=side(3));
-      W(sub2ind([side(2) side(1) side(3)],II,JJ,KK)) = 1;
+      iQ = cell(3,1);
+      iQ{1} = IF(IF<=size(QT,1));
+      iQ{3} = IF(IF>size(QT,1) & IF<=size(QT,1)+size(QF,1))-size(QT,1);
+      iQ{2} = IF(IF>size(QT,1)+size(QF,1))-size(QT,1)-size(QF,1);
+      jQ{1} = JF(IF<=size(QT,1));
+      jQ{3} = JF(IF>size(QT,1) & IF<=size(QT,1)+size(QF,1));
+      jQ{2} = JF(IF>size(QT,1)+size(QF,1));
+
+      side123 = side([2 1 3]);
+      for d = 1:3
+        sz = side123;
+        sz(d) = sz(d)+1;
+        II = cell(3,1);
+        [II{1},II{2},II{3}] = ind2sub(sz,iQ{d});
+        for pass = 0:1
+          II{d} = II{d}-pass;
+          keep = II{d}<=side123(d);
+          B(sub2ind(side123,II{1}(keep),II{2}(keep),II{3}(keep))) = jQ{d}(keep);
+        end
+      end
+
+      W = W | B;
     end
   
     if with_interior && closed

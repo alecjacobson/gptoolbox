@@ -1,4 +1,4 @@
-function C = depends(f,depth)
+function [C,P] = depends(f,depth)
   % DEPENDS Computes dependencies for a given function, f.
   %
   % C = depends(f)
@@ -34,20 +34,32 @@ function C = depends(f,depth)
   end
 
   level = 0;
-  C = {};
-  C{end+1} = which(f);
+  if exist(f,'dir')
+    % https://www.mathworks.com/matlabcentral/answers/429891-how-to-recursively-go-through-all-directories-and-sub-directories-and-process-files#answer_346966
+    C = arrayfun(@(d) fullfile(d.folder,d.name),dir(fullfile(f,'**/*.m')),'UniformOutput',false);
+  else
+    C = {};
+    C{end+1} = which(f);
+  end
 
   Q = {};
+  P = {};
   Q = C;
   while( level < depth && ~isempty(Q))
     new_deps = {};
+    nq = numel(Q);
     while(~isempty(Q))
+      progressbar(nq-numel(Q),nq);
       p = Q{1};
       Q = Q(2:end);
       %new_deps = cat(1,new_deps,depfun(p,'-toponly','-quiet'));
       % This is the non-obsolete version but it's 100x slower : - (
-      new_deps = cat(1,new_deps, ...
-        matlab.codetools.requiredFilesAndProducts(p,'toponly')');
+      try
+        [flist,plist] = matlab.codetools.requiredFilesAndProducts(p,'toponly');
+        new_deps = cat(1,new_deps, flist');
+        new_P = {plist.Name};
+        P = union(P,new_P);
+      end
     end
     % ignore anything in matlab folder
     new_deps = new_deps(cellfun(@isempty,strfind(new_deps,matlabroot)));
