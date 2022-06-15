@@ -1,4 +1,5 @@
 #include <igl/copyleft/cgal/outer_hull.h>
+#include <igl/copyleft/cgal/outer_hull_legacy.h>
 
 #include <igl/matlab/MexStream.h>
 #include <igl/matlab/mexErrMsgTxt.h>
