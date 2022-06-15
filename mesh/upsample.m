@@ -192,6 +192,12 @@ function [VV,FF,FO] = upsample(V,F,varargin)
     sel = find(sel);
   end
   sel = sel(:);
+  if isempty(sel)
+    FF = F;
+    VV = V;
+    FO = (1:size(F,1))';
+    return;
+  end
 
   switch size(F,2)
   % http://mathoverflow.net/questions/28615/tetrahedron-splitting-subdivision
@@ -282,7 +288,8 @@ function [VV,FF,FO] = upsample(V,F,varargin)
       % No duplicates in 2D case
     else
       Fsel = F(sel,:);
-      nsel = setdiff(1:size(F,1),sel)';
+      %nsel = setdiff(1:size(F,1),sel)';
+      nsel = find(accumarray(sel,1,[size(F,1) 1])==0);
       Fnsel = F(nsel,:);
       [VV,FF,FO] = upsample(V,Fsel,'KeepDuplicates',keep_duplicates);
       FF = [Fnsel;FF];
@@ -290,10 +297,15 @@ function [VV,FF,FO] = upsample(V,F,varargin)
     end
   end
 
-  % Recursive call (iters=0 base case will be handled at top)
-  if isempty(sel)
-    sel = 1:size(F,1);
+  %% Recursive call (iters=0 base case will be handled at top)
+  %if isempty(sel)
+  %  sel = 1:size(F,1);
+  %end
+  % Don't wait. these calls below are not free.
+  if iters==1
+    return;
   end
+
   if isempty(sel_fun)
     [VV,FF,FOr] = upsample( ...
       VV,FF, ...

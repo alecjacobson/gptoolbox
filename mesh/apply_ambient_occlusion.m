@@ -86,8 +86,8 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
       if unoriented
           AO = min(AO,ambient_occlusion(V,T,O,-N,samples));
       end
+      AO = full(sparse(I,1,AO,nao,1)./sparse(I,1,1,nao,1));
     end
-    AO = full(sparse(I,1,AO,nao,1)./sparse(I,1,1,nao,1));
     t.FaceVertexCData = bsxfun(@plus,(1-factor)*C,factor*bsxfun(@times,C,1-AO));
   end 
 

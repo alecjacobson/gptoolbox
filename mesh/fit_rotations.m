@@ -21,12 +21,13 @@ function [R,SS] = fit_rotations(S,varargin)
   assert(dim == size(S,2));
   nr = size(S,3);
   allow_flips = false;
+  use_mex = true;
 
   single_precision = true;
   % default values
   % Map of parameter names to variable names
-  params_to_variables = containers.Map( {'AllowFlips','SinglePrecision'}, ...
-    {'allow_flips','single_precision'});
+  params_to_variables = containers.Map( {'AllowFlips','SinglePrecision','Mex'}, ...
+    {'allow_flips','single_precision','use_mex'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -42,7 +43,7 @@ function [R,SS] = fit_rotations(S,varargin)
   end
 
   % Even faster way to check if mex exists
-  if fit_rotations_mex && ~allow_flips
+  if use_mex && fit_rotations_mex && ~allow_flips
     nr = size(S,3);
     dim = size(S,1);
     SS = reshape(permute(S,[3 1 2]),[nr*dim dim]);

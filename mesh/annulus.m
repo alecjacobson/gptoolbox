@@ -46,7 +46,7 @@ function [V,F,bi,bo] = annulus(s,r,varargin)
   VR = R*[cos(theta) sin(theta)];
   ER = [1:size(VR,1);2:size(VR,1) 1]';
 
-  [V,F] = triangle([Vr;VR],[Er;size(Vr,1)+ER],[0 0],'Flags',flags);
+  [V,F] = triangulate([Vr;VR],[Er;size(Vr,1)+ER],'Holes',[0 0],'Flags',flags);
   b = unique(outline(F));
   bi = intersect(find(normrow(V)< 0.5*(R+r)),b);
   bo = intersect(find(normrow(V)> 0.5*(R+r)),b);

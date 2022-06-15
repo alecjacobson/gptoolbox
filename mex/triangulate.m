@@ -12,6 +12,7 @@
 %   E  #E by 2 list of edges as indices into rows of V
 %   Optional:
 %     'EdgeMarkers'  followed by #E list of edge markers
+%     'Flags'  followed by flags
 %     'Holes' followed by #H by 2 list of hole positions
 %     'VertexMarkers'  followed by #V list of vertex markers
 % Outputs:

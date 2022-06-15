@@ -87,6 +87,7 @@ function [Phi,lambda,E] = sparse_eigs(L,D,k,mu,varargin)
     Y = Dsqrt*(E-UE + S-US);
     % Matlab:  [U,S,V] = svd(A) --> U*S*V' = A
     % Numpy:  [U,S,VT] = svd(A) --> U*S*VT = A
+    % Why is this doing svd on a square symmetric matrix?
     [V,W,VT] = svd(Y'*Y);
     Wisqrt = isqrt(W);
     Psi = (Y * (V * Wisqrt * VT'));
