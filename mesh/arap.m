@@ -211,7 +211,10 @@ function [U,data,SS,R] = arap(V,F,b,bc,varargin)
     dyn_alpha = h^2*youngs;
     % Smaller --> more damped
     mom = 1e10;
-    M = massmatrix(V,F);
+    M = massmatrix(ref_V,ref_F);
+    if ~isempty(ref_map)
+      M = ref_map*M*ref_map';
+    end
     DQ = 0.5*mom*M;
     Dl =     mom*M*(-2*V0 + Vm1) - h^2*fext;
   else

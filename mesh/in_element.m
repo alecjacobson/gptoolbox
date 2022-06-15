@@ -1,9 +1,9 @@
-function [I,B1,B2,B3] = in_element(V,F,P,varargin)
+function [found,I,J,L] = in_element(V,F,P,varargin)
   % IN_ELEMENT test for each p in P whether it lies inside each f in F defined
   % over V.
   % 
-  % I = in_element(V,F,P)
-  % [I,B1,B2,B3] = in_element(V,F,P,'ParameterName',ParameterValue,...)
+  % [found,I,J,L] = in_element(V,F,P)
+  % [found,I,J,L] = in_element(V,F,P,'ParameterName',ParameterValue,...)
   % 
   % Inputs:
   %   V  #V by dim list of vertex positions
@@ -19,34 +19,16 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   %       'knn' use knnsearch to find closest element barycenters
   %       'spatial-hash' spatial hash on regular grid ~O(#P * sqrt(#F)) **dim=2
   %         only**
+  %       'ray-stabbing'
   %     'First'  only keep first match {false}
   %     'Quiet' suppress warnings {false}
   %     'Epsilon' epsilon used for determining inclusion {eps}
   % Outputs:
-  %   I  #P by #F matrix of bools
-  %   B1  #P by #F list of barycentric coordinates
-  %   B2  #P by #F list of barycentric coordinates
-  %   B3  #P by #F list of barycentric coordinates 
+  %   found  #P by 1 list of flags whether point was found
+  %   I  #I list of indices into P of identified finds
+  %   J  #I list of indices into F of identified finds
+  %   L  #I list of barycentric corodinates of P(I,:) in F(J,:)
   %
-  % Example:
-  %   P = bsxfun(@plus,min(V),bsxfun(@times,rand(100,2),max(V)-min(V)));
-  %   [I,B1,B2,B3] = in_element(V,F,P);
-  %   % Only keep first
-  %   [mI,J] = max(I,[],2);
-  %   I = sparse(1:size(I,1),J,mI,size(I,1),size(I,2));
-  %   % Mask barycentric coordinates
-  %   B1 = B1.*I;
-  %   B2 = B2.*I;
-  %   B3 = B3.*I;
-  %   Q = B1*V(F(:,1),:) + B2*V(F(:,2),:) + B3*V(F(:,3),:);
-  %   Q = Q(any(I,2),:);
-  %   tsurf(F,V);
-  %   hold on;
-  %   plot(Q(:,1),Q(:,2),'or','LineWidth',6);
-  %   plot(P(:,1),P(:,2),'ob','LineWidth',2);
-  %   hold off;
-  %
-
 
   function [I] = in_element_brute_force(V,F,P)
     dim = size(V,2);
@@ -161,14 +143,38 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
     end
   end
 
+  function [I,J,L] = ray_stab_recursive(U,G,P)
+    [J,~,L] = ray_mesh_intersect( ...
+      [P ones(size(P,1),1)],repmat([0 0 -1],size(P,1),1),U,G);
+    hit = J~=0;
+    I = find(hit);
+    J = J(hit);
+    L = L(hit,:);
+    if ~isempty(I) 
+      % only keep triangles without a hit
+      KG = 0==accumarray(J,1,[size(G,1) 1]);
+      U = U(repmat(KG,3,1),:);
+      G = reshape(1:size(U,1),[],3);
+      P = P(I,:);
+      [Ir,Jr,Lr] = ray_stab_recursive(U,G,P);
+      K = find(KG);
+      I = [I;I(Ir)];
+      J = [J;K(Jr)];
+      L = [L;Lr];
+    end
+  end
+
   % default values
   method = [];
+  L = [];
   first = false;
   quiet = false;
   epsilon = eps;
+  polish = eps;
   % Map of parameter names to variable names
-  params_to_variables = containers.Map( {'Method','First','Quiet','Epsilon'}, ...
-    {'method','first','quiet','epsilon'});
+  params_to_variables = containers.Map( ...
+  {'Method','First','Quiet','Epsilon','Polish'}, ...
+    {'method','first','quiet','epsilon','polish'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -193,8 +199,15 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
   end
 
   switch method
+  case 'ray-stabbing'
+    assert(size(V,2)==2 && size(F,2)==3);
+    % explode mesh with face index as z-coord
+    U = [V(F,:) -repmat(1:size(F,1),1,3)'/size(F,1)];
+    G = reshape(1:numel(F),size(F));
+    [I,J,L] = ray_stab_recursive(U,G,P);
   case 'brute-force'
     I = in_element_brute_force(V,F,P);
+    [I,J] = find(I);
   case 'spatial-hash'
     % Try 45?? spatial grid, too (reduce corner cases)
     switch size(V,2)
@@ -219,9 +232,8 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
     % redo any that currently are not in any but winding number says are inside
     RI = NI & WI;
     I(RI,:) = in_element_brute_force(V,F,P(RI,:));
-
+    [I,J] = find(I);
   case 'edge-walk'
-
     assert(size(F,2) == 3,'F must contain triangles for Method=''edge-walk''');
     % List of all "half"-edges: 3*#F by 2
     allE = [F(:,[2 3]); F(:,[3 1]); F(:,[1 2])];
@@ -275,9 +287,9 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
         if isempty(e_out)
           % no hits so we're in the element
           I(p,f) = 1;
-          B = barycentric_coordinates( ...
-            P(p,:),V(F(f,1),:),V(F(f,2),:),V(F(f,3),:));
-          B1(p,f) = B(1); B2(p,f) = B(2); B3(p,f) = B(3);
+          %B = barycentric_coordinates( ...
+          %  P(p,:),V(F(f,1),:),V(F(f,2),:),V(F(f,3),:));
+          %B1(p,f) = B(1); B2(p,f) = B(2); B3(p,f) = B(3);
         else
           f_prev = f;
           if numel(e_out) > 1
@@ -324,18 +336,19 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
         %input('');
       end
     end
-
-    return
+    [I,J] = find(I);
   case 'knn'
     % assumes samples are all inside exactly one element
     BC = barycenter(V,F);
-    I = sparse(size(P,1),size(F,1));
-    B1 = sparse(size(P,1),size(F,1));
-    B2 = sparse(size(P,1),size(F,1));
-    B3 = sparse(size(P,1),size(F,1));
-    B4 = sparse(size(P,1),size(F,1));
+    %I = sparse(size(P,1),size(F,1));
+    %B1 = sparse(size(P,1),size(F,1));
+    %B2 = sparse(size(P,1),size(F,1));
+    %B3 = sparse(size(P,1),size(F,1));
+    %B4 = sparse(size(P,1),size(F,1));
     % indices of points we haven't found yet
     IP = 1:size(P,1);
+    I = [];
+    J = [];
 
     prev_k = 0;
     k = 2;
@@ -359,7 +372,10 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
             V(F(K(:,ki),4),:)));
         end
         found = abs(sum(B,2)-1)<sqrt(epsilon);
-        I(sub2ind(size(I),IP,K(:,ki)')) = found;
+        %I(sub2ind(size(I),IP,K(:,ki)')) = found;
+        I = [I;IP];
+        J = [J;K(:,ki)'];
+
         % DOESN'T REALLY PAY OFF TO COMPUTE THESE HERE
         %B1(sub2ind(size(I),IP,K(:,ki)')) = found.*B(:,1);
         %B2(sub2ind(size(I),IP,K(:,ki)')) = found.*B(:,2);
@@ -400,49 +416,22 @@ function [I,B1,B2,B3] = in_element(V,F,P,varargin)
 
   end
 
-  if first
-    % Only keep first
-    [mI,J] = max(I,[],2);
-    I = sparse(1:size(I,1),J,mI,size(I,1),size(I,2));
-  end
+  assert(first == false,'not (re)implemented')
+  %if first
+  %  % Only keep first
+  %  [mI,J] = max(I,[],2);
+  %  I = sparse(1:size(I,1),J,mI,size(I,1),size(I,2));
+  %end
+
+  vec = @(X) X(:);
+  I = vec(I);
+  J = vec(J);
+  found = accumarray(I,1,[size(P,1),1])>0;
 
   % Compute barycentric coordinates
-  if nargout > 1
-    B1 = sparse(size(I,1),size(I,2));
-    B2 = sparse(size(I,1),size(I,2));
-    B3 = sparse(size(I,1),size(I,2));
-    B4 = sparse(size(I,1),size(I,2));
-    work_I = I;
-    while true
-      % Peel off a layer
-      [mIf,Jf] = max(work_I,[],2);
-      If = find(mIf);
-      Jf = Jf(If);
-      mIf = mIf(If);
-      if isempty(If)
-        break
-      end
-      work_I = work_I - sparse(If,Jf,mIf,size(work_I,1),size(work_I,2));;
-      Pf = P(If,:);
-      Ff = F(Jf,:);
-      switch size(Ff,2)
-      case 4
-        Bf = barycentric_coordinates(Pf, ...
-          V(Ff(:,1),:),V(Ff(:,2),:),V(Ff(:,3),:),V(Ff(:,4),:));
-      case 3
-        Bf = barycentric_coordinates(Pf,V(Ff(:,1),:),V(Ff(:,2),:),V(Ff(:,3),:));
-      case 2
-        Bf = barycentric_coordinates(Pf,V(Ff(:,1),:),V(Ff(:,2),:));
-      end
-      B1(sub2ind(size(B1),If,Jf)) = Bf(:,1);
-      B2(sub2ind(size(B2),If,Jf)) = Bf(:,2);
-      if size(Bf,2) >= 3
-        B3(sub2ind(size(B3),If,Jf)) = Bf(:,3);
-      end
-      if size(Bf,2) >= 4
-        B4(sub2ind(size(B3),If,Jf)) = Bf(:,4);
-      end
-    end
+  if nargout > 3 && (isempty(L) || polish)
+    corners = arrayfun(@(i) V(F(J,i),:),1:size(F,2),'UniformOutput',false);
+    L = barycentric_coordinates(P(I,:),corners{:});
   end
 
 end

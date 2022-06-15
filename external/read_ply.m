@@ -58,6 +58,7 @@ function [Elements,varargout] = plyread(Path,Str)
 %   See also: PLYWRITE
 
 % Pascal Getreuer 2004
+% Markus Leuthold 2017-09-21: make reader compatible with InstantMeshes output
 
 [fid,Msg] = fopen(Path,'rt');	% open file in read text mode
 
@@ -230,8 +231,8 @@ end
 
 % PLY and MATLAB data types (for fread)
 PlyTypeNames = {'char','uchar','short','ushort','int','uint','float','double', ...
-   'char8','uchar8','short16','ushort16','int32','uint32','float32','double64'};
-MatlabTypeNames = {'schar','uchar','int16','uint16','int32','uint32','single','double'};
+    'char8','uchar8','short16','ushort16','int32','uint32','float32','double64','uint8'};
+MatlabTypeNames = {'schar','uchar','int16','uint16','int32','uint32','single','double','uint8'};
 SizeOf = [1,1,2,2,4,4,4,8];	% size in bytes of each type
 
 for i = 1:NumElements
