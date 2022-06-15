@@ -113,9 +113,14 @@ BibTeX entry:
 ```
 
 ## License ##
-Unless marked otherwise, all code is Copyright Alec Jacobson 2015.
 
-We will probably switch to a MPL2 license in the near future.
+This work is dual licensed under MIT and Apache 2.
+
+Please take extra note that the `external/` directory contains code from
+elsewhere with potentially more restricted licenses. 
+
+Most of the `mex/` directory includes libigl and Eigen (and some include CGAL),
+each with their own licenses.
 
 ## Contact ##
 
