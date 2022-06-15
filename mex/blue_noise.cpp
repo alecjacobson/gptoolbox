@@ -67,7 +67,7 @@ void blue_noise(
     }
     points.row(num_points) = p;
     active.push_back(num_points);
-    grid(p(0)/h,p(1)/h) = num_points;
+    grid(int(p(0)/h),int(p(1)/h)) = num_points;
     num_points++;
   };
   add_point(p0);
@@ -139,7 +139,7 @@ void mexFunction(
   const bool box2d = mxGetM(prhs[1])==1 && mxGetN(prhs[1])==1;
   if(box2d)
   {
-    mexErrMsgTxt(lhs<=1,"nlhs should be ≤1");
+    mexErrMsgTxt(nlhs<=1,"nlhs should be ≤1");
     Eigen::MatrixXd V;
     parse_rhs_double(prhs+0,V);
     const int dim = V.cols();
