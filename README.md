@@ -1,5 +1,7 @@
 # gptoolbox - Geometry Processing Toolbox
 
+![](images/gptoolbox-bounce.gif)
+
 [![Build Status](https://travis-ci.org/alecjacobson/gptoolbox.svg?branch=master)](https://travis-ci.org/alecjacobson/gptoolbox)
 
 <https://github.com/alecjacobson/gptoolbox/>
