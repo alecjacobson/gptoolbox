@@ -78,7 +78,10 @@ function interior_point = point_inside_polygon(V)
     second_hit = valid_second_hits(...
       distance_to_first_hit == min(distance_to_first_hit),:);
     % shouldn't have to do this:
-    second_hit = second_hit(1,:);
+    sz = size(second_hit);
+    if sz(1) >= 1
+        second_hit = second_hit(1,:);
+    end
 
     interior_point = (first_hit + second_hit)/2;
 end
