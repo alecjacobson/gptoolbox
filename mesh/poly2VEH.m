@@ -22,7 +22,6 @@ function [V,E,H,h] = poly2VEH(poly)
   V = []; 
   E = [];
   H = [];
-  H
   components = size(poly,2);
   % loop over components collecting vertices, edges, and holes
   for component_index = 1:components
@@ -40,7 +39,6 @@ function [V,E,H,h] = poly2VEH(poly)
         size(E,1) + component_E(:,2) ];
       if poly(component_index).hole == 1 
         % find point inside polygon to be hole marker
-        poly(component_index)
         component_hole = ...
           point_inside_polygon(component_vertices);
         H = [H; component_hole];
