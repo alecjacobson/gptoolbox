@@ -30,12 +30,21 @@ function [V,E,H] = png2poly(filename,smooth_iters,max_points)
   % get polygon from alpha mask
   poly = mask2poly(alpha);
 
+  smooth_poly = [];
   if exist('smooth_iters','var')
     % handle smooth of each component separately, *before* finding hole positions
     for component_index = 1:size(poly,2)
       % flip y-coordinates because matlab displays images with reversed
       % y-direction, but displays meshes with normal y-direction
       poly(component_index).y = size(alpha,1)-poly(component_index).y;
+
+      % remove duplicated vertices
+      component_vertices = ...
+      [poly(component_index).x, poly(component_index).y];
+      component_vertices = unique(component_vertices, 'stable', 'rows');
+      poly(component_index).x = component_vertices(:,1);
+      poly(component_index).y = component_vertices(:,2);
+      
       component_size = size(poly(component_index).x,1);
         % this will probably not just work for non closed loops
         i = [ ...
@@ -53,14 +62,21 @@ function [V,E,H] = png2poly(filename,smooth_iters,max_points)
         % normalized laplacian matrix
         L = sparse(i,j,v,component_size,component_size);
         for iteration = 1:smooth_iters
-          % simple 1.0 parameter
+          % 0.5 parameter
           poly(component_index).x = ...
-            [1.0*L * poly(component_index).x + poly(component_index).x];
+            [0.5*L * poly(component_index).x + poly(component_index).x];
           poly(component_index).y = ...
-            [1.0*L * poly(component_index).y + poly(component_index).y];
+            [0.5*L * poly(component_index).y + poly(component_index).y];
+        end
+
+        % remove polygons that converged to a single point
+        EPSILON = 10.0^-15;
+        if (polyarea(poly(component_index).x, poly(component_index).y) > EPSILON)
+          smooth_poly = [smooth_poly, poly(component_index)];
         end
     end
   end
+  poly = smooth_poly;
 
 
   % total number of vertices
