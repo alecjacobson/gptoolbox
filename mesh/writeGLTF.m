@@ -53,7 +53,7 @@ function writeGLTF(filename,V,F,varargin)
   has_skinning_transforms = ~isempty(T);
   has_morph_target_positions = ~isempty(MV);
   has_morph_target_weights = ~isempty(MW);
-  has_morph_target_normals = false;
+  has_morph_target_normals = ~isempty(MN);
 
 
 
@@ -92,6 +92,9 @@ function writeGLTF(filename,V,F,varargin)
   if has_morph_target_positions
     buffered_data{end+1} = struct('Name','MV','Data',MV,'Target',ARRAY_BUFFER);
   end
+  if has_morph_target_normals
+    buffered_data{end+1} = struct('Name','MN','Data',MN,'Target',ARRAY_BUFFER);
+  end
   if has_skinning_weights
     [WIk,Wk] = prepare_skinning_weights(W);
     if max(WIk(:)) < 2^8
@@ -121,6 +124,7 @@ function writeGLTF(filename,V,F,varargin)
 
   % First node is the mesh
   attributes = struct("POSITION",accessor_hash.V);
+
   if has_normals
     attributes.NORMAL = accessor_hash.N;
   end
@@ -131,10 +135,21 @@ function writeGLTF(filename,V,F,varargin)
   mesh = struct( ...
     "primitives",{{struct("attributes",attributes,"indices",accessor_hash.F)}});
   if has_morph_target_positions
+    if ~isfield(mesh.primitives{1},'targets')
+      mesh.primitives{1}.targets = num2cell(repmat(struct(),size(MV,3),1));
+    end
     for i = 1:size(MV,3)
-      mesh.primitives{1}.targets{i} = struct('POSITION',accessor_hash.MV(i));
+      mesh.primitives{1}.targets{i} = setfield(mesh.primitives{1}.targets{i},'POSITION',accessor_hash.MV(i));
     end
     mesh.weights = zeros(1,size(MV,3));
+  end
+  if has_morph_target_normals
+    if ~isfield(mesh.primitives{1},'targets')
+      mesh.primitives{1}.targets = num2cell(repmat(struct(),size(MN,3),1));
+    end
+    for i = 1:size(MN,3)
+      mesh.primitives{1}.targets{i} = setfield(mesh.primitives{1}.targets{i},'NORMAL',accessor_hash.MN(i));
+    end
   end
 
   nodes_list = {0};
