@@ -5,8 +5,15 @@ function writeGLTF(filename,V,F,varargin)
   %   filename  path to .gltf file
   %   V  #V by 3 list of mesh vertex positions
   %   F  #F by 3 list of mesh triangle indices into rows of V
-  %   T  3 by 4 by #T by #A list of animated global skinning transformations
-  %   W  #V by #T list of skinning weights
+  %   Optional:
+  %   'SkinningTransforms' followed by
+  %     T  3 by 4 by #T by #A list of animated global skinning transformations
+  %   'SkinningWeights' followed by
+  %     W  #V by #T list of skinning weights
+  %   'MorphTargets' followed by
+  %     MT  #V by 3 by #M list of morph targets
+  %   'MorphWeights' followed by
+  %     MW  #frames by #M list of morph weights
   %
   % Examples:
   %   !python -m json.tool octopus.gltf > octopus-pretty.gltf
@@ -15,12 +22,13 @@ function writeGLTF(filename,V,F,varargin)
   W = [];
   MT = [];
   MW = [];
+  N = [];
   fps = 30;
   nf = 0;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'FPS','MorphTargets','MorphWeights','SkinningTransforms','SkinningWeights'}, ...
-    {'fps','MT','MW','T','W'});
+    {'FPS','MorphTargets','MorphWeights','Normals','SkinningTransforms','SkinningWeights'}, ...
+    {'fps','MT','MW','N','T','W'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -34,6 +42,7 @@ function writeGLTF(filename,V,F,varargin)
     end
     v=v+1;
   end
+
 
   BYTE = 5120;
   UNSIGNED_BYTE = 5121;
@@ -136,6 +145,15 @@ function writeGLTF(filename,V,F,varargin)
   fwrite(fp,zeros(Vpad,1),'single');
   offsets(end+1) = offsets(end) + (numel(V)+Vpad)*4;
 
+  if ~isempty(N)
+    fwrite(fp,N','single');
+    % pad so that next block starts aligned at 4-byte
+    % Why is this 8 and not 4?
+    Npad = mod(8-mod(numel(N),8),8);
+    fwrite(fp,zeros(Npad,1),'single');
+    offsets(end+1) = offsets(end) + (numel(N)+Npad)*4;
+  end
+
   % Hmm I'm piling this all into a single buffer. Probably it'd be better to put
   % skin weights etc. in their own buffer.
   if m>0
@@ -231,74 +249,105 @@ function writeGLTF(filename,V,F,varargin)
 
   ARRAY_BUFFER = 34962;
   ELEMENT_ARRAY_BUFFER = 34963;
-  bufferViews = { ...
-    struct('buffer',0,'byteOffset',offsets(1),'byteLength',numel(F)*F_size,'target',ELEMENT_ARRAY_BUFFER) ...
-    struct('buffer',0,'byteOffset',offsets(2),'byteLength',numel(V)*4,'target',ARRAY_BUFFER) ...
-    };
+  bufferViews = {};
+  offset_index = 1;
+  F_bufferView = numel(bufferViews);
+  bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(F)*F_size,'target',ELEMENT_ARRAY_BUFFER);
+  offset_index = offset_index+1;
+  V_bufferView = numel(bufferViews);
+  bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(V)*4,'target',ARRAY_BUFFER);
+  offset_index = offset_index+1;
+  if ~isempty(N)
+    N_bufferView = numel(bufferViews);
+    bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(N)*4,'target',ARRAY_BUFFER);
+    offset_index = offset_index+1;
+  end
+
   if m>0
-    bufferViews(end+(1:2)) = { ...
-    struct('buffer',0,'byteOffset',offsets(3),'byteLength',numel(WIk)*WIk_size,'target',ARRAY_BUFFER) ...
-    struct('buffer',0,'byteOffset',offsets(4),'byteLength',numel(Wk)*4,'target',ARRAY_BUFFER) ...
-    };
+    WIk_bufferView = numel(bufferViews);
+    bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+0),'byteLength',numel(WIk)*WIk_size,'target',ARRAY_BUFFER);
+    offset_index = offset_index+1;
+    Wk_bufferView = numel(bufferViews);
+    bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+1),'byteLength',numel(Wk)*4,'target',ARRAY_BUFFER);
+    offset_index = offset_index+1;
     if nf>0
-      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(5),'byteLength',numel(t)*4);
-      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(6),'byteLength',numel(tT)*4);
-      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(7),'byteLength',numel(qU)*4);
-      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(8),'byteLength',numel(sS)*4);
-      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(9),'byteLength',numel(qVT)*4);
+      t_bufferView = numel(bufferViews);
+      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+0),'byteLength',numel(t)*4);
+      tT_bufferView = numel(bufferViews);
+      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+1),'byteLength',numel(tT)*4);
+      qU_bufferView = numel(bufferViews);
+      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+2),'byteLength',numel(qU)*4);
+      sS_bufferView = numel(bufferViews);
+      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+3),'byteLength',numel(sS)*4);
+      qVT_bufferView = numel(bufferViews);
+      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+4),'byteLength',numel(qVT)*4);
+      offset_index = offset_index+5;
     end
   end
   if mt>0
+    MT_bufferViews = zeros(mt,1);
     for i = 1:mt
+      MT_bufferViews(i) = numel(bufferViews);
       bufferViews{end+1} =  ...
-        struct('buffer',0,'byteOffset',offsets(3+(i-1)),'byteLength',numel(MT(:,:,i))*4,'target',ARRAY_BUFFER);
+        struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(MT(:,:,i))*4,'target',ARRAY_BUFFER);
+      offset_index = offset_index+1;
     end
     if nf>0
-      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(3+mt),'byteLength',numel(t)*4);
-      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(3+mt+1),'byteLength',numel(MW)*4);
+      t_bufferView = numel(bufferViews);
+      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(t)*4);
+      offset_index = offset_index+1;
+      MW_bufferView = numel(bufferViews);
+      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(MW)*4);
+      offset_index = offset_index+1;
     end
   end
 
-  accessors = { ...
-    struct('bufferView',0,'byteOffset',0,'componentType',F_type,'count',numel(F),'type','SCALAR','max',{{max(F(:))-1}},'min',{{min(F(:))-1}}) ...
-    struct('bufferView',1,'byteOffset',0,'componentType',FLOAT,'count',size(V,1),'type','VEC3','max',max(V),'min',min(V)) ...
-    };
+  accessors = {};
+  accessors{end+1} = struct('bufferView',F_bufferView,'byteOffset',0,'componentType',F_type,'count',numel(F),'type','SCALAR','max',{{max(F(:))-1}},'min',{{min(F(:))-1}});
+  V_accessor = numel(accessors);
+  accessors{end+1} = struct('bufferView',V_bufferView,'byteOffset',0,'componentType',FLOAT,'count',size(V,1),'type','VEC3','max',max(V),'min',min(V));
+  if ~isempty(N)
+    N_accessor = numel(accessors);
+    accessors{end+1} = struct('bufferView',N_bufferView,'byteOffset',0,'componentType',FLOAT,'count',size(N,1),'type','VEC3','max',max(N),'min',min(N));
+  end
   if m>0
-    accessors(end+(1:2)) = { ...
-      struct('bufferView',2,'byteOffset',0,'componentType',WIk_type,'count',size(WIk,1),'type','VEC4','max',max(WIk)-1,'min',min(WIk)-1) ...
-      struct('bufferView',3,'byteOffset',0,'componentType',FLOAT,'count',size(Wk,1),'type','VEC4','max',max(Wk),'min',min(Wk)) ...
-    };
+    WIk_accessor = numel(accessors);
+    accessors{end+1} = struct('bufferView',WIk_bufferView,'byteOffset',0,'componentType',WIk_type,'count',size(WIk,1),'type','VEC4','max',max(WIk)-1,'min',min(WIk)-1);
+    Wk_accessor = numel(accessors);
+    accessors{end+1} = struct('bufferView',Wk_bufferView,'byteOffset',0,'componentType',FLOAT,'count',size(Wk,1),'type','VEC4','max',max(Wk),'min',min(Wk));
     if nf>0
       vec = @(X) reshape(X,[],1);
-      accessors{end+1} = struct('bufferView',4,'byteOffset',0,'componentType',FLOAT,'count',numel(t),'type','SCALAR','max',{{max(t)}},'min',{{min(t)}});
+      accessors{end+1} = struct('bufferView',t_bufferView,'byteOffset',0,'componentType',FLOAT,'count',numel(t),'type','SCALAR','max',{{max(t)}},'min',{{min(t)}});
       t_accessor = numel(accessors)-1;
       tT_accessor = [];
       qU_accessor = [];
       sS_accessor = [];
       qVT_accessor = [];
       for i = 1:m
-        accessors{end+1} = struct('bufferView',5,'byteOffset',((i-1)*3*nf)*4,'componentType',FLOAT,'count',nf,'type','VEC3','max',vec(max(tT(:,:,:,i),[],3)),'min',vec(min(tT(:,:,:,i),[],3)));
+        accessors{end+1} = struct('bufferView',tT_bufferView,'byteOffset',((i-1)*3*nf)*4,'componentType',FLOAT,'count',nf,'type','VEC3','max',vec(max(tT(:,:,:,i),[],3)),'min',vec(min(tT(:,:,:,i),[],3)));
         tT_accessor = [tT_accessor;numel(accessors)-1];
-        accessors{end+1} = struct('bufferView',6,'byteOffset',((i-1)*4*nf)*4,'componentType',FLOAT,'count',nf,'type','VEC4','max',vec(max(qU(:,:,i),[],2)),'min',vec(min(qU(:,:,i),[],2)));
+        accessors{end+1} = struct('bufferView',qU_bufferView,'byteOffset',((i-1)*4*nf)*4,'componentType',FLOAT,'count',nf,'type','VEC4','max',vec(max(qU(:,:,i),[],2)),'min',vec(min(qU(:,:,i),[],2)));
         qU_accessor = [qU_accessor;numel(accessors)-1];
-        accessors{end+1} = struct('bufferView',7,'byteOffset',((i-1)*3*nf)*4,'componentType',FLOAT,'count',nf,'type','VEC3','max',vec(max(sS(:,:,:,i),[],3)),'min',vec(min(sS(:,:,:,i),[],3)));
+        accessors{end+1} = struct('bufferView',sS_bufferView,'byteOffset',((i-1)*3*nf)*4,'componentType',FLOAT,'count',nf,'type','VEC3','max',vec(max(sS(:,:,:,i),[],3)),'min',vec(min(sS(:,:,:,i),[],3)));
         sS_accessor = [sS_accessor;numel(accessors)-1];
-        accessors{end+1} = struct('bufferView',8,'byteOffset',((i-1)*4*nf)*4,'componentType',FLOAT,'count',nf,'type','VEC4','max',vec(max(qVT(:,:,i),[],2)),'min',vec(min(qVT(:,:,i),[],2)));
+        accessors{end+1} = struct('bufferView',qVT_bufferView,'byteOffset',((i-1)*4*nf)*4,'componentType',FLOAT,'count',nf,'type','VEC4','max',vec(max(qVT(:,:,i),[],2)),'min',vec(min(qVT(:,:,i),[],2)));
         qVT_accessor = [qVT_accessor;numel(accessors)-1];
       end
     end
   end
   if mt>0
+    MT_accessors = zeros(mt,1);
     for i = 1:mt
+      MT_accessors(i) = numel(accessors);
       accessors{end+1} = ...
-        struct('bufferView',2+(i-1),'byteOffset',0,'componentType',FLOAT,'count',size(MT,1),'type','VEC3','max',max(MT(:,:,i)),'min',min(MT(:,:,i)));
+        struct('bufferView',MT_bufferViews(i),'byteOffset',0,'componentType',FLOAT,'count',size(MT,1),'type','VEC3','max',max(MT(:,:,i)),'min',min(MT(:,:,i)));
     end
+    t_accessor = numel(accessors);
     accessors{end+1} = ...
-      struct('bufferView',2+mt,'byteOffset',0,'componentType',FLOAT,'count',numel(t),'type','SCALAR','max',{{max(t)}},'min',{{min(t)}});
-    t_accessor = numel(accessors)-1;
+      struct('bufferView',t_bufferView,'byteOffset',0,'componentType',FLOAT,'count',numel(t),'type','SCALAR','max',{{max(t)}},'min',{{min(t)}});
+    MW_accessor = numel(accessors);
     accessors{end+1} = ...
-      struct('bufferView',2+mt+1,'byteOffset',0,'componentType',FLOAT,'count',numel(MW),'type','SCALAR','max',{{max(MW(:))}},'min',{{min(MW(:))}});
-    mw_accessor = numel(accessors)-1;
+      struct('bufferView',MW_bufferView,'byteOffset',0,'componentType',FLOAT,'count',numel(MW),'type','SCALAR','max',{{max(MW(:))}},'min',{{min(MW(:))}});
   end
 
   buffer = struct( ...
@@ -306,15 +355,21 @@ function writeGLTF(filename,V,F,varargin)
     'byteLength', numel(B));
 
   % First node is the mesh
-  attributes = struct("POSITION",1);
+  attributes = struct("POSITION",V_accessor);
+  if ~isempty(N)
+    attributes.NORMAL = N_accessor;
+  end
   if m>0
-    attributes.JOINTS_0 = 2;
-    attributes.WEIGHTS_0 = 3;
+    attributes.JOINTS_0 = WIk_accessor;
+    attributes.WEIGHTS_0 = Wk_accessor;
   end
   mesh = struct( ...
     "primitives",{{struct("attributes",attributes,"indices",0)}});
   if mt>0
-    mesh.primitives{1}.targets = arrayfun(@(i) struct('POSITION',1+i),1:mt);
+    mesh.primitives{1}.targets = {};
+    for i = 1:mt
+      mesh.primitives{1}.targets{i} = struct('POSITION',MT_accessors(i));
+    end
     mesh.weights = zeros(1,mt);
   end
   nodes_list = {0};
@@ -366,10 +421,10 @@ function writeGLTF(filename,V,F,varargin)
       samplers = {};
       channels = {};
       for i = 1:m
-        samplers{end+1} = struct('input',t_accessor,'output',tT_accessor(i),'interpolation', 'LINEAR');
-        samplers{end+1} = struct('input',t_accessor,'output',qU_accessor(i),'interpolation', 'LINEAR');
-        samplers{end+1} = struct('input',t_accessor,'output',sS_accessor(i),'interpolation', 'LINEAR');
-        samplers{end+1} = struct('input',t_accessor,'output',qVT_accessor(i),'interpolation','LINEAR');
+        samplers{end+1} = struct('input',t_accessor,'output',tT_accessor(i),'interpolation', 'STEP');
+        samplers{end+1} = struct('input',t_accessor,'output',qU_accessor(i),'interpolation', 'STEP');
+        samplers{end+1} = struct('input',t_accessor,'output',sS_accessor(i),'interpolation', 'STEP');
+        samplers{end+1} = struct('input',t_accessor,'output',qVT_accessor(i),'interpolation','STEP');
 
         channels{end+1} = struct('sampler',4*(i-1)+0,'target',struct('node',m+i,'path','translation'));
         channels{end+1} = struct('sampler',4*(i-1)+1,'target',struct('node',m+i,'path','rotation'));
@@ -381,7 +436,7 @@ function writeGLTF(filename,V,F,varargin)
   end
   if mt>0
     if nf>0
-      samplers = {struct('input',t_accessor,'output',mw_accessor,'interpolation','LINEAR')};
+      samplers = {struct('input',t_accessor,'output',MW_accessor,'interpolation','LINEAR')};
       channels = {struct('sampler',0,'target',struct('node',0,'path','weights'))};
       gltf.animations = {struct('samplers',{samplers},'channels',{channels})};
     end
@@ -393,8 +448,6 @@ function writeGLTF(filename,V,F,varargin)
   %tic;
   %[s,r] = system(sprintf('cat %s | ruby -r json -e "jj JSON.parse gets"',filename));r
   %toc
-
-
 
 
 
