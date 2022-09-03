@@ -103,7 +103,7 @@ function writeGLTF(filename,V,F,varargin)
       WIk_type = UNSIGNED_SHORT;
       WIk_matlab_type = 'uint16';
     end
-    buffered_data{end+1} = struct('Name','WIk','Data',WIk,'Size',WIk_size,'MatlabType',WIk_matlab_type,'ComponentType',WIk_type);
+    buffered_data{end+1} = struct('Name','WIk','Data',WIk,'Size',WIk_size,'MatlabType',WIk_matlab_type,'ComponentType',WIk_type,'Target',ARRAY_BUFFER);
     buffered_data{end+1} = struct('Name','Wk','Data',Wk,'Target',ARRAY_BUFFER);
   end
   if has_skinning_transforms
@@ -262,7 +262,7 @@ function writeGLTF(filename,V,F,varargin)
           'byteOffset',byte_count, ...
           'byteLength',numel(adjusted_data_i)*item.Size);
         if isfield(item,'Target')
-          setfield(bufferViews{end},'target',item.Target);
+          bufferViews{end} = setfield(bufferViews{end},'target',item.Target);
         end
         accessors{end+1} = struct( ...
           'name',item.Name, ...
