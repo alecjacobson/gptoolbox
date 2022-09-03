@@ -11,7 +11,7 @@ function writeGLTF(filename,V,F,varargin)
   %   'SkinningWeights' followed by
   %     W  #V by #T list of skinning weights
   %   'MorphTargets' followed by
-  %     MT  #V by 3 by #M list of morph targets
+  %     MV  #V by 3 by #M list of morph targets
   %   'MorphWeights' followed by
   %     MW  #frames by #M list of morph weights
   %
@@ -20,15 +20,16 @@ function writeGLTF(filename,V,F,varargin)
 
   T = [];
   W = [];
-  MT = [];
+  MV = [];
+  MN = [];
   MW = [];
   N = [];
   fps = 30;
   nf = 0;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'FPS','MorphTargets','MorphWeights','Normals','SkinningTransforms','SkinningWeights'}, ...
-    {'fps','MT','MW','N','T','W'});
+    {'FPS','MorphTargets','MorphNormals','MorphWeights','Normals','SkinningTransforms','SkinningWeights'}, ...
+    {'fps','MV','MN','MW','N','T','W'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -42,6 +43,26 @@ function writeGLTF(filename,V,F,varargin)
     end
     v=v+1;
   end
+
+
+  %% things to write
+  %buffered_data = {};
+  %buffered_data{end+1} = struct('Name','F','Data',F,'Size',F_size,'MatlabType',F_matlab_type);
+  %buffered_data{end+1} = struct('Name','V','Data',V);
+  %buffered_data{end+1} = struct('Name','N','Data',N);
+  %buffered_data{end+1} = struct('Name','WIk','Data',WIk,'Size',WIk_size,'MatlabType',WIk_matlab_type);
+  %buffered_data{end+1} = struct('Name','Wk','Data',Wk);
+  %buffered_data{end+1} = struct('Name','t','Data',t);
+  %buffered_data{end+1} = struct('Name','tT','Data',tT);
+  %buffered_data{end+1} = struct('Name','qU','Data',qU);
+  %buffered_data{end+1} = struct('Name','sS','Data',sS);
+  %buffered_data{end+1} = struct('Name','qVT','Data',qVT);
+  %buffered_data{end+1} = struct('Name','MV','Data',MV);
+  %buffered_data{end+1} = struct('Name','t','Data',t);
+  %buffered_data{end+1} = struct('Name','MW','Data',MW);
+
+
+
 
 
   BYTE = 5120;
@@ -109,7 +130,7 @@ function writeGLTF(filename,V,F,varargin)
     end
   end
   % Number of morph targets
-  mt = size(MT,3) * ~isempty(MT);
+  mt = size(MV,3) * ~isempty(MV);
   if mt>0
     assert(size(MW,2) == mt);
     nf = size(MW,1);
@@ -210,13 +231,13 @@ function writeGLTF(filename,V,F,varargin)
   end
   if mt>0
     for i = 1:mt
-      MTi = MT(:,:,i);
-      fwrite(fp,MTi','single');
+      MVi = MV(:,:,i);
+      fwrite(fp,MVi','single');
       % pad so that next block starts aligned at 4-byte
       % Why is this 8 and not 4?
-      MTipad = mod(8-mod(numel(MTi),8),8);
-      fwrite(fp,zeros(MTipad,1),'single');
-      offsets(end+1) = offsets(end) + (numel(MTi)+MTipad)*4;
+      MVipad = mod(8-mod(numel(MVi),8),8);
+      fwrite(fp,zeros(MVipad,1),'single');
+      offsets(end+1) = offsets(end) + (numel(MVi)+MVipad)*4;
     end
     if nf>0
       % timestamps
@@ -252,27 +273,27 @@ function writeGLTF(filename,V,F,varargin)
   bufferViews = {};
   offset_index = 1;
   F_bufferView = numel(bufferViews);
-  bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(F)*F_size,'target',ELEMENT_ARRAY_BUFFER);
+  bufferViews{end+1} = struct('name','F','buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(F)*F_size,'target',ELEMENT_ARRAY_BUFFER);
   offset_index = offset_index+1;
   V_bufferView = numel(bufferViews);
-  bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(V)*4,'target',ARRAY_BUFFER);
+  bufferViews{end+1} = struct('name','V','buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(V)*4,'target',ARRAY_BUFFER);
   offset_index = offset_index+1;
   if ~isempty(N)
     N_bufferView = numel(bufferViews);
-    bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(N)*4,'target',ARRAY_BUFFER);
+    bufferViews{end+1} = struct('name','N','buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(N)*4,'target',ARRAY_BUFFER);
     offset_index = offset_index+1;
   end
 
   if m>0
     WIk_bufferView = numel(bufferViews);
-    bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+0),'byteLength',numel(WIk)*WIk_size,'target',ARRAY_BUFFER);
+    bufferViews{end+1} = struct('name','WIk','buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(WIk)*WIk_size,'target',ARRAY_BUFFER);
     offset_index = offset_index+1;
     Wk_bufferView = numel(bufferViews);
-    bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+1),'byteLength',numel(Wk)*4,'target',ARRAY_BUFFER);
+    bufferViews{end+1} = struct('name','Wk','buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(Wk)*4,'target',ARRAY_BUFFER);
     offset_index = offset_index+1;
     if nf>0
       t_bufferView = numel(bufferViews);
-      bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+0),'byteLength',numel(t)*4);
+      bufferViews{end+1} = struct('name','t','buffer',0,'byteOffset',offsets(offset_index+0),'byteLength',numel(t)*4);
       tT_bufferView = numel(bufferViews);
       bufferViews{end+1} = struct('buffer',0,'byteOffset',offsets(offset_index+1),'byteLength',numel(tT)*4);
       qU_bufferView = numel(bufferViews);
@@ -285,11 +306,11 @@ function writeGLTF(filename,V,F,varargin)
     end
   end
   if mt>0
-    MT_bufferViews = zeros(mt,1);
+    MV_bufferViews = zeros(mt,1);
     for i = 1:mt
-      MT_bufferViews(i) = numel(bufferViews);
+      MV_bufferViews(i) = numel(bufferViews);
       bufferViews{end+1} =  ...
-        struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(MT(:,:,i))*4,'target',ARRAY_BUFFER);
+        struct('buffer',0,'byteOffset',offsets(offset_index),'byteLength',numel(MV(:,:,i))*4,'target',ARRAY_BUFFER);
       offset_index = offset_index+1;
     end
     if nf>0
@@ -336,11 +357,11 @@ function writeGLTF(filename,V,F,varargin)
     end
   end
   if mt>0
-    MT_accessors = zeros(mt,1);
+    MV_accessors = zeros(mt,1);
     for i = 1:mt
-      MT_accessors(i) = numel(accessors);
+      MV_accessors(i) = numel(accessors);
       accessors{end+1} = ...
-        struct('bufferView',MT_bufferViews(i),'byteOffset',0,'componentType',FLOAT,'count',size(MT,1),'type','VEC3','max',max(MT(:,:,i)),'min',min(MT(:,:,i)));
+        struct('bufferView',MV_bufferViews(i),'byteOffset',0,'componentType',FLOAT,'count',size(MV,1),'type','VEC3','max',max(MV(:,:,i)),'min',min(MV(:,:,i)));
     end
     t_accessor = numel(accessors);
     accessors{end+1} = ...
@@ -368,7 +389,7 @@ function writeGLTF(filename,V,F,varargin)
   if mt>0
     mesh.primitives{1}.targets = {};
     for i = 1:mt
-      mesh.primitives{1}.targets{i} = struct('POSITION',MT_accessors(i));
+      mesh.primitives{1}.targets{i} = struct('POSITION',MV_accessors(i));
     end
     mesh.weights = zeros(1,mt);
   end
@@ -444,11 +465,5 @@ function writeGLTF(filename,V,F,varargin)
   fid = fopen(filename,'w');
   fprintf(fid,'%s',jsonencode(gltf));
   fclose(fid);
-
-  %tic;
-  %[s,r] = system(sprintf('cat %s | ruby -r json -e "jj JSON.parse gets"',filename));r
-  %toc
-
-
 
 end
