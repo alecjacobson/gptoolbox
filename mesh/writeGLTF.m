@@ -14,9 +14,20 @@ function writeGLTF(filename,V,F,varargin)
   %     MV  #V by 3 by #M list of morph targets
   %   'MorphWeights' followed by
   %     MW  #frames by #M list of morph weights
+  %   'TextureCoordinates' followed by
+  %     UV  #V by 2 list of texture coordinates
   %
   % Examples:
   %   !python -m json.tool octopus.gltf > octopus-pretty.gltf
+  NEAREST = 9728;
+  LINEAR = 9729;
+  NEAREST_MIPMAP_NEAREST = 9984;
+  LINEAR_MIPMAP_NEAREST = 9985;
+  NEAREST_MIPMAP_LINEAR = 9986;
+  LINEAR_MIPMAP_LINEAR = 9987;
+  CLAMP_TO_EDGE = 33071;
+  MIRRORED_REPEAT = 33648;
+  REPEAT = 10497;
 
   T = [];
   W = [];
@@ -26,12 +37,18 @@ function writeGLTF(filename,V,F,varargin)
   N = [];
   fps = 30;
   nf = 0;
+  UV = [];
+  tex_im = [];
+  mag_filter = LINEAR;
+  min_filter = LINEAR_MIPMAP_LINEAR;
+  wrap_s = MIRRORED_REPEAT;
+  wrap_t = MIRRORED_REPEAT;
 
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'FPS','MorphTargets','MorphNormals','MorphWeights','Normals','SkinningTransforms','SkinningWeights'}, ...
-    {'fps','MV','MN','MW','N','T','W'});
+    {'FPS','MagFilter','MinFilter','MorphTargets','MorphNormals','MorphWeights','Normals','SkinningTransforms','SkinningWeights','TextureCoordinates','TextureImage'}, ...
+    {'fps','mag_filter','min_filter','MV','MN','MW','N','T','W','UV','tex_im'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -46,6 +63,27 @@ function writeGLTF(filename,V,F,varargin)
     v=v+1;
   end
 
+  mag_filter = string_to_magic_value(mag_filter);
+  min_filter = string_to_magic_value(min_filter);
+  function value = string_to_magic_value(string)
+    if ischar(string)
+      switch(string)
+      case 'LINEAR'
+        value = LINEAR;
+      case 'NEAREST'
+        value = NEAREST;
+      case 'LINEAR_MIPMAP_NEAREST'
+        value = LINEAR_MIPMAP_NEAREST;
+      case 'LINEAR_MIPMAP_LINEAR'
+        value = LINEAR_MIPMAP_LINEAR;
+      otherwise
+        error([string ' not found/implemented.']);
+      end
+    else
+      value = string;
+    end
+  end
+
 
   % set flags 
   has_normals = ~isempty(N);
@@ -54,6 +92,8 @@ function writeGLTF(filename,V,F,varargin)
   has_morph_target_positions = ~isempty(MV);
   has_morph_target_weights = ~isempty(MW);
   has_morph_target_normals = ~isempty(MN);
+  has_texture_coordinates = ~isempty(UV);
+  has_texture_image = ~isempty(tex_im);
 
 
 
@@ -81,7 +121,7 @@ function writeGLTF(filename,V,F,varargin)
   buffered_data{end+1} = struct('Name','F','Data',F,'Type','SCALAR','ComponentType',F_type,'Size',F_size,'MatlabType',F_matlab_type,'Target',ELEMENT_ARRAY_BUFFER);
   buffered_data{end+1} = struct('Name','V','Data',V,'Target',ARRAY_BUFFER);
   if has_normals
-    buffered_data{end+1} = struct('Name','N','Data',N,'Target',ARRAY_BUFFER);
+    buffered_data{end+1} = struct('Name','N','Data',normalizerow(N),'Target',ARRAY_BUFFER);
   end
   if has_morph_target_weights
     assert(size(MW,2) == size(MV,3));
@@ -119,6 +159,9 @@ function writeGLTF(filename,V,F,varargin)
     Tt = (0:size(T,4)-1)*1/fps;
     buffered_data{end+1} = struct('Name','Tt','Data',Tt,'Type','SCALAR');
   end
+  if has_texture_coordinates
+    buffered_data{end+1} = struct('Name','UV','Data',UV,'Target',ARRAY_BUFFER);
+  end
 
   [buffer,bufferViews,accessors,accessor_hash] = prepare_buffer(buffered_data);
 
@@ -127,6 +170,9 @@ function writeGLTF(filename,V,F,varargin)
 
   if has_normals
     attributes.NORMAL = accessor_hash.N;
+  end
+  if has_texture_coordinates
+    attributes.TEXCOORD_0 = accessor_hash.UV;
   end
   if has_skinning_weights
     attributes.JOINTS_0 = accessor_hash.WIk;
@@ -189,6 +235,8 @@ function writeGLTF(filename,V,F,varargin)
     "accessors",{accessors}, ...
     "asset",struct("version","2.0") ...
     );
+
+  % Are these just for animation or do they overlap with texture samplers?
   samplers = {};
   channels = {};
   if has_skinning_weights
@@ -212,6 +260,38 @@ function writeGLTF(filename,V,F,varargin)
   end
   if ~isempty(samplers)
     gltf.animations = {struct('samplers',{samplers},'channels',{channels})};
+  end
+  if has_texture_image 
+
+    if mag_filter == LINEAR
+      tmpfile = 'writeGLTF.jpg';
+      imwrite(flipud(tex_im),tmpfile,'Quality',100);
+    else
+      tmpfile = 'writeGLTF.png';
+      imwrite(flipud(tex_im),tmpfile);
+    end
+    tex_image_uri = imdata(tmpfile);
+    delete(tmpfile);
+
+
+    gltf.images = {struct('uri',tex_image_uri)};
+    tex_image_index = numel(gltf.images)-1;
+    if ~isfield(gltf,'samplers')
+      gltf.samplers = {};
+    end
+    gltf.samplers{end+1} = struct('magFilter',mag_filter,'minFilter',min_filter,'wrapS',wrap_s,'wrapT',wrap_t);
+    gltf.textures = {struct('sampler',numel(gltf.samplers)-1,'source',tex_image_index)};
+
+    if has_texture_coordinates
+      gltf.materials = {struct( ...
+        'name','default', ...
+        'pbrMetallicRoughness', ...
+          struct( ...
+            'baseColorTexture',struct('index',0), ...
+            'metallicFactor',0, ...
+            'roughnessFactor',1))};
+      gltf.meshes{1}.primitives{1}.material = numel(gltf.materials)-1;
+    end
   end
 
   fid = fopen(filename,'w');
@@ -242,6 +322,8 @@ function writeGLTF(filename,V,F,varargin)
       end
       if ~isfield(item,'Type')
         switch(size(adjusted_data,2))
+        case 2
+          item.Type = 'VEC2';
         case 3
           item.Type = 'VEC3';
         case 4
@@ -259,7 +341,7 @@ function writeGLTF(filename,V,F,varargin)
           accessor_count = numel(adjusted_data_i);
           accessor_min = {{min(  adjusted_data_i,[],[1 2])}};
           accessor_max = {{max(  adjusted_data_i,[],[1 2])}};
-        case {'VEC3','VEC4'}
+        case {'VEC2','VEC3','VEC4'}
           accessor_count = size( adjusted_data_i,1);
           accessor_min = min(    adjusted_data_i,[],1);
           accessor_max = max(    adjusted_data_i,[],1);
