@@ -10,7 +10,7 @@ function [P,C] = parse_path(dstr)
   function [x,dstr] = parse_x(dstr)
     [x,count,~,pos] = sscanf(dstr,'%g',1);
     if count~= 1
-      xy = [];
+      x = [];
       return;
     end
     dstr = dstr(pos:end);
@@ -39,13 +39,13 @@ function [P,C] = parse_path(dstr)
   end
 
   [key,dstr] = parse_key(dstr);
-  assert(key == 'M','First key must be M');
+  assert(key == 'M' || key == 'm','First key must be M or m');
   [P,dstr] = parse_xy(dstr);
   mi = size(P,1);
   C = [];
   z_seen = false;
   % I guess L is some kind of default...
-  prev_key = 'L';
+  prev_key = char('L' + (key-'M'));
   while ~isempty(dstr)
     [key,dstr] = parse_key(dstr);
     % A command letter may be eliminated if an identical command letter would
@@ -82,7 +82,11 @@ function [P,C] = parse_path(dstr)
       P(end+1,:) = Pnext;
     case {'S','s'}
       C = [C;size(P,1)+[0 1 2 3]];
-      P(end+1,:) = P(end,:)+ P(end,:)-P(end-1,:);
+      if ismember(prev_key,'SsCc')
+        P(end+1,:) = P(end,:)+ P(end,:)-P(end-1,:);
+      else
+        P(end+1,:) = P(end,:);
+      end
       [P(end+1,:),dstr] = parse_xy(dstr);
       [P(end+1,:),dstr] = parse_xy(dstr);
       if key == 's'
@@ -101,7 +105,9 @@ function [P,C] = parse_path(dstr)
       % leading to small numerical noise.
       if sum((P(end,:)-P(mi,:)).^2)<eps
         % close up naturally by identifying first and last point
-        C(end,4) = mi;
+        if ~isempty(C)
+          C(end,4) = mi;
+        end
         P = P(1:end-1,:);
       end
     otherwise
