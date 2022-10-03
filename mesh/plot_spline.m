@@ -11,6 +11,8 @@ function varargout = plot_spline(P,C)
   %   p  plot handle for curves
   % Example:
   %   cellfun(@(pe) arrayfun(@(p) set(p,'Color','r'),pe),plot_spline(P,C))
+  assert(max(C(:))<=size(P,1));
+  assert(min(C(:))>=1);
   p = {};
   pe = {};
   ish = ishold;
