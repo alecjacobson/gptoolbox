@@ -12,12 +12,20 @@ function flag = cubic_is_flat(C,tol)
   %
   % See also: cubic_eval
 
-  ux = (3.0*C(2,1) - 2.0*C(1,1) - C(4,1)).^2;
-  uy = (3.0*C(2,2) - 2.0*C(1,2) - C(4,2)).^2;
-  vx = (3.0*C(3,1) - 2.0*C(4,1) - C(1,1)).^2;
-  vy = (3.0*C(3,2) - 2.0*C(4,2) - C(1,2)).^2;
-  ux(ux < vx) = vx(ux < vx);
-  uy(uy < vy) = vy(uy < vy);
+  %assert(size(C,2) == 2);
+  %ux = (3.0*C(2,1) - 2.0*C(1,1) - C(4,1)).^2;
+  %uy = (3.0*C(2,2) - 2.0*C(1,2) - C(4,2)).^2;
+  %vx = (3.0*C(3,1) - 2.0*C(4,1) - C(1,1)).^2;
+  %vy = (3.0*C(3,2) - 2.0*C(4,2) - C(1,2)).^2;
+  %ux(ux < vx) = vx(ux < vx);
+  %uy(uy < vy) = vy(uy < vy);
+  %tolerance = 16*tol^2;
+  %flag = (ux+uy) <= tolerance;
+
+  u = (3.0*C(2,:) - 2.0*C(1,:) - C(4,:)).^2;
+  v = (3.0*C(3,:) - 2.0*C(4,:) - C(1,:)).^2;
+  u = min(u,v);
+  % Not sure if this 16 makes sense for dim>2
   tolerance = 16*tol^2;
-  flag = (ux+uy) <= tolerance;
+  flag = sum(u,2) <= tolerance;
 end
