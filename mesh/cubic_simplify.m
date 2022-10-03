@@ -52,11 +52,14 @@ function [Pf,Cf,total_num_fit_subsequences] = cubic_simplify(P,C,varargin)
   % O(#components)
   total_num_fit_subsequences = 0;
   for k = 1:max(K)
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % factor out this O(#comps #curves) by pre-sorting etc.
     keep = K==k;
     Ek = E(keep,:);
     Ck = C(keep,:);
+
+
     % find path along segements and reorient if necessary
     [I,J,F] = edges_to_path(Ek);
     Ck = Ck(J,:);
@@ -95,8 +98,8 @@ function [Pf,Cf,total_num_fit_subsequences] = cubic_simplify(P,C,varargin)
           [Vc,Tc] = cubic_flat_eval(P(Ck(c,:),:),flat_tol);
           VTc = [Vc Tc];
           Ec = [1:size(Vc,1)-1;2:size(Vc,1)]';
-          [VTc,Ec] = upsample(VTc,Ec,'Iterations',inf,'OnlySelected',@(V,E) edge_lengths(V(:,1:2),E)>max_length);
-          Tc = VTc(:,3);
+          [VTc,Ec] = upsample(VTc,Ec,'Iterations',inf,'OnlySelected',@(V,E) edge_lengths(V(:,1:end-1),E)>max_length);
+          Tc = VTc(:,end);
           Vc = cubic_eval(P(Ck(c,:),:),Tc);
           I = edges_to_path(Ec);
           Vc = Vc(I,:);
@@ -112,12 +115,24 @@ function [Pf,Cf,total_num_fit_subsequences] = cubic_simplify(P,C,varargin)
           perturbed_last = true;
           V(end,:) = V(end,:) + bbd*1e-10;
         end
+        V = V([1;any(diff(V),2)]~=0,:);
         Ps = cell2mat(fit_cubic_bezier(V,fit_tol));
         if perturbed_last
           Ps(end,:) = Ps(1,:);
         end
         [Ps,~,Cs] = remove_duplicate_vertices(Ps,0);
         Cs = reshape(Cs,4,[])';
+
+        %clf;
+        %plt(V(:,1:2));
+        %hold on;
+        %[V,Ew] = spline_to_poly(P(:,1:2),Ck,1);
+        %tsurf(Ew,V,'EdgeColor','r');
+        %plot_spline(Ps(:,1:2),Cs);
+        %hold off;
+        %axis equal;
+        %pause
+
       end
       if CS(s+1)-CS(s) == 1 || size(Cs,1) >= CS(s+1)-CS(s)
         % we shit the bed and made things worse.
