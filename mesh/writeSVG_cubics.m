@@ -1,4 +1,8 @@
 function writeSVG_cubics(filename,P,C,I,F,S,W,units)
+  function y = range(x)
+    y = max(x)-min(x);
+  end
+
   if ~exist('units','var')
     units = 'mm';
   end
