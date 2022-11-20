@@ -1,6 +1,7 @@
 function [phi,F,I,C,fold_fun] = orbifold(Ubar,Fbar,Cbar,orbi_type)
   % ORBIFOLD Compute a conformal, globally injective parameterization of a
   % sphere-topology surface, given selected cone singularities and type.
+  % "Orbifold Tutte Embedding" Aigerman and Lipman.
   %
   % [phi,F,I,C] = orbifold(Ubar,Fbar,Cbar,orbi_type)
   %
