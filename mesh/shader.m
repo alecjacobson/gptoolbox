@@ -14,6 +14,7 @@ function [I,A,FI,B] = shader(orig_tsh)
 
   I = im2double(getfield(getframe(gcf),'cdata'));
 
+  if nargout>=2
   orig_gcf = gcf;
   tsh = copy(orig_tsh);
   tsh = copyobj(tsh,gca);
@@ -24,6 +25,9 @@ function [I,A,FI,B] = shader(orig_tsh)
   set(gcf,'GraphicsSmoothing','off');
 
   set(tsh, ...
+    'AmbientStrength',1, ...
+    'DiffuseStrength',0, ...
+    'SpecularStrength',0, ...
     'FaceColor','flat', ...
      'FaceVertexCData',repmat([1 0 1], size(tsh.Faces,1),1));
   C = getfield(getframe(gcf),'cdata');
@@ -52,6 +56,7 @@ function [I,A,FI,B] = shader(orig_tsh)
       VV = tsh.Vertices;
       set(tsh, ...
         'Faces',reshape(1:numel(FF),[],3),'Vertices',VV(FF,:), ...
+        'FaceLighting','flat', ...
         'FaceColor','interp','FaceVertexCData',repdiag(ones(size(FF,1),1),3));
       B = im2double(getfield(getframe(gcf),'cdata'));
       B = B ./ sum(B,3);
@@ -67,6 +72,8 @@ function [I,A,FI,B] = shader(orig_tsh)
   orig_tsh.Visible = orig_visibile;
   % Why can't I just do delete(tsh) ?  Mauybe I can...
   children = get(gca,'Children');delete(children(1));
-  figure(orig_gcf);
+  % (Why) do I need this?
+  %figure(orig_gcf);
   set(gcf,'GraphicsSmoothing',orig_graphics_smoothing);
+  end
 end
