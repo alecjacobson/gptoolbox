@@ -36,7 +36,7 @@ the build routine is:
 ```cmd
     mkdir build && cd build
     cmake ..
-    cmake --build .
+    cmake --build . --config Release
 ```
     
 
