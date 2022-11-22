@@ -98,49 +98,24 @@ if(NOT DEFINED Z_VCPKG_EXECUTABLE)
     )
   endif()
 
-  # triplets adjustments for windows
-  #if(WIN32)
-  #  file(GLOB ADDITIONAL_TRIPLETS "${CMAKE_CURRENT_SOURCE_DIR}/.dev/docker/windows/*.cmake")
-  #  file(
-  #    COPY        ${ADDITIONAL_TRIPLETS}
-  #    DESTINATION ${Z_VCPKG_ROOT_DIR}/triplets
-  #  )
-  #  set(VCPKG_TARGET_TRIPLET_STD "${VCPKG_TARGET_TRIPLET}")
-  #  set(VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}-rel")
-  #endif()
-
-  #set(VCPKG_ARGS "--triplet=${VCPKG_TARGET_TRIPLET}" "--clean-after-build")
   set(VCPKG_ARGS "--clean-after-build")
 endif() #vcpkg
 # toolchain definition
 set(CMAKE_TOOLCHAIN_FILE "${Z_VCPKG_ROOT_DIR}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 include("${Z_VCPKG_ROOT_DIR}/scripts/buildsystems/vcpkg.cmake")
 
-
 # Find matlab
-#if(MATLAB_PROXY)
-#  set(Matlab_ROOT_DIR "${GPTOOLBOX_MEX_ROOT}/external/matlab")
-#  gptoolbox_download_matlab()
-#endif()
-
+if(MATLAB_PROXY)
+  set(Matlab_ROOT_DIR "${GPTOOLBOX_MEX_ROOT}/external/matlab")
+  gptoolbox_download_matlab()
+endif()
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
 
 # Download and find libigl
-#include(libigl)
-find_package(LIBIGL REQUIRED)
-#error(blal)
-#find_package(libigl QUIET)
-#if(NOT libigl_FOUND)
-#  message(STATUS "Mandatory dependency not found: libigl. Will be downloaded over vcpkg ...")
-#  execute_process(
-#    COMMAND ${Z_VCPKG_EXECUTABLE} install libigl ${VCPKG_ARGS}
-#    COMMAND_ERROR_IS_FATAL ANY
-#  )
-#  set(libigl_ROOT ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET})
-#  #set(PKG_CONFIG_EXECUTABLE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/pkgconf/pkgconf")
-#  include(libigl)
-#endif()
-#error(blal)
+# NOTE: should be replaced with vcpkg version of libigl for more consistency as soon apdated to 2.4.0 (and https://github.com/microsoft/vcpkg/pull/26029 colsed) there
+#       find_package(LIBIGL REQUIRED)
+include(libigl)
+
 
 if(WITH_ELTOPO)
   # Download and find eltopo

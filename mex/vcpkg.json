@@ -1,16 +1,7 @@
 {
-    "name": "gp-toolbox",
+    "name": "gp-toolbox-mex",
     "version-string": "0.1.0",
     "dependencies": [
-        {
-            "name": "libigl",
-            "default-features": false,
-            "features": [
-              "embree",
-              "cgal",
-              "xml"
-            ]
-          },
       "blas",
       "lapack"
     ]
