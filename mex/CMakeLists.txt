@@ -65,16 +65,82 @@ if( UNIX AND NOT APPLE)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 endif()
 
+# git
+find_package(Git REQUIRED)
+
+# ---[ setup vcpkg toolchain ]---
+# vcpkg defines a set of variables if toolchain setup was successfull
+if(NOT DEFINED Z_VCPKG_EXECUTABLE)
+  set(Z_VCPKG_ROOT_DIR "${GPTOOLBOX_MEX_EXTERNAL}/vcpkg")
+  message(STATUS "vcpkg was not found in system and will be installed to ${Z_VCPKG_ROOT_DIR} ...")
+  if(NOT EXISTS ${Z_VCPKG_ROOT_DIR})
+    execute_process(
+      COMMAND             "${GIT_EXECUTABLE}" clone https://github.com/microsoft/vcpkg "${Z_VCPKG_ROOT_DIR}"
+      COMMAND_ERROR_IS_FATAL ANY
+    )
+  endif()
+  
+  # CMAKE_EXECUTABLE_SUFFIX is not yet defined
+  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(Z_VCPKG_EXECUTABLE "${Z_VCPKG_ROOT_DIR}/vcpkg.exe")
+    set(Z_VCPKG_BOOTSTRAP_SCRIPT "${Z_VCPKG_ROOT_DIR}/bootstrap-vcpkg.bat")
+  else()
+    set(Z_VCPKG_EXECUTABLE "${Z_VCPKG_ROOT_DIR}/vcpkg")
+    set(Z_VCPKG_BOOTSTRAP_SCRIPT "${Z_VCPKG_ROOT_DIR}/bootstrap-vcpkg.sh")
+  endif()
+
+
+  # run bootstrap once
+  if(NOT EXISTS ${Z_VCPKG_EXECUTABLE})
+    execute_process(
+      COMMAND ${Z_VCPKG_BOOTSTRAP_SCRIPT} -disableMetrics
+      COMMAND_ERROR_IS_FATAL ANY
+    )
+  endif()
+
+  # triplets adjustments for windows
+  #if(WIN32)
+  #  file(GLOB ADDITIONAL_TRIPLETS "${CMAKE_CURRENT_SOURCE_DIR}/.dev/docker/windows/*.cmake")
+  #  file(
+  #    COPY        ${ADDITIONAL_TRIPLETS}
+  #    DESTINATION ${Z_VCPKG_ROOT_DIR}/triplets
+  #  )
+  #  set(VCPKG_TARGET_TRIPLET_STD "${VCPKG_TARGET_TRIPLET}")
+  #  set(VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}-rel")
+  #endif()
+
+  #set(VCPKG_ARGS "--triplet=${VCPKG_TARGET_TRIPLET}" "--clean-after-build")
+  set(VCPKG_ARGS "--clean-after-build")
+endif() #vcpkg
+# toolchain definition
+set(CMAKE_TOOLCHAIN_FILE "${Z_VCPKG_ROOT_DIR}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+include("${Z_VCPKG_ROOT_DIR}/scripts/buildsystems/vcpkg.cmake")
+
+
 # Find matlab
-if(MATLAB_PROXY)
-  set(Matlab_ROOT_DIR "${GPTOOLBOX_MEX_ROOT}/external/matlab")
-  gptoolbox_download_matlab()
-endif()
+#if(MATLAB_PROXY)
+#  set(Matlab_ROOT_DIR "${GPTOOLBOX_MEX_ROOT}/external/matlab")
+#  gptoolbox_download_matlab()
+#endif()
 
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
 
 # Download and find libigl
-include(libigl)
+#include(libigl)
+find_package(LIBIGL REQUIRED)
+#error(blal)
+#find_package(libigl QUIET)
+#if(NOT libigl_FOUND)
+#  message(STATUS "Mandatory dependency not found: libigl. Will be downloaded over vcpkg ...")
+#  execute_process(
+#    COMMAND ${Z_VCPKG_EXECUTABLE} install libigl ${VCPKG_ARGS}
+#    COMMAND_ERROR_IS_FATAL ANY
+#  )
+#  set(libigl_ROOT ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET})
+#  #set(PKG_CONFIG_EXECUTABLE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/pkgconf/pkgconf")
+#  include(libigl)
+#endif()
+#error(blal)
 
 if(WITH_ELTOPO)
   # Download and find eltopo
