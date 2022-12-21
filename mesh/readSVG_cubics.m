@@ -192,8 +192,9 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         [Pii,Cii] = parse_path(d);
         %clf;hold on;arrayfun(@(c) set(plot_cubic(Pii(Cii(c,:),:)),'Color','b'),1:size(Cii,1));hold off;
         %pause
-      case 'g'
-        % recurse...
+      case {'g','defs'}
+        % Illustrator appears to put clip-paths in <defs> at the top of the
+        % file. Recurce into these similar to a group <g>
         g_kids = kid.getChildNodes();
         [g_P,g_C,g_I,g_F,g_S,g_W,g_D,g_k] = process_kids(g_kids);
         C = [C;size(P,1)+g_C];
@@ -204,6 +205,11 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         W = [W;g_W];
         D = [D;g_D];
         k = k+g_k;
+        % I have a feeling that transforms applied to groups are not being read
+        % correctly. See below. Seems like transforms are only applied to
+        % Pii,Cii type of additions. So maybe groups should be writing into
+        % Pii,Cii etc. and then added to P,C etc. below, rather than this
+        % `continue`
         continue;
       case '#text'
         % knowingly skip
