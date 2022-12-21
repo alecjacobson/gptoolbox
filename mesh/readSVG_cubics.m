@@ -51,8 +51,12 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     style = char(kid.getAttribute('style'));
     [~,~,~,~,match] = regexp(style,[key ': *([^;]*);']);
     if isempty(match)
-      f = empty_val;
-      return;
+      match = char(kid.getAttribute(key));
+      if isempty(match)
+        f = empty_val;
+        return;
+      end
+      match = {{match}};
     end
     if isempty(match{1}) || strcmp(match{1}{1},'none') || match{1}{1}(1) ~= '#'
       f = nan(1,3);
@@ -210,6 +214,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
       end
       Si = get_color(kid,'stroke',nan(1,3));
       Fi = get_color(kid,'fill',[0 0 0]);
+
       Wi = get_scalar(kid,'stroke-miterlimit');
       Di = get_not_none(kid,'display');
       Ti = get_transform(kid);
