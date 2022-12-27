@@ -62,8 +62,8 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
       f = nan(1,3);
       return;
     end
-    assert(numel(match{1}{1})==7);
-    f = hex2dec(reshape(match{1}{1}(2:7),2,3)')';
+    assert(numel(match{1}{1})==4 || numel(match{1}{1})==7);
+    f = hex2rgb(match{1}{1}(2:end));
     assert(all(size(f)==[1 3]));
   end
   function s = get_scalar(kid,key)
