@@ -51,15 +51,19 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     style = char(kid.getAttribute('style'));
     [~,~,~,~,match] = regexp(style,[key ': *([^;]*);']);
     if isempty(match)
-      f = empty_val;
-      return;
+      match = char(kid.getAttribute(key));
+      if isempty(match)
+        f = empty_val;
+        return;
+      end
+      match = {{match}};
     end
     if isempty(match{1}) || strcmp(match{1}{1},'none') || match{1}{1}(1) ~= '#'
       f = nan(1,3);
       return;
     end
-    assert(numel(match{1}{1})==7);
-    f = hex2dec(reshape(match{1}{1}(2:7),2,3)')';
+    assert(numel(match{1}{1})==4 || numel(match{1}{1})==7);
+    f = hex2rgb(match{1}{1}(2:end));
     assert(all(size(f)==[1 3]));
   end
   function s = get_scalar(kid,key)
@@ -188,8 +192,9 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         [Pii,Cii] = parse_path(d);
         %clf;hold on;arrayfun(@(c) set(plot_cubic(Pii(Cii(c,:),:)),'Color','b'),1:size(Cii,1));hold off;
         %pause
-      case 'g'
-        % recurse...
+      case {'g','defs'}
+        % Illustrator appears to put clip-paths in <defs> at the top of the
+        % file. Recurce into these similar to a group <g>
         g_kids = kid.getChildNodes();
         [g_P,g_C,g_I,g_F,g_S,g_W,g_D,g_k] = process_kids(g_kids);
         C = [C;size(P,1)+g_C];
@@ -200,6 +205,11 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         W = [W;g_W];
         D = [D;g_D];
         k = k+g_k;
+        % I have a feeling that transforms applied to groups are not being read
+        % correctly. See below. Seems like transforms are only applied to
+        % Pii,Cii type of additions. So maybe groups should be writing into
+        % Pii,Cii etc. and then added to P,C etc. below, rather than this
+        % `continue`
         continue;
       case '#text'
         % knowingly skip
@@ -210,6 +220,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
       end
       Si = get_color(kid,'stroke',nan(1,3));
       Fi = get_color(kid,'fill',[0 0 0]);
+
       Wi = get_scalar(kid,'stroke-miterlimit');
       Di = get_not_none(kid,'display');
       Ti = get_transform(kid);

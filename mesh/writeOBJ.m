@@ -1,7 +1,7 @@
 function writeOBJ(filename, V,F,UV,TF,N,NF,comment)
   % WRITEOBJ writes an OBJ file with vertex/face information
   %
-  % writeOBJ(filename,V,F,UV,N)
+  % writeOBJ(filename, V,F,UV,TF,N,NF,comment)
   %
   % Input:
   %  filename  path to .obj file

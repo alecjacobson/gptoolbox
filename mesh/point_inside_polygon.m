@@ -15,8 +15,8 @@ function interior_point = point_inside_polygon(V)
   if exist('triangulate')==3
     % triangulate and pick farthest barycenter from polygon boundary
     E = [1:size(V,1);2:size(V,1) 1]';
-    [~,F] = triangulate(V,E);
-    BC = barycenter(V,F);
+    [Vt,Ft] = triangulate(V,E);
+    BC = barycenter(Vt,Ft);
     D = point_mesh_squared_distance(BC,V,E);
     [~,m] = max(D);
     interior_point = BC(m,:);
@@ -78,7 +78,10 @@ function interior_point = point_inside_polygon(V)
     second_hit = valid_second_hits(...
       distance_to_first_hit == min(distance_to_first_hit),:);
     % shouldn't have to do this:
-    second_hit = second_hit(1,:);
+    sz = size(second_hit);
+    if sz(1) >= 1
+        second_hit = second_hit(1,:);
+    end
 
     interior_point = (first_hit + second_hit)/2;
 end

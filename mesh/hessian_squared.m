@@ -20,6 +20,21 @@ function [Q,H,M4,D,A,G,int] = hessian_squared(V,F,varargin)
       extraints = varargin{1};
   end
 
+  % just special case curves
+  if size(F,2) == 2
+    E = F;
+    n = size(V,1);
+    int = find(accumarray(E(:),1,[n 1])==2);
+    b = find(accumarray(E(:),1,[n 1])==1);
+    M = massmatrix(V,E);
+    H = cotmatrix(V,E);
+    % Should make this #V by #V with zeros to match other size(F,2) cases
+    H(b,:) = 0;
+    Q = H'*(M\H);
+    M4 = M;
+    return;
+  end 
+
   % Number of faces
   m = size(F,1);
   % Number of vertices

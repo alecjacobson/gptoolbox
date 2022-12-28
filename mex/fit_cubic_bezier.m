@@ -10,3 +10,6 @@
 %  Output:
 %    cubics #cubics list of 4 by dim lists of cubic control points
 %
+% Example:
+%   [P,~,C] = remove_duplicate_vertices(cell2mat(fit_cubic_bezier(X,1)),0);
+%   C = reshape(C,4,[])';

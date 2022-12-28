@@ -1,7 +1,7 @@
 % TRIANGULATE Constrained Delaunay triangulation via triangle via libigl.
 %
-% [TV,TF,TVM,TEM] = triangulate(V,E);
-% [TV,TF,TVM,TEM] = triangulate(V,E,'ParameterName',ParameterValue, ...)
+% [TV,TF,TVM,TE,TEM] = triangulate(V,E);
+% [TV,TF,TVM,TE,TEM] = triangulate(V,E,'ParameterName',ParameterValue, ...)
 %
 % The overhead of calling triangle via the command line can be significant. For
 % example, to trivially triangulate three points. Calling `triangulate` is
