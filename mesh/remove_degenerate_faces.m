@@ -80,7 +80,7 @@ function [VV,FF] = remove_degenerate_faces(V,F,varargin)
     all(ismember(sort(E,2),sort([F(:,[2 3]);F(:,[3 1]);F(:,[1 2])],2),'rows')));
   while true
     [IA,~,l,A] = is_acute(V,FF);
-    D = A/2 < epsilon;
+    D = A/2 <= epsilon;
     % Find non-delaunay, longest edges of small, non-acute triangles
     L = ~is_intrinsic_delaunay(V,FF) & bsxfun(@eq,l,max(l,[],2)) & repmat(D&~IA,1,3);
     [LI,LJ] = ind2sub(size(FF),find(L));
