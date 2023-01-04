@@ -92,10 +92,24 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
     if ~exist('cubic_vertex_removal_polyfun','file');
       warning('assuming L2 not l2 error');
       dim = 1;
-      syms('iC1',[4 dim],'real');
-      syms('iC2',[4 dim],'real');
-      % complains if I mark st as 'real'
-      syms('st',[1 1]);
+      % Matlab is (sometimes?) confused that this is a static workspace and
+      % refuses to let syms create variables.
+      %syms('iC1',[4 dim],'real');
+      %syms('iC2',[4 dim],'real');
+      %% complains if I mark st as 'real'
+      %syms('st',[1 1]);
+      iC1 = [
+        sym('iC11','real')
+        sym('iC12','real')
+        sym('iC13','real')
+        sym('iC14','real')];
+      iC2 = [
+        sym('iC21','real')
+        sym('iC22','real')
+        sym('iC23','real')
+        sym('iC24','real')];
+      st = sym('st');
+
       sC = C_from_t(iC1,iC2,st);
       [oC1,oC2] = cubic_split(sC,st);
       % L2 style.
