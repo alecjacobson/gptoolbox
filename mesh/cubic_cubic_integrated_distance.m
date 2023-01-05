@@ -9,10 +9,19 @@ function [varargout] = cubic_cubic_integrated_distance( ...
     Q)
   %
   % [E] = cubic_cubic_integrated_distance( x, y, g_C, h_C, P, g_D, h_D, Q)
-  % [H,F,c,E] = cubic_cubic_integrated_distance( x, y, g_C, h_C, P, g_D, h_D, Q)
+  % [H,F,c] = cubic_cubic_integrated_distance( x, y, g_C, h_C, P, g_D, h_D)
   %
-  % ½ ∫ₓʸ ‖ C( g_C u + h_C ) - D( g_D u + h_D ) ‖² du
+  % E = ½ ∫ₓʸ ‖ C( g_C u + h_C ) - D( g_D u + h_D ) ‖² du
   %
+  % where C's control points are in rows of P and D's control points are in rows
+  % of Q.
+  %
+  % E = 0.5*trace(Q.'*H*Q) + trace(Q.'*F) + c;
+  % 
+  % That is, 
+  %   Q★ = argmin_Q E(Q) 
+  %   Q★ = H⁻¹ F
+  %   
   % Where
   %
   % C(T) = (1-T)³ Pᵢ⁰ + 3(1-T)²T Pᵢ¹ + 3(1-T)T² Pᵢ² + T³ Pᵢ³
@@ -26,8 +35,12 @@ function [varargout] = cubic_cubic_integrated_distance( ...
   %   P  4 by dim list of fixed curve control points
   %   g_D  scalar multiplicative factor in parametric values of fixed curve
   %   h_D  scalar additive factor in parametric values of fixed curve
-  %   Q  4 by dim list of fixed curve control points (optional)
+  %   Q  4 by dim list of unknown curve control points (optional)
   % Outputs
+  %   E  integrated energy
+  %   H  4 by 4 quadratic form of energy as function of Q
+  %   F  4 by dim linear term of energy as function of Q
+  %   c  scalar constant of energy as function of Q
   %
   if isfloat(x) && isfloat(y)
     assert(x>=0);
