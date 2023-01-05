@@ -160,9 +160,12 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
 
     f = @(t1) objective_t1(C1,C2,t1,B,S);
     for iter = 1:max_iter
-      % Use finite differences. Would be cool to try to replace this with complex
-      % step
-      dfdt1 = (f(t1+1e-5)-f(t1-1e-5))/(2*1e-5);
+      %dfdt1 = (f(t1+1e-5)-f(t1-1e-5))/(2*1e-5);
+      % Complex step is bit faster and more accurate/stable. For 1D input, I
+      % believe this should be as good as autodiff and probably as good as we
+      % can get without a lot of hand derivativation/compiling code.
+      dfdt1 = imag(f(complex(t1,1e-100)))/1e-100;
+      
       if norm(dfdt1,inf) < 1e-8
         break;
       end
@@ -218,7 +221,7 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
     %   C2(4,:)
     %   ];
     HH = repdiag(H,2);
-    V = ((S'*HH*S)\(-S'*F(:)-S'*HH*B(:)));
+    V = ((S.'*HH*S)\(-S.'*F(:)-S.'*HH*B(:)));
     V = max(V,0);
     C = reshape( B(:) + S*V , size(C));
     [E] = objective(C1,C2,C,t1);

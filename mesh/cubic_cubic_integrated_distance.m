@@ -1,4 +1,4 @@
-function [H,F,c,E] = cubic_cubic_integrated_distance( ...
+function [varargout] = cubic_cubic_integrated_distance( ...
     x, ...
     y, ...
     g_C, ...
@@ -7,6 +7,9 @@ function [H,F,c,E] = cubic_cubic_integrated_distance( ...
     g_D, ...
     h_D, ...
     Q)
+  %
+  % [E] = cubic_cubic_integrated_distance( x, y, g_C, h_C, P, g_D, h_D, Q)
+  % [H,F,c,E] = cubic_cubic_integrated_distance( x, y, g_C, h_C, P, g_D, h_D, Q)
   %
   % ½ ∫ₓʸ ‖ C( g_C u + h_C ) - D( g_D u + h_D ) ‖² du
   %
@@ -65,21 +68,36 @@ function [H,F,c,E] = cubic_cubic_integrated_distance( ...
 
   % Map quadrature points to D's direct paramter space
   T = g_D * u + h_D;
+
+  if nargout<=1
+    % Compute energy directly. This is faster. Better be the same as below.
+    E = 0.5*sum(w.*(C - cubic_eval( Q, T)).^2,'all');
+    varargout{1} = E;
+    return;
+  end
   
   % Stack bezier basis matrices for each evaluation point
   M = [(1-T).^3 3*T.*(1-T).^2 3*T.^2.*(1-T) T.^3];
 
   W = diag(w);
 
-  H = M'*W*M;
+  H = M.'*W*M;
   assert(all(size(H) == [4 4]));
-  F = -M'*W*C;
+  F = -M.'*W*C;
   assert(all(size(F) == [4 2]));
 
-  c = 0.5*trace(C'*W*C);
+  c = 0.5*trace(C.'*W*C);
 
-  if nargin>=8 && nargout>=4 && ~isempty(Q)
+  if isempty(Q)
+    warning("Cant compute energy on empty Q");
+    E = [];
+  else
     % Actually compute energy
-    E = 0.5*trace(Q'*H*Q) + trace(Q'*F) + c;
+    E = 0.5*trace(Q.'*H*Q) + trace(Q.'*F) + c;
   end
+
+  varargout{1} = H;
+  varargout{2} = F;
+  varargout{3} = c;
+  varargout{4} = E;
 end
