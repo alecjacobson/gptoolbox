@@ -97,7 +97,8 @@ function [varargout] = cubic_cubic_integrated_distance( ...
   H = M.'*W*M;
   assert(all(size(H) == [4 4]));
   F = -M.'*W*C;
-  assert(all(size(F) == [4 2]));
+  assert(size(F,1) == 4);
+  assert(size(F,2) == dim);
 
   c = 0.5*trace(C.'*W*C);
 
