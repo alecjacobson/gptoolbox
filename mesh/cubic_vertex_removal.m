@@ -28,6 +28,14 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
   %         method {100}
   %       't0'  followed by initial guess of t for iterative method {relative
   %         approximate arc lengths}
+  %       'AlreadyGenerated'  followed by whether the automatically generated helper
+  %         functions cubic_vertex_removal_polyfun and cubic_vertex_removal_g
+  %         have already been generated. On some machines checking `exist()` can
+  %         be really slow. So, you could call
+  %         `cubic_vertex_removal(…,'AlreadyGenerated',false)` onces to
+  %         generate the files and the call
+  %         `cubic_vertex_removal(…,'AlreadyGenerated',true) for subsequent
+  %         calls {false}.
   % Outputs:
   %   C  4 by dim list of output coordinates. By default:
   %     C(1,:) = C1(1,:),
@@ -60,11 +68,12 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
   method = 'perfect';
   max_iter = 100;
   t0 = [];
+  promise_already_built = false;
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Method','MaxIter','t0'}, ...
-    {'method','max_iter','t0'});
+    {'Method','MaxIter','t0','AlreadyGenerated'}, ...
+    {'method','max_iter','t0','promise_already_built'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -89,7 +98,7 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
       (1./(1-t))*(C2(end-1,:)-C2(end,:)) + C2(end,:); ...
       C2(end,:)];
     % Build a root finder for the 1D problem
-    if ~exist('cubic_vertex_removal_polyfun','file');
+    if ~promise_already_built && ~exist('cubic_vertex_removal_polyfun','file');
       warning('assuming L2 not l2 error');
       dim = 1;
       % Matlab is (sometimes?) confused that this is a static workspace and
