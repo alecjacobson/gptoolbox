@@ -77,7 +77,7 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes,varargin)
       
       p = V;
       t = T;
-      M = kroneye(massmatrix(p,t,'voronoi'),size(V,2));
+      M = kroneye(massmatrix(p,t,'barycentric'),size(V,2));
       %isM = diag(sparse(1./sqrt(diag(M))));
       faces = F;
       
