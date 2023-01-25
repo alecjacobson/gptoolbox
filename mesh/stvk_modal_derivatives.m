@@ -1,12 +1,34 @@
-function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes)
-  [U,phi,vals,K,M] = STVKPolys3D(V,T,nummodes);
+function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes,varargin)
+  reg_method = 'null-orthogonal';
+  Aeq = [];
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Regularization','Aeq'}, ...
+    {'reg_method','Aeq'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
+
+  Aeq(:,[1:3:end 2:3:end 3:3:end]) = Aeq;
+  [U,phi,vals,K,M] = STVKPolys3D(V,T,nummodes, reg_method, Aeq);
   K = K([1:3:end 2:3:end 3:3:end],[1:3:end 2:3:end 3:3:end]);
   M = M([1:3:end 2:3:end 3:3:end],[1:3:end 2:3:end 3:3:end]);
   U = permute(reshape(U,[size(V,2) size(V,1) size(U,2)]),[2 1 3]);
   phi = permute(reshape([phi{cellfun(@length,phi)>0}],size(V,2),size(V,1),[]),[2 1 3]);
 
   % Modified code from Paul Kry
-  function [U, phi, vals, K, M] = STVKPolys3D(V, T, nummodes)
+  function [U, phi, vals, K, M] = STVKPolys3D(V, T, nummodes, reg_method, Aeq)
   % Compute basis and polynomial coefficients
   %
   %   Issues and observations:
@@ -33,6 +55,7 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes)
   %   follows the appendix.
   %
   %   computeBandArea is very slow for larger models.
+
   
       fileNameRoot = "beam";
       fileName = "../../models/3D/" + fileNameRoot + ".mesh";
@@ -106,6 +129,7 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes)
       %end
       bigC = kron(diag(sparse(-vol)),C0);
       K = B'*bigC*B;
+      K = 0.5*(K+K');
        
       % Build lumped mass matrix
       nv = size(p,1);
@@ -121,7 +145,11 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes)
           modeoffset = 0; 
       else
           ii = 1:numel(p);     % Use all vert DOFs
-          modeoffset = 6;  % skip the first 6 modes because of rigid modes
+          if isempty(Aeq)
+            modeoffset = 6;  % skip the first 6 modes because of rigid modes
+          else
+            modeoffset = 0;
+          end
       end
        
       %dofmasses = zeros( numel(p), 1 );
@@ -132,7 +160,14 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes)
        
       % GEVD, using lumped mass
       sigma = max(max(abs(K(ii,ii))));
-      [Uii, Dii] = eigs( K(ii,ii)/sigma, M(ii,ii), nummodes+modeoffset, 'sm' ); 
+      Kiisigma = K(ii,ii)/sigma;
+      if isempty(Aeq)
+        [Uii, Dii] = eigs( Kiisigma , M(ii,ii), nummodes+modeoffset, 'sm' ); 
+      else
+        neq = size(Aeq,1);
+        [Uii, Dii] = eigs( [Kiisigma Aeq';Aeq sparse(neq,neq)], blkdiag(M(ii,ii),sparse(neq,neq)), nummodes+modeoffset, 'sm' ); 
+        Uii = Uii(1:numel(ii),:);
+      end
       vals = diag(Dii) * sigma;
           
       U = zeros( numel(p), nummodes+modeoffset );
@@ -141,8 +176,27 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes)
       if computeModalDerivatives
         if pinned
           K_dec = decomposition(K(ii,ii));
+          K_solve = @(rhs) K_dec \ rhs;
         else
-          K_dec = decomposition(K(ii,ii) + 1e-4*M(ii,ii));
+          if isempty(Aeq)
+            reg_method = 'null-orthogonal';
+            switch reg_method
+            case 'none'
+              K_dec = decomposition(K(ii,ii));
+              K_solve = @(rhs) K_dec \ rhs;
+            case 'null-orthogonal'
+              Q = [K(ii,ii) U(ii,:);U(ii,:)' sparse(size(U,2),size(U,2))];
+              dec = decomposition(Q);
+              K_solve = @(rhs) speye(numel(ii),numel(ii)+size(U,2)) * (dec \ [rhs; zeros(size(U,2),1)]);
+            case 'tikonov'
+              K_dec = decomposition(K(ii,ii) + 1e-4*M(ii,ii));
+              K_solve = @(rhs) K_dec \ rhs;
+            end
+          else
+            Q = [K(ii,ii) Aeq';Aeq sparse(neq,neq)];
+            dec = decomposition(Q);
+            K_solve = @(rhs) speye(numel(ii),numel(ii)+neq) * (dec \ [rhs; zeros(neq,1)]);
+          end
         end
   
           BU = B*U;
@@ -166,7 +220,7 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes)
   
                   % TODO: use LDLT of K(ii,ii) as we need it a bunch of times
                       Uij = zeros( numel(p), 1 );
-                      Uij(ii) = K_dec \ rhs(ii); % Equation 14 in Section 5.1 of Barbic 2005
+                      Uij(ii) = K_solve( rhs(ii) ); % Equation 14 in Section 5.1 of Barbic 2005
                   %fprintf('%g ',norm( K * Uij - rhs, inf)/norm(rhs,inf));
                   %if ( pinned ) 
                   %else % see equaiton 29 of Barbic 2005
