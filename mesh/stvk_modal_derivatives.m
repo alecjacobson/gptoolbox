@@ -55,7 +55,7 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes)
       p = V;
       t = T;
       M = kroneye(massmatrix(p,t,'voronoi'),size(V,2));
-      isM = diag(1./sqrt(diag(M)));
+      %isM = diag(sparse(1./sqrt(diag(M))));
       faces = F;
       
       %[B, vol] = computeBandArea( p, t );
