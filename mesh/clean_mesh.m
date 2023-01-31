@@ -98,7 +98,7 @@ function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
   SV = V;
   SF = F;
   iter = 0;
-  tic;
+  if ~quiet;    tic;    end
   while iter < max_iter
     SV = double(single(SV)); 
 
@@ -110,15 +110,15 @@ function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
       SF = SVJ(SF);
       % remap old indices
       SVJ = SVJ(SVJbefore);
-      fprintf(fid,'Removed %d geometrically duplicate vertices\n',num_dups);
+      fprintf_(fid,'Removed %d geometrically duplicate vertices\n',num_dups);
     end
     [SF,SFI,SFJ] = remove_duplicate_simplices(SF);
-    fprintf(fid,'Removed %d combinatorially duplicate facets\n', ...
+    fprintf_(fid,'Removed %d combinatorially duplicate facets\n', ...
       size(SFJ,1)-size(SFI,1));
     % COMBINATORIALLY DEGENERATE FACETS
     NSF = SF((SF(:,1) ~= SF(:,2))&(SF(:,2) ~= SF(:,3))&(SF(:,3) ~= SF(:,1)),:);
     if size(NSF,1) < size(SF,1)
-      fprintf(fid,'Removed %d facets with combinatorally duplicate vertices\n', ...
+      fprintf_(fid,'Removed %d facets with combinatorally duplicate vertices\n', ...
         size(SF,1)-size(NSF,1));
       SF = NSF;
     end
@@ -136,18 +136,18 @@ function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
     otherwise
       error(['Unsupported SmallTriangles argument: ' small_triangles]);
     end
-    fprintf(fid,'%sd %d small triangles\n', ...
+    fprintf_(fid,'%sd %d small triangles\n', ...
       small_triangles,size(SFbefore,1)-size(SF,1));
 
     % SMALL ANGLE TRIANGLES
     sm_angle = min(internalangles(SVbefore,SF),[],2)<min_angle;
     SF = SF(~sm_angle,:);
-    fprintf(fid,'Removed %d small angle triangles\n',sum(sm_angle));
+    fprintf_(fid,'Removed %d small angle triangles\n',sum(sm_angle));
 
     % COMBINATORIALLY DUPLICATE FACETS
     [~,SFI,SFJ] = unique(sort(SF,2),'rows','stable');
     SF = SF(SFI,:);
-    fprintf(fid,'Removed %d combinatorially duplicate facets\n', ...
+    fprintf_(fid,'Removed %d combinatorially duplicate facets\n', ...
       size(SFJ,1)-size(SFI,1));
 
     if strcmp(self_intersections,'ignore')
@@ -160,7 +160,7 @@ function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
     num_inters = size(IF,1);
     switch self_intersections
     case 'mesh'
-      fprintf(fid,'Added %d vertices and %d faces to mesh self-intersections\n', ...
+      fprintf_(fid,'Added %d vertices and %d faces to mesh self-intersections\n', ...
         size(SVtemp,1) - size(SVbefore,1), ...
         size(SFtemp,1) - size(SF,1));
       SV = SVtemp;
@@ -168,7 +168,7 @@ function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
     case 'remove'
       offending = ismember(1:size(SF,1),IF(:));
       SF = SF(~offending,:);
-      fprintf(fid,'Removed %d self-intersecting faces\n',sum(offending));
+      fprintf_(fid,'Removed %d self-intersecting faces\n',sum(offending));
     case 'remove-first'
       % Q: Is there an optimal (smallest) number of facets to remove that would
       % illiminate all self-intersections?
@@ -176,7 +176,7 @@ function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
       % facet participates in. Then removing the first.
       offending = ismember(1:size(SF,1),IF(:,1));
       SF = SF(~offending,:);
-      fprintf(fid,'Removed %d self-intersecting faces\n',sum(offending));
+      fprintf_(fid,'Removed %d self-intersecting faces\n',sum(offending));
     case 'remove-optimal'
       % Q: Would this be more efficient if IF was sparse and we zeroed-out
       % entries?
@@ -190,7 +190,7 @@ function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
         rmoff = [rmoff(:);ii];
       end
       SF = SF(~ismember(1:end,rmoff),:);
-      fprintf(fid,'Removed %d self-intersecting faces\n',numel(rmoff));
+      fprintf_(fid,'Removed %d self-intersecting faces\n',numel(rmoff));
     otherwise
       error(['Unsupported SelfIntersections argument: ' self_intersections]);
     end
@@ -202,7 +202,7 @@ function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
     % faces
     iter = iter + 1;
   end
-  toc
+  if ~quiet; toc; end
 
 
   % No combinatorially degenerate faces
@@ -210,4 +210,14 @@ function [SV,SF,SVJ] = clean_mesh(V,F,varargin)
   assert(~any(SF(:,3)==SF(:,1)));
   assert(~any(SF(:,1)==SF(:,2)));
 
+end
+
+%% local fprint variant for cross-latform functionality
+function fprintf_(fid,varargin)
+    if fid < 0
+        % on windows there is no dev/null
+        return
+    else
+        fprintf(fid,varargin{:});
+    end
 end

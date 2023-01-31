@@ -225,6 +225,7 @@ if(NOT MATLAB_ADDITIONAL_VERSIONS)
 endif()
 
 set(MATLAB_VERSIONS_MAPPING
+  "R2022b=9.13"
   "R2022a=9.12.0"
   "R2021b=9.11"
   "R2021a=9.10"
@@ -1325,7 +1326,11 @@ endif()
 if(APPLE)
   set(_matlab_bin_prefix "mac") # i should be for intel
   set(_matlab_bin_suffix_32bits "i")
-  set(_matlab_bin_suffix_64bits "i64")
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+    set(_matlab_bin_suffix_64bits "a64")
+  else()
+    set(_matlab_bin_suffix_64bits "i64")
+  endif()
 elseif(UNIX)
   set(_matlab_bin_prefix "gln")
   set(_matlab_bin_suffix_32bits "x86")

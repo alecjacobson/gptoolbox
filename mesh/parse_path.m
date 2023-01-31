@@ -38,10 +38,12 @@ function [P,C] = parse_path(dstr)
     end
   end
 
-  [key,dstr] = parse_key(dstr);
+  [key,dstr] = parse_key(strtrim(dstr));
   assert(key == 'M' || key == 'm','First key must be M or m');
   [P,dstr] = parse_xy(dstr);
   mi = size(P,1);
+  % Pabs will track the current cursor position
+  Pabs = P(end,:);
   C = [];
   z_seen = false;
   % I guess L is some kind of default...
@@ -54,7 +56,6 @@ function [P,C] = parse_path(dstr)
     if isempty(key) && ~isempty(prev_key)
       key = prev_key;
     end
-    Pabs = P(end,:);
     switch key
     case {'C','c'}
       C = [C;size(P,1)+[0 1 2 3]];
@@ -64,22 +65,45 @@ function [P,C] = parse_path(dstr)
       if key == 'c'
         P(end-2:end,:) = P(end-2:end,:) + Pabs;
       end
-    case {'L','l','V','v','H','h'}
-      C = [C;size(P,1)+[0 1 2 3]];
-      switch key
-      case {'L','l'}
-        [XY,dstr] = parse_xy(dstr);
-        Pnext = (key=='l')*Pabs + XY;
-      case {'V','v'}
-        [Y,dstr] = parse_x(dstr);
-        Pnext = [1 (key=='v')].*Pabs + [0 Y];
-      case {'H','h'}
-        [X,dstr] = parse_x(dstr);
-        Pnext = [(key=='h') 1].*Pabs + [X 0];
+      Pabs = P(end,:);
+    case {'L','l','V','v','H','h','Z','z'}
+      if (key == 'Z' || key == 'z')
+        %assert(isempty(dstr),'Z Should be last key');
+        % gobble white space
+        dstr = strip(dstr);
       end
-      P(end+1,:) = Pabs + (1/3)*(Pnext-Pabs);
-      P(end+1,:) = Pabs + (2/3)*(Pnext-Pabs);
-      P(end+1,:) = Pnext;
+      % augh I hate that I'm using epsilon here. probably the interp1 above is
+      % leading to small numerical noise.
+      if (key == 'Z' || key == 'z') && sum((P(end,:)-P(mi,:)).^2)<eps
+        % close up naturally by identifying first and last point
+        if ~isempty(C)
+          C(end,4) = mi;
+        end
+        % Pop last point
+        P = P(1:end-1,:);
+        Pabs = P(mi,:);
+      else
+        C = [C;size(P,1)+[0 1 2 3]];
+        switch key
+        case {'L','l'}
+          [XY,dstr] = parse_xy(dstr);
+          Pnext = (key=='l')*Pabs + XY;
+        case {'V','v'}
+          [Y,dstr] = parse_x(dstr);
+          Pnext = [1 (key=='v')].*Pabs + [0 Y];
+        case {'H','h'}
+          [X,dstr] = parse_x(dstr);
+          Pnext = [(key=='h') 1].*Pabs + [X 0];
+        case {'Z','z'}
+          % I don't see how Z or z are different.
+          % Don't parse xy, connect to beginning 
+          Pnext = P(mi,:);
+        end
+        P(end+1,:) = Pabs + (1/3)*(Pnext-Pabs);
+        P(end+1,:) = Pabs + (2/3)*(Pnext-Pabs);
+        P(end+1,:) = Pnext;
+        Pabs = P(end,:);
+      end
     case {'S','s'}
       C = [C;size(P,1)+[0 1 2 3]];
       if ismember(prev_key,'SsCc')
@@ -92,24 +116,13 @@ function [P,C] = parse_path(dstr)
       if key == 's'
         P(end-1:end,:) = P(end-1:end,:) + Pabs;
       end
+      Pabs = P(end,:);
     case {'M','m'}
       [Pnext,dstr] = parse_xy(dstr);
-      P = [P;Pnext+(key=='m')*Pabs];
+      Pm = Pnext+(key=='m')*Pabs;
+      P = [P;Pm];
       mi = size(P,1);
-    case {'Z','z'}
-      %assert(isempty(dstr),'Z Should be last key');
-      % gobble white space
-      dstr = strip(dstr);
-      %if all(P(end,:)==P(mi,:))
-      % augh I hate that I'm using epsilon here. probably the interp1 above is
-      % leading to small numerical noise.
-      if sum((P(end,:)-P(mi,:)).^2)<eps
-        % close up naturally by identifying first and last point
-        if ~isempty(C)
-          C(end,4) = mi;
-        end
-        P = P(1:end-1,:);
-      end
+      Pabs = P(end,:);
     otherwise
       error('%c key not supported',key)
     end
