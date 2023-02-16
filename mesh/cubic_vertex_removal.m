@@ -69,11 +69,13 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
   max_iter = 100;
   t0 = [];
   promise_already_built = false;
+  E_tol = 1e-15;
+  grad_tol = 1e-8;
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Method','MaxIter','t0','AlreadyGenerated'}, ...
-    {'method','max_iter','t0','promise_already_built'});
+    {'Method','MaxIter','t0','AlreadyGenerated','Tol','GradientTol',}, ...
+    {'method','max_iter','t0','promise_already_built','E_tol','grad_tol'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -88,69 +90,89 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
     v=v+1;
   end
 
+  if strcmp(method,'cubic-polish')
+    [C,t,err] = cubic_vertex_removal(C1,C2,varargin{:},'Method','cubic');
+    % Slip in 'MaxIter',1 before user parameters so it gets over-written if
+    % provided. 
+    [C,t,err] = cubic_vertex_removal(C1,C2,'MaxIter',1,varargin{:},'t0',t,'Method','iterative');
+    return;
+  end
+
 
   switch method
-  case 'perfect'
+  case {'perfect','cubic'}
     % _If_ t is perfect, then C is a simple function of t.
     C_from_t = @(C1,C2,t) ...
       [C1(1,:); ...
           (1./t)*(C1(2,:)-C1(1,:)) + C1(1,:); ...
       (1./(1-t))*(C2(end-1,:)-C2(end,:)) + C2(end,:); ...
       C2(end,:)];
-    % Build a root finder for the 1D problem
-    if ~promise_already_built && ~exist('cubic_vertex_removal_polyfun','file');
-      warning('assuming L2 not l2 error');
-      dim = 1;
-      % Matlab is (sometimes?) confused that this is a static workspace and
-      % refuses to let syms create variables.
-      %syms('iC1',[4 dim],'real');
-      %syms('iC2',[4 dim],'real');
-      %% complains if I mark st as 'real'
-      %syms('st',[1 1]);
-      iC1 = [
-        sym('iC11','real')
-        sym('iC12','real')
-        sym('iC13','real')
-        sym('iC14','real')];
-      iC2 = [
-        sym('iC21','real')
-        sym('iC22','real')
-        sym('iC23','real')
-        sym('iC24','real')];
-      st = sym('st');
+    switch method
+    case 'perfect'
+      % Build a root finder for the 1D problem
+      if ~promise_already_built && ~exist('cubic_vertex_removal_polyfun','file');
+        warning('assuming L2 not l2 error');
+        dim = 1;
+        % Matlab is (sometimes?) confused that this is a static workspace and
+        % refuses to let syms create variables.
+        %syms('iC1',[4 dim],'real');
+        %syms('iC2',[4 dim],'real');
+        %% complains if I mark st as 'real'
+        %syms('st',[1 1]);
+        iC1 = [
+          sym('iC11','real')
+          sym('iC12','real')
+          sym('iC13','real')
+          sym('iC14','real')];
+        iC2 = [
+          sym('iC21','real')
+          sym('iC22','real')
+          sym('iC23','real')
+          sym('iC24','real')];
+        st = sym('st');
 
-      sC = C_from_t(iC1,iC2,st);
-      [oC1,oC2] = cubic_split(sC,st);
-      % L2 style.
-      sg = sum( [oC1-iC1;oC2-iC2].^2, 'all');
-      sres = solve(diff(sg,st) == 0,st);
-      %sdgdt = simplify(diff(sg,st)); 
-      %vroots = @(C1,C2) double(vpasolve(subs(subs(sdgdt,iC1,C1),iC2,C2)==0,st,[0 1]));
-      sres_children = children(sres(1));
-      % Should cache these two:
-      %polyfun = matlabFunction(flip(coeffs(sres_children(1),sres_children(2))),'Vars',{iC1,iC2});
-      % Matlab2023a seems to use slightly different cell arrays for sres_children. 
-      polyfun = matlabFunction( ...
-        flip(coeffs(sres_children{1},sres_children{2})), ...
-        'Vars',{iC1,iC2}, ...
-        'File','cubic_vertex_removal_polyfun');
-      g = matlabFunction(sg,'Vars',{iC1,iC2,st},'File','cubic_vertex_removal_g');
-    else
-      polyfun = @cubic_vertex_removal_polyfun;
-      g = @cubic_vertex_removal_g;
+        sC = C_from_t(iC1,iC2,st);
+        [oC1,oC2] = cubic_split(sC,st);
+        % L2 style.
+        sg = sum( [oC1-iC1;oC2-iC2].^2, 'all');
+        sres = solve(diff(sg,st) == 0,st);
+        %sdgdt = simplify(diff(sg,st)); 
+        %vroots = @(C1,C2) double(vpasolve(subs(subs(sdgdt,iC1,C1),iC2,C2)==0,st,[0 1]));
+        sres_children = children(sres(1));
+        % Should cache these two:
+        %polyfun = matlabFunction(flip(coeffs(sres_children(1),sres_children(2))),'Vars',{iC1,iC2});
+        % Matlab2023a seems to use slightly different cell arrays for sres_children. 
+        polyfun = matlabFunction( ...
+          flip(coeffs(sres_children{1},sres_children{2})), ...
+          'Vars',{iC1,iC2}, ...
+          'File','cubic_vertex_removal_polyfun');
+        g = matlabFunction(sg,'Vars',{iC1,iC2,st},'File','cubic_vertex_removal_g');
+      else
+        polyfun = @cubic_vertex_removal_polyfun;
+        g = @cubic_vertex_removal_g;
+      end
+      keepreal = @(C) C(imag(C)==0 & real(C)>=0 & real(C)<=1);
+      % Using numerical roots is faster than vroots
+      nroots = @(K1,K2) keepreal(roots(polyfun(K1,K2)));
+      keepmin = @(ts,Es) ts(find(Es==min(Es),1));
+      % We'll determine t based on the 1D g function. But we'll compute the
+      % returned energy below using the full dim-D problem.
+      keepmin = @(K1,K2,ts) keepmin(ts,arrayfun(@(t) g(K1,K2,t),ts));
+      find_t = @(K1,K2) keepmin(K1,K2,nroots(K1,K2));
+      % Decide which coordinate to use (pick a non-degenerate one).
+      % Based on max-extent.
+      [~,i] = max(max([C1(1,:);C2(end,:)])-min([C1(1,:);C2(end,:)]));
+      t = find_t(C1(:,i),C2(:,i));
+      assert(~isempty(t));
+    case 'cubic'
+      D1 = -6.*C1(1,:) + 18.*C1(2,:) - 18.*C1(3,:) + 6.*C1(4,:);
+      D2 = -6.*C2(1,:) + 18.*C2(2,:) - 18.*C2(3,:) + 6.*C2(4,:);
+      D2_sqr_len = sum(D2.*D2,2);
+      D1_sqr_len = sum(D1.*D1,2);
+      D2_D1 = sum(D2.*D1,2);
+      r = D2_D1/D1_sqr_len;
+      t = (1 + (r.^(1/3))).^-1;
     end
-    keepreal = @(C) C(imag(C)==0 & real(C)>=0 & real(C)<=1);
-    % Using numerical roots is faster than vroots
-    nroots = @(K1,K2) keepreal(roots(polyfun(K1,K2)));
-    keepmin = @(ts,Es) ts(find(Es==min(Es),1));
-    % We'll determine t based on the 1D g function. But we'll compute the
-    % returned energy below using the full dim-D problem.
-    keepmin = @(K1,K2,ts) keepmin(ts,arrayfun(@(t) g(K1,K2,t),ts));
-    find_t = @(K1,K2) keepmin(K1,K2,nroots(K1,K2));
-    % Decide which coordinate to use (pick a non-degenerate one).
-    % Based on max-extent.
-    [~,i] = max(max([C1(1,:);C2(end,:)])-min([C1(1,:);C2(end,:)]));
-    t = find_t(C1(:,i),C2(:,i));
     C = C_from_t(C1,C2,t);
   case 'iterative'
     % use arc-length to guess t₁
@@ -176,7 +198,7 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
       % can get without a lot of hand derivativation/compiling code.
       dfdt1 = imag(f(complex(t1,1e-100)))/1e-100;
       
-      if norm(dfdt1,inf) < 1e-8
+      if norm(dfdt1,inf) < grad_tol
         break;
       end
       dt1 = 0.5*sign(-dfdt1);
@@ -186,7 +208,7 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
         break;
       end
       [E,C] = f(t1);
-      if E < 1e-15
+      if E < E_tol
         break;
       end
     end
@@ -246,23 +268,39 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
     w2 = 1;
     %w1 = t1; 
     %w2 = 1-t1;
-    % Given t1 update C
-    [H1,F1,c1,E1] = cubic_cubic_integrated_distance( ...
-      0,t1, ...
-      1/t1,0, ...
-      C1, ...
-      1,0, ...
-      C);
-    [H2,F2,c2,E2] = cubic_cubic_integrated_distance( ...
-      t1,1, ...
-      1/(1-t1),-t1/(1-t1), ...
-      C2, ...
-      1,0, ...
-      C);
-    % Equal weighting ("L2")
-    H = w1*H1 + w2*H2;
-    F = w1*F1 + w2*F2;
-    c = w1*c1 + w2*c2;
+    if nargout == 4
+      % Given t1 update C
+      [H1,F1,c1,E1] = cubic_cubic_integrated_distance( ...
+        0,t1, ...
+        1/t1,0, ...
+        C1, ...
+        1,0, ...
+        C);
+      [H2,F2,c2,E2] = cubic_cubic_integrated_distance( ...
+        t1,1, ...
+        1/(1-t1),-t1/(1-t1), ...
+        C2, ...
+        1,0, ...
+        C);
+      % Equal weighting ("L2")
+      H = w1*H1 + w2*H2;
+      F = w1*F1 + w2*F2;
+      c = w1*c1 + w2*c2;
+    else 
+      % Given t1 update C
+      [E1] = cubic_cubic_integrated_distance( ...
+        0,t1, ...
+        1/t1,0, ...
+        C1, ...
+        1,0, ...
+        C);
+      [E2] = cubic_cubic_integrated_distance( ...
+        t1,1, ...
+        1/(1-t1),-t1/(1-t1), ...
+        C2, ...
+        1,0, ...
+        C);
+    end
     E = w1*E1 + w2*E2;
   end
 end

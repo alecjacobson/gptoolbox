@@ -84,6 +84,8 @@ function [varargout] = cubic_cubic_integrated_distance( ...
 
   if nargout<=1
     % Compute energy directly. This is faster. Better be the same as below.
+    % 
+    % It's ever so slightly different (between 1e-16 and 1e-20)
     E = 0.5*sum(w.*(C - cubic_eval( Q, T)).^2,'all');
     varargout{1} = E;
     return;
