@@ -28,7 +28,7 @@ function [t,x,fx] = backtracking_line_search(f,x0,dfx0,dx,alpha,beta,max_iter)
   for iter = 1:max_iter
     x = x0+t*dx;
     fx = f(x);
-    if fx<=fx0+alpha*t*dfx0'*dx
+    if fx<=fx0+alpha*t*sum(dfx0.*dx,'all');
       return;
     end
     t = beta*t;
