@@ -74,7 +74,9 @@ function [P,C] = parse_path(dstr)
       end
       % augh I hate that I'm using epsilon here. probably the interp1 above is
       % leading to small numerical noise.
-      if (key == 'Z' || key == 'z') && sum((P(end,:)-P(mi,:)).^2)<eps
+      if (key == 'Z' || key == 'z') && size(P,1)==mi
+        % degenerate single point, ignore
+      elseif (key == 'Z' || key == 'z') && sum((P(end,:)-P(mi,:)).^2)<eps
         % close up naturally by identifying first and last point
         if ~isempty(C)
           C(end,4) = mi;
