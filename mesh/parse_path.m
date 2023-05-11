@@ -57,6 +57,8 @@ function [P,C] = parse_path(dstr)
       key = prev_key;
     end
     switch key
+    case {'A','a'}
+      error('not supported');
     case {'C','c'}
       C = [C;size(P,1)+[0 1 2 3]];
       [P(end+1,:),dstr] = parse_xy(dstr);
