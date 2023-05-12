@@ -106,6 +106,7 @@ function S = statistics(V,F,varargin)
   % Small things
   S.num_small_triangles = 0;
   S.num_small_angles = 0;
+  S.num_kahan_length_violations = 0;
   S.num_close_vertices = 0;
   % Topology related
   S.num_connected_components = 0;
@@ -197,6 +198,9 @@ function S = statistics(V,F,varargin)
 
   S.num_small_triangles = sum(dblA<2*min_area*bbd*bbd);
   S.num_small_angles = sum(sum(internalangles(V,F)<min_angle));
+  sl = sort(edge_lengths(V,F),2,'descend');
+  S.num_kahan_length_violations = sum((sl(:,3)-(sl(:,1)-sl(:,2)))<0);
+
   S.num_close_vertices = ...
     S.num_vertices - size(remove_duplicate_vertices(V,min_dist*bbd),1);
 

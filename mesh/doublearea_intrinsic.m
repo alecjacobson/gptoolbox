@@ -1,4 +1,4 @@
-function dblA = doublearea_intrinsic(l)
+function dblA = doublearea_intrinsic(l,degenerate_replacement)
   % DOUBLEAREA_INTRINSIC Compute the double area of the triangles of a mesh
   %
   % dblA = doublearea_intrinsic(l)
@@ -24,7 +24,11 @@ function dblA = doublearea_intrinsic(l)
   %% Heron's formula for area
   %dblA = 2*sqrt( s.*(s-l1).*(s-l2).*(s-l3));
   % Kahan's heron's formula
-  dblA = 2*0.25*sqrt((l1+(l2+l3)).*(l3-(l1-l2)).*(l3+(l1-l2)).*(l1+(l2-l3)));
+  arg = (l1+(l2+l3)).*(l3-(l1-l2)).*(l3+(l1-l2)).*(l1+(l2-l3));
+  dblA = 2*0.25*sqrt(arg);
+  if nargin>1
+    dblA(arg<0) = degenerate_replacement;
+  end
 end
 
 

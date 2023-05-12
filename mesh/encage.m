@@ -53,18 +53,18 @@ function [DV,DT,DF,b,bc] = encage(V,CV,CF,varargin)
   delaunay_flags = '-p';
   command = ...
     [path_to_tetgen ' ' delaunay_flags ' ' tetgen_flags ' ' poly_filename];
-  fprintf(fid,'%s\n',command);
+  fprintf_(fid,'%s\n',command);
   if quiet
     [status, result] = system(command);
   else
     [status, result] = system(command,'-echo');
   end
-  fprintf(fid,'%s',result);
+  fprintf_(fid,'%s',result);
   if status ~= 0
-    fprintf(fid,'%s',result);
+    fprintf_(fid,'%s',result);
   else
     if strfind(result,'Jettisoning redundant points.')
-      fprintf(fid,'%s',result);
+      fprintf_(fid,'%s',result);
       warning('Tetgen removed duplicate points');
     end
   end
@@ -122,4 +122,14 @@ function [DV,DT,DF,b,bc] = encage(V,CV,CF,varargin)
   % Faces are flipped
   DF = fliplr(DF);
 
+end
+
+%% local fprint variant for cross-latform functionality
+function fprintf_(fid,varargin)
+  if fid < 0
+      % on windows there is no dev/null
+      return
+  else
+      fprintf(fid,varargin{:});
+  end
 end

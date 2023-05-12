@@ -106,13 +106,13 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
   % If the checksum cache file exists then we've seen this input "state"
   % before, load in cached output "state"
   if(exist(cache_name,'file'))
-    fprintf(fid,'Cache exists. Using cache...\n');
+    fprintf_(fid,'Cache exists. Using cache...\n');
     % use cache
     load(cache_name);
   % Otherwise this is the first time we've seen this input "state", so we
   % execute the function as usual and save the output "state" to the cache
   else
-    fprintf(fid,'First time. Creating cache...\n');
+    fprintf_(fid,'First time. Creating cache...\n');
 
 
     dim = size(V,2);
@@ -275,23 +275,23 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
       %delaunay_flags = '-pq0.75 -a0.0002 -O5YcJnFg';
 
       command = [path_to_tetgen ' ' delaunay_flags ' ' tetgen_flags ' ' poly_filename];
-      fprintf(fid,'%s\n',command);
+      fprintf_(fid,'%s\n',command);
       if quiet
         [status, result] = system(command);
       else
         [status, result] = system(command,'-echo');
       end
-      fprintf(fid,'%s',result);
+      fprintf_(fid,'%s',result);
       if status ~= 0
-        fprintf(fid,'%s',result);
+        fprintf_(fid,'%s',result);
       else
         % Print some warnings based on tetgen output
         if strfind(result,'Steiner points on boundary edges')
-          fprintf(fid,'%s',result);
+          fprintf_(fid,'%s',result);
           warning('Tetgen added steiner points on boundary');
         end
         if strfind(result,'Jettisoning redundants points.')
-          fprintf(fid,'%s',result);
+          fprintf_(fid,'%s',result);
           warning('Tetgen removed duplicate points');
         end
 
@@ -311,10 +311,10 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
       %  % original vertices)
       %  selfintersection_flags = '-pdJ ';
       %  command = [path_to_tetgen ' ' selfintersection_flags ' ' poly_filename];
-      %  fprintf(fid,command);
+      %  fprintf_(fid,command);
       %  [status, result] = system(command);
       %  if strfind(result,'No faces are intersecting.')
-      %    fprintf(fid,'%s',result);
+      %    fprintf_(fid,'%s',result);
       %    error('Tetgen unsure whether there are self-intersections');
       %  end
       %  assert(status==0);
@@ -349,7 +349,7 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
 
       %  % shoot for the moon
       %  command = [path_to_tetgen ' ' delaunay_flags ' ' tetgen_flags ' ' poly_filename];
-      %  fprintf(fid,command);
+      %  fprintf_(fid,command);
       %  [status, result] = system(command);
       %  result
       %  status
@@ -440,4 +440,14 @@ function [VV,TT,FF,TN,IFF] = cdt(varargin)
     save(cache_name,'-regexp',sprintf('^%s$|',variables{:}));
 
   end
+end
+
+%% local fprint variant for cross-latform functionality
+function fprintf_(fid,varargin)
+    if fid < 0
+        % on windows there is no dev/null
+        return
+    else
+        fprintf(fid,varargin{:});
+    end
 end
