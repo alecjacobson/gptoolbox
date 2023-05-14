@@ -1,10 +1,12 @@
 function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes,varargin)
   reg_method = 'null-orthogonal';
   Aeq = [];
+  nu = 0.45;
+  young = 100;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Regularization','Aeq'}, ...
-    {'reg_method','Aeq'});
+    {'Regularization','Aeq', 'young', 'nu'}, ...
+    {'reg_method','Aeq', 'young', 'nu'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -18,17 +20,19 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes,varargin)
     end
     v=v+1;
   end
-
-
+  nu = nu.*ones(size(T, 1), 1);
+  young = young .* ones(size(T, 1), 1);
+  lambda = young.*nu./((1+nu).*(1-2.*nu));
+  mu = .5.*young./(1+nu);
   Aeq(:,[1:3:end 2:3:end 3:3:end]) = Aeq;
-  [U,phi,vals,K,M] = STVKPolys3D(V,T,nummodes, reg_method, Aeq);
+  [U,phi,vals,K,M] = STVKPolys3D(V,T,nummodes, reg_method, Aeq, mu, lambda);
   K = K([1:3:end 2:3:end 3:3:end],[1:3:end 2:3:end 3:3:end]);
   M = M([1:3:end 2:3:end 3:3:end],[1:3:end 2:3:end 3:3:end]);
   U = permute(reshape(U,[size(V,2) size(V,1) size(U,2)]),[2 1 3]);
   phi = permute(reshape([phi{cellfun(@length,phi)>0}],size(V,2),size(V,1),[]),[2 1 3]);
 
   % Modified code from Paul Kry
-  function [U, phi, vals, K, M] = STVKPolys3D(V, T, nummodes, reg_method, Aeq)
+  function [U, phi, vals, K, M] = STVKPolys3D(V, T, nummodes, reg_method, Aeq, mu, lambda)
   % Compute basis and polynomial coefficients
   %
   %   Issues and observations:
@@ -90,11 +94,11 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes,varargin)
   
       
       rho = 1;    % density
-      nu = 0.35;  % Poisson ratio
-      E = 2e4;    % Young's modulus
-      mu = E / 2 / (1 + nu);                      % Lamé parameter
-      lambda = E * nu / (1 + nu) / (1 - 2 * nu);  % Lamé parameter
-      
+%       nu = 0.35;  % Poisson ratio
+%       E = 2e4;    % Young's modulus
+%       mu = E / 2 / (1 + nu);                      % Lamé parameter
+%       lambda = E * nu / (1 + nu) / (1 - 2 * nu);  % Lamé parameter
+%       
       if ~exist('stvk_d3','file')
         F = sym( 'F', [3, 3] );     % symbolic deformation gradient
         s_lambda = sym( 's_lambda' );     % symbolic deformation gradient
@@ -121,13 +125,20 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes,varargin)
         matlabFunction(d3psidF3,'File','stvk_d3.m','Vars',{F,s_lambda,s_mu});
       end
   
-      C0 = stvk_d2(eye(3),lambda,mu);
+      C0 = stvk_d2(eye(3),lambda(1),mu(1));
       n = size(t,1);
-      %bigC = sparse(9*n,9*n);
-      %for el = 1:n
-      %    bigC(el*9-8:el*9,el*9-8:el*9) = - vol(el) * C0;
-      %end
-      bigC = kron(diag(sparse(-vol)),C0);
+      bigC = sparse(9*n,9*n);
+      Cstack = zeros(9*n, 9);
+      for el = 1:n
+          Cstack((el-1)*9+1:el*9, :) = stvk_d2(eye(3),lambda(el),mu(el));
+%          bigC(el*9-8:el*9,el*9-8:el*9) = - vol(el) * C0;
+      end
+      i = repmat((1:n*9)', [1, 9]);
+      j = repmat(repmat(1:9, [9, 1]), [n, 1]) + repelem((0:n-1), 9)'*9;
+      CC = sparse(i, j, Cstack, 9*n, 9*n);
+      bigC = diag(sparse(-repelem(vol, 9))) * CC;
+%       bigC2 = diag(sparse(-repelem(vol, 9))) * repdiag(sparse(C0), numel(vol));
+%        bigC2 = kron(diag(sparse(-vol)),C0);
       K = B'*bigC*B;
       K = 0.5*(K+K');
        
@@ -200,7 +211,11 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes,varargin)
         end
   
           BU = B*U;
-          H0 = stvk_d3(eye(3),lambda,mu);
+           
+          Hel = zeros( 9, 9, 9, n);
+          for el = 1:n
+           Hel( :, :, :, el) = stvk_d3(eye(3),lambda(el),mu(el));
+          end
           for i = 1+modeoffset:nummodes+modeoffset
               for j = i:nummodes+modeoffset
                   % multiply out by the two different eigenvectors
@@ -213,7 +228,14 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes,varargin)
                   %end
                   BUi = reshape(BU(:,i),9,[]);
                   BUj = reshape(BU(:,j),9,[]);
-                  vH0BUi = permute(pagemtimes(H0,BUi),[3 1 2]).*permute(vol,[2 3 1]);
+                  BUir = repmat(reshape(BUi, [9, 1,  1,  153810]), [1 1 9 1]);
+
+                  H0 = stvk_d3(eye(3),lambda(1),mu(1));
+                  HelBUir = permute((squeeze(pagemtimes(Hel, BUir))), [1 3 2]);
+%                   vH0BUi = permute(pagemtimes(H0,BUi),[3 1 2]).*permute(vol,[2 3 1]);
+                  
+                  vH0BUi = permute(HelBUir,[3 1 2]).*permute(vol,[2 3 1]);
+                  
                   BUjvH0BUi = permute(sum(permute(BUj,[1 3 2]).*vH0BUi),[2 3 1]);
                   BTBUjvH0BUi = B'*BUjvH0BUi(:);
                   rhs = BTBUjvH0BUi;
