@@ -27,7 +27,7 @@ function [P,C] = parse_path(dstr)
   end
   function [key,dstr] = parse_key(dstr)
     % only support open cubic Bezier splines for now
-    keys = 'CcHhLlMmSsVvZz';
+    keys = 'CcHhLlMmSsVvZzQqAa';
     [key,count,~,pos] = sscanf(dstr,'%c',1);
     if count~= 1 
       key = [];
