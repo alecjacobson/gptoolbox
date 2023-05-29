@@ -21,6 +21,14 @@ function [K,C,strain,A,M] = linear_elasticity_stiffness(V,F,varargin)
   %   A  #F*(d*(d+1)/2) by #F*(d*(d+1)/2) diagonal element area matrix
   %   M  #V*d by #V*d sparse mass matrix
   %
+  % Example:
+  %  [K,C,B,A,M] = linear_elasticity_stiffness(V,F);
+  %  norm(K - B'*C*A*B, inf);
+  %  I = reshape(1:size(C,1),size(F,1),[]);
+  %  [L,p] = chol(C(I',I'));
+  %  sqrtC(I',I') = L;
+  %  sqrtK = sqrt(A)*sqrtC*B;
+  %  norm(K - sqrtK'*sqrtK, inf)
 
   % Silicone rubber: http://www.azom.com/properties.aspx?ArticleID=920
   mu = 0.0115;
@@ -29,10 +37,11 @@ function [K,C,strain,A,M] = linear_elasticity_stiffness(V,F,varargin)
   lambda = K-2/3*mu;
   young = [];
   nu = [];
+  density = 1;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Lambda','Mu','Nu','Young'}, ...
-    {'lambda','mu','nu','young'});
+    {'Lambda','Mu','Nu','Young','Density'}, ...
+    {'lambda','mu','nu','young','density'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -154,8 +163,9 @@ function [K,C,strain,A,M] = linear_elasticity_stiffness(V,F,varargin)
     %
     %   X = D σ
     %
-    A = diag(sparse(doublearea(V,F)/2));
+    A = diag(sparse(density.*doublearea(V,F)/2));
   case 3
+    assert( isequal(density,1) );
     G1 = G(1:size(F,1),:);
     G2 = G(size(F,1)+(1:size(F,1)),:);
     G3 = G(2*size(F,1)+(1:size(F,1)),:);
@@ -175,7 +185,15 @@ function [K,C,strain,A,M] = linear_elasticity_stiffness(V,F,varargin)
   K = D * A * C * strain;
 
 
-  M = massmatrix(V,F);
+  if isequal(density,1)
+    % Mass matrix
+    M = massmatrix(V,F);
+  else
+    % would be cool to have a density modulated voronoi matrix but for now use
+    % barycentric
+    M = diag(A(1:size(F,1),1:size(F,1)));
+    M = sparse(F,F,repmat(M,1,size(F,2))/size(F,2),size(V,1),size(V,1));
+  end
   M = repdiag(M,size(V,2));
 
 end
