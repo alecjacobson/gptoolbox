@@ -14,6 +14,7 @@ function [K,C,strain,A,M] = linear_elasticity_stiffness(V,F,varargin)
   %       list of per-element values
   %     'Nu'  followed by Poisson's ratio, scalar (homogeneous) or #F by 1 list
   %       of per-element values
+  %     'Density'  followed by #F by 1 list of per-element density values {1}
   % Outputs:
   %   K  #V*d by #V*d sparse stiffness matrix
   %   C  #F**(d*(d+1)/2) by #F**(d*(d+1)/2) sparse constituitive model matrix 
