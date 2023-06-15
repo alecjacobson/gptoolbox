@@ -1,4 +1,4 @@
-function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
+function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
   % READSVG_CUBICS Read in paths and shapes from a .svg file, but convert
   % everything to cubic Bezier curves.
   %
@@ -37,8 +37,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
   %   writeOBJ('~/Repos/shape-editing-examples/r.obj',V,F);
   %   
   % Known issues:
-  %    'A','a' not supported
-  %    'Q','q' not supported
+  %    <use>, etc. not supported see below in code
   %    likely O(n²) in number of kids and O(m²) in the number of cubics
   %      (parse_path)
 
@@ -198,8 +197,14 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         end
         % convert to cubic
         closed = all(Pi(1,:)==Pi(end,:));
-        Pii = interp1(1:size(Pi,1),Pi,linspace(1,size(Pi,1),(size(Pi,1)-1)*3+1));
-        Cii = [1 2 3 4]+3*(0:size(Pi,1)-2)';
+        if size(Pi,1)<=1
+          % skip
+          Pii = zeros(0,2);
+          Cii = zeros(0,4);
+        else
+          Pii = interp1(1:size(Pi,1),Pi,linspace(1,size(Pi,1),(size(Pi,1)-1)*3+1));
+          Cii = [1 2 3 4]+3*(0:size(Pi,1)-2)';
+        end
         %if ~closed && filled
         %  % close it with a straight curve
         %  fprintf('should be closing...')
@@ -217,7 +222,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         [Pii,Cii] = parse_path(d);
         %clf;hold on;arrayfun(@(c) set(plot_cubic(Pii(Cii(c,:),:)),'Color','b'),1:size(Cii,1));hold off;
         %pause
-      case {'g','defs'}
+      case {'g','defs','clipPath'}
         % Illustrator appears to put clip-paths in <defs> at the top of the
         % file. Recurce into these similar to a group <g>
         g_kids = kid.getChildNodes();
@@ -241,11 +246,20 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         % Pii,Cii etc. and then added to P,C etc. below, rather than this
         % `continue`
         continue;
-      case {'#comment','#text','metadata'}
+      case {'#comment','script','desc','text','#text','flowRoot','pattern','metadata','title','style','filter','linearGradient','radialGradient'}
+        % intentionally skip
+        continue;
+      case {'use','font','marker','symbol','mask'}
+        alert('readSVG_cubics:skip Skipping <%s> ...\n',name);
         % knowingly skip
         continue;
       otherwise
-        warning('Skipping %s...\n',name);
+        % if name starts with sodipodi: or inkscape: 
+        if startsWith(name,'sodipodi:') || startsWith(name,'inkscape:')
+          % knowingly skip
+          continue;
+        end
+        alert('readSVG_cubics:unknown Skipping unknown element <%s> ...\n',name);
         continue;
       end
       Si = get_color(kid,'stroke',nan(1,3));
@@ -269,6 +283,36 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
       end
     end
   end
+
+  alert_type = 'error';
+
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'UnsupportedAlert'}, ...
+    {'alert_type'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
+  switch alert_type
+  case 'error'
+    alert = @(varargin) error(varargin{:}); 
+  case 'warning'
+    alert = @(varargin) warning(varargin{:}); 
+  case 'ignore'
+    alert = @(varargin) [];
+  end
+
 
   % xmlread appears to be buggy if filename contains ~ etc.
   if isunix

@@ -43,6 +43,12 @@ function [P,C] = parse_path(dstr)
   dstr = strrep(dstr,'\n',' ');
   dstr = strrep(dstr,',',' ');
 
+  if isempty(dstr)
+    P = zeros(0,2);
+    C = zeros(0,4);
+    return;
+  end
+
   [key,dstr] = parse_key(strtrim(dstr));
   assert(key == 'M' || key == 'm','First key must be M or m');
   [P,dstr] = parse_xy(dstr);
@@ -63,6 +69,11 @@ function [P,C] = parse_path(dstr)
     end
     switch key
     case {'A','a'}
+
+      %% Handle full circles made of two 180° arcs as a special case.
+      %if key == 'a'
+      %end
+
       [Z,count,~,pos] = sscanf(dstr,'%g',7);
       assert(count == 7,'Expected 7 values for A,a command');
       % O(n) :-(
