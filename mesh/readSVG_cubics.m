@@ -88,11 +88,29 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     cy = sscanf(char(ellipse.getAttribute('cy')),'%g');
     rx = sscanf(char(ellipse.getAttribute('rx')),'%g');
     ry = sscanf(char(ellipse.getAttribute('ry')),'%g');
+    if isempty(cx)
+      cx = 0; 
+    end
+    if isempty(cy)
+      cy = 0; 
+    end
+    if isempty(rx)
+      rx = 0; 
+    end
+    if isempty(ry)
+      ry = 0; 
+    end
     [Pi,Ci] = ellipse_to_spline(cx,cy,rx,ry);
   end
   function [Pi,Ci] = parse_circle_as_spline(circle)
     cx = sscanf(char(circle.getAttribute('cx')),'%g');
     cy = sscanf(char(circle.getAttribute('cy')),'%g');
+    if isempty(cx)
+      cx = 0; 
+    end
+    if isempty(cy)
+      cy = 0; 
+    end
     r = sscanf(char(circle.getAttribute('r')),'%g');
     if isempty(r)
       r = 0;
@@ -111,13 +129,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
   end
 
   function T = get_transform(kid)
-    [T,foundT] = sscanf(char(kid.getAttribute('transform')),'matrix(%g %g %g %g %g %g)');
-    if foundT == 0
-      T = eye(2,3);
-    else
-      assert(foundT == 6)
-      T = reshape(T,2,3);
-    end
+    T = parse_svg_transform(char(kid.getAttribute('transform')));
   end
 
   function Pi = parse_points_attribute(elem)
@@ -141,7 +153,14 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
   end
 
   function Pi = parse_line(line)
-    get_scalar = @(line,key) sscanf(char(line.getAttribute(key)),'%g');
+    function s = get_scalar(line,key)
+      if line.hasAttribute(key)
+        s = sscanf(char(line.getAttribute(key)),'%g');
+      else
+        % I guess 0 is default
+        s = 0;
+      end
+    end
     Pi = [ ...
       get_scalar(line,'x1') get_scalar(line,'y1') ; ...
       get_scalar(line,'x2') get_scalar(line,'y2')];
@@ -203,6 +222,10 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         % file. Recurce into these similar to a group <g>
         g_kids = kid.getChildNodes();
         [g_P,g_C,g_I,g_F,g_S,g_W,g_D,g_k] = process_kids(g_kids);
+        g_T = get_transform(kid);
+        if ~isempty(g_T) && ~isempty(g_P)
+          g_P = [g_P ones(size(g_P,1),1)]*g_T';
+        end
         % augh. This is O(n²), should use a cell of transpose-transpose
         C = [C;size(P,1)+g_C];
         P = [P;g_P];
@@ -218,7 +241,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         % Pii,Cii etc. and then added to P,C etc. below, rather than this
         % `continue`
         continue;
-      case {'#text','metadata'}
+      case {'#comment','#text','metadata'}
         % knowingly skip
         continue;
       otherwise
