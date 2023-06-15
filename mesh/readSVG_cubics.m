@@ -36,6 +36,11 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
   %   axis equal;
   %   writeOBJ('~/Repos/shape-editing-examples/r.obj',V,F);
   %   
+  % Known issues:
+  %    'A','a' not supported
+  %    'Q','q' not supported
+  %    likely O(n²) in number of kids and O(m²) in the number of cubics
+  %      (parse_path)
 
   function f = get_not_none(kid,key)
     style = char(kid.getAttribute('style'));
@@ -77,20 +82,13 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     s = str2num(match{1}{1});
   end
 
-  function [Pi,Ci] = ellipse_to_path(cx,cy,rx,ry)
-    % special fraction
-    s =  1193/2160;
-    Pi = [1,0;1,s;s,1;0,1;-s,1;-1,s;-1,0;-1,-s;-s,-1;0,-1;s,-1;1,-s;1,0];
-    Ci = [1,2,3,4;4,5,6,7;7,8,9,10;10,11,12,13];
-    Pi = Pi.*[rx ry]+[cx cy];
-  end
 
   function [Pi,Ci] = parse_ellipse_as_spline(ellipse)
     cx = sscanf(char(ellipse.getAttribute('cx')),'%g');
     cy = sscanf(char(ellipse.getAttribute('cy')),'%g');
     rx = sscanf(char(ellipse.getAttribute('rx')),'%g');
     ry = sscanf(char(ellipse.getAttribute('ry')),'%g');
-    [Pi,Ci] = ellipse_to_path(cx,cy,rx,ry);
+    [Pi,Ci] = ellipse_to_spline(cx,cy,rx,ry);
   end
   function [Pi,Ci] = parse_circle_as_spline(circle)
     cx = sscanf(char(circle.getAttribute('cx')),'%g');
@@ -99,7 +97,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     if isempty(r)
       r = 0;
     end
-    [Pi,Ci] = ellipse_to_path(cx,cy,r,r);
+    [Pi,Ci] = ellipse_to_spline(cx,cy,r,r);
   end
 
   function Pi = parse_rect_as_polygon(rect)
@@ -122,8 +120,16 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     end
   end
 
+  function Pi = parse_points_attribute(elem)
+    points_str = char(elem.getAttribute('points'));
+    points_str = strrep(points_str,',',' ');
+    raw_numbers = sscanf(points_str,'%g');
+    assert(mod(numel(raw_numbers),2)==0,'points attribute must have even number of numbers');
+    Pi = reshape(raw_numbers,2,[])';
+  end
+
   function Pi = parse_polygon(poly)
-    Pi = reshape(sscanf(char(poly.getAttribute('points')),'%g,%g '),2,[])';
+    Pi = parse_points_attribute(poly);
     % if end isn't exactly begin, make it so
     if any(Pi(1,:) ~= Pi(end,:))
       Pi(end+1,:) = Pi(1,:);
@@ -131,7 +137,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
   end
 
   function Pi = parse_polyline(pline)
-    Pi = reshape(sscanf(char(pline.getAttribute('points')),'%g,%g '),2,[])';
+    Pi = parse_points_attribute(pline);
   end
 
   function Pi = parse_line(line)
@@ -197,6 +203,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         % file. Recurce into these similar to a group <g>
         g_kids = kid.getChildNodes();
         [g_P,g_C,g_I,g_F,g_S,g_W,g_D,g_k] = process_kids(g_kids);
+        % augh. This is O(n²), should use a cell of transpose-transpose
         C = [C;size(P,1)+g_C];
         P = [P;g_P];
         I = [I;k+g_I];
@@ -211,11 +218,11 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         % Pii,Cii etc. and then added to P,C etc. below, rather than this
         % `continue`
         continue;
-      case '#text'
+      case {'#text','metadata'}
         % knowingly skip
         continue;
       otherwise
-        fprintf('Skipping %s...\n',name);
+        warning('Skipping %s...\n',name);
         continue;
       end
       Si = get_color(kid,'stroke',nan(1,3));
@@ -226,6 +233,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
       Ti = get_transform(kid);
       Pii = [Pii ones(size(Pii,1),1)]*Ti';
 
+      % augh. This is O(n²), should use a cell of transpose-transpose
       if ~isempty(Cii)
         k = k+1;
         S = [S;Si];
