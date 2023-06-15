@@ -157,13 +157,19 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
       keepmin = @(ts,Es) ts(find(Es==min(Es),1));
       % We'll determine t based on the 1D g function. But we'll compute the
       % returned energy below using the full dim-D problem.
-      keepmin = @(K1,K2,ts) keepmin(ts,arrayfun(@(t) g(K1,K2,t),ts));
-      find_t = @(K1,K2) keepmin(K1,K2,nroots(K1,K2));
+      keepmin_g = @(K1,K2,ts) keepmin(ts,arrayfun(@(t) g(K1,K2,t),ts));
+      find_t = @(K1,K2) keepmin_g(K1,K2,nroots(K1,K2));
       % Decide which coordinate to use (pick a non-degenerate one).
       % Based on max-extent.
       [~,i] = max(max([C1(1,:);C2(end,:)])-min([C1(1,:);C2(end,:)]));
       t = find_t(C1(:,i),C2(:,i));
-      assert(~isempty(t));
+      %assert(~isempty(t));
+      if isempty(t)
+        C = nan(4,2);
+        t = nan;
+        err = inf;
+        return;
+      end
     case 'cubic'
       D1 = -6.*C1(1,:) + 18.*C1(2,:) - 18.*C1(3,:) + 6.*C1(4,:);
       D2 = -6.*C2(1,:) + 18.*C2(2,:) - 18.*C2(3,:) + 6.*C2(4,:);
