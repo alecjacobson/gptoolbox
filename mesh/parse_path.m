@@ -8,7 +8,7 @@ function [P,C] = parse_path(dstr)
   %   C  #C by 4 list of indices into P of cubics
   %
 
-  function [c] = circle_center(A, B, r, sweep)
+  function [c,r] = circle_center(A, B, r, sweep)
     % Compute the midpoint M of A and B
     M = (A + B) / 2;
     
@@ -16,6 +16,11 @@ function [P,C] = parse_path(dstr)
     d = norm(A - M);
     
     % Calculate the distance from M to the center C
+    if (r^2 - d^2)<0
+      warning('A,a radius too small');
+      %r = d+eps(abs(d));
+      r = d+1e-7;
+    end
     h = sqrt(r^2 - d^2);
     
     % Determine the direction from A to B
@@ -26,6 +31,7 @@ function [P,C] = parse_path(dstr)
     
     % Compute the two possible centers
     c = M + ((sweep==1)*1+(sweep~=1)*-1)  * h * perp_dir;
+
 end
 
   function [x,dstr] = parse_x(dstr)
@@ -97,9 +103,9 @@ end
       assert(phi == 0,'phi ~= 0 not supported');
       Pnext = (key=='a')*Pabs + [Z(6) Z(7)];
 
-      assert(rx == ry,'rx ~= ry not supported');
+      assert(rx == ry,sprintf('rx (%g) ~= ry (%g) not supported',rx,ry));
       r = rx;
-      c = circle_center(Pabs, Pnext, r, xor(sweep,large_arc));
+      [c,r] = circle_center(Pabs, Pnext, r, xor(sweep,large_arc));
 
       [Pe,Ce] = ellipse_to_spline(c(1),c(2),r,r);
 
