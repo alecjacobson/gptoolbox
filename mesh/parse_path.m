@@ -1,4 +1,4 @@
-function [P,C] = parse_path(dstr)
+function [P,C,Pabs] = parse_path(dstr,varargin)
   % [P,C] = parse_path(dstr)
   %
   % Inputs:
@@ -6,14 +6,38 @@ function [P,C] = parse_path(dstr)
   % Outputs:
   %   P  #P by 2 list of control point locations
   %   C  #C by 4 list of indices into P of cubics
+  %   Pabs  2d position of cursor
+  %
+  % Known issues:
+  %   This implementation is surely O(#dstr² + #P² + #C²). To fix this, we need
+  %   to avoid using sscanf which appears to require copying to read from the
+  %   middle of a string and switch P=[P;Pi] style concatenations to amortized
+  %   P=[P Pi]; concatenations.
   %
 
 
+  % These are all annoyingly O(#dstr) 
   function [x,dstr] = parse_x(dstr)
     [x,count,~,pos] = sscanf(dstr,'%g',1);
     if count~= 1
       x = [];
       return;
+    end
+    dstr = dstr(pos:end);
+    dstr = strip(strip(dstr,'left',','),'left',' ');
+  end
+  function [x,dstr] = parse_flag(dstr)
+    pos = 1;
+    % eat delimiters
+    while pos <= length(dstr) && ...
+        (dstr(pos) == ' ' || dstr(pos) == ',')
+      pos = pos + 1;
+    end
+    if dstr(pos) == '0' || dstr(pos) == '1'
+      x = dstr(pos) == '1';
+      pos = pos + 1;
+    else
+      x = [];
     end
     dstr = dstr(pos:end);
     dstr = strip(strip(dstr,'left',','),'left',' ');
@@ -40,6 +64,49 @@ function [P,C] = parse_path(dstr)
     end
   end
 
+  data = [];
+  Pabs = [0 0];
+  split = true;
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Cursor','Split'}, ...
+    {'Pabs','split'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
+
+  if split
+    % This is band-aid for the problem that parse_path is O(n²). Really we
+    % should be doing this for all commands not just Mm.
+    %
+    % Split into sub-paths
+    pattern = '([Mm][^Mm]*)';
+    S = regexp(dstr, pattern, 'match');
+    P = [];
+    C = [];
+    Pabs = [0 0];
+    for i = 1:length(S)
+      [Pi,Ci,Pabs] = parse_path(S{i},'Cursor',Pabs,'Split',false);
+      C = [C size(P,2)+Ci'];
+      P = [P Pi'];
+    end
+    P = P';
+    C = C';
+    return;
+  end
+
+
   dstr = strrep(dstr,'\n',' ');
   dstr = strrep(dstr,',',' ');
 
@@ -52,6 +119,7 @@ function [P,C] = parse_path(dstr)
   [key,dstr] = parse_key(strtrim(dstr));
   assert(key == 'M' || key == 'm','First key must be M or m');
   [P,dstr] = parse_xy(dstr);
+  P = (key == 'm')*Pabs + P;
   mi = size(P,1);
   % Pabs will track the current cursor position
   Pabs = P(end,:);
@@ -74,20 +142,18 @@ function [P,C] = parse_path(dstr)
       %if key == 'a'
       %end
 
-      [Z,count,~,pos] = sscanf(dstr,'%g',7);
-      assert(count == 7,'Expected 7 values for A,a command');
-      % O(n) :-(
-      dstr = strtrim(dstr(pos:end));
+      %[Z,count,~,pos] = sscanf(dstr,'%g',7);
+      %assert(count == 7,'Expected 7 values for A,a command');
+      %% O(n) :-(
+      %dstr = strtrim(dstr(pos:end));
+      [rx,dstr] = parse_x(dstr);
+      [ry,dstr] = parse_x(dstr);
+      [phi,dstr] = parse_x(dstr);
+      [large_arc,dstr] = parse_flag(dstr);
+      [sweep,dstr] = parse_flag(dstr);
+      [Pnext,dstr] = parse_xy(dstr);
 
-      rx = Z(1);
-      ry = Z(2);
-      % x-axis rotation
-      phi = Z(3);
-      % large-arc-flag
-      large_arc = Z(4);
-      % sweep-flag
-      sweep = Z(5);
-      Pnext = (key=='a')*Pabs + [Z(6) Z(7)];
+      Pnext = (key=='a')*Pabs + Pnext;
 
       if ~isequal(Pabs,Pnext)
         [Pe,Ce] = arc_to_cubics(Pabs,Pnext,rx,ry,phi,large_arc,sweep);
