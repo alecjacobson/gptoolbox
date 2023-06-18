@@ -125,6 +125,17 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
     if isempty(y); y = 0; end
     w = sscanf(char(rect.getAttribute('width')),'%g');
     h = sscanf(char(rect.getAttribute('height')),'%g');
+    if isempty(w) || isempty(h)
+      warning('readSVG_cubics: auto rect.width or rect.height not supported');
+      Pi = zeros(0,2);
+      return;
+    end
+    if rect.hasAttribute('rx')
+      warning('readSVG_cubics:rect.rx not supported');
+    end
+    if rect.hasAttribute('ry')
+      warning('readSVG_cubics:rect.ry not supported');
+    end
     Pi = [x y;x+w y;x+w y+h;x y+h;x y];
   end
 
@@ -200,13 +211,12 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
         otherwise
           fprintf('skipping %s...\n',name);
         end
-        % convert to cubic
-        closed = all(Pi(1,:)==Pi(end,:));
         if size(Pi,1)<=1
           % skip
           Pii = zeros(0,2);
           Cii = zeros(0,4);
         else
+          % convert to cubic
           Pii = interp1(1:size(Pi,1),Pi,linspace(1,size(Pi,1),(size(Pi,1)-1)*3+1));
           Cii = [1 2 3 4]+3*(0:size(Pi,1)-2)';
         end
@@ -251,7 +261,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
         % Pii,Cii etc. and then added to P,C etc. below, rather than this
         % `continue`
         continue;
-      case {'#comment','script','desc','text','#text','flowRoot','pattern','metadata','title','style','filter','linearGradient','radialGradient'}
+      case {'#comment','head','script','desc','text','#text','flowRoot','pattern','metadata','title','style','filter','linearGradient','radialGradient'}
         % intentionally skip
         continue;
       case {'use','font','marker','symbol','mask'}
