@@ -268,7 +268,9 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
       Wi = get_scalar(kid,'stroke-miterlimit');
       Di = get_not_none(kid,'display');
       Ti = get_transform(kid);
-      Pii = [Pii ones(size(Pii,1),1)]*Ti';
+      if ~isempty(Pii)
+        Pii = [Pii ones(size(Pii,1),1)]*Ti';
+      end
 
       % augh. This is O(n²), should use a cell of transpose-transpose
       if ~isempty(Cii)
