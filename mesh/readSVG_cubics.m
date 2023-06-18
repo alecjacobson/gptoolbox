@@ -41,6 +41,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
   %    likely O(n²) in number of kids and O(m²) in the number of cubics
   %      (parse_path)
 
+
   function f = get_not_none(kid,key)
     style = char(kid.getAttribute('style'));
     [~,~,~,~,match] = regexp(style,[key ': *([^;]*);']);
@@ -180,6 +181,10 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
       Cii = [];
       kid = kids.item(ii);
       name = char(kid.getNodeName());
+      % strip 'svg:' if present as prefix
+      if numel(name)>4 && strcmp(name(1:4),'svg:')
+        name = name(5:end);
+      end
       switch name
         % straight things
       case {'line','polyline','rect','polygon'}
@@ -335,6 +340,11 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
   %end
 
   svg = xDoc.getElementsByTagName('svg').item(0);
+  if isempty(svg)
+    % seems sometimes all of the tags are svg:svg, svg:path, … instead of svg,
+    % path, … 
+    svg = xDoc.getElementsByTagName('svg:svg').item(0);
+  end
   kids = svg.getChildNodes();
   [P,C,I,F,S,W,D,k] = process_kids(kids);
 

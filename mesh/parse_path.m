@@ -67,10 +67,11 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
   data = [];
   Pabs = [0 0];
   split = true;
+  debug = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Cursor','Split'}, ...
-    {'Pabs','split'});
+    {'Cursor','Debug','Split'}, ...
+    {'Pabs','debug','split'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -158,16 +159,19 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
       if ~isequal(Pabs,Pnext)
         [Pe,Ce] = arc_to_cubics(Pabs,Pnext,rx,ry,phi,large_arc,sweep);
 
-        C = [C;size(P,1)+Ce-1];
-        P = [P;Pe(2:end,:)];
-
-        Pabs = P(end,:);
+        if ~isempty(Ce)
+          C = [C;size(P,1)+Ce-1];
+          P = [P;Pe(2:end,:)];
+          Pabs = P(end,:);
+        end
       end
     case {'T','t'}
-      assert(prev_key == 'Q' || prev_key == 'q' || prev_key == 'T' || prev_key == 't',...
-        'T,t command must be preceded by Q,q or T,t command');
       Q1 = Pabs;
-      Q2 = Pabs + (Pabs-Qprev);
+      if ismember(prev_key,'QqTt')
+        Q2 = Pabs + (Pabs-Qprev);
+      else
+        Q2 = Pabs;
+      end
       [Q3,dstr] = parse_xy(dstr);
       Q3 = Q3 + (key=='t')*Pabs;
       Q = [Q1;Q2;Q3];
