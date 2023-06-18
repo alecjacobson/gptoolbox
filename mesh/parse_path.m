@@ -151,9 +151,18 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
       [rx,dstr] = parse_x(dstr);
       [ry,dstr] = parse_x(dstr);
       [phi,dstr] = parse_x(dstr);
+      % it seems valid for the flags to appear immediately adjacent to each
+      % other like '10' or '11' which should be read as '1 0' and '1 1' rather
+      % than 10→1 and 11→1
+      % 
+      % Another file ('222268.svg') appeared to use '1,11' to mean '1 1' but I
+      % can't think of a way to correctly handle both uses.
       [large_arc,dstr] = parse_flag(dstr);
       [sweep,dstr] = parse_flag(dstr);
       [Pnext,dstr] = parse_xy(dstr);
+      if isempty(Pnext)
+        error('parse_path: wrong number of args for A,a');
+      end
 
       Pnext = (key=='a')*Pabs + Pnext;
 
