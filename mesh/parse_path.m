@@ -108,8 +108,9 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
   end
 
 
-  dstr = strrep(dstr,'\n',' ');
   dstr = strrep(dstr,',',' ');
+  dstr = regexprep(dstr,'(&#x[A-z0-9];)+',' ');
+  dstr = regexprep(dstr,'\s+',' ');
 
   if isempty(dstr)
     P = zeros(0,2);
