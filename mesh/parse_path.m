@@ -1,4 +1,4 @@
-function [P,C,Pabs] = parse_path(dstr,varargin)
+function [P,C,state] = parse_path(dstr,varargin)
   % [P,C] = parse_path(dstr)
   %
   % Inputs:
@@ -6,7 +6,7 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
   % Outputs:
   %   P  #P by 2 list of control point locations
   %   C  #C by 4 list of indices into P of cubics
-  %   Pabs  2d position of cursor
+  %   state
   %
   % Known issues:
   %   This implementation is surely O(#dstr² + #P² + #C²). To fix this, we need
@@ -64,14 +64,15 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
     end
   end
 
+
   data = [];
-  Pabs = [0 0];
+  state_Pabs = [0 0];
   split = true;
   debug = false;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
     {'Cursor','Debug','Split'}, ...
-    {'Pabs','debug','split'});
+    {'state_Pabs','debug','split'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -85,6 +86,8 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
     end
     v=v+1;
   end
+  state = struct();
+  state.Pabs = state_Pabs;
 
 
   if split
@@ -96,9 +99,9 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
     S = regexp(dstr, pattern, 'match');
     P = [];
     C = [];
-    Pabs = [0 0];
+    state.Pabs = [0 0];
     for i = 1:length(S)
-      [Pi,Ci,Pabs] = parse_path(S{i},'Cursor',Pabs,'Split',false);
+      [Pi,Ci,state] = parse_path(S{i},'Cursor',state.Pabs,'Split',false);
       C = [C size(P,2)+Ci'];
       P = [P Pi'];
     end
@@ -118,26 +121,39 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
     return;
   end
 
-  [key,dstr] = parse_key(strtrim(dstr));
-  assert(key == 'M' || key == 'm','First key must be M or m');
+  [state.key,dstr] = parse_key(strtrim(dstr));
+  assert(state.key == 'M' || state.key == 'm','First key must be M or m');
   [P,dstr] = parse_xy(dstr);
-  P = (key == 'm')*Pabs + P;
-  mi = size(P,1);
-  % Pabs will track the current cursor position
-  Pabs = P(end,:);
+  P = (state.key == 'm')*state.Pabs + P;
+  state.mi = size(P,1);
+  % state.Pabs will track the current cursor position
+  state.Pabs = P(end,:);
   C = [];
-  z_seen = false;
+  state.z_seen = false;
   % I guess L is some kind of default...
-  prev_key = char('L' + (key-'M'));
+  state.prev_key = char('L' + (state.key-'M'));
+  state.Qprev = [];
   while ~isempty(dstr)
-    [key,dstr] = parse_key(dstr);
-    % A command letter may be eliminated if an identical command letter would
+
+    % State:
+    %   state.prev_key
+    %   state.z_seen
+    %   state.Pabs
+    %   state.Qprev
+    %   state.mi
+    % 
+    %   P
+    %   C
+
+    [state.key,dstr] = parse_key(dstr);
+
+    % A command letter may be elistate.minated if an identical command letter would
     % otherwise precede it; for instance, the following contains an unnecessary
     % second "L" command:
-    if isempty(key) && ~isempty(prev_key)
-      key = prev_key;
+    if isempty(state.key) && ~isempty(state.prev_key)
+      state.key = state.prev_key;
     end
-    switch key
+    switch state.key
     case {'A','a'}
 
       %% Handle full circles made of two 180° arcs as a special case.
@@ -164,123 +180,123 @@ function [P,C,Pabs] = parse_path(dstr,varargin)
         error('parse_path: wrong number of args for A,a');
       end
 
-      Pnext = (key=='a')*Pabs + Pnext;
+      Pnext = (state.key=='a')*state.Pabs + Pnext;
 
-      if ~isequal(Pabs,Pnext)
-        [Pe,Ce] = arc_to_cubics(Pabs,Pnext,rx,ry,phi,large_arc,sweep);
+      if ~isequal(state.Pabs,Pnext)
+        [Pe,Ce] = arc_to_cubics(state.Pabs,Pnext,rx,ry,phi,large_arc,sweep);
 
         if ~isempty(Ce)
           C = [C;size(P,1)+Ce-1];
           P = [P;Pe(2:end,:)];
-          Pabs = P(end,:);
+          state.Pabs = P(end,:);
         end
       end
     case {'T','t'}
-      Q1 = Pabs;
-      if ismember(prev_key,'QqTt')
-        Q2 = Pabs + (Pabs-Qprev);
+      Q1 = state.Pabs;
+      if ismember(state.prev_key,'QqTt')
+        Q2 = state.Pabs + (state.Pabs-state.Qprev);
       else
-        Q2 = Pabs;
+        Q2 = state.Pabs;
       end
       [Q3,dstr] = parse_xy(dstr);
-      Q3 = Q3 + (key=='t')*Pabs;
+      Q3 = Q3 + (state.key=='t')*state.Pabs;
       Q = [Q1;Q2;Q3];
       CQ = quadratic_to_cubic(Q);
       C = [C;size(P,1)+[0 1 2 3]];
       P = [P;CQ(2:end,:)];
-      Qprev = Q(2,:);
-      Pabs = P(end,:);
+      state.Qprev = Q(2,:);
+      state.Pabs = P(end,:);
 
     case {'Q','q'}
-      Q1 = Pabs;
+      Q1 = state.Pabs;
       [Q2,dstr] = parse_xy(dstr);
       [Q3,dstr] = parse_xy(dstr);
-      Q = [Q1;[Q2;Q3] + (key=='q')*Pabs];
+      Q = [Q1;[Q2;Q3] + (state.key=='q')*state.Pabs];
       CQ = quadratic_to_cubic(Q);
       C = [C;size(P,1)+[0 1 2 3]];
       P = [P;CQ(2:end,:)];
 
-      Qprev = Q(2,:);
-      Pabs = P(end,:);
+      state.Qprev = Q(2,:);
+      state.Pabs = P(end,:);
 
     case {'C','c'}
       C = [C;size(P,1)+[0 1 2 3]];
       [P(end+1,:),dstr] = parse_xy(dstr);
       [P(end+1,:),dstr] = parse_xy(dstr);
       [P(end+1,:),dstr] = parse_xy(dstr);
-      if key == 'c'
-        P(end-2:end,:) = P(end-2:end,:) + Pabs;
+      if state.key == 'c'
+        P(end-2:end,:) = P(end-2:end,:) + state.Pabs;
       end
-      Pabs = P(end,:);
+      state.Pabs = P(end,:);
     case {'L','l','V','v','H','h','Z','z'}
-      if (key == 'Z' || key == 'z')
+      if (state.key == 'Z' || state.key == 'z')
         %assert(isempty(dstr),'Z Should be last key');
         % gobble white space
         dstr = strip(dstr);
       end
       % augh I hate that I'm using epsilon here. probably the interp1 above is
       % leading to small numerical noise.
-      if (key == 'Z' || key == 'z') && size(P,1)==mi
+      if (state.key == 'Z' || state.key == 'z') && size(P,1)==state.mi
         % degenerate single point, ignore
-      elseif (key == 'Z' || key == 'z') && sum((P(end,:)-P(mi,:)).^2)<eps
+      elseif (state.key == 'Z' || state.key == 'z') && sum((P(end,:)-P(state.mi,:)).^2)<eps
         % close up naturally by identifying first and last point
         if ~isempty(C)
-          C(end,4) = mi;
+          C(end,4) = state.mi;
         end
         % Pop last point
         P = P(1:end-1,:);
-        Pabs = P(mi,:);
+        state.Pabs = P(state.mi,:);
       else
         C = [C;size(P,1)+[0 1 2 3]];
-        switch key
+        switch state.key
         case {'L','l'}
           [XY,dstr] = parse_xy(dstr);
-          Pnext = (key=='l')*Pabs + XY;
+          Pnext = (state.key=='l')*state.Pabs + XY;
         case {'V','v'}
           [Y,dstr] = parse_x(dstr);
-          Pnext = [1 (key=='v')].*Pabs + [0 Y];
+          Pnext = [1 (state.key=='v')].*state.Pabs + [0 Y];
         case {'H','h'}
           [X,dstr] = parse_x(dstr);
-          Pnext = [(key=='h') 1].*Pabs + [X 0];
+          Pnext = [(state.key=='h') 1].*state.Pabs + [X 0];
         case {'Z','z'}
           % I don't see how Z or z are different.
           % Don't parse xy, connect to beginning 
-          Pnext = P(mi,:);
+          Pnext = P(state.mi,:);
         end
-        P(end+1,:) = Pabs + (1/3)*(Pnext-Pabs);
-        P(end+1,:) = Pabs + (2/3)*(Pnext-Pabs);
+        P(end+1,:) = state.Pabs + (1/3)*(Pnext-state.Pabs);
+        P(end+1,:) = state.Pabs + (2/3)*(Pnext-state.Pabs);
         P(end+1,:) = Pnext;
-        Pabs = P(end,:);
+        state.Pabs = P(end,:);
       end
     case {'S','s'}
       C = [C;size(P,1)+[0 1 2 3]];
-      if ismember(prev_key,'SsCc')
+      if ismember(state.prev_key,'SsCc')
         P(end+1,:) = P(end,:)+ P(end,:)-P(end-1,:);
       else
         P(end+1,:) = P(end,:);
       end
       [P(end+1,:),dstr] = parse_xy(dstr);
       [P(end+1,:),dstr] = parse_xy(dstr);
-      if key == 's'
-        P(end-1:end,:) = P(end-1:end,:) + Pabs;
+      if state.key == 's'
+        P(end-1:end,:) = P(end-1:end,:) + state.Pabs;
       end
-      Pabs = P(end,:);
+      state.Pabs = P(end,:);
     case {'M','m'}
       [Pnext,dstr] = parse_xy(dstr);
-      Pm = Pnext+(key=='m')*Pabs;
+      Pm = Pnext+(state.key=='m')*state.Pabs;
       P = [P;Pm];
-      mi = size(P,1);
-      Pabs = P(end,:);
-      % Augh this can even happen after 'mz', set key here so below prev_key is
+      state.mi = size(P,1);
+      state.Pabs = P(end,:);
+      % Augh this can even happen after 'mz', set key here so below state.prev_key is
       % correct.
-      key = char('L' + (key-'M'));
+      state.key = char('L' + (state.key-'M'));
     otherwise
-      error('%c key not supported',key)
+      error('%c key not supported',state.key)
     end
     %key
     %clf;hold on;arrayfun(@(c) set(plot_cubic(P(C(c,:),:)),'Color','b'),1:size(C,1));hold off;
     %pause
-    prev_key = key;
+    state.prev_key = state.key;
   end
     
 
