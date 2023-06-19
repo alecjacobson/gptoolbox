@@ -49,7 +49,7 @@ function [P,C,state] = parse_path(dstr,varargin)
       xy = [];
       return;
     end
-    xy = [x y];
+    xy = [x;y];
   end
   function [key,dstr] = parse_key(dstr)
     % only support open cubic Bezier splines for now
@@ -87,7 +87,7 @@ function [P,C,state] = parse_path(dstr,varargin)
     v=v+1;
   end
   state = struct();
-  state.Pabs = state_Pabs;
+  state.Pabs = reshape(state_Pabs,[],1);
 
 
   if split
@@ -125,9 +125,9 @@ function [P,C,state] = parse_path(dstr,varargin)
   assert(state.key == 'M' || state.key == 'm','First key must be M or m');
   [P,dstr] = parse_xy(dstr);
   P = (state.key == 'm')*state.Pabs + P;
-  state.mi = size(P,1);
+  state.mi = size(P,2);
   % state.Pabs will track the current cursor position
-  state.Pabs = P(end,:);
+  state.Pabs = P(:,end);
   C = [];
   state.z_seen = false;
   % I guess L is some kind of default...
@@ -183,12 +183,12 @@ function [P,C,state] = parse_path(dstr,varargin)
       Pnext = (state.key=='a')*state.Pabs + Pnext;
 
       if ~isequal(state.Pabs,Pnext)
-        [Pe,Ce] = arc_to_cubics(state.Pabs,Pnext,rx,ry,phi,large_arc,sweep);
+        [Pe,Ce] = arc_to_cubics(state.Pabs',Pnext',rx,ry,phi,large_arc,sweep);
 
         if ~isempty(Ce)
-          C = [C;size(P,1)+Ce-1];
-          P = [P;Pe(2:end,:)];
-          state.Pabs = P(end,:);
+          C = [C size(P,2)+Ce'-1];
+          P = [P Pe(2:end,:)'];
+          state.Pabs = P(:,end);
         end
       end
     case {'T','t'}
@@ -200,34 +200,34 @@ function [P,C,state] = parse_path(dstr,varargin)
       end
       [Q3,dstr] = parse_xy(dstr);
       Q3 = Q3 + (state.key=='t')*state.Pabs;
-      Q = [Q1;Q2;Q3];
+      Q = [Q1 Q2 Q3]';
       CQ = quadratic_to_cubic(Q);
-      C = [C;size(P,1)+[0 1 2 3]];
-      P = [P;CQ(2:end,:)];
+      C = [C size(P,2)+[0 1 2 3]'];
+      P = [P CQ(2:end,:)'];
       state.Qprev = Q(2,:);
-      state.Pabs = P(end,:);
+      state.Pabs = P(:,end);
 
     case {'Q','q'}
       Q1 = state.Pabs;
       [Q2,dstr] = parse_xy(dstr);
       [Q3,dstr] = parse_xy(dstr);
-      Q = [Q1;[Q2;Q3] + (state.key=='q')*state.Pabs];
+      Q = [Q1 [Q2 Q3] + (state.key=='q')*state.Pabs]';
       CQ = quadratic_to_cubic(Q);
-      C = [C;size(P,1)+[0 1 2 3]];
-      P = [P;CQ(2:end,:)];
+      C = [C size(P,2)+[0 1 2 3]'];
+      P = [P CQ(2:end,:)'];
 
-      state.Qprev = Q(2,:);
-      state.Pabs = P(end,:);
+      state.Qprev = Q(2,:)';
+      state.Pabs = P(:,end);
 
     case {'C','c'}
-      C = [C;size(P,1)+[0 1 2 3]];
-      [P(end+1,:),dstr] = parse_xy(dstr);
-      [P(end+1,:),dstr] = parse_xy(dstr);
-      [P(end+1,:),dstr] = parse_xy(dstr);
+      C = [C size(P,2)+[0 1 2 3]'];
+      [P(:,end+1),dstr] = parse_xy(dstr);
+      [P(:,end+1),dstr] = parse_xy(dstr);
+      [P(:,end+1),dstr] = parse_xy(dstr);
       if state.key == 'c'
-        P(end-2:end,:) = P(end-2:end,:) + state.Pabs;
+        P(:,end-2:end) = P(:,end-2:end) + state.Pabs;
       end
-      state.Pabs = P(end,:);
+      state.Pabs = P(:,end);
     case {'L','l','V','v','H','h','Z','z'}
       if (state.key == 'Z' || state.key == 'z')
         %assert(isempty(dstr),'Z Should be last key');
@@ -236,57 +236,57 @@ function [P,C,state] = parse_path(dstr,varargin)
       end
       % augh I hate that I'm using epsilon here. probably the interp1 above is
       % leading to small numerical noise.
-      if (state.key == 'Z' || state.key == 'z') && size(P,1)==state.mi
+      if (state.key == 'Z' || state.key == 'z') && size(P,2)==state.mi
         % degenerate single point, ignore
-      elseif (state.key == 'Z' || state.key == 'z') && sum((P(end,:)-P(state.mi,:)).^2)<eps
+      elseif (state.key == 'Z' || state.key == 'z') && sum((P(:,end)-P(:,state.mi)).^2)<eps
         % close up naturally by identifying first and last point
         if ~isempty(C)
-          C(end,4) = state.mi;
+          C(4,end) = state.mi;
         end
         % Pop last point
-        P = P(1:end-1,:);
-        state.Pabs = P(state.mi,:);
+        P = P(:,1:end-1);
+        state.Pabs = P(:,state.mi);
       else
-        C = [C;size(P,1)+[0 1 2 3]];
+        C = [C size(P,2)+[0 1 2 3]'];
         switch state.key
         case {'L','l'}
           [XY,dstr] = parse_xy(dstr);
           Pnext = (state.key=='l')*state.Pabs + XY;
         case {'V','v'}
           [Y,dstr] = parse_x(dstr);
-          Pnext = [1 (state.key=='v')].*state.Pabs + [0 Y];
+          Pnext = [1;(state.key=='v')].*state.Pabs + [0;Y];
         case {'H','h'}
           [X,dstr] = parse_x(dstr);
-          Pnext = [(state.key=='h') 1].*state.Pabs + [X 0];
+          Pnext = [(state.key=='h');1].*state.Pabs + [X;0];
         case {'Z','z'}
           % I don't see how Z or z are different.
           % Don't parse xy, connect to beginning 
-          Pnext = P(state.mi,:);
+          Pnext = P(:,state.mi);
         end
-        P(end+1,:) = state.Pabs + (1/3)*(Pnext-state.Pabs);
-        P(end+1,:) = state.Pabs + (2/3)*(Pnext-state.Pabs);
-        P(end+1,:) = Pnext;
-        state.Pabs = P(end,:);
+        P(:,end+1) = state.Pabs + (1/3)*(Pnext-state.Pabs);
+        P(:,end+1) = state.Pabs + (2/3)*(Pnext-state.Pabs);
+        P(:,end+1) = Pnext;
+        state.Pabs = P(:,end);
       end
     case {'S','s'}
-      C = [C;size(P,1)+[0 1 2 3]];
+      C = [C size(P,2)+[0 1 2 3]'];
       if ismember(state.prev_key,'SsCc')
-        P(end+1,:) = P(end,:)+ P(end,:)-P(end-1,:);
+        P(:,end+1) = P(:,end)+ P(:,end)-P(:,end-1);
       else
-        P(end+1,:) = P(end,:);
+        P(:,end+1) = P(:,end);
       end
-      [P(end+1,:),dstr] = parse_xy(dstr);
-      [P(end+1,:),dstr] = parse_xy(dstr);
+      [P(:,end+1),dstr] = parse_xy(dstr);
+      [P(:,end+1),dstr] = parse_xy(dstr);
       if state.key == 's'
-        P(end-1:end,:) = P(end-1:end,:) + state.Pabs;
+        P(:,end-1:end) = P(:,end-1:end) + state.Pabs;
       end
-      state.Pabs = P(end,:);
+      state.Pabs = P(:,end);
     case {'M','m'}
       [Pnext,dstr] = parse_xy(dstr);
       Pm = Pnext+(state.key=='m')*state.Pabs;
-      P = [P;Pm];
-      state.mi = size(P,1);
-      state.Pabs = P(end,:);
+      P = [P Pm];
+      state.mi = size(P,2);
+      state.Pabs = P(:,end);
       % Augh this can even happen after 'mz', set key here so below state.prev_key is
       % correct.
       state.key = char('L' + (state.key-'M'));
@@ -294,10 +294,13 @@ function [P,C,state] = parse_path(dstr,varargin)
       error('%c key not supported',state.key)
     end
     %key
-    %clf;hold on;arrayfun(@(c) set(plot_cubic(P(C(c,:),:)),'Color','b'),1:size(C,1));hold off;
+    %clf;hold on;arrayfun(@(c) set(plot_cubic(P(:,C(c),:)),'Color','b'),1:size(C,1));hold off;
     %pause
     state.prev_key = state.key;
   end
+
+  P = P';
+  C = C';
     
 
 end
