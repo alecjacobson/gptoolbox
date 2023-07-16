@@ -1,4 +1,27 @@
 classdef LBFGS
+  % LBFGS  Class implementing an iteration step direction for the LBFGS algorithm.
+  % This class prepares the step direction dx and the caller is responsible for
+  % conducting the step (e.g., using backtracking_line_search).
+  %
+  % L = LBFGS() creates an LBFGS object with a default number {10} of past states.
+  % L = LBFGS(m) creates an LBFGS object with a memory of m past states.
+  %
+  % LBFGS methods:
+  %    step - compute the step direction
+  % 
+  % Example:
+  %   f =    @(x) 0.26*(x(1)^2+x(2)^2) - 0.48*x(1)*x(2);
+  %   grad = @(x) [0.52*x(1)-0.48*x(2); 0.52*x(2)-0.48*x(1)];
+  %   L = LBFGS(2);
+  %   x = [0;10];
+  %   for iter = 1:10
+  %     dfdx = grad(x);
+  %     % compare to `dx = -dfdx;`
+  %     [L,dx] = step(L,x,dfdx);                                  
+  %     [t,x] = backtracking_line_search(f,x,dfdx,dx,0.001,0.5,100);
+  %     fprintf(['%2d: f = %0.1g\n'],iter,f(x));
+  %   end
+
   properties
     % number of past states to remember
     m = 10
@@ -15,6 +38,7 @@ classdef LBFGS
   methods
 
     function this = LBFGS(m)
+      % this = LBFGS(m)
       if nargin>=1
         this.m = m;
       end
@@ -22,6 +46,20 @@ classdef LBFGS
 
     % Alogorithm 7.5 Nocedal and Wright
     function [this,dx] = step(this,xk,dfdxk)
+      % LBFGS.STEP Compute the step direction given the stored state and new
+      % value and gradients.
+      %
+      % L = LBFGS();
+      % …
+      % [L,dx] = step(L,xk,dfdxk)
+      %
+      % Inputs:
+      %   xk  #x array of current values for iteration k
+      %   dfdxk  #x array of current gradients for iteration k
+      % Outputs:
+      %   dx  #x array of step direction values
+      % 
+
       % Normalize inputs to vectors
       xk_size = size(xk);
       xk = reshape(xk,[],1);
