@@ -1,4 +1,4 @@
-function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
+function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
   % READSVG_CUBICS Read in paths and shapes from a .svg file, but convert
   % everything to cubic Bezier curves.
   %
@@ -36,6 +36,11 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
   %   axis equal;
   %   writeOBJ('~/Repos/shape-editing-examples/r.obj',V,F);
   %   
+  % Known issues:
+  %    <use>, etc. not supported see below in code
+  %    likely O(n²) in number of kids and O(m²) in the number of cubics
+  %      (parse_path)
+
 
   function f = get_not_none(kid,key)
     style = char(kid.getAttribute('style'));
@@ -77,29 +82,40 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     s = str2num(match{1}{1});
   end
 
-  function [Pi,Ci] = ellipse_to_path(cx,cy,rx,ry)
-    % special fraction
-    s =  1193/2160;
-    Pi = [1,0;1,s;s,1;0,1;-s,1;-1,s;-1,0;-1,-s;-s,-1;0,-1;s,-1;1,-s;1,0];
-    Ci = [1,2,3,4;4,5,6,7;7,8,9,10;10,11,12,13];
-    Pi = Pi.*[rx ry]+[cx cy];
-  end
 
   function [Pi,Ci] = parse_ellipse_as_spline(ellipse)
     cx = sscanf(char(ellipse.getAttribute('cx')),'%g');
     cy = sscanf(char(ellipse.getAttribute('cy')),'%g');
     rx = sscanf(char(ellipse.getAttribute('rx')),'%g');
     ry = sscanf(char(ellipse.getAttribute('ry')),'%g');
-    [Pi,Ci] = ellipse_to_path(cx,cy,rx,ry);
+    if isempty(cx)
+      cx = 0; 
+    end
+    if isempty(cy)
+      cy = 0; 
+    end
+    if isempty(rx)
+      rx = 0; 
+    end
+    if isempty(ry)
+      ry = 0; 
+    end
+    [Pi,Ci] = ellipse_to_spline(cx,cy,rx,ry);
   end
   function [Pi,Ci] = parse_circle_as_spline(circle)
     cx = sscanf(char(circle.getAttribute('cx')),'%g');
     cy = sscanf(char(circle.getAttribute('cy')),'%g');
+    if isempty(cx)
+      cx = 0; 
+    end
+    if isempty(cy)
+      cy = 0; 
+    end
     r = sscanf(char(circle.getAttribute('r')),'%g');
     if isempty(r)
       r = 0;
     end
-    [Pi,Ci] = ellipse_to_path(cx,cy,r,r);
+    [Pi,Ci] = ellipse_to_spline(cx,cy,r,r);
   end
 
   function Pi = parse_rect_as_polygon(rect)
@@ -109,21 +125,34 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
     if isempty(y); y = 0; end
     w = sscanf(char(rect.getAttribute('width')),'%g');
     h = sscanf(char(rect.getAttribute('height')),'%g');
+    if isempty(w) || isempty(h)
+      warning('readSVG_cubics: auto rect.width or rect.height not supported');
+      Pi = zeros(0,2);
+      return;
+    end
+    if rect.hasAttribute('rx')
+      warning('readSVG_cubics:rect.rx not supported');
+    end
+    if rect.hasAttribute('ry')
+      warning('readSVG_cubics:rect.ry not supported');
+    end
     Pi = [x y;x+w y;x+w y+h;x y+h;x y];
   end
 
   function T = get_transform(kid)
-    [T,foundT] = sscanf(char(kid.getAttribute('transform')),'matrix(%g %g %g %g %g %g)');
-    if foundT == 0
-      T = eye(2,3);
-    else
-      assert(foundT == 6)
-      T = reshape(T,2,3);
-    end
+    T = parse_svg_transform(char(kid.getAttribute('transform')));
+  end
+
+  function Pi = parse_points_attribute(elem)
+    points_str = char(elem.getAttribute('points'));
+    points_str = strrep(points_str,',',' ');
+    raw_numbers = sscanf(points_str,'%g');
+    assert(mod(numel(raw_numbers),2)==0,'points attribute must have even number of numbers');
+    Pi = reshape(raw_numbers,2,[])';
   end
 
   function Pi = parse_polygon(poly)
-    Pi = reshape(sscanf(char(poly.getAttribute('points')),'%g,%g '),2,[])';
+    Pi = parse_points_attribute(poly);
     % if end isn't exactly begin, make it so
     if any(Pi(1,:) ~= Pi(end,:))
       Pi(end+1,:) = Pi(1,:);
@@ -131,11 +160,18 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
   end
 
   function Pi = parse_polyline(pline)
-    Pi = reshape(sscanf(char(pline.getAttribute('points')),'%g,%g '),2,[])';
+    Pi = parse_points_attribute(pline);
   end
 
   function Pi = parse_line(line)
-    get_scalar = @(line,key) sscanf(char(line.getAttribute(key)),'%g');
+    function s = get_scalar(line,key)
+      if line.hasAttribute(key)
+        s = sscanf(char(line.getAttribute(key)),'%g');
+      else
+        % I guess 0 is default
+        s = 0;
+      end
+    end
     Pi = [ ...
       get_scalar(line,'x1') get_scalar(line,'y1') ; ...
       get_scalar(line,'x2') get_scalar(line,'y2')];
@@ -156,6 +192,10 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
       Cii = [];
       kid = kids.item(ii);
       name = char(kid.getNodeName());
+      % strip 'svg:' if present as prefix
+      if numel(name)>4 && strcmp(name(1:4),'svg:')
+        name = name(5:end);
+      end
       switch name
         % straight things
       case {'line','polyline','rect','polygon'}
@@ -171,10 +211,15 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         otherwise
           fprintf('skipping %s...\n',name);
         end
-        % convert to cubic
-        closed = all(Pi(1,:)==Pi(end,:));
-        Pii = interp1(1:size(Pi,1),Pi,linspace(1,size(Pi,1),(size(Pi,1)-1)*3+1));
-        Cii = [1 2 3 4]+3*(0:size(Pi,1)-2)';
+        if size(Pi,1)<=1
+          % skip
+          Pii = zeros(0,2);
+          Cii = zeros(0,4);
+        else
+          % convert to cubic
+          Pii = interp1(1:size(Pi,1),Pi,linspace(1,size(Pi,1),(size(Pi,1)-1)*3+1));
+          Cii = [1 2 3 4]+3*(0:size(Pi,1)-2)';
+        end
         %if ~closed && filled
         %  % close it with a straight curve
         %  fprintf('should be closing...')
@@ -192,11 +237,16 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         [Pii,Cii] = parse_path(d);
         %clf;hold on;arrayfun(@(c) set(plot_cubic(Pii(Cii(c,:),:)),'Color','b'),1:size(Cii,1));hold off;
         %pause
-      case {'g','defs'}
+      case {'g','defs','clipPath'}
         % Illustrator appears to put clip-paths in <defs> at the top of the
         % file. Recurce into these similar to a group <g>
         g_kids = kid.getChildNodes();
         [g_P,g_C,g_I,g_F,g_S,g_W,g_D,g_k] = process_kids(g_kids);
+        g_T = get_transform(kid);
+        if ~isempty(g_T) && ~isempty(g_P)
+          g_P = [g_P ones(size(g_P,1),1)]*g_T';
+        end
+        % augh. This is O(n²), should use a cell of transpose-transpose
         C = [C;size(P,1)+g_C];
         P = [P;g_P];
         I = [I;k+g_I];
@@ -211,11 +261,20 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
         % Pii,Cii etc. and then added to P,C etc. below, rather than this
         % `continue`
         continue;
-      case '#text'
+      case {'#comment','head','script','desc','text','#text','flowRoot','pattern','metadata','title','style','filter','linearGradient','radialGradient'}
+        % intentionally skip
+        continue;
+      case {'use','font','marker','symbol','mask'}
+        alert('readSVG_cubics:skip Skipping <%s> ...\n',name);
         % knowingly skip
         continue;
       otherwise
-        fprintf('Skipping %s...\n',name);
+        % if name starts with sodipodi: or inkscape: 
+        if startsWith(name,'sodipodi:') || startsWith(name,'inkscape:')
+          % knowingly skip
+          continue;
+        end
+        alert('readSVG_cubics:unknown Skipping unknown element <%s> ...\n',name);
         continue;
       end
       Si = get_color(kid,'stroke',nan(1,3));
@@ -224,8 +283,11 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
       Wi = get_scalar(kid,'stroke-miterlimit');
       Di = get_not_none(kid,'display');
       Ti = get_transform(kid);
-      Pii = [Pii ones(size(Pii,1),1)]*Ti';
+      if ~isempty(Pii)
+        Pii = [Pii ones(size(Pii,1),1)]*Ti';
+      end
 
+      % augh. This is O(n²), should use a cell of transpose-transpose
       if ~isempty(Cii)
         k = k+1;
         S = [S;Si];
@@ -238,6 +300,36 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
       end
     end
   end
+
+  alert_type = 'error';
+
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'UnsupportedAlert'}, ...
+    {'alert_type'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
+  switch alert_type
+  case 'error'
+    alert = @(varargin) error(varargin{:}); 
+  case 'warning'
+    alert = @(varargin) warning(varargin{:}); 
+  case 'ignore'
+    alert = @(varargin) [];
+  end
+
 
   % xmlread appears to be buggy if filename contains ~ etc.
   if isunix
@@ -258,6 +350,11 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename)
   %end
 
   svg = xDoc.getElementsByTagName('svg').item(0);
+  if isempty(svg)
+    % seems sometimes all of the tags are svg:svg, svg:path, … instead of svg,
+    % path, … 
+    svg = xDoc.getElementsByTagName('svg:svg').item(0);
+  end
   kids = svg.getChildNodes();
   [P,C,I,F,S,W,D,k] = process_kids(kids);
 
