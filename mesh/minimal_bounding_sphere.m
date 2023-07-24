@@ -16,6 +16,7 @@ function [c,r] = minimal_bounding_sphere(P)
   % Help reduce the number of auxiliary variables and cones below.
   H = convhull(P);
   P = P(H,:);
+
   % Skimming the literature it seems like there should be a linear programming
   % formulation, but so far I can only see a conic programming problem:
   % 
@@ -38,6 +39,13 @@ function [c,r] = minimal_bounding_sphere(P)
   %    dᵢ+c = pᵢ
   %    kᵢ = r
   %    ‖dᵢ‖ ≤ kᵢ
+
+  if nargin<2
+    R = [];
+  else
+    R = R(H,:);
+  end
+
 
   d = size(P,2);
   n = size(P,1);
