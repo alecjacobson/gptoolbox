@@ -14,8 +14,10 @@ function [c,r] = minimal_bounding_sphere(P)
   % O(n) cones.
 
   % Help reduce the number of auxiliary variables and cones below.
-  H = convhull(P);
-  P = P(H,:);
+  try
+    H = convhull(P);
+    P = P(H,:);
+  end
   % Skimming the literature it seems like there should be a linear programming
   % formulation, but so far I can only see a conic programming problem:
   % 
