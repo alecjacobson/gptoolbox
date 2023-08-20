@@ -1,4 +1,4 @@
-function varargout = plot_cubic(C,pe,p)
+function varargout = plot_cubic(C,pe,p,varargin)
   % PLOT_CUBIC  Plot a cubic Bezier curve
   %
   % [pe,p] = plot_cubic(C)
@@ -22,7 +22,7 @@ function varargout = plot_cubic(C,pe,p)
   hold on;
   aiblue = hex2dec(['4D';'80';'FF'])'/255;
   if ~exist('pe','var') || isempty(pe)
-    pe = plot_edges(C,[1 2;3 4],'-o','Color',aiblue,'LineWidth',1);
+    pe = plot_edges(C,[1 2;3 4],'-o','Color',aiblue,'LineWidth',1,varargin{:});
   else
     set(pe(1),'XData',C(1:2,1),'YData',C(1:2,2));
     set(pe(2),'XData',C(3:4,1),'YData',C(3:4,2));

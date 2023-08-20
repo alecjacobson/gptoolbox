@@ -90,6 +90,11 @@ if nargin == 1
     range = 1; 
 end
 
+if size(hex,2) == 3
+  % Expand shorthand #abc → #aabbcc
+  hex = hex(:,[1 1 2 2 3 3]);
+end
+
 %% Convert from hex to rgb: 
 
 switch range

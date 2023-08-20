@@ -6,7 +6,7 @@ function [S,C] = conncomp(G)
   % [S,C] = conncomp(G)
   %
   % Inputs:
-  %   G  n by n adjacency matrix
+  %   G  n by n adjacency matrix, G(i,j) = G(j,i) ≠ 0 implies ij are connected.
   % Outputs:
   %   S  scalar number of connected components
   %   C  
@@ -14,7 +14,8 @@ function [S,C] = conncomp(G)
   % Transpose to match graphconncomp
   G = G';
 
-  [p,q,r] = dmperm(G+speye(size(G)));
+  A = G+speye(size(G));
+  [p,~,r] = dmperm(A);
   S = numel(r)-1;
   C = cumsum(full(sparse(1,r(1:end-1),1,1,size(G,1))));
   C(p) = C;

@@ -139,8 +139,10 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
 
       switch fade
       case {'local','infinite'}
-        D = matrixnormalize( ...
-          sum(bsxfun(@times,U(:,1:2),l.Position(1:2)),2));
+        D = sum(bsxfun(@times,U(:,1:2),l.Position(1:2)),2);
+        if numel(D)>1
+          D = matrixnormalize(D);
+        end
         switch fade
         case 'infinite'
           D = 1.0-D;
@@ -158,9 +160,12 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
         caxis(ca);
       end
       % wireframe
-      if t.FaceAlpha == 0 || (ischar(t.FaceColor) & strcmp(t.FaceColor,'none'))
-        tsh.FaceAlpha = 0;
-        tsh.EdgeColor = color;
+      switch class(t)
+      case 'matlab.graphics.primitive.Patch'
+        if t.FaceAlpha == 0 || (ischar(t.FaceColor) & strcmp(t.FaceColor,'none'))
+          tsh.FaceAlpha = 0;
+          tsh.EdgeColor = color;
+        end
       end
 
       h = {h{:} tsh};

@@ -11,7 +11,7 @@ function [C,PI,PC] = dual(V,F)
   %   PI  #PI stream of polygon indices into rows of C
   %   PC  #V+1 list of cumulative sum of dual face valences
   % 
-  % See also: polygons_to_triangles
+  % See also: polygons_to_triangles, dual_subdivide
   %
   assert(~any(on_boundary(F),'all'));
   [~,C] = circumradius(V,F);

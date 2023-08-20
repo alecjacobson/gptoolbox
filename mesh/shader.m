@@ -14,6 +14,7 @@ function [I,A,FI,B] = shader(orig_tsh)
 
   I = im2double(getfield(getframe(gcf),'cdata'));
 
+  if nargout>=2
   orig_gcf = gcf;
   tsh = copy(orig_tsh);
   tsh = copyobj(tsh,gca);
@@ -24,6 +25,9 @@ function [I,A,FI,B] = shader(orig_tsh)
   set(gcf,'GraphicsSmoothing','off');
 
   set(tsh, ...
+    'AmbientStrength',1, ...
+    'DiffuseStrength',0, ...
+    'SpecularStrength',0, ...
     'FaceColor','flat', ...
      'FaceVertexCData',repmat([1 0 1], size(tsh.Faces,1),1));
   C = getfield(getframe(gcf),'cdata');
@@ -38,31 +42,38 @@ function [I,A,FI,B] = shader(orig_tsh)
   id2rgb = @(I) cat(3,GK(I+1),GI(I+1),GJ(I+1));
   %assert(all(0:256^3-1 == rgb2id(id2rgb(0:256^3-1))))
 
-  % Grad id 
-  set(tsh, ...
-    'FaceColor','flat', ...
-    'FaceVertexCData',squeeze(id2rgb((1:size(tsh.Faces,1))')));
-  FI = getfield(getframe(gcf),'cdata');
-  FI = rgb2id(FI);
+  if nargout>=3
+    % Grad id 
+    set(tsh, ...
+      'FaceColor','flat', ...
+      'FaceVertexCData',squeeze(id2rgb((1:size(tsh.Faces,1))')));
+    FI = getfield(getframe(gcf),'cdata');
+    FI = rgb2id(FI);
+    FI = FI.*A;
 
-  FF = tsh.Faces;
-  VV = tsh.Vertices;
-  set(tsh, ...
-    'Faces',reshape(1:numel(FF),[],3),'Vertices',VV(FF,:), ...
-    'FaceColor','interp','FaceVertexCData',repdiag(ones(size(FF,1),1),3));
-  B = im2double(getfield(getframe(gcf),'cdata'));
-  B = B ./ sum(B,3);
+    if nargout>=4
+      FF = tsh.Faces;
+      VV = tsh.Vertices;
+      set(tsh, ...
+        'Faces',reshape(1:numel(FF),[],3),'Vertices',VV(FF,:), ...
+        'FaceLighting','flat', ...
+        'FaceColor','interp','FaceVertexCData',repdiag(ones(size(FF,1),1),3));
+      B = im2double(getfield(getframe(gcf),'cdata'));
+      B = B ./ sum(B,3);
+      B = B.*A;
+    end
+  end
 
   %f = figure('WindowSTyle','docked');
   %imshow(A);
   %pause
   %close(f);
 
-  FI = FI.*A;
-  B = B.*A;
   orig_tsh.Visible = orig_visibile;
   % Why can't I just do delete(tsh) ?  Mauybe I can...
   children = get(gca,'Children');delete(children(1));
-  figure(orig_gcf);
+  % (Why) do I need this?
+  %figure(orig_gcf);
   set(gcf,'GraphicsSmoothing',orig_graphics_smoothing);
+  end
 end

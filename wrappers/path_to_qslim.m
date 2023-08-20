@@ -10,22 +10,16 @@ function s = path_to_qslim()
   %
 
   if ispc
-    warning([ ...
-      'Dear Ladislav, is there a standard place to put executables on a pc?' ...
-      'Could you put qslim there and change this accordingly?' ...
-      'Thanks, Alec']);
     s = 'c:/prg/lib/qslim/Release/qslim.exe';
   elseif isunix || ismac
     % I guess this means linux
     [status, s] = system('which qslim');
     s = strtrim(s);
-    if isempty(s)
+    if status ~= 0
       guesses = { ...
         '/usr/local/bin/qslim', ...
         '/opt/local/bin/qslim'};
-      E = cellfun(@(guess) exist(guess,'file'),guesses);
-      assert(any(E),'Could not find qslim');
-      s = guesses{find(E,1,'first')};
+      s = find_first_path(guesses);
     end
   end
 end

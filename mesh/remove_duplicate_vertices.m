@@ -66,6 +66,6 @@ function [SV,SVI,SVJ,SVJF] = remove_duplicate_vertices(V,epsilon,varargin)
     SJ(whitelist) = JW(SVJ);
   end
   if nargout>=4
-    SVJF = SVJ(F);
+    SVJF = reshape(SVJ(F),size(F));
   end
 end

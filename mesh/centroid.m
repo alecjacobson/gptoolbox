@@ -33,6 +33,11 @@ function [C,vol] = centroid(V,F,varargin)
     v=v+1;
   end
 
+  cross2 = @(a,b,c) ...
+    [a(:,2).*b(:,3)-a(:,3).*b(:,2), ...
+     a(:,3).*b(:,1)-a(:,1).*b(:,3), ...
+     a(:,1).*b(:,2)-a(:,2).*b(:,1)];
+
   if robust
     assert(size(V,2) == 3,'Only 3d supported');
     [TV,TT] = cdt(V,F);
@@ -61,7 +66,7 @@ function [C,vol] = centroid(V,F,varargin)
       B = V(F(:,2),:);
       C = V(F(:,3),:);
       % Needs to be **unnormalized** normals
-      N = cross(B-A,C-A,2);
+      N = cross2(B-A,C-A);
       % total volume via divergence theorem: ∫ 1
       vol = sum(sum(A.*N))/6;
       % centroid via divergence theorem and midpoint quadrature: ∫ x

@@ -1,7 +1,7 @@
 function [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
   % ADMM solver for convex problems of the form:
   %
-  % min_X,Z f(X) + g(X) subject to A*X + B*X = c
+  % min_X,Z f(X) + g(Z) subject to A*X + B*Z = c
   %
   % [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,varargin)
   %

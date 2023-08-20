@@ -123,7 +123,13 @@ function [U,Q] = lscm(V,F,b,bc,Aeq,Beq,varargin)
     A = vector_area_matrix(F);
     L = repdiag(cotmatrix(V,F),2);
     Q = -L - 2*A;
-    U = min_quad_with_fixed(Q,zeros(2*n,1),[b(:);b(:)+n],bc(:),Aeq,Beq);
+    if ~exist('b','var') || isempty(b)
+      M = repdiag(massmatrix(V,F),2);
+      [EV,ED] = eigs(Q,M,2,'sm');
+      U = EV(:,2);
+    else
+      U = min_quad_with_fixed(Q,zeros(2*n,1),[b(:);b(:)+n],bc(:),Aeq,Beq);
+    end
     % reshape into columns
     U = reshape(U,n,2);
   case 'desbrun'

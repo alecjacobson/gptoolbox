@@ -1,4 +1,4 @@
-function varargout = plot_spline(P,C)
+function varargout = plot_spline(P,C,varargin)
   % PLOT_SPLINE Plot a cubic Bezier spline.
   %
   % [pe,p] = plot_spline(P,C)
@@ -11,11 +11,13 @@ function varargout = plot_spline(P,C)
   %   p  plot handle for curves
   % Example:
   %   cellfun(@(pe) arrayfun(@(p) set(p,'Color','r'),pe),plot_spline(P,C))
+  assert(max(C(:))<=size(P,1));
+  assert(min(C(:))>=1);
   p = {};
   pe = {};
   ish = ishold;
   for c = 1:size(C,1)
-    [pe{c},p{c}] = plot_cubic(P(C(c,:),:));
+    [pe{c},p{c}] = plot_cubic(P(C(c,:),:),[],[],varargin{:});
     hold on;
   end
   hold off;

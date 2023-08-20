@@ -23,7 +23,11 @@ function [B,L] = ordered_outline(F)
   % See also: outline
   %
 
-  O = outline(F);
+  if size(F,2) == 2
+    O = F;
+  else
+    O = outline(F);
+  end
   % determine uniqueness of indices 
   [u,m,n] = unique(O(:),'rows');
   % determine counts for each unique edge

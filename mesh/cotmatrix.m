@@ -34,6 +34,10 @@ function L = cotmatrix(V,F)
 
   ss = size(F,2);
   switch ss
+  case 2
+    G = grad(V,F);
+    A = diag(sparse(edge_lengths(V,F)));
+    L = -G'*A*G;
   case 3
     %% Could just replace everything with:
     %C = cotangent(V,F);

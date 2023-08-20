@@ -7,23 +7,23 @@ function progressbar(n,N,w)
 % Inputs:
 %   n partial amount, should start at 1.
 %   N total amount
-%   w is the width of the bar (default w=20).
+%   w is the width of the bar (default w=80).
 %
 % TODO: should start at 0
 %
 % See also: waitbar
 
 if nargin<3
-    w = 20;
+    w = 80;
 end
 
 % progress char
-cprog = '.';
-cprog1 = '*';
+cprog = '□';
+cprog1 = '■';
 % begining char
-cbeg = '[';
+cbeg = '';
 % ending char
-cend = ']';
+cend = '';
 
 p = min( floor(n/N*(w+1)), w);
 

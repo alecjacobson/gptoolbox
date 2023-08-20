@@ -14,3 +14,5 @@ quat.zip
 mex/build*
 *.*.swo
 mex/external
+mesh/cubic_vertex_removal_g.m
+mesh/cubic_vertex_removal_polyfun.m

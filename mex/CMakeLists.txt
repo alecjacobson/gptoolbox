@@ -123,6 +123,7 @@ blue_noise.cpp;\
 collapse_small_triangles.cpp;\
 decimate_libigl.cpp;\
 dual_laplacian.cpp;\
+exact_geodesic.cpp;\
 fast_sparse.cpp;\
 fit_rotations_mex.cpp;\
 fit_cubic_bezier.cpp;\

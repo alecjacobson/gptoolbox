@@ -8,6 +8,7 @@ function [V,F] = subdivided_sphere(iters,varargin)
   %   iters  number of subdivision iterations (0 produces 12-vertex
   %     icosahedron)
   %   Optional:
+  %     'Base'  followed by base shape.
   %     'Radius'  followed by scalar radius (multiplied against final V) {1}
   %     'SubdivisionMethod' followed by either:
   %       'loop'
@@ -23,9 +24,10 @@ function [V,F] = subdivided_sphere(iters,varargin)
   % default values
   radius = 1;
   subdivision_method = 'upsample';
+  base = '';
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Radius','SubdivisionMethod'},{'radius','subdivision_method'});
+    {'Base','Radius','SubdivisionMethod'},{'base','radius','subdivision_method'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -40,43 +42,51 @@ function [V,F] = subdivided_sphere(iters,varargin)
     v=v+1;
   end
 
-  % Compute the 12 vertices
-  phi = (1+sqrt(5))/2;  % Golden ratio
-  V = [0   1  phi 
-          0  -1  phi 
-          0   1 -phi 
-          0  -1 -phi 
-          1  phi  0  
-        -1  phi  0  
-          1 -phi  0  
-        -1 -phi  0  
-          phi 0   1  
-        -phi 0   1  
-          phi 0  -1  
-        -phi 0  -1];
-  % Scale to required radius
-  V = V/(sqrt(1+phi^2));
-  % Define the adjacency matrix
-  F = [1  2  9
-        1  9  5
-        1  5  6
-        1  6  10
-        1  10 2
-        2  7  9
-        9  7  11
-        9  11 5
-        5  11 3
-        5  3  6
-        6  3  12
-        6  12 10
-        10 12 8
-        10 8  2
-        2  8  7
-        4  7  8
-        4  8  12
-        4  12 3
-        4  3  11
-        4  11 7];
+  switch base
+  case 'icosahedron'
+    [V,F] = icosahedron();
+  case 'octahedron'
+    [V,F] = octahedron();
+  otherwise
+    % Compute the 12 vertices
+    phi = (1+sqrt(5))/2;  % Golden ratio
+    V = [0   1  phi 
+            0  -1  phi 
+            0   1 -phi 
+            0  -1 -phi 
+            1  phi  0  
+          -1  phi  0  
+            1 -phi  0  
+          -1 -phi  0  
+            phi 0   1  
+          -phi 0   1  
+            phi 0  -1  
+          -phi 0  -1];
+    % Scale to required radius
+    V = V/(sqrt(1+phi^2));
+    % Define the adjacency matrix
+    F = [1  2  9
+          1  9  5
+          1  5  6
+          1  6  10
+          1  10 2
+          2  7  9
+          9  7  11
+          9  11 5
+          5  11 3
+          5  3  6
+          6  3  12
+          6  12 10
+          10 12 8
+          10 8  2
+          2  8  7
+          4  7  8
+          4  8  12
+          4  12 3
+          4  3  11
+          4  11 7];
+  end
+
   V = normalizerow(V);
   for iter = 1:iters
     switch subdivision_method

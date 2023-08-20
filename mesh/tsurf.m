@@ -1,4 +1,4 @@
-function t = tsurf(F,V,varargin)
+function [t,o] = tsurf(F,V,varargin)
   % TSURF trisurf wrapper, easily plot triangle meshes with(out) face or vertex
   % indices. Attaches callbacks so that click-and-holding on the mesh and then
   % pressing 'm' launches meshplot (if available)
@@ -10,6 +10,10 @@ function t = tsurf(F,V,varargin)
   %   F  list of faces #F x 3
   %   V  vertex positiosn #V x 3 or #V x 2
   %   Optional:
+  %     'Tets' followed by whether #F × 4 input contains tetradhedra (as opposed
+  %       to quads) {guess based on #boundary faces}
+  %     'Outline'  followed by whether to also draw the mesh's outline (also
+  %       using tsurf) {false}
   %     'VertexIndices' followed by 
   %     'FaceIndices' followed by 
   %                   0 -> off
@@ -19,6 +23,7 @@ function t = tsurf(F,V,varargin)
   %     ... additional options passed on to trisurf
   % Outputs:
   %  t  handle to trisurf object
+  %  o  handle to trisurf outline object
   %
   % Copyright 2011, Alec Jacobson (jacobson@inf.ethz.ch)
   %
@@ -43,10 +48,15 @@ function t = tsurf(F,V,varargin)
   face_indices = 0;
   tets = [];
   buttondownfcn = 'default';
+  draw_outline = false;
 
   v = 1;
   while v<=numel(varargin) && ischar(varargin{v}) 
     switch varargin{v}
+    case 'Outline'
+      v = v+1;
+      assert(v<=numel(varargin));
+      draw_outline = varargin{v};
     case 'VertexIndices'
       v = v+1;
       assert(v<=numel(varargin));
@@ -91,8 +101,9 @@ function t = tsurf(F,V,varargin)
   if isempty(tets)
     tets = false;
   if size(F,2) == 4
-    VV = bsxfun(@minus,V,min(V))*max(max(V)-min(V));
-    tets = sum(volume(VV,F))>1e-10;
+    % A quad mesh interpretted as a tet mesh will have #quads*4 "boundary
+    % triangles". Generally a tet-mesh will not have all faces on the exterior.
+    tets = size(boundary_faces(F),1) < size(F,1)*4;
     if ~tets
       Ftri = [F(:,[1 2 3]);F(:,[1 3 4])];
       Itri = repmat(1:size(F,1),1,2);
@@ -125,6 +136,18 @@ function t = tsurf(F,V,varargin)
     elseif(face_indices)
       text(FC(:,1),FC(:,2),FC(:,3),num2str((FI)'));
     end
+  end
+
+  if iscell(draw_outline)
+    assert(size(F,2) == 3);
+    ish = ishold;
+    hold on;
+    o_copy = tsurf(outline(F),V,draw_outline{:});
+    if ~ish
+      hold off;
+    end
+  else
+    o_copy = [];
   end
   
   % if 2d then set to view (x,y) plane
@@ -165,6 +188,7 @@ function t = tsurf(F,V,varargin)
   % terminal
   if nargout>=1
     t = t_copy;
+    o = o_copy;
   end
 
   % subversively set up the callbacks so that if the user clicks and holds on

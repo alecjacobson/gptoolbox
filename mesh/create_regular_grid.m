@@ -27,6 +27,10 @@ function [UV,F, res, edge_norms] = ...
 %  % Quads:
 %  Q = [F(1:2:end-1,[1 2]) F(2:2:end,[2 3])];
 %
+%  % Alternating diagonals:
+%  Q(1:2:end,:) = Q(1:2:end,[2 3 4 1]);
+%  F = [Q(:,[1 2 3]);Q(:,[1 3 4])];
+%
 
 if (nargin<2) yRes=xRes; end
 if (nargin<3) xWrap=0; end

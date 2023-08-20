@@ -30,7 +30,7 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
   %       P{c} = dpsimplify(Praw{c},0.001);
   %     end
   %     [V,F,b,bc] = triangulate_curves(P);
-  %     W = harmonic(V,F,b,bc);
+  %     W = kharmonic(V,F,b,bc);
   %     colors = random_color(4*numel(P));
   %     RGB = W * colors;
   %     tsurf(F,[V W(:,4)],'FaceVertexCData',clamp(RGB),fphong,'EdgeColor','none');axis equal;view(2)
@@ -218,7 +218,7 @@ function [V,F,b,bc] = triangulate_curves(P,varargin)
     %[~,IFv,CFv] = find(V2F(v,:));
     [IFv,~,CFv] = find(V2FT(:,v));
     Fv = F(IFv,:);
-    [~,uE2Fv,uE] = edge_adjacency_matrix(Fv);
+    [~,uE2Fv,uE] = facet_adjacency_matrix(Fv);
     isBE = ismember(uE,uBE,'rows');
     A = uE2Fv(~isBE,:)' * uE2Fv(~isBE,:);
     [~,C] = conncomp(A);

@@ -18,9 +18,7 @@ function [A,AE] = adjacency_incident_angle_matrix(V,E)
   assert(size(E,1)==size(unique(sort(E,2),'rows'),1));
 
   V2E = sparse(E,repmat(1:size(E,1),2,1)',1,size(V,1),size(E,1));
-  spy(V2E)
   AE = V2E'*V2E;
-  spy(AE)
   [I,J] = find(triu(AE,1));
   C = sparse(repmat(1:numel(I),4,1)',[E(I,:) E(J,:)],1,numel(I),size(V,1));
   MI = (1:numel(I))';

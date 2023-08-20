@@ -10,22 +10,16 @@ function s = path_to_convert()
   %
 
   if ispc
-    warning([ ...
-      'Dear Ladislav, is there a standard place to put executables on a pc?' ...
-      'Could you put convert there and change this accordingly?' ...
-      'Thanks, Alec']);
+    % replace this with path
     s = 'c:/prg/lib/convert/Release/convert.exe';
   elseif isunix || ismac
-    % I guess this means linux
     [status, s] = system('which convert');
     s = strtrim(s);
-    if isempty(s)
+    if status ~= 0
       guesses = { ...
         '/usr/local/bin/convert', ...
         '/opt/local/bin/convert'};
-      E = cellfun(@(guess) exist(guess,'file'),guesses);
-      assert(any(E),'Could not find convert');
-      s = guesses{find(E,1,'first')};
+      s = find_first_path(guesses);
     end
   end
 end

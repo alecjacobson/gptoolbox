@@ -46,7 +46,7 @@ function [CV,CT,TV,TT,w,SV,SF] = solid(V,F,varargin)
   end
 
   % shoot for the moon with winding number on default settings
-  [SV,SF] = clean(V,F,'Quiet',true,'Single',true);
+  [SV,SF] = clean_mesh(V,F,'Quiet',true,'Single',true);
   tetgen_flags_alts = {'-Y','-Y -T1e-16','','-T1e-16'};
   TT = [];
   for t = 1:numel(tetgen_flags_alts)

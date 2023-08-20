@@ -13,6 +13,18 @@ function [W,D,E] = cubic_winding_number(C,V,ispoly)
   %   E  #V list of total evaluations of recursive algorithm
   % 
 
+  function I = inpolygon_convex(V,C);
+    %I = inpolygon(V(:,1),V(:,2),C(:,1),C(:,2));
+    %I = abs(winding_number(C,[1:size(C,1);2:size(C,1) 1]',V))>0.5;
+    %% Geez, this is barely faster than winding_number
+    %Nx = C([2:end 1],2)-C(:,2);
+    %Ny = C(:,1)-C([2:end 1],1);
+    %S = (V(:,1)-C(:,1)').*Nx' + (V(:,2)-C(:,2)').*Ny';
+    %I = all(S<0,2);
+    % Oh, matlab, why:
+    I = all(((V(:,1)-C(:,1)').*(C([2:end 1],2)-C(:,2))' + (V(:,2)-C(:,2)').*(C(:,1)-C([2:end 1],1))')<0,2);
+  end
+
   if nargin<3 || isempty(ispoly)
     ispoly = false;
   end
@@ -25,28 +37,29 @@ function [W,D,E] = cubic_winding_number(C,V,ispoly)
   % "queue"
   Q = {{C,(1:size(V,1))',1}};
   while ~isempty(Q)
-    %% Pop off back
-    %Qi = Q{end};
-    %Ci = Qi{1};
-    %Ji = Qi{2};
-    %Q = Q(1:end-1);
-    % Pop off front: better looking traversal
-    Qi = Q{1};
+    % Pop off back: faster but uglier traversal for animation
+    Qi = Q{end};
     Ci = Qi{1};
     Ji = Qi{2};
     depth = Qi{3};
+    Q = Q(1:end-1);
+    %% Pop off front: better looking traversal for animation, but slower
+    %Qi = Q{1};
+    %Ci = Qi{1};
+    %Ji = Qi{2};
+    %depth = Qi{3};
+    %Q = Q(2:end);
     D(Ji) = max(D(Ji),depth);
     E(Ji) = E(Ji)+1;
-    Q = Q(2:end);
     if depth >= max_depth
       %warning('spline_winding_number exceeded max depth (%d)\n',max_depth);
       continue;
     end
-    try
-      H = convhull(Ci);
-      I = inpolygon(V(Ji,1),V(Ji,2),Ci(H(1:end-1),1),Ci(H(1:end-1),2));
-    catch
+    if size(Ci,1)<3
       I = false(numel(Ji),1);
+    else
+      H = convhull(Ci);
+      I = inpolygon_convex(V(Ji,:),Ci(H(1:end-1),:));
     end
     Wi = winding_number(Ci,[size(Ci,1) 1],V(Ji(~I),:));
     W(Ji(~I)) = W(Ji(~I)) - Wi;

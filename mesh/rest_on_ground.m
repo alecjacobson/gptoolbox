@@ -1,4 +1,4 @@
-function [U,t] = rest_on_ground(V,F)
+function [U,t,t1] = rest_on_ground(V,F,varargin)
   % [U,t] = rest_on_ground(V,F)
   % 
   % Given a solid mesh (with a meaningful centroid) rest the object on the
@@ -9,13 +9,40 @@ function [U,t] = rest_on_ground(V,F)
   % Inputs:
   %   V  #V by 3 list of mesh vertex positions
   %   F  #F by 3 list of mesh triangle indices into rows of V
+  %   Optional:
+  %     'Centroid' followed by center of mass
   % Outputs:
   %   U  #U by 3 list of new mesh vertex positions
   %   t  3-long list of contact points
   %
 
+  % default values
+  cen = [];
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Centroid'}, ...
+    {'cen'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+
+  warning('Should reduce V,F to convex hull...');
+
   %save('bad-rest.mat','V','F')
-  U = [V;centroid(V,F)];
+  if isempty(cen)
+    cen = centroid(V,F);
+  end
+  U = [V;cen];
   t = [];
   stable = false;
   cross2 = @(a,b,c) ...
@@ -24,11 +51,12 @@ function [U,t] = rest_on_ground(V,F)
      a(:,1).*b(:,2)-a(:,2).*b(:,1)];
 
   iter = 0;
-  max_iters = size(V,1);
+  max_iters = 3*size(F,1);
+  t1 = [];
   while ~stable
     iter = iter+1;
     if iter > max_iters
-      warning('Failed to converge');
+      warning('Failed to converge in %d iterations',max_iters);
       break;
     end
     switch(numel(t))
@@ -122,6 +150,12 @@ function [U,t] = rest_on_ground(V,F)
       t = [t g];
       assert(all(isreal(U(:))));
     case 3
+      if isempty(t1)
+        t1 = sort(t);
+        if (cross(U(t1(2),:)-U(t1(1),:),U(t1(3),:)-U(t1(1),:))*[0;0;1])>0
+          t1 = t1([1 3 2]);
+        end
+      end
       cen = U(end,:);
       % check if stable
       H = convhull(U(t,1:2));

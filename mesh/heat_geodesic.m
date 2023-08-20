@@ -27,6 +27,8 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   %         equation alone: average solutions is a non-linear operation).  In
   %         any case, 'robin' is treated as 'average'.
   %     'Precomputation' Followed by pre struct as returned by this function
+  %     'IntrinsicDelaunay'  followed by whether to use intrinsic Delaunay
+  %       Laplacian {false}
   %     'Legacy' followed by bool telling whether to use Alec's legacy
   %       implmentation. In particular this is useful because the original
   %       paper is unclear how the boundary of the domain should be handle with
@@ -44,6 +46,7 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   % this is more exact/correct despite not what's written in the article (and
   % implying that refactoring is necessary).
   legacy = false;
+  use_intrinsic = false;
 
   % mandatory input
   V = varargin{1};
@@ -108,6 +111,10 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
       ii = ii + 1;
       assert(ii<=nargin);
       u = varargin{ii};
+    case 'IntrinsicDelaunay'
+      ii = ii + 1;
+      assert(ii<=nargin);
+      use_intrinsic = varargin{ii};
     otherwise
       error(['Unsupported parameter: ' varargin{ii}]);
     end
@@ -134,7 +141,11 @@ function [D,u,X,div_X,phi,pre,B,t] = heat_geodesic(varargin)
   % "where ???????? is one third the area of all triangles incident on vertex ...
   % where ???? ??? R|????|??|????| is a diagonal matrix containing the vertex areas"
   if isempty(pre.L)
+    if use_intrinsic
+    pre.L = intrinsic_delaunay_cotmatrix(V,F);
+    else
     pre.L = cotmatrix(V,F);
+    end
     pre.M = massmatrix(V,F,'barycentric');
     pre.Q = pre.M - t*pre.L;
     pre.G = grad(V,F);

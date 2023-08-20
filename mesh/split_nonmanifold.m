@@ -1,6 +1,6 @@
-function [SF,SVI,SV] = split_nonmanifold(F,varargin)
-  % SPLIT_NONMANIFOLD Split a non-manifold mesh into a manifold mesh possibly
-  % with more connected components.
+function [SF,SVI,SV,A] = split_nonmanifold(F,varargin)
+  % SPLIT_NONMANIFOLD Split a non-manifold (or non-orientable) mesh into a
+  % manifold orientable mesh possibly with more connected components.
   %
   % Inputs:
   %   F  #F by 3 list of input tringle indices into some vertex list V
@@ -39,13 +39,12 @@ function [SF,SVI,SV] = split_nonmanifold(F,varargin)
   E = [SF(:,[2 3]);SF(:,[3 1]);SF(:,[1 2])];
   [I,J] = ismember(F(E),fliplr(F(E)),'rows');
   A = sparse(E(I,:),fliplr(E(J(I),:)),1,numel(F),numel(F));
+  %[~,K] = conncomp(A&A');
   [~,K] = conncomp(A);
 
   SVI = F(:);
-  % SV = V(VI,:);
   SV = V(SVI,:);
 
-  BC = barycenter(SV,SF);
   SF = K(SF);
   SVI(K) = SVI;
   SV(K,:) = SV;
