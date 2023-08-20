@@ -8,6 +8,7 @@
   "readELE":{"inputs":[{"name":"filename","type":"filepath=*.ele"}]},
   "readFACE":{"inputs":[{"name":"filename","type":"filepath=*.face"}]},
   "readMESH":{"inputs":[{"name":"filename","type":"filepath=*.mesh"}]},
+  "readMSH":{"inputs":[{"name":"filename","type":"filepath=*.msh"}]},
   "readNEIGH":{"inputs":[{"name":"filename","type":"filepath=*.neigh"}]},
   "readNODE":{"inputs":[{"name":"filename","type":"filepath=*.node"}]},
   "readOBJ":{"inputs":[{"name":"filename","type":"filepath=*.obj"}]},
