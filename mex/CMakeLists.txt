@@ -46,18 +46,16 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(GPTOOLBOX_MEX_ROOT "${PROJECT_SOURCE_DIR}")
 set(GPTOOLBOX_MEX_EXTERNAL "${GPTOOLBOX_MEX_ROOT}/external")
-include(gptoolbox_download_project)
 
 # libigl
-option(LIBIGL_COPYLEFT_CGAL             "Use CGAL"           ON)
-option(LIBIGL_EMBREE           "Use Embree"         ON)
-# just to get it to download tetgen
-option(LIBIGL_COPYLEFT_TETGEN           "Use Tegen"          ON)
-option(LIBIGL_RESTRICTED_TRIANGLE         "Use Triangle"       ON)
-option(LIBIGL_RESTRICTED_MATLAB           "Use Matlab"         ON)
-option(LIBIGL_XML              "Use XML"            ON)
-option(WITH_ELTOPO                  "Use El Topo"        ON)
-option(MATLAB_PROXY                 "Download Matlab Proxy for compilation only" OFF)
+option(LIBIGL_COPYLEFT_CGAL       "Use CGAL"           ON)
+option(LIBIGL_EMBREE              "Use Embree"         ON)
+option(LIBIGL_COPYLEFT_TETGEN     "Use Tetgen"          ON)
+option(LIBIGL_RESTRICTED_TRIANGLE "Use Triangle"       ON)
+option(LIBIGL_RESTRICTED_MATLAB   "Use Matlab"         ON)
+option(LIBIGL_XML                 "Use XML"            ON)
+option(WITH_ELTOPO                "Use El Topo"        ON)
+option(MATLAB_PROXY               "Download Matlab Proxy for compilation only" OFF)
 if( UNIX AND NOT APPLE)
   # Static boost libs are causing problems on linux
   option(CGAL_Boost_USE_STATIC_LIBS   "Use Static  Boost libs" OFF)
@@ -67,8 +65,16 @@ endif()
 
 # Find matlab
 if(MATLAB_PROXY)
-  set(Matlab_ROOT_DIR "${GPTOOLBOX_MEX_ROOT}/external/matlab")
-  gptoolbox_download_matlab()
+  FetchContent_Declare(
+    Matlab
+    GIT_REPOSITORY https://github.com/alecjacobson/eltopo.git
+    GIT_TAG        7208071d257e101eece42fa60d3604f2258dd883
+  )
+  FetchContent_GetProperties(Matlab)
+  if(NOT Matlab_POPULATED)
+    FetchContent_Populate(Matlab)
+    set(Matlab_ROOT_DIR "${Matlab_SOURCE_DIR}")
+  endif()
 endif()
 
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
@@ -79,9 +85,17 @@ include(libigl)
 if(WITH_ELTOPO)
   # Download and find eltopo
   find_package(BLAS REQUIRED )
-  gptoolbox_download_eltopo()
-  set(LIBELTOPO_INCLUDE_DIR "${GPTOOLBOX_MEX_EXTERNAL}/eltopo/eltopo3d")
-  add_subdirectory(${LIBELTOPO_INCLUDE_DIR} libeltopo)
+  FetchContent_Declare(
+    eltopo
+    GIT_REPOSITORY https://github.com/alecjacobson/eltopo.git
+    GIT_TAG        7208071d257e101eece42fa60d3604f2258dd883
+  )
+  FetchContent_GetProperties(eltopo)
+  if(NOT eltopo_POPULATED)
+    FetchContent_Populate(eltopo)
+    # Point to the directory containing the CMakeLists.txt of libeltopo
+    add_subdirectory(${eltopo_SOURCE_DIR}/eltopo3d ${eltopo_BINARY_DIR})
+  endif()
 endif()
 
 set( CMAKE_SHARED_LIBRARY_SUFFIX ".${Matlab_MEX_EXTENSION}" )  # set suffix to .mexa64
