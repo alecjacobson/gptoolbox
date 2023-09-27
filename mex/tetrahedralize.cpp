@@ -52,23 +52,27 @@ void mexFunction(
   }
 
   Eigen::MatrixXd SR(0,5);
-  size_t nr = -1;
-  Eigen::MatrixXd TV,TR;
-  Eigen::MatrixXi TT,TF,TN,PT,FT;
-  int ret = tetrahedralize(SV,SF,SH,SR,flags,TV,TT,TF,TR,TN,PT,FT,nr);
+  Eigen::VectorXi VM,FM;
+  int nr = -1;
+  Eigen::VectorXi TM,TR,PT;
+  Eigen::MatrixXi FT,TN,TT,TF;
+  Eigen::MatrixXd TV;
+  int ret = tetrahedralize(SV,SF,SH,VM,FM,SR,flags,TV,TT,TF,TM,TR,TN,PT,FT,nr);
   //int ret = tetrahedralize(SV,SF,flags,TV,TT,TF);
   mexErrMsgTxt((ret==0) || (ret==2),"Tetgen failed.");
 
   switch(nlhs)
   {
+    case 8:
+      prepare_lhs_index(FT,plhs+8);
     case 7:
-      prepare_lhs_index(FT,plhs+7);
+      prepare_lhs_index(PT,plhs+6);
     case 6:
-      prepare_lhs_index(PT,plhs+5);
+      prepare_lhs_index(TN,plhs+5);
     case 5:
-      prepare_lhs_index(TN,plhs+4);
+      prepare_lhs_double(TR,plhs+4);
     case 4:
-      prepare_lhs_double(TR,plhs+3);
+      prepare_lhs_index(TM,plhs+3);
     case 3:
       prepare_lhs_index(TF,plhs+2);
     case 2:
