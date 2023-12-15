@@ -1,4 +1,4 @@
-function [c,r] = minimal_bounding_sphere(P)
+function [c,r] = minimal_bounding_sphere(P,R)
   % MINIMAL_BOUNDING_SPHERE Compute the minimum enclosing sphere around some
   % points P in d-dimensions. 
   %
@@ -13,11 +13,6 @@ function [c,r] = minimal_bounding_sphere(P)
   % Note: This implementation sets up a conic program with O(n d) variables and
   % O(n) cones.
 
-  % Help reduce the number of auxiliary variables and cones below.
-  try
-    H = convhull(P);
-    P = P(H,:);
-  end
   % Skimming the literature it seems like there should be a linear programming
   % formulation, but so far I can only see a conic programming problem:
   % 
@@ -38,8 +33,18 @@ function [c,r] = minimal_bounding_sphere(P)
   %  min  r
   %  c,r,d,k
   %    dᵢ+c = pᵢ
-  %    kᵢ = r
+  %    kᵢ - r = 0
   %    ‖dᵢ‖ ≤ kᵢ
+
+  if nargin<2
+    % Help reduce the number of auxiliary variables and cones below.
+    try
+      H = convhull(P);
+      P = P(H,:);
+    end
+    R = zeros(size(P,1),1);
+  end
+
 
   d = size(P,2);
   n = size(P,1);
@@ -50,8 +55,8 @@ function [c,r] = minimal_bounding_sphere(P)
     repdiag(sparse(ones(n,1)),d) sparse(n*d,1) speye(n*d,n*d) sparse(n*d,n)
     sparse(n,d) ones(n,1) sparse(n,n*d) -speye(n,n)
     ];
-  prob.blc = [P(:);zeros(n,1)];
-  prob.buc = [P(:);zeros(n,1)];
+  prob.blc = [P(:);R];
+  prob.buc = [P(:);R];
   prob.blx = [-inf(d,1);0;-inf(n*d+n,1)];
   prob.bux = inf(d+1+n*d+n,1);
   prob.cones.type = repmat(res.symbcon.MSK_CT_QUAD,n,1);
@@ -65,5 +70,5 @@ function [c,r] = minimal_bounding_sphere(P)
   c = reshape(res.sol.itr.xx(1:d),1,d);
   r = res.sol.itr.xx(d+1);
 
-
+  assert(all( r - (sqrt(sum((P-c).^2,2)) + R)  > -1e-6 ));
 end
