@@ -3,8 +3,8 @@ function y = geomedian(X,eta,y)
 %
 % Inputs:
 %   X  #X by dim list of input points
-%   eta  #X list of weights
-%   y  initial guess
+%   eta  #X list of weights {1}
+%   y  initial guess {median(X)}
 % Outputs:
 %   y  dim-vector output point
 %
@@ -57,7 +57,6 @@ function y = geomedian(X,eta,y)
       r_y = normrow(Q(keep,:)'*V(keep,:));
       ratio = eta_y/r_y;
       y = (1-ratio)^-1 * y_tilde + min(1,ratio) * y;
-      fprintf('%%%%%%%%%%%%%%%%%%%%%%%%%%%\n');
     end
     if norm(y-y0,'inf') < 1e-7
       break;
