@@ -79,6 +79,7 @@ endif()
 
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
 
+message(STATUS "Downloading and finding libigl...")
 # Download and find libigl
 include(libigl)
 

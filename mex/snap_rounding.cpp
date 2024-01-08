@@ -32,7 +32,7 @@ void mexFunction(
   std::streambuf *outbuf = cout.rdbuf(&mout);
 
   mexErrMsgTxt(mxGetN(prhs[0]) == 0 || mxGetN(prhs[0]) == 2,
-      "Mesh vertex list must be #V by 3 list of vertex positions");
+      "Mesh vertex list must be #V by 2 list of vertex positions");
   mexErrMsgTxt(mxGetN(prhs[1])==0 || 2 == mxGetN(prhs[1]),
       "E must segments");
   parse_rhs_double(prhs,V);

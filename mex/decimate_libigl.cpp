@@ -55,6 +55,7 @@ void mexFunction(
     DECIMATE_METHOD_QSLIM = 2,
     NUM_DECIMATE_METHODS = 3
   } method = DECIMATE_METHOD_NAIVE;
+  bool block_intersections = false;
   {
     int i = 3;
     while(i<nrhs)
@@ -79,6 +80,11 @@ void mexFunction(
         {
           mexErrMsgTxt(false,C_STR("Unknown method: "<<method));
         }
+      }else if(strcmp("BlockIntersections",name) == 0)
+      {
+        validate_arg_logical(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        block_intersections = (mxLogical)*mxGetPr(prhs[++i]);
       }else
       {
         mexErrMsgTxt(false,C_STR("Unknown parameter: "<<name));
@@ -91,13 +97,15 @@ void mexFunction(
   switch(method)
   {
     case DECIMATE_METHOD_NAIVE:
-      decimate(V,F,max_m,W,G,J,I);
+      decimate(V,F,max_m,block_intersections,W,G,J,I);
       break;
     case DECIMATE_METHOD_PROGRESSIVE_HULLS:
       copyleft::progressive_hulls(V,F,max_m,W,G,J);
       break;
     case DECIMATE_METHOD_QSLIM:
-      qslim(V,F,max_m,W,G,J,I);
+      mexErrMsgTxt(!block_intersections,
+        "Blocking intersections not supported with progressive hulls");
+      qslim(V,F,max_m,block_intersections,W,G,J,I);
       break;
     default:
       mexErrMsgTxt(false,"Unknown method.");

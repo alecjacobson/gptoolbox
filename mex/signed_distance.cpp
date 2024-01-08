@@ -12,6 +12,7 @@
 #include <igl/matlab/validate_arg.h>
 #include <igl/per_face_normals.h>
 #include <igl/WindingNumberAABB.h>
+#include <igl/fast_winding_number.h>
 #include <igl/matlab/prepare_lhs.h>
 #include <igl/matlab/parse_rhs.h>
 #include <igl/C_STR.h>
@@ -99,6 +100,7 @@ void parse_rhs(
   static igl::SignedDistanceType g_sign_type = 
     igl::NUM_SIGNED_DISTANCE_TYPE;
   static igl::AABB<Eigen::MatrixXd,3> g_tree;
+  static igl::FastWindingNumberBVH g_fwn_bvh;
   static igl::WindingNumberAABB<
     Eigen::RowVector3d,
     Eigen::MatrixXd,
@@ -145,7 +147,7 @@ void mexFunction(
           g_F = F;
           g_sign_type = type;
           // Clear the tree
-          g_tree.deinit();
+          g_tree.clear();
 
           // Prepare distance computation
           g_tree.init(V,F);
@@ -153,6 +155,12 @@ void mexFunction(
           {
             default:
               assert(false && "Unknown SignedDistanceType");
+            case SIGNED_DISTANCE_TYPE_UNSIGNED:
+              // no extra precompute
+              break;
+            case SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER:
+              igl::fast_winding_number(V.template cast<float>().eval(), F, 2, g_fwn_bvh);
+              break;
             case SIGNED_DISTANCE_TYPE_DEFAULT:
             case SIGNED_DISTANCE_TYPE_WINDING_NUMBER:
               g_hier.set_mesh(V,F);
@@ -170,6 +178,12 @@ void mexFunction(
               break;
           }
         }
+        const double lower_bound = std::numeric_limits<double>::min();
+        const double upper_bound = std::numeric_limits<double>::max();
+        const double max_abs = std::max(std::abs(lower_bound),std::abs(upper_bound));
+        const double up_sqr_d = std::pow(max_abs,2.0);
+        const double low_sqr_d = 
+          std::pow(std::max(max_abs-(upper_bound-lower_bound),(double)0.0),2.0);
 
         N.resize(P.rows(),3);
         S.resize(P.rows(),1);
@@ -186,6 +200,17 @@ void mexFunction(
           {
             default:
               assert(false && "Unknown SignedDistanceType");
+            case SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER:
+            {
+              double w = igl::fast_winding_number(g_fwn_bvh, 2, q.template cast<float>().eval());         
+              sqrd = g_tree.squared_distance(V,F,q,low_sqr_d,up_sqr_d,i,c);
+              s = 1.-2.*std::abs(w);
+              break;
+            }
+            case SIGNED_DISTANCE_TYPE_UNSIGNED:
+              sqrd = g_tree.squared_distance(V,F,q,low_sqr_d,up_sqr_d,i,c);
+              s = 1.0;
+              break;
             case SIGNED_DISTANCE_TYPE_DEFAULT:
             case SIGNED_DISTANCE_TYPE_WINDING_NUMBER:
               signed_distance_winding_number(
