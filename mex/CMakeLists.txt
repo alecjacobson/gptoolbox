@@ -152,6 +152,7 @@ segment_graph.cpp;\
 signed_distance.cpp;\
 simplify_polyhedron.cpp;\
 slim.cpp;\
+split_nonmanifold.cpp;\
 solid_angle.cpp;\
 "
   "${CORE_LIBS};igl::core;igl_restricted::matlab")
