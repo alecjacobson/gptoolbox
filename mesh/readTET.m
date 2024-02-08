@@ -16,17 +16,29 @@ function [V,T] = readTET( filename )
   
   fp = fopen( filename, 'r' );
   TETheader = upper(fscanf( fp, '%s\n', 1 ));
-  if TETheader(end-2:end) ~= 'TET'
-    warning('no tet file!') 
+  if TETheader(end-2:end) == 'TET'
+    d = fscanf(fp, '%d', 2);
+    nV = d(1);
+    nT = d(2);
+    V = fscanf(fp,'%g %g %g',[3 nV])';
+    T = fscanf(fp,'%d %d %d %d',[4 nT])'+1;
+  else
+    warning('no tet header, trying again without reading header') 
+    % marco attene seems to use a different header in CDT
     fclose(fp);
-    return;
+    fp = fopen( filename, 'r' );
+    % get line
+    line = fgetl(fp);
+    % read first number in line
+    nV = sscanf(line, '%d', 1);
+    % get line
+    line = fgetl(fp);
+    % read first number in line
+    nT = sscanf(line, '%d', 1);
+    V = fscanf(fp,'%g %g %g',[3 nV])';
+    T = fscanf(fp,'%d %d %d %d %d',[5 nT])'+1;
+    T = T(:,2:5);
   end
-  d = fscanf(fp, '%d', 2);
-  nV = d(1);
-  nT = d(2);
-
-  V = fscanf(fp,'%g %g %g',[3 nV])';
-  T = fscanf(fp,'%d %d %d %d',[4 nT])'+1;
 
 
   fclose(fp);
