@@ -24,7 +24,7 @@ function flag = cubic_is_flat(C,tol)
 
   u = (3.0*C(2,:) - 2.0*C(1,:) - C(4,:)).^2;
   v = (3.0*C(3,:) - 2.0*C(4,:) - C(1,:)).^2;
-  u = min(u,v);
+  u = max(u,v);
   % Not sure if this 16 makes sense for dim>2
   tolerance = 16*tol^2;
   flag = sum(u,2) <= tolerance;
