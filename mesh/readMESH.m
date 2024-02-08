@@ -53,6 +53,22 @@ function [V,T,F] = readMESH( filename )
 
   Triangles = eat_comments(fp,'#');
   Triangles = regexprep(Triangles,'[\n\r]+','');
+  if(strcmp(Triangles,'Edges')==1)
+    % read triangle count
+    if ispc % is windows
+        num_edges = fscanf(fp,'%d\n\r',1);
+    else
+        num_edges = fscanf(fp,'%d\n',1);
+    end
+    % read num_triangles many sets of face indices (a,b,c,ref)
+    E = fscanf(fp,'%d',3*num_edges);
+    E = reshape(E,3,num_edges)';
+    E = E(:,1:2);
+    Triangles = eat_comments(fp,'#');
+    Triangles = regexprep(Triangles,'[\n\r]+','');
+  end
+
+
   % forth non numeric is mandatory Triangles
   if(strcmp(Triangles,'Triangles')==0)
     error('Fourth (non-number) line should be "Triangles"...');
