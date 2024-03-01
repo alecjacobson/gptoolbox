@@ -1,0 +1,8 @@
+{
+    "name": "gp-toolbox-mex",
+    "version-string": "0.1.0",
+    "dependencies": [
+      "blas",
+      "lapack"
+    ]
+  }
