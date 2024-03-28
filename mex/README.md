@@ -26,11 +26,17 @@ CMake's `FindMatlab.cmake` is not very good. You might have to do something like
 
 Nearly all of the functions depend on stl, Eigen and libigl.  Beyond that some
 may depend on CGAL, Embree, and El Topo. The `cmake ..` command above should
-take care of _downloading_ these dependencies into `gptoolbox/mex/external/`.
+take care of _downloading_ these dependencies into `gptoolbox/mex/external/` (a git is needed).
+Please note that Git is required for this operation.
 
+For example on Windows using MYSYS2+MinGW64,
+
+    pacman -S git
+    
 You may need to install Boost, mpfr and gmp. For example on Mac OS X using homebrew,
 
     brew install boost mpfr gmp
+
 
 ## Troubleshooting
 
