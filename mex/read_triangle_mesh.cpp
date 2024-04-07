@@ -6,6 +6,9 @@
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
 #  include <wordexp.h>
 #endif
+#include <igl/STR.h>
+#include <igl/matlab/MexStream.h>
+#include <iostream>
 
 
 void mexFunction(
@@ -16,18 +19,21 @@ void mexFunction(
 {
   using namespace Eigen;
   /* Check for proper number of arguments */
+  igl::matlab::MexStream mout;        
+  std::streambuf *outbuf = std::cout.rdbuf(&mout);
 
   if (nrhs != 1) 
   {
     mexErrMsgIdAndTxt("MATLAB:mexcpp:nargin",
-        "readOBJ requires 1 input arguments, the path of the file to open");
+        "read_triangle_mesh requires 1 input arguments, the path of the file to open");
   }
 
   // Read the file path
-  char* file_path = mxArrayToString(prhs[0]);
+  std::string file_path = STR("\""<< mxArrayToString(prhs[0])<<"\"");
+
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
   wordexp_t exp_result;
-  wordexp(file_path, &exp_result, 0);
+  wordexp(file_path.c_str(), &exp_result, 0);
   file_path = exp_result.we_wordv[0];
 #endif
 
@@ -49,6 +55,8 @@ void mexFunction(
     default: break;
   }
 
+  // Restore the std stream buffer Important!
+  std::cout.rdbuf(outbuf);
   return;
 }
 
