@@ -54,9 +54,9 @@ function [V,F,N] = readSTL(filename,varargin)
     F = reshape(1:size(V,1),3,size(V,1)/3)';
     fclose(fid);
   else
-    [FVX,FVY,FVZ] = stlread(filename);
-    V = [FVX(:) FVY(:) FVZ(:)];
-    F = reshape(1:size(V,1),3,size(V,1)/3)';
+    TR = stlread(filename);
+    V = TR.Points;
+    F = TR.ConnectivityList;
     N = [];
   end
 
