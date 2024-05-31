@@ -143,6 +143,7 @@ fast_sparse.cpp;\
 fit_rotations_mex.cpp;\
 fit_cubic_bezier.cpp;\
 icp.cpp;\
+isolines.cpp;\
 in_element_aabb.cpp;\
 psd_project_rows.cpp;\
 principal_curvature.cpp;\

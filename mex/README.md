@@ -53,3 +53,8 @@ If you get an error like
 
 Then you might consider setting `Matlab_ROOT_DIR` explicitly to help cmake find
 MATLAB.
+
+For example, recently I'm using
+
+   rm -f CMakeCache.txt &&rcmake ../ -DMatlab_ROOT_DIR=/Applications/MATLAB_R2024a.app -DMatlab_MEX_EXTENSION="mexmaca64" -DMATLAB_FIND_DEBUG=ON -DCMAKE_OSX_ARCHITECTURES=arm64
+
