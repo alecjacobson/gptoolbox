@@ -22,3 +22,23 @@
 %   TE  #TE list of output segments (inputs and boundary)
 %   TEM  #TE list of output edge markers. Implicit boundaries (e.g., from "-c")
 %     will be marked as max(EM)+1
+%
+% Known issues:
+%   igl doesn't expose the 'r' Refine flag
+
+% Example:
+%   % Work around for meshing with holes without over refining near small holes:
+%   [V,F] = triangulate(OV,OE);
+%   BC = barycenter(V,F);
+%   H = BC(abs(winding_number(V,E,BC))<0.5,:);
+%   [V,F] = triangulate(V,E,'Holes',H,'Flags','-q');
+%
+%   % compare to:
+%   [V2,F2] = triangulate(OV,OE,'Flags','-q33');
+%   F2 = F2(abs(winding_number(OV,OE,barycenter(V2,F2)))>0.5,:);
+%   [V2,~,~,F2] = remove_unreferenced(V2,F2);
+%   tsurf(F,V)
+%   hold on;
+%   tsurf(F2,V2+[max(V(:,1))-min(V(:,1)) 0]);
+%   hold off;
+%

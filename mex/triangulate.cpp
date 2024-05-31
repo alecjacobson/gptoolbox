@@ -76,19 +76,19 @@ void mexFunction(
         {
           method = CGAL_EPECK;
 #ifndef WITH_CGAL
-          mexErrMsgTxt(false,"Recompile with cgal to enabel.");
+          mexErrMsgTxt(false,"Recompile with cgal to enable.");
 #endif
         }else if(strcmp("epick",method_name)==0)
         {
           method = CGAL_EPICK;
 #ifndef WITH_CGAL
-          mexErrMsgTxt(false,"Recompile with cgal to enabel.");
+          mexErrMsgTxt(false,"Recompile with cgal to enable.");
 #endif
         }else if(strcmp("cgal",method_name)==0)
         {
           method = CGAL_EPECK;
 #ifndef WITH_CGAL
-          mexErrMsgTxt(false,"Recompile with cgal to enabel.");
+          mexErrMsgTxt(false,"Recompile with cgal to enable.");
 #endif
         }else
         {

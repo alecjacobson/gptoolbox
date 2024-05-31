@@ -43,6 +43,11 @@ void mexFunction(
       {
         validate_arg_char(i,nrhs,prhs,name);
         flags = mxArrayToString(prhs[++i]);
+      }else if(strcmp("Holes",name) == 0)
+      {
+        validate_arg_double(i,nrhs,prhs,name);
+        parse_rhs_double(prhs+i+1,SH);
+        i++;
       }else
       {
         mexErrMsgTxt(false,"Unknown parameter");
