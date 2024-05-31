@@ -72,15 +72,15 @@ function [G] = grad(V,F)
     %    repmat(X(F(:,3)) - X(F(:,1)),1,3).*eperp21   ...
     %  );
   
-    G = sparse( ...
+    GI =  ...
       [0*size(F,1)+repmat(1:size(F,1),1,4) ...
       1*size(F,1)+repmat(1:size(F,1),1,4) ...
-      2*size(F,1)+repmat(1:size(F,1),1,4)]', ...
-      repmat([F(:,2);F(:,1);F(:,3);F(:,1)],3,1), ...
-      [eperp13(:,1);-eperp13(:,1);eperp21(:,1);-eperp21(:,1); ...
+      2*size(F,1)+repmat(1:size(F,1),1,4)]';
+    GJ = repmat([F(:,2);F(:,1);F(:,3);F(:,1)],3,1);
+    GV = [eperp13(:,1);-eperp13(:,1);eperp21(:,1);-eperp21(:,1); ...
        eperp13(:,2);-eperp13(:,2);eperp21(:,2);-eperp21(:,2); ...
-       eperp13(:,3);-eperp13(:,3);eperp21(:,3);-eperp21(:,3)], ...
-      3*size(F,1), size(V,1));
+       eperp13(:,3);-eperp13(:,3);eperp21(:,3);-eperp21(:,3)];
+    G = sparse(GI,GJ,GV, 3*size(F,1), size(V,1));
   
     %% Alternatively
     %%
@@ -129,6 +129,30 @@ function [G] = grad(V,F)
     m = size(T,1);
     % simplex size
     assert(size(T,2) == 4);
+
+    if m == 1 && ~isnumeric(V)
+      simple_volume = @(ad,r) -sum(ad.*r,2)./6;
+      simple_volume = @(ad,bd,cd) simple_volume(ad, ...
+        [bd(:,2).*cd(:,3)-bd(:,3).*cd(:,2), ...
+        bd(:,3).*cd(:,1)-bd(:,1).*cd(:,3), ...
+        bd(:,1).*cd(:,2)-bd(:,2).*cd(:,1)]);
+      P = sym('P',[1 3]);
+      V1 = V(T(:,1),:);
+      V2 = V(T(:,2),:);
+      V3 = V(T(:,3),:);
+      V4 = V(T(:,4),:);
+      V1P = V1-P;
+      V2P = V2-P;
+      V3P = V3-P;
+      V4P = V4-P;
+      A1 = simple_volume(V2P,V4P,V3P);
+      A2 = simple_volume(V1P,V3P,V4P);
+      A3 = simple_volume(V1P,V4P,V2P);
+      A4 = simple_volume(V1P,V2P,V3P);
+      B = [A1 A2 A3 A4]./(A1+A2+A3+A4);
+      G = simplify(jacobian(B,P).');
+      return
+    end
   
     % f(x) is piecewise-linear function:
     %
@@ -154,13 +178,13 @@ function [G] = grad(V,F)
     % compute volume of each tet
     vol = volume(V,T);
   
-    G = sparse( ...
+    GI = ...
       [0*m + repmat(1:m,1,4) ...
        1*m + repmat(1:m,1,4) ...
-       2*m + repmat(1:m,1,4)], ...
-      repmat([T(:,4);T(:,2);T(:,3);T(:,1)],3,1), ...
-      repmat(A./(3*repmat(vol,4,1)),3,1).*N(:), ...
-      3*m,n);
+       2*m + repmat(1:m,1,4)];
+    GJ = repmat([T(:,4);T(:,2);T(:,3);T(:,1)],3,1);
+    GV = repmat(A./(3*repmat(vol,4,1)),3,1).*N(:);
+    G = sparse(GI,GJ,GV, 3*m,n);
   
   end
 end
