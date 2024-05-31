@@ -1,4 +1,4 @@
-This directory contains mex functions that must be _compiled_ before they can be
+> This directory contains mex functions that must be _compiled_ before they can be
 called from matlab.
 
 Typically the C++ code for function `myfunc` will be in a file called
@@ -6,15 +6,39 @@ Typically the C++ code for function `myfunc` will be in a file called
 comments explaining call usage of the function (so that `help myfunc` returns
 something useful).
 
+------
+
+**CONTENTS:**
+- [Compiling (mexing)](#compiling-mexing)
+  - [bash:](#bash)
+  - [powershell (or cmd):](#powershell-or-cmd)
+  - [Dependencies](#dependencies)
+    - [TODO:](#todo)
+- [Troubleshooting](#troubleshooting)
+  - [MATLAB Versions](#matlab-versions)
+
+------
+
 ## Compiling (mexing)
 
 I've abandoned trying to build a "pure-matlab" build system. I now use cmake. So
-the build routine is (from the bash command line):
+the build routine is:
 
-    mkdir build
+### bash:
+```bash
+    mkdir build 
     cd build
     cmake ..
-    make 
+    make
+```
+
+### powershell (or cmd):
+```cmd
+    mkdir build && cd build
+    cmake ..
+    cmake --build . --config Release
+```
+    
 
 This will output the mex functions in this (`mex/`) directory.
 
@@ -26,11 +50,15 @@ CMake's `FindMatlab.cmake` is not very good. You might have to do something like
 
 Nearly all of the functions depend on stl, Eigen and libigl.  Beyond that some
 may depend on CGAL, Embree, and El Topo. The `cmake ..` command above should
-take care of _downloading_ these dependencies into `gptoolbox/mex/external/`.
+take care of _downloading_ these dependencies into `gptoolbox/mex/external/` using vcpkg (including vcpkg itself).
 
-You may need to install Boost, mpfr and gmp. For example on Mac OS X using homebrew,
+You may already have vcpgk installed in your system. In order to use it, call cmake with additional parameter on configuration step, pointing at your vcpgk executable:
+```
+    cmake .. -D
+```
 
-    brew install boost mpfr gmp
+#### TODO:
++ [ ] As soon as libigl is updated to 2.4.0 in vcpkg (see https://github.com/microsoft/vcpkg/pull/26029), we could switch to vcpkg dependency management also regarding to libigl.
 
 ## Troubleshooting
 

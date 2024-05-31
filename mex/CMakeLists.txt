@@ -8,9 +8,16 @@ set( CMAKE_CXX_STANDARD 14 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 # Move output to this dir (gptoolbox/mex)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+if(MSVC)
+  # Solution for multitarget-generators like VS2019 From: https://stackoverflow.com/questions/47175912/using-cmake-how-to-stop-the-debug-and-release-subdirectories
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${PROJECT_SOURCE_DIR}>)
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY $<1:${PROJECT_SOURCE_DIR}>)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${PROJECT_SOURCE_DIR}>)
+else()
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+endif()
 
 # https://stackoverflow.com/q/46724267/148668
 include(CheckCXXCompilerFlag)
@@ -63,6 +70,45 @@ if( UNIX AND NOT APPLE)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 endif()
 
+# git
+find_package(Git REQUIRED)
+
+# ---[ setup vcpkg toolchain ]---
+# vcpkg defines a set of variables if toolchain setup was successfull
+if(NOT DEFINED Z_VCPKG_EXECUTABLE)
+  set(Z_VCPKG_ROOT_DIR "${GPTOOLBOX_MEX_EXTERNAL}/vcpkg")
+  message(STATUS "vcpkg was not found in system and will be installed to ${Z_VCPKG_ROOT_DIR} ...")
+  if(NOT EXISTS ${Z_VCPKG_ROOT_DIR})
+    execute_process(
+      COMMAND             "${GIT_EXECUTABLE}" clone https://github.com/microsoft/vcpkg "${Z_VCPKG_ROOT_DIR}"
+      COMMAND_ERROR_IS_FATAL ANY
+    )
+  endif()
+  
+  # CMAKE_EXECUTABLE_SUFFIX is not yet defined
+  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(Z_VCPKG_EXECUTABLE "${Z_VCPKG_ROOT_DIR}/vcpkg.exe")
+    set(Z_VCPKG_BOOTSTRAP_SCRIPT "${Z_VCPKG_ROOT_DIR}/bootstrap-vcpkg.bat")
+  else()
+    set(Z_VCPKG_EXECUTABLE "${Z_VCPKG_ROOT_DIR}/vcpkg")
+    set(Z_VCPKG_BOOTSTRAP_SCRIPT "${Z_VCPKG_ROOT_DIR}/bootstrap-vcpkg.sh")
+  endif()
+
+
+  # run bootstrap once
+  if(NOT EXISTS ${Z_VCPKG_EXECUTABLE})
+    execute_process(
+      COMMAND ${Z_VCPKG_BOOTSTRAP_SCRIPT} -disableMetrics
+      COMMAND_ERROR_IS_FATAL ANY
+    )
+  endif()
+
+  set(VCPKG_ARGS "--clean-after-build")
+endif() #vcpkg
+# toolchain definition
+set(CMAKE_TOOLCHAIN_FILE "${Z_VCPKG_ROOT_DIR}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+include("${Z_VCPKG_ROOT_DIR}/scripts/buildsystems/vcpkg.cmake")
+
 # Find matlab
 if(MATLAB_PROXY)
   FetchContent_Declare(
@@ -76,12 +122,14 @@ if(MATLAB_PROXY)
     set(Matlab_ROOT_DIR "${Matlab_SOURCE_DIR}")
   endif()
 endif()
-
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MX_LIBRARY ENG_LIBRARY)
 
 message(STATUS "Downloading and finding libigl...")
 # Download and find libigl
+# NOTE: should be replaced with vcpkg version of libigl for more consistency as soon apdated to 2.4.0 (and https://github.com/microsoft/vcpkg/pull/26029 colsed) there
+#       find_package(LIBIGL REQUIRED)
 include(libigl)
+
 
 if(WITH_ELTOPO)
   # Download and find eltopo
