@@ -54,18 +54,53 @@ function [CV,CF,OV,OF] = closing(V,F,sigma,varargin)
     epsilon = sign(sigma)*max(0.01*sigma,0.1*h);
   end
 
-  [OV,OF] = signed_distance_isosurface( ...
-    V,F, ...
-    'Level',(sigma+epsilon), ...
-    'SignedDistanceType',st,'ContouringMethod','marching_cubes','GridSize',gs);
-  if isempty(OF)
-    CV = [];
-    CF = [];
-  else
-    [CV,CF] = signed_distance_isosurface( ...
-      OV,OF, ...
-      'Level',-sigma, ...
+  dim = size(V,2);
+  assert(dim == size(F,2));
+
+  switch dim
+  case 2
+    E = F;
+    BB = bounding_box(V,'Epsilon',abs(sigma));
+    [GV,side] = voxel_grid(BB,gs,'Pad',1);
+    [X,Y] = deal(reshape(GV(:,1),side([2 1])),reshape(GV(:,2),side([2 1])));
+    D = reshape(signed_distance([X(:) Y(:)],V,E),side([2 1]));
+    [OV,OE] = contour_edges(X,Y,D,sigma);
+    if isempty(OE)
+      CV = [];
+      CF = [];
+    else
+      % No real need to use the same grid. In fact the closing should stay in
+      % the convex hull so we could use a tighter one.
+      D = reshape(signed_distance([X(:) Y(:)],OV,OE),side([2 1]));
+      [CV,CE] = contour_edges(X,Y,D,-sigma);
+    end
+
+    %surf(X,Y,0*X,'CData',D-sigma,fphong);
+    %hold on;
+    %tsurf(OE,OV);
+    %tsurf(CE,CV);
+    %tsurf(E,V);
+    %hold off;
+    %axis equal;
+    %colormap(circshift(lipmanya(20),10,1))
+    %caxis([-1 1]*max(abs(caxis)));
+    
+
+    CF = CE;
+  case 3
+    [OV,OF] = signed_distance_isosurface( ...
+      V,F, ...
+      'Level',(sigma+epsilon), ...
       'SignedDistanceType',st,'ContouringMethod','marching_cubes','GridSize',gs);
+    if isempty(OF)
+      CV = [];
+      CF = [];
+    else
+      [CV,CF] = signed_distance_isosurface( ...
+        OV,OF, ...
+        'Level',-sigma, ...
+        'SignedDistanceType',st,'ContouringMethod','marching_cubes','GridSize',gs);
+    end
   end
 
 
