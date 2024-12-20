@@ -217,8 +217,7 @@ void mexFunction(
     }else if(hierarchical && dim == 3)
     {
       // Initialize hierarchy
-      WindingNumberAABB< Eigen::RowVector3d, Eigen::MatrixXd, Eigen::MatrixXi>
-        hier(V,F);
+      WindingNumberAABB<double, int> hier(V,F);
       // Build hierarchy
       hier.grow();
       // loop over origins

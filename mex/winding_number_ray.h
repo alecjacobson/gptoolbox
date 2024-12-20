@@ -116,11 +116,11 @@ void igl::winding_number_ray_parity(
   using namespace std;
   using namespace Eigen;
   double count = 0.0;
-  vector<Hit > hits;
+  vector<Hit<float> > hits;
   ei.intersectRay(p.cast<float>(),dir.cast<float>(),hits,num_rays_shot);
   const int m = N.rows();
   int prev_id = -1;
-  for(vector<Hit>::iterator hit = hits.begin();
+  for(vector<Hit<float> >::iterator hit = hits.begin();
       hit != hits.end();
       hit++)
   {
@@ -156,11 +156,11 @@ void igl::winding_number_ray(
   using namespace std;
   using namespace Eigen;
   double count = 0.0;
-  vector<Hit > hits;
+  vector<Hit<float> > hits;
   ei.intersectRay(p.cast<float>(),dir.cast<float>(),hits,num_rays_shot);
   const int m = N.rows();
   int prev_id = -1;
-  for(vector<Hit>::iterator hit = hits.begin();
+  for(vector<Hit<float> >::iterator hit = hits.begin();
       hit != hits.end();
       hit++)
   {
