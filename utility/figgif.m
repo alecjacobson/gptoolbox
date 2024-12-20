@@ -15,10 +15,11 @@ function f = figgif(filename,varargin)
 
   rgb2ind_args = {};
   delay = 0;
+  cdata = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Delay','rgb2ind'}, ...
-    {'delay','rgb2ind_args'});
+    {'CData','Delay','rgb2ind'}, ...
+    {'cdata','delay','rgb2ind_args'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -33,8 +34,16 @@ function f = figgif(filename,varargin)
     v=v+1;
   end
 
-  frame = getframe(gcf);
-  [SIf,cm] = rgb2ind(frame.cdata,256,rgb2ind_args{:});
+  if isempty(cdata)
+    frame = getframe(gcf);
+    cdata = frame.cdata;
+  else
+    if size(cdata,3) == 1
+      cdata = cat(3,cdata,cdata,cdata);
+    end
+    cdata = im2uint8(cdata);
+  end
+  [SIf,cm] = rgb2ind(cdata,256,rgb2ind_args{:});
   f = exist(filename,'file');
   if ~f
     imwrite(SIf,cm,filename,'Loop',Inf,'Delay',delay);
