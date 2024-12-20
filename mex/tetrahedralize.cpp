@@ -86,5 +86,8 @@ void mexFunction(
       prepare_lhs_double(TV,plhs+0);
     default:break;
   }
+  // Restore the std stream buffer Important!
+  std::cout.rdbuf(outbuf);
+  return;
 }
 

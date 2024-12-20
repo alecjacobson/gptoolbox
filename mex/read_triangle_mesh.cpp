@@ -18,9 +18,6 @@ void mexFunction(
   const mxArray *prhs[])
 {
   using namespace Eigen;
-  /* Check for proper number of arguments */
-  igl::matlab::MexStream mout;        
-  std::streambuf *outbuf = std::cout.rdbuf(&mout);
 
   if (nrhs != 1) 
   {
@@ -56,7 +53,6 @@ void mexFunction(
   }
 
   // Restore the std stream buffer Important!
-  std::cout.rdbuf(outbuf);
   return;
 }
 

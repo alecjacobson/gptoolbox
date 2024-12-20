@@ -225,6 +225,7 @@ if(NOT MATLAB_ADDITIONAL_VERSIONS)
 endif()
 
 set(MATLAB_VERSIONS_MAPPING
+  "R2024b=24.2"
   "R2024a=24.1"
   "R2023b=23.2"
   "R2023a=9.14"
@@ -682,7 +683,8 @@ function(matlab_get_version_from_matlab_run matlab_binary_program matlab_list_ve
   file(REMOVE "${_matlab_temporary_folder}/matlabVersionLog.cmaketmp")
 
   set(index -1)
-  string(FIND ${_matlab_version_from_cmd} "ans" index)
+  string(FIND "${_matlab_version_from_cmd}" "ans" index)
+
   if(index EQUAL -1)
 
     if(MATLAB_FIND_DEBUG)
@@ -692,7 +694,7 @@ function(matlab_get_version_from_matlab_run matlab_binary_program matlab_list_ve
   else()
     set(matlab_list_of_all_versions_tmp)
 
-    string(SUBSTRING ${_matlab_version_from_cmd} ${index} -1 substring_ans)
+    string(SUBSTRING "${_matlab_version_from_cmd}" ${index} -1 substring_ans)
     string(
       REGEX MATCHALL "ans[\r\n\t ]*=[\r\n\t ]*'?([0-9]+(\\.[0-9]+)?)"
       matlab_versions_regex

@@ -233,6 +233,10 @@ triangulate.cpp;\
 "
     "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_restricted::triangle")
   endif()
+  compile_each("\
+refine_triangulation.cpp;\
+"
+  "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_restricted::triangle")
 endif()
 
 if(LIBIGL_EMBREE)
