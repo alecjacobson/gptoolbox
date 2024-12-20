@@ -11,13 +11,22 @@ function varargout = plot_spline(P,C,varargin)
   %   p  plot handle for curves
   % Example:
   %   cellfun(@(pe) arrayfun(@(p) set(p,'Color','r'),pe),plot_spline(P,C))
+
+  if numel(varargin) == 1 && iscell(varargin{1}) && numel(varargin{1}) == 2
+    p_varargin = varargin{1}{2};
+    pe_varargin = varargin{1}{1};
+  else
+    p_varargin = {};
+    pe_varargin = varargin;
+  end
+  
   assert(max(C(:))<=size(P,1));
   assert(min(C(:))>=1);
   p = {};
   pe = {};
   ish = ishold;
   for c = 1:size(C,1)
-    [pe{c},p{c}] = plot_cubic(P(C(c,:),:),[],[],varargin{:});
+    [pe{c},p{c}] = plot_cubic(P(C(c,:),:),[],[],{pe_varargin,p_varargin});
     hold on;
   end
   hold off;

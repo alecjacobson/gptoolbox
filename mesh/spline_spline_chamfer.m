@@ -1,4 +1,4 @@
-function [err,err1_2,err2_1] = spline_spline_chamfer(P1,C1,P2,C2,varargin)
+function [err,data1_2,data2_1] = spline_spline_chamfer(P1,C1,P2,C2,varargin)
   % SPLINE_SPLINE_CHAMFER Compute chamfer distance between two splines.
   % Specifically this is an approximation of the integrated sum of squared
   % distances.
@@ -45,13 +45,17 @@ function [err,err1_2,err2_1] = spline_spline_chamfer(P1,C1,P2,C2,varargin)
     U1 = [];
     W1 = [];
     for c = 1:size(C1,1)
-      [Tc,Wc] = gauss_legendre_quadrature(S1(c),0,1);
+      [~,~,Tc,Wc] = gauss_legendre_quadrature(S1(c),0,1);
       Uc = cubic_eval(P1(C1(c,:),:),Tc);
       U1 = [U1; Uc];
       W1 = [W1; A1(c)*Wc];
     end
   end
 
+  % This is different from the `spline_uniformly_sample.m` because it rounds the
+  % number of samples samples per segment rather than solving for perfectly
+  % evenly spaced samples on the whole chain. This makes no assumptions about
+  % the input being a single chain or even manifold. 
   function [U1,W1,a1] = spline_uniformly_sample(P1,C1,num_samples)
     [A1,a1] = spline_arc_lengths(P1,C1);
     S1 = round(num_samples.*A1./a1);
@@ -65,7 +69,7 @@ function [err,err1_2,err2_1] = spline_spline_chamfer(P1,C1,P2,C2,varargin)
       %W1 = [W1; Fc];
 
       % This seems to work better/same for small number of samples
-      [~,Fc,Uc] = cubic_uniformly_sample(P1(C1(c,:),:),S1(c)+1);
+      [~,Fc,Uc] = cubic_uniformly_sample(P1(C1(c,:),:),S1(c)+2);
       Fc = Fc * 0.5;
       Wc = [Fc;0] + [0;Fc];
       U1 = [U1; Uc];
@@ -82,10 +86,11 @@ function [err,err1_2,err2_1] = spline_spline_chamfer(P1,C1,P2,C2,varargin)
   method = 'uniform';
   flat_tol = 1e-4;
   symmetric = true;
+  poly = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Symmetric','Method','Samples','Tol'}, ...
-    {'symmetric','method','num_samples','tol'});
+    {'Symmetric','Method','Samples','Tol','Poly'}, ...
+    {'symmetric','method','num_samples','flat_tol','poly'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -104,7 +109,12 @@ function [err,err1_2,err2_1] = spline_spline_chamfer(P1,C1,P2,C2,varargin)
   if symmetric || strcmp(method,'monte-carlo')
     [V1,E1] = spline_to_poly(P1,C1,flat_tol);
   end
-  [V2,E2] = spline_to_poly(P2,C2,flat_tol);
+  if isempty(poly)
+    [V2,E2] = spline_to_poly(P2,C2,flat_tol);
+  else
+    V2 = poly.V;
+    E2 = poly.E;
+  end
   switch method
   case 'gauss-legendre'
     % Not impressed with this here. Seems to be running into numerical issues
@@ -149,10 +159,23 @@ function [err,err1_2,err2_1] = spline_spline_chamfer(P1,C1,P2,C2,varargin)
   %err = 0.5*sum(squared_dist2_1) / sum(edge_lengths(V2,E2)) + ...
         %0.5*sum(squared_dist1_2) / sum(edge_lengths(V1,E1));
   err1_2 = 0.5*sum(squared_dist1_2.*W1) / a1;
+  data1_2.err = err1_2;
+  data1_2.U = U1;
+  data1_2.W = W1;
+  data1_2.a = a1;
+  data1_2.squared_dist1_2 = squared_dist1_2;
+
   if symmetric
     squared_dist2_1 = point_mesh_squared_distance(U2,V1,E1,'Method','libigl');
     err2_1 = 0.5*sum(squared_dist2_1.*W2) / a2;
     err = err1_2 + err2_1;
+
+    data2_1.err = err2_1;
+    data2_1.U = U2;
+    data2_1.W = W2;
+    data2_1.a = a2;
+    data2_1.squared_dist2_1 = squared_dist2_1;
+
   else
     err = err1_2;
     err2_1 = nan;

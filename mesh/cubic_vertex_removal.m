@@ -71,11 +71,12 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
   promise_already_built = false;
   E_tol = 1e-15;
   grad_tol = 1e-8;
+  weighted = false;
 
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Method','MaxIter','t0','AlreadyGenerated','Tol','GradientTol',}, ...
-    {'method','max_iter','t0','promise_already_built','E_tol','grad_tol'});
+    {'Method','MaxIter','t0','AlreadyGenerated','Tol','GradientTol','Weighted'}, ...
+    {'method','max_iter','t0','promise_already_built','E_tol','grad_tol','weighted'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -183,8 +184,7 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
   case 'iterative'
     % use arc-length to guess t₁
     if isempty(t0)
-      tol = 1e-5;
-      ts = matrixnormalize(cumsum([0;spline_arc_lengths([C1;C2],[1 2 3 4;5 6 7 8],tol)]));
+      ts = matrixnormalize(cumsum([0;spline_arc_lengths([C1;C2],[1 2 3 4;5 6 7 8],'Method','cubic_arc_length','NumQuadrature',20)]));
       t0 = ts(2);
     end
     t1 = t0;
@@ -196,6 +196,10 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
     S = [B1(:) B2(:)];
 
     f = @(t1) objective_t1(C1,C2,t1,B,S);
+
+    %plot(arrayfun(@(t) f(t),linspace(1e-10,1-1e-10,100)));
+    %pause
+
     [E,C] = f(t1);
     for iter = 1:max_iter
       %dfdt1 = (f(t1+1e-5)-f(t1-1e-5))/(2*1e-5);
@@ -239,9 +243,19 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
       C2, ...
       1,0, ...
       C);
-    err = E1+E2;
+    [w1,w2] = weights(t1);
+    err = w1*E1+w2*E2;
   end
 
+  function [w1,w2] = weights(t1)
+    if weighted
+      w1 = 1/(t1)   + 1.0/(1.0-0.0);
+      w2 = 1/(1-t1) + 1.0/(1.0-0.0);;
+    else
+      w1 = 1;
+      w2 = 1;
+    end
+  end
 
   % Helper functions for iterative method
   function [E,C] = objective_t1(C1,C2,t1,B,S)
@@ -269,11 +283,8 @@ function [C,t,err] = cubic_vertex_removal(C1,C2,varargin)
       E = inf;
       return;
     end
-    % WARNING
-    w1 = 1;
-    w2 = 1;
-    %w1 = t1; 
-    %w2 = 1-t1;
+    [w1,w2] = weights(t1);
+
     if nargout == 4
       % Given t1 update C
       [H1,F1,c1,E1] = cubic_cubic_integrated_distance( ...

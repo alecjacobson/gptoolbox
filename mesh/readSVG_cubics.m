@@ -1,4 +1,4 @@
-function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
+function [P,C,I,F,S,W,D,viewBox] = readSVG_cubics(filename,varargin)
   % READSVG_CUBICS Read in paths and shapes from a .svg file, but convert
   % everything to cubic Bezier curves.
   %
@@ -29,6 +29,8 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
   %   [P,C] = readSVG_cubics('~/Downloads/r.svg');
   %   [V,E] = spline_to_poly(P,C,0.01);
   %   V(:,2)=max(V(:,2))-V(:,2);
+  %   [V,~,~,E] = remove_duplicate_vertices(V,1e-7,'F',E);
+  %   E = E(E(:,1)~=E(:,2),:);
   %   [V,F] = triangle(V,E,[],'Flags',sprintf('-q33 -a%0.17f',median(edge_lengths(V,E))^2));
   %   [V,F] = extrude(V,F,'Levels',ceil(h/mean(mean(edge_lengths(V,F)))));
   %   V(:,3)=V(:,3)*h;
@@ -235,6 +237,7 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
         %  keyboard
         %end
         [Pii,Cii] = parse_path(d);
+        Pii = double(Pii);
         %clf;hold on;arrayfun(@(c) set(plot_cubic(Pii(Cii(c,:),:)),'Color','b'),1:size(Cii,1));hold off;
         %pause
       case {'g','defs','clipPath'}
@@ -355,6 +358,8 @@ function [P,C,I,F,S,W,D] = readSVG_cubics(filename,varargin)
     % path, … 
     svg = xDoc.getElementsByTagName('svg:svg').item(0);
   end
+  % get viewBox attribute from svg
+  viewBox = sscanf(char(svg.getAttribute('viewBox')),'%g');
   kids = svg.getChildNodes();
   [P,C,I,F,S,W,D,k] = process_kids(kids);
 

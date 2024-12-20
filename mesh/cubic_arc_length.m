@@ -1,4 +1,4 @@
-function [l,dlda,dldb,d2lda2,d2ldb2,d2ldadb] = cubic_arc_length(C,nq,a,b)
+function [l,dlda,dldb,dldC,d2lda2,d2ldb2,d2ldadb] = cubic_arc_length(C,nq,a,b)
   %
   % [l,dlda,dldb] = cubic_arc_length(C,nq)
   % [l,dlda,dldb] = cubic_arc_length(C,[x w])
@@ -22,6 +22,8 @@ function [l,dlda,dldb,d2lda2,d2ldb2,d2ldadb] = cubic_arc_length(C,nq,a,b)
   %
   % See also: gauss_legendre_quadrature
   %   
+  % Example:
+  %   l = cubic_arc_length(permute(reshape(P(C',:),4,size(C,1),size(P,2)),[1 3 2]));
   if nargin<2
     nq = 10;
   end
@@ -34,9 +36,9 @@ function [l,dlda,dldb,d2lda2,d2ldb2,d2ldadb] = cubic_arc_length(C,nq,a,b)
   if size(nq,2) == 1
     assert(numel(nq) == 1);
     if numel(a) == 1
-      [x,w,y,u] = gauss_legendre_quadrature(nq,a,b);
+      [y,u,x,w] = gauss_legendre_quadrature(nq,a,b);
     else
-      [~,~,y,u] = gauss_legendre_quadrature(nq,nan,nan);
+      [y,u] = gauss_legendre_quadrature(nq);
       x = [];
       w = [];
     end
@@ -49,13 +51,16 @@ function [l,dlda,dldb,d2lda2,d2ldb2,d2ldadb] = cubic_arc_length(C,nq,a,b)
       % canonical evaluation points and raw weights
       y = nq(:,1);
       u = nq(:,2);
+      x = [];
+      w = [];
     end
+    nq = size(y,1);
   end
 
   if isempty(x)
     assert(isempty(w));
-    x = (a'.*(1-y)+b'.*(1+y))/2;
-    w = (b-a)'.*u;
+    x = (a.'.*(1-y)+b.'.*(1+y))/2;
+    w = (b-a).'.*u;
   end
   x = permute(x,[1 3 2]);
   w = permute(w,[1 3 2]);
@@ -63,9 +68,12 @@ function [l,dlda,dldb,d2lda2,d2ldb2,d2ldadb] = cubic_arc_length(C,nq,a,b)
   C21 = C(2,:,:)-C(1,:,:);
   C32 = C(3,:,:)-C(2,:,:);
   C43 = C(4,:,:)-C(3,:,:);
-  T = 3*(1-x).^2.*C21 + ...
-       6*(1-x).*x.*C32 + ...
-           3*x.^2.*C43;
+  b21 = 3*(1-x).^2;
+  b32 = 6*(1-x).*x;
+  b43 = 3*x.^2;
+  T = b21.*C21 + ...
+      b32.*C32 + ...
+      b43.*C43;
   s = sqrt(sum(T.^2,2));
   l = sum(w.*s,1);
   l = permute(l,[3 1 2]);
@@ -88,6 +96,15 @@ function [l,dlda,dldb,d2lda2,d2ldb2,d2ldadb] = cubic_arc_length(C,nq,a,b)
     dldb = permute(dldb,[3 1 2]);
 
     if nargout>3
+      % dldC = d/dC (wᵀ s) = dw/dCᵀ s + wᵀ ds/dC  = wᵀ ds/dC
+      dTdC = zeros([nq size(C,2) numel(a) size(C)]);
+      dTdC(:,1,:,:,1) = cat(4,-b21,b21-b32,b32-b43,b43);
+      dTdC(:,2,:,:,2) = dTdC(:,1,:,:,1);
+      dsdC = ((1./s).*sum(T.*dTdC,2));
+      dldC = permute(sum(w.*dsdC,[1 2]),[3 4 5 1 2]);
+    end
+
+    if nargout>4
       % d²l/da² = d/da( dw/daᵀ s + wᵀ ds/da )
       %          = d²w/da²ᵀ s + 2 dw/daᵀ ds/da + wᵀ d²s/da²
       %          =       0ᵀ s + 2 dw/daᵀ ds/da + wᵀ d²s/da²

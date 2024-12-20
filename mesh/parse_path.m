@@ -20,6 +20,7 @@ function [P,C,state] = parse_path(dstr,varargin)
   % position of final character needed to parse and n is length of dstr)
   function [x,pos] = parse_x(dstr,pos)
     [x,count,~,pos_off] = sscanf(dstr(pos:end),'%g',1);
+    x = single(x);
     if count~= 1
       x = [];
       return;
@@ -100,6 +101,7 @@ function [P,C,state] = parse_path(dstr,varargin)
   function [state,pos] = parse_L(state,dstr,pos)
       % augh I hate that I'm using epsilon here. probably the interp1 above is
       % leading to small numerical noise.
+      % It seems that if using single precision the eps is far less important.
       if (state.key == 'Z' || state.key == 'z') && size(state.P,2)==state.mi
         % degenerate single point, ignore
       elseif (state.key == 'Z' || state.key == 'z') && sum((state.P(:,end)-state.P(:,state.mi)).^2)<eps
@@ -241,7 +243,7 @@ function [P,C,state] = parse_path(dstr,varargin)
   dstr = regexprep(dstr,'\s+',' ');
 
   if isempty(dstr)
-    P = zeros(0,2);
+    P = zeros(0,2,'single');
     C = zeros(0,4);
     return;
   end
@@ -250,12 +252,12 @@ function [P,C,state] = parse_path(dstr,varargin)
   pattern = sprintf('([%s][^%s]*)',keys,keys);
   S = regexp(dstr, pattern, 'match');
   if isempty(S)
-    P = zeros(0,2);
+    P = zeros(0,2,'single');
     C = zeros(0,4);
     return;
   end
 
-  state.P = zeros(2,0);
+  state.P = zeros(2,0,'single');
   state.C = zeros(4,0);
   state.key = S{1}(1);
   state.Qprev = [];
@@ -305,4 +307,5 @@ function [P,C,state] = parse_path(dstr,varargin)
 
   P = state.P';
   C = state.C';
+
 end

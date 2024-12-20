@@ -97,4 +97,6 @@ function [PC,CC,DC,IC] = trim_with_spline(PA,CA,PB,CB,tol)
   CC = CA;
   DC = DA;
   IC = IA;
+  assert(all(IC(:)>0));
+  assert(all(IC(:)<=size(CA,1)));
 end

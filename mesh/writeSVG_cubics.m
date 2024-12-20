@@ -20,11 +20,13 @@ function writeSVG_cubics(filename,P,C,varargin)
   end
 
   merge_paths = false;
-  units = 'mm';
+  units = '';
+  illustrator = false;
+  viewBox = [min(P(:,1)) min(P(:,2)) range(P(:,1)) range(P(:,2))];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'MergePaths','Units'}, ...
-    {'merge_paths','units'});
+    {'ViewBox','MergePaths','Units'}, ...
+    {'viewBox','merge_paths','units'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -39,13 +41,24 @@ function writeSVG_cubics(filename,P,C,varargin)
     v=v+1;
   end
 
+  if isempty(units)
+    if illustrator
+      units = 'px';
+    else
+      units = 'mm';
+    end
+  end
+
   fh = fopen(filename,'w');
+  fprintf(fh,'<?xml version="1.0" encoding="utf-8"?>\n');
   fprintf(fh,['<svg version="1.1" id="Layer_1" ' ...
     ' xmlns="http://www.w3.org/2000/svg" ' ...
     ' xmlns:xlink="http://www.w3.org/1999/xlink" ' ...
-    ' width="%d%s" height="%d%s" ' ...
-    ' viewBox="%d %d %d %d" ' ...
-    ' xml:space="preserve">\n'], range(P(:,1)),units,range(P(:,2)),units,min(P),range(P));
+    ' x="0%s" y="0%s"\n'],units,units);
+  fprintf(fh, [ ...
+    ' viewBox="%f %f %f %f" ' ...
+    ' xml:space="preserve">\n'],viewBox);
+
   w = min(0.001*normrow(max(P)-min(P)),1);
   if merge_paths
     E = [C(:,1) C(:,end)];
