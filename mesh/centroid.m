@@ -5,13 +5,13 @@ function [C,vol] = centroid(V,F,varargin)
   % [C,vol] = centroid(V,F,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
-  %   V  #V by 3 list of mesh vertex positions
-  %   F  #F by 3 list of triangle mesh indices
+  %   V  #V by dim list of mesh vertex positions
+  %   F  #F by dim list of surface facet indices
   %   Optional:
   %     'Robust' followed by whether to use more robust but costlier method for
   %       nearly closed input. {false}
   % Outputs:
-  %   C  3-vector of centroid location
+  %   C  dim-vector of centroid location
   %   vol  total volume of polyhedron
   %
 
@@ -53,6 +53,7 @@ function [C,vol] = centroid(V,F,varargin)
     % http://www2.imperial.ac.uk/~rn/centroid.pdf
     switch size(V,2)
     case 2
+      assert(size(F,2)==2);
       % https://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
       % Rename corners
       A = V(F(:,1),:);
@@ -61,16 +62,26 @@ function [C,vol] = centroid(V,F,varargin)
       vol = 0.5*sum(D);
       C = (1/(6*vol)).*sum((A+B).*D);
     case 3
-      % Rename corners
-      A = V(F(:,1),:);
-      B = V(F(:,2),:);
-      C = V(F(:,3),:);
-      % Needs to be **unnormalized** normals
-      N = cross2(B-A,C-A);
-      % total volume via divergence theorem: ∫ 1
-      vol = sum(sum(A.*N))/6;
-      % centroid via divergence theorem and midpoint quadrature: ∫ x
-      C = 1/(2*vol)*(1/24* sum(N.*((A+B).^2 + (B+C).^2 + (C+A).^2)));
+      switch size(F,2)
+      case 3
+        % Rename corners
+        A = V(F(:,1),:);
+        B = V(F(:,2),:);
+        C = V(F(:,3),:);
+        % Needs to be **unnormalized** normals
+        N = cross2(B-A,C-A);
+        % total volume via divergence theorem: ∫ 1
+        vol = sum(sum(A.*N))/6;
+        % centroid via divergence theorem and midpoint quadrature: ∫ x
+        C = 1/(2*vol)*(1/24* sum(N.*((A+B).^2 + (B+C).^2 + (C+A).^2)));
+      case 4
+        T = F;
+        vol = volume(V,T);
+        BC = barycenter(V,T);
+        C = vol'*BC;
+        vol = sum(vol);
+        C = C/vol;
+      end
     end
   end
 
