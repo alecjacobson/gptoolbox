@@ -272,7 +272,6 @@ if(LIBIGL_COPYLEFT_CGAL)
 #segment_segment_intersection.cpp;\
   compile_each("\
 box_intersect.cpp;\
-decimate_cgal.cpp;\
 form_factor.cpp;\
 intersect_other.cpp;\
 mesh_boolean.cpp;\
