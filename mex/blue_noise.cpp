@@ -14,14 +14,21 @@
 
 // Return a random point in the annulus centered at the origin with inner radius
 // r and outer radius R
-Eigen::RowVector2d random_point_in_annulus(const double r, const double R)
+Eigen::RowVector2d random_point_in_annulus(
+  const double r, 
+  const double R,
+  std::mt19937 & gen)
 {
   // rejection sampling 
-  Eigen::RowVector2d p = Eigen::RowVector2d::Random()*R;
+  //Eigen::RowVector2d p = Eigen::RowVector2d::Random()*R;
+  // Use gen
+  std::uniform_real_distribution<> dis(-1.0, 1.0);
+  Eigen::RowVector2d p(R*dis(gen),R*dis(gen));
+
   const double l2 = p.squaredNorm();
   if(l2 < r*r || l2>R*R)
   {
-    return random_point_in_annulus(r,R);
+    return random_point_in_annulus(r,R,gen);
   }else
   {
     return p;
@@ -42,11 +49,16 @@ void blue_noise(
   const double bh,
   const double r,
   const int k,
+  const bool periodic_x,
+  const bool periodic_y,
+  const double * seed_ptr,
   Eigen::MatrixXd & points)
 {
   std::random_device rd;  // Will be used to obtain a seed for the random number engine
-  std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+  std::mt19937 gen( seed_ptr != nullptr ? (unsigned int)*seed_ptr : rd() );
   std::uniform_real_distribution<> dis(0.0, 1.0);
+    
+
   // Initial point
   Eigen::RowVector2d p0( dis(gen)*bw, dis(gen)*bh );
   // Step 0
@@ -81,10 +93,13 @@ void blue_noise(
     Eigen::RowVector2d q = points.row(active[a]);
     for(int i = 0;i<k;i++)
     {
-      Eigen::RowVector2d p = random_point_in_annulus(r,2*r);
+      Eigen::RowVector2d p = random_point_in_annulus(r,2*r,gen);
       p += q;
       //p.x = periodic.x ? (p.x+box.w) % box.w : p.x
       //p.y = periodic.y ? (p.y+box.h) % box.h : p.y
+      p(0) = periodic_x ? fmod(p(0)+bw,bw) : p(0);
+      p(1) = periodic_y ? fmod(p(1)+bh,bh) : p(1);
+
       const int gx = floor(p(0)/h);
       const int gy = floor(p(1)/h);
       // check if in grid
@@ -133,6 +148,7 @@ void mexFunction(
   using namespace Eigen;
   igl::matlab::MexStream mout;        
   std::streambuf *outbuf = std::cout.rdbuf(&mout);
+  mexPrintf("Compiled at %s on %s\n",__TIME__,__DATE__);
   mexErrMsgTxt(nrhs>=2,"nrhs should be ≥2");
   Eigen::VectorXi FI;
   Eigen::MatrixXd B,P;
@@ -145,6 +161,9 @@ void mexFunction(
     const int dim = V.cols();
     int k = 30;
     mexErrMsgTxt(dim==2,"dim should be == 2");
+    double * seed_ptr = NULL;
+    Eigen::Matrix<bool,Eigen::Dynamic,Eigen::Dynamic> periodic(1,2);
+    periodic.setZero();
     if(nrhs>3)
     {
       int i = 2;
@@ -162,6 +181,16 @@ void mexFunction(
           validate_arg_scalar(i,nrhs,prhs,name);
           double * v = (double *)mxGetData(prhs[++i]);
           k = *v;
+        }else if(strcmp("Seed",name) == 0)
+        {
+          validate_arg_double(i,nrhs,prhs,name);
+          validate_arg_scalar(i,nrhs,prhs,name);
+          seed_ptr = (double *)mxGetData(prhs[++i]);
+        }else if(strcmp("Periodic",name) == 0)
+        {
+          validate_arg_double(i,nrhs,prhs,name);
+          parse_rhs_double(prhs + (++i),periodic);
+          mexErrMsgTxt(periodic.size() == 2,"Periodic should be a 2 logical");
         }else
         {
           mexErrMsgTxt(C_STR("Unsupported parameter: "<<name));
@@ -173,7 +202,7 @@ void mexFunction(
     Eigen::RowVectorXd minV = V.array().colwise().minCoeff();
     Eigen::RowVectorXd maxV = V.array().colwise().maxCoeff();
     const double r = (double)*mxGetPr(prhs[1]);
-    blue_noise(maxV(0)-minV(0),maxV(1)-minV(1),r,k,P);
+    blue_noise(maxV(0)-minV(0),maxV(1)-minV(1),r,k,periodic(0),periodic(1),seed_ptr,P);
     if(P.rows()>0)
     {
       P.array().rowwise() += minV.array();
