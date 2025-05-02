@@ -438,6 +438,11 @@ classdef deform < handle
       this.new_C = new_C;
       this.update_positions();
     end
+    
+    function this = set_R(this,R)
+      this.R = R;
+      this.update_positions();
+    end
 
     function this = update_positions(this)
       % update mesh positions
