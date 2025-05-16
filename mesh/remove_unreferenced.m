@@ -1,4 +1,4 @@
-function [RV,IM,J,IMF] = remove_unreferenced(V,F)
+function [RV,IM,J,IMF] = remove_unreferenced(V,F,output_bound)
   % REMOVE_UNREFERENCED Removes any rows in V that are not referenced in R.
   % **Warning:** This implementation is O(#V) regardless of #F
   %
@@ -7,12 +7,14 @@ function [RV,IM,J,IMF] = remove_unreferenced(V,F)
   % Inputs:
   %   V  #V by dim list of "vertex positions"
   %   F  #F by anything list of indices into V (will be treated as F(:))
+  %   output_bound  whether to be O(#F) and *not* output IM
   % Outputs:
   %  RV  #unique(F) by dim vertex positions, order such that if the jth vertex is
   %    some face in F, and the kth vertex is not then j comes before k
   %  IM  #V by 1 list of indices such that: RF = IM(F) and RT = IM(T)
   %    and V(find(IM~=-1),:) = RV
   %  J  #RV by 1 list, such that RV = V(J,:)
+  %  IMF #F by anything list of indices into RV (IMF = IM(F))
   % 
   % Examples:
   %   % Tet mesh in (V,T,F)
@@ -23,6 +25,30 @@ function [RV,IM,J,IMF] = remove_unreferenced(V,F)
   %   % replace back into V
   %   V(find(IM<=size(SV,1)),:) = V
   %
+
+  if nargin < 3
+    output_bound = false;
+  end
+
+  if output_bound
+    IM = [];
+    if isempty(F)
+      RV = zeros(0,size(V,2));
+      J = zeros(1,0);
+      IMF = zeros(1,0);
+      return;
+    end
+    [U,J,IMF] = unique(F(:));
+    % to match output_bound==false which for some reason returns a row vector.
+    J = reshape(F(J),1,[]);
+    if ~isempty(V)
+      RV = V(J,:);
+    else
+      RV = [];
+    end
+    IMF = reshape(IMF,size(F));
+    return;
+  end
 
   if isempty(F)
     RV = zeros(0,size(V,2));
