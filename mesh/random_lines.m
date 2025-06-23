@@ -63,15 +63,16 @@ function [O,D,T,N] = random_lines(n,dim)
     D = [];
     T = [];
     N = [];
-    return;
+  else
+    D = D(keep,:);
+    O = O(keep,:);
+    t_close = t_close(keep);
+    t_far = t_far(keep);
+    O = O + D.*t_close;
+    T = t_far - t_close;
+    N = size(O,1);
   end
-  D = D(keep,:);
-  O = O(keep,:);
-  t_close = t_close(keep);
-  t_far = t_far(keep);
-  O = O + D.*t_close;
-  T = t_far - t_close;
-  N = size(O,1);
+
 
   if size(O,1) < n
     [Or,Dr,Tr,Nr] = random_lines(n-size(O,1),dim);
@@ -80,5 +81,6 @@ function [O,D,T,N] = random_lines(n,dim)
     T = [T;Tr];
     N = [N;Nr];
   end
+  assert(size(O,1) == n);
 
 end
