@@ -43,9 +43,9 @@ function [t, measurement_overhead, measurement_details] = timeit(f, num_outputs)
 if nargin < 2
     num_outputs = min(numOutputs(f), 1);
 else
-    if num_outputs > 5
+    if num_outputs > 7
         warning('MATLAB:timeit:tooManyOutputs', ...
-            'Too many function output arguments specified. timeit will call your function with 5 output arguments.');
+            'Too many function output arguments specified. timeit will call your function with 7 output arguments.');
     end
 end
 
@@ -114,10 +114,24 @@ for k = 1:num_outer_iterations
             end
             times(k) = toc();
             
-        otherwise
+        case 5
             tic();
             for p = 1:num_inner_iterations
                 [output1, output2, output3, output4, output5] = f();
+            end
+            times(k) = toc();
+            
+        case 6
+            tic();
+            for p = 1:num_inner_iterations
+                [output1, output2, output3, output4, output5, output6] = f();
+            end
+            times(k) = toc();
+            
+        otherwise
+            tic();
+            for p = 1:num_inner_iterations
+                [output1, output2, output3, output4, output5, output6, output7] = f();
             end
             times(k) = toc();
     end
@@ -183,9 +197,19 @@ while sum(times) < 0.001
             [output1, output2, output3, output4] = f();
             times(end+1) = toc();
             
-        otherwise
+        case 5
             tic();
             [output1, output2, output3, output4, output5] = f();
+            times(end+1) = toc();
+            
+        case 6
+            tic();
+            [output1, output2, output3, output4, output5, output6] = f();
+            times(end+1) = toc();
+            
+        otherwise
+            tic();
+            [output1, output2, output3, output4, output5, output6, output7] = f();
             times(end+1) = toc();
     end
     
