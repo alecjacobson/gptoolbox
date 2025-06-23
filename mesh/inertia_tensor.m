@@ -82,12 +82,16 @@ function [I,A,cen,vol] = inertia_tensor(V,F)
   
   I=[Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
   
-  % Output ------------------------------------------------------------------
-  [sV,D]=svd(I);
-  % Local frame of reference
-  A=fliplr(sV);
-  A(:,3)=cross(A(:,1),A(:,2));
-  A = A';
+  if nargout>1 && isdouble(V)
+    % Output ------------------------------------------------------------------
+    [sV,D]=svd(I);
+    % Local frame of reference
+    A=fliplr(sV);
+    A(:,3)=cross(A(:,1),A(:,2));
+    A = A';
+  else
+    A = nan(3,3);
+  end
   
   vol=m000;
   cen=[m100 m010 m001]/m000;
