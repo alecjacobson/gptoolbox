@@ -21,12 +21,13 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   %     'Colors' followed by a #V|#F|1 list of colors to use
   %     'Unoriented' followed by whether to treat the surface as unoriented
   %       {false}
+  %     'Nudge' followed by a scalar to nudge the surface along its normal
   % Outputs:
   %   AO  #V by 1 list of ambient occlusion values
   %   C  #V|#F by 3 modified colors
   %   l  #l list of light handles
 
-  function [AO,C] = apply_ambient_occlusion_helper(t,AO,C,factor,unoriented)
+  function [AO,C] = apply_ambient_occlusion_helper(t,AO,C,factor,unoriented,nudge)
     V = t.Vertices;
     F = t.Faces;
     % triangulate high order facets
@@ -54,23 +55,29 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
         C = C(F(:,1),:);
       end
     end
-    if size(C,1) == size(V,1)
+    if size(C,1) == size(V,1) && ~(size(C,1) == size(F,1) && strcmp(t.FaceColor,'flat'))
       t.FaceColor = 'interp';
       O = V;
       I = (1:size(V,1))';
       nao = size(V,1);
       N = per_vertex_normals(V,T);
+      O = O + nudge*N;
       % Matlab uses backwards normals
       t.VertexNormals =  -N;
-      lighting phong;
+      t.FaceLighting = 'phong';
     elseif size(C,1) == size(F,1)
       t.FaceColor = 'flat';
+      t.FaceLighting = 'flat';
+      if size(t.Vertices,1) == size(t.Faces,1)
+        % hack so trisurf doesn't get confused by per face colors
+        warning('hack so trisurf does not get confused');
+        t.Vertices = [t.Vertices;0 0 0];
+      end
       % Could be fancy and use high-order quadrature.
       O = barycenter(V,T);
       I = J;
       nao = size(F,1);
       N = normalizerow(normals(V,T));
-      lighting flat;
     else
       error('Unknown number of colors');
     end
@@ -101,10 +108,11 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
   soft_lighting = true;
   samples = 1000;
   unoriented = false;
+  nudge = 0;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'AO', 'AddLights','Factor','SoftLighting','Samples','ColorMap','CAxis','Colors','Unoriented'}, ...
-    {'AO','add_lights','factor','soft_lighting','samples','CM','CA','C','unoriented'});
+    {'AO', 'AddLights','Factor','SoftLighting','Samples','ColorMap','CAxis','Colors','Unoriented','Nudge'}, ...
+    {'AO','add_lights','factor','soft_lighting','samples','CM','CA','C','unoriented','nudge'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -160,7 +168,7 @@ function [AO,C,l] = apply_ambient_occlusion(t,varargin)
     end
 
     tii = t(ii);
-    [AOii,Cii] = apply_ambient_occlusion_helper(tii,AOii,Cii,factor,unoriented);
+    [AOii,Cii] = apply_ambient_occlusion_helper(tii,AOii,Cii,factor,unoriented,nudge);
     if numel(t) == 1
       AO = AOii;
       C = Cii;
