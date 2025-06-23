@@ -10,6 +10,7 @@ function dfdx = fd(f,x,epsilon)
   % Outputs:
   %   dfdx  #f by #x₁ by #x₂ by ... by #xₙ matrix of derivatives
   %
+  % See also: fd_jacobian
   if nargin < 3
     epsilon = 1e-6;
   end
