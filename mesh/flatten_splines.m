@@ -1,7 +1,7 @@
-function [PR,CR] = flatten_splines(P,C,I,F,S,SW,D)
+function [PR,CR,IR] = flatten_splines(P,C,I,F,S,SW,D)
   % FLATTEN_SPLINES  Given a set of splines (P,C) defining a non-white vector
   % graphics image. "flatten" the curves into a single shape. Input white-filled
-  % shapes are treated as a negative space.
+  % shapes are treated as a negative space. White is [255 255 255]
   %
   %
   % Inputs:
@@ -15,6 +15,7 @@ function [PR,CR] = flatten_splines(P,C,I,F,S,SW,D)
   % Outputs:
   %   PR  #PR by 2 list of control point locations
   %   CR  #CR by 4 list of indices into PR of cubics
+  %   IR  #CR list of indices into total number of svg objects
   %
 
   
@@ -66,6 +67,7 @@ function [PR,CR] = flatten_splines(P,C,I,F,S,SW,D)
       PA = PR;
       CA = CR;
       IA = IR;
+      assert(size(CA,1) == numel(IA));
       PB = Pii;
       CB = Cii;
       IB = repmat(ii,size(Cii,1),1);
@@ -74,6 +76,7 @@ function [PR,CR] = flatten_splines(P,C,I,F,S,SW,D)
       else
         operation = 'union';
       end
+
       [PAB,CAB,DAB,JAB] = trim_with_spline(PA,CA,PB,CB,tol);
       IAB = IA(JAB);
       [PBA,CBA,DBA,JBA] = trim_with_spline(PB,CB,PA,CA,tol);
@@ -94,11 +97,13 @@ function [PR,CR] = flatten_splines(P,C,I,F,S,SW,D)
         CBA = fliplr(CBA(DBA,:));
         IBA = IBA(DBA,:);
       end
+
+
       PBA_new = PBA(size(P,1)+1:end,:);
       CBA(CBA>size(P,1)) = (CBA(CBA>size(P,1))-size(P,1))+size(PAB,1);
       PR = [PAB;PBA_new];
       CR = [CAB;CBA];
-      IR = [IA;IB];
+      IR = [IAB;IBA];
     end
   end
   
