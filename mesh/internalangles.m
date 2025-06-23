@@ -1,4 +1,4 @@
-function [ A ] = internalangles( V, F)
+function [ A,cA ] = internalangles( V, F)
 % INTERNALANGLES Compute internal angles per face (in degrees)
 %
 % A = internalangles(V,F)
@@ -8,6 +8,7 @@ function [ A ] = internalangles( V, F)
 %  F  #F x 3  matrix of indices of triangle corners
 % Output:
 %  A  #F x 3 list of triples of triangle angles
+%  cA  #F x 3 list of triples of cosine of triangle angles
 %
 i1 = F(:,1); i2 = F(:,2); i3 = F(:,3);
 
@@ -17,7 +18,7 @@ s23 = normrow(V(i3,:) - V(i2,:));
 
 l = [s23 s13 s12];
 
-A = internalangles_intrinsic(l);
+[A,cA] = internalangles_intrinsic(l);
 
 end
 
