@@ -12,6 +12,7 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
   %   m  target number of faces of cage
   %   Optional:
   %     'DecimationMethod'  followed by 'Method' parameter to decimate_libigl
+  %       {'qslim'}
   %     'GridSize'  followed by size of grid to use for marching cubes step
   %       {ceil(sqrt(m)*3.17)}
   %     'MaxIter'  followed by maximum number of iterations {10}
@@ -74,11 +75,12 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
       bounds(1) = b;
       continue;
     end
+
     switch decimation_method
     case 'remesh'
       A = sum(doublearea(IV,IF))/2;
       h = sqrt(4*A/sqrt(3)/m);
-      [dV,dF] = remesh(IV,IF,h);
+      [cV,cF] = remesh(IV,IF,h);
     otherwise
       if cmcf 
         IV = [IV normrow(max(IV)-min(IV)) * conformalized_mean_curvature_flow(IV,IF)];
@@ -86,13 +88,13 @@ function [dV,dF,b] = lazy_cage(V,F,m,varargin)
       [cV,cF,dJ] = decimate_libigl(IV,IF,m,'Method',decimation_method);
       cV = cV(:,1:size(V,2));
     end
+
     if ~isempty(intersect_other(cV,cF,V,F_nd,'FirstOnly',true))
       %fprintf('dV,dF intersects V,F\n');
       bounds(1) = b;
       continue;
     end
     % self-union to handle any new self-intersections
-    [cV,cF] = deal(dV,dF);
     [dV,dF] = mesh_boolean(cV,cF,[],[],'union');
     % success
     bounds(2) = b;
