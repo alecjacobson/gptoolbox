@@ -1,4 +1,4 @@
-function [V,F,Q] = spiral_mesh(r)
+function [V,F,Q,I] = spiral_mesh(r)
 % [V,F,Q] = spiral_mesh(r)
 %
 % Inputs:
