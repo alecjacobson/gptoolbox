@@ -54,6 +54,13 @@ function [BC,side,r] = voxel_grid(V,side,varargin)
     NV = min(V);
     XV = max(V);
     r = [XV-NV]./([side(1) side(2) side(3)] - 1);
+  case 2
+    assert(size(V,2) == 2);
+    side(1) = side(1);
+    side(2) = side(2);
+    NV = min(V);
+    XV = max(V);
+    r = [XV-NV]./([side(1) side(2)] - 1);
   case 1
     % Enclose bounding box in regular mesh
     side(1) = side(1);
