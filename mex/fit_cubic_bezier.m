@@ -4,7 +4,7 @@
 % 
 %  Inputs:
 %    d  #d by dim list of points along a curve to be fit with a cubic bezier
-%      spline (should probably be roughly uniformly spaced). If d(0)==d(end),
+%      spline (should probably be roughly uniformly spaced). If d(1)==d(end),
 %      then will treat as a closed curve.
 %    error  maximum squared distance allowed
 %  Output:
