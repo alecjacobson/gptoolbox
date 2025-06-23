@@ -54,7 +54,11 @@ function [SV,SVI,SVJ,SVJF] = remove_duplicate_vertices(V,epsilon,varargin)
       [SV,SVI,SVJ] = unique(V,'rows','stable');
     else
       [~,SVI,SVJ] = unique(round(V/(epsilon)),'rows','stable');
-      SV = V(SVI,:);
+      %SV = V(SVI,:);
+      % Replace with average
+      for d = 1:size(V,2)
+        SV(:,d) = accumarray(SVJ,V(:,d),[],@mean);
+      end
     end
   else
     error('not implemented correctly')
