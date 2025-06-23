@@ -1,4 +1,6 @@
 function [sqrD,V,C1,C2,T] = segment_segment_squared_distance(S1,D1,S2,D2)
+  %[sqrD,V,C1,C2,T] = segment_segment_squared_distance(S1,D1,S2,D2)
+  %
   % SEGMENT_SEGMENT_SQUARED_DISTANCE Compute the squared distance from the
   % points of closest approach on each pair of line segments: the Euclidean
   % distance between the line segments.
@@ -13,6 +15,9 @@ function [sqrD,V,C1,C2,T] = segment_segment_squared_distance(S1,D1,S2,D2)
   %     {outV};      % vector connecting the closest points
   %     {p2+sc.*u};   % Closest point on object 1 
   %     {p4+tc.*v};   % Closest point on object 2
+  %   V
+  %   C1
+  %   C2
   %   T  #segments by 2 list of parametrizations
   %
 
