@@ -162,7 +162,7 @@ function [h,L,M,ground] = add_shadow(T,L,varargin)
       % wireframe
       switch class(t)
       case 'matlab.graphics.primitive.Patch'
-        if t.FaceAlpha == 0 || (ischar(t.FaceColor) & strcmp(t.FaceColor,'none'))
+        if (t.FaceAlpha == 0 || (ischar(t.FaceColor) & strcmp(t.FaceColor,'none'))) || size(t.Faces,2) == 2
           tsh.FaceAlpha = 0;
           tsh.EdgeColor = color;
         end

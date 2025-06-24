@@ -145,220 +145,235 @@ function [U,G,I,S,LE,H] = remesh_level_set(V,F,D,varargin)
     %assert(all(sign(volume(V,T(i,:))) == sign(volume(U,TG3))));
 
 
-    %sB = sortrows(unique(B,'rows'))
-    %size(sB)
+    %TQ3 = [];
+    %for i = 1:size(T,1)
+    %  if ~T3(i)
+    %    continue;
+    %  end
+    %  % index of vertex on the "cap"
+    %  [~,j] = min(TF_was_split(i,:),[],2);
+    %  M1i = MF(sub2ind(size(MF),i,mod(j+1-1,4)+1));
+    %  M2i = MF(sub2ind(size(MF),i,mod(j+2-1,4)+1));
+    %  M3i = MF(sub2ind(size(MF),i,mod(j+3-1,4)+1));
+    %  %%[[A1i;A2i;A3i] [M1i M2i M3i]'];
+    %  %%base2 = [A1i(M1i*1+2) A2i(M2i*1+2) A3i(M3i*1+2)];
+    %  base = [ ...
+    %    G(J(FMAP(i,mod(j+1-1,4)+1),2),M1i*1+2) ...
+    %    G(J(FMAP(i,mod(j+2-1,4)+1),2),M2i*1+2) ...
+    %    G(J(FMAP(i,mod(j+3-1,4)+1),2),M3i*1+2)];
 
-    TQ3 = [];
-    for i = 1:size(T,1)
-      if ~T3(i)
-        continue;
-      end
-      % index of vertex on the "cap"
-      [~,j] = min(TF_was_split(i,:),[],2);
-      %%% These triangles always share an edge with face opposite the cap vertex
-      %%A1i = G(J(FMAP(i,mod(j+1-1,4)+1),2),:);
-      %%A2i = G(J(FMAP(i,mod(j+2-1,4)+1),2),:);
-      %%A3i = G(J(FMAP(i,mod(j+3-1,4)+1),2),:);
-      %%% If you view the tet's face from the exterior:
-      %%%   o            o
-      %%%   |\          /|
-      %%%   |_\        /_|
-      %%%   |B/\      /\B| 
-      %%%   |/ A\    / A\|
-      %%%   o----o  o----o
-      %%%     M=1     M=0
-      %%%
-      M1i = MF(sub2ind(size(MF),i,mod(j+1-1,4)+1));
-      M2i = MF(sub2ind(size(MF),i,mod(j+2-1,4)+1));
-      M3i = MF(sub2ind(size(MF),i,mod(j+3-1,4)+1));
-      %%[[A1i;A2i;A3i] [M1i M2i M3i]'];
-      %%base2 = [A1i(M1i*1+2) A2i(M2i*1+2) A3i(M3i*1+2)];
-      base = [ ...
-        G(J(FMAP(i,mod(j+1-1,4)+1),2),M1i*1+2) ...
-        G(J(FMAP(i,mod(j+2-1,4)+1),2),M2i*1+2) ...
-        G(J(FMAP(i,mod(j+3-1,4)+1),2),M3i*1+2)];
+    %  base_j_all = mod(j+(1:3)-1,4)+1;
+    %  [b,bj] = min(T(i,base_j_all));
+    %  bj = base_j_all(bj);
+    %  Oi = G(J(FMAP(i,bj),2:3),:);
+    %  if MF(i,bj) == 0
+    %    Oi = fliplr(Oi);
+    %  end
+    %  top = [ ...
+    %    G(J(FMAP(i,mod(j+1-1,4)+1),3),M1i*1+2) ...
+    %    G(J(FMAP(i,mod(j+2-1,4)+1),3),M2i*1+2) ...
+    %    G(J(FMAP(i,mod(j+3-1,4)+1),3),M3i*1+2)];
+    %  if mod(j,2) == 1
+    %    top = fliplr(top);
+    %  end
+    %  Oi = [Oi;top];
+    %  Ti = [repmat(b,3,1) Oi];
+    %  TQ3 = [TQ3;Ti];
 
-      base_j_all = mod(j+(1:3)-1,4)+1;
-      [b,bj] = min(T(i,base_j_all));
-      bj = base_j_all(bj);
-      Oi = G(J(FMAP(i,bj),2:3),:);
-      if MF(i,bj) == 0
-        Oi = fliplr(Oi);
-      end
-      top = [ ...
-        G(J(FMAP(i,mod(j+1-1,4)+1),3),M1i*1+2) ...
-        G(J(FMAP(i,mod(j+2-1,4)+1),3),M2i*1+2) ...
-        G(J(FMAP(i,mod(j+3-1,4)+1),3),M3i*1+2)];
-      if mod(j,2) == 1
-        top = fliplr(top);
-      end
-      Oi = [Oi;top];
-      Ti = [repmat(b,3,1) Oi];
-      TQ3 = [TQ3;Ti];
 
-      %Ii = [top base];
-      %%Mi = [M1i M2i M3i M1i M2i M3i mod(j+1,2) mod(j,2)];
-      %%Fi = [A1i;A2i;A3i;B1i;B2i;B3i;top;base];
-      %%Fi(Mi==0,:) = fliplr(Fi(Mi==0,:));
-      %%[~,vec_vol] = centroid(U,Fi);
-      %%assert(sign(volume(V,T(i,:))) == sign(vec_vol));
+    %  %clf;
+    %  %tsurf(boundary_faces(T(i,:)),V,'VertexIndices',1,'CData',D,falpha(0,1),fphong);
+    %  %hold on;
+    %  %%tsurf(base,U);
+    %  %sct(U(b,:),'filled','r','SizeData',500);
+    %  %tsurf(Oi,U,'FaceColor',blue,falpha(0.5,1));
+    %  %qvr(barycenter(U,Oi),normalizerow(normals(U,Oi)),'k','LineWidth',2);
+    %  %hold off;
+    %  %colormap(((circshift(lipmanya(16),8,1))));
+    %  %caxis(max(abs(caxis))*[-1 1]);
+    %  %pause
+    %end
 
-      %%% reindex Fi to use indices into Ii
-      %%[~,Fi] = ismember(Fi,Ii);
-      %%[~,Ti] = tetrahedralize(U(Ii,:),Fi,'Flags','YY');
-      %%assert(abs(sum(volume(U(Ii,:),Ti))-sum(volume(U(Ii,:),canonicalize_tets(Ti))))<1e-8);
-      %%Ti = canonicalize_tets(Ti);
-      %%cTi = triplets(:,:,code_ind);
-      %%assert(all(cTi == Ti,'all'));
-      %%Ti = canonicalize_tets(Ti);
-      %%if isempty(triplets{code_ind}) || ...
-      %%    any(triplets{code_ind} ~= Ti,'all')
-      %%  triplets{code_ind} = cat(3,triplets{code_ind},Ti);
-      %%end
-      %%Ti = triplets(:,:,code_ind);
-      %Ti = triplets(:,:,code_ind);
-      %TQ3 = [TQ3;Ii(Ti)];
+    % Same as above for TG3
+    i = find(T3);
+    [~,j] = min(TF_was_split(i,:),[],2);
+    M1 = MF(sub2ind(size(MF),i,mod(j+1-1,4)+1));
+    M2 = MF(sub2ind(size(MF),i,mod(j+2-1,4)+1));
+    M3 = MF(sub2ind(size(MF),i,mod(j+3-1,4)+1));
 
-      %clf;
-      %%tsurf(F,V,'CData',D,falpha(0.5,1),fphong);
-      %tsurf(boundary_faces(T(i,:)),V,'VertexIndices',1,'CData',D,falpha(0,1),fphong);
-      %hold on;
-      %%tsurf(base,U);
-      %sct(U(b,:),'filled','r','SizeData',500);
-      %tsurf(Oi,U,'FaceColor',blue,falpha(0.5,1));
-      %qvr(barycenter(U,Oi),normalizerow(normals(U,Oi)),'k','LineWidth',2);
-      %%%tsurf(edges(G),U,'VertexIndices',1,'CData',S*D,falpha(0.1,1),fphong);
-      %%tsurf(edges([A1i;A2i;A3i;B1i;B2i;B3i]),U,'VertexIndices',1,falpha(0,0.5));
-      %%tsurf([A1i;A2i;A3i],U,'FaceColor',blue,falpha(0.2,0));
-      %%tsurf([B1i;B2i;B3i],U,'FaceColor',orange,falpha(0.2,0));
-      %%%qvr(barycenter(U(Ii,:),Fi),normalizerow(normals(U(Ii,:),Fi)),'k','LineWidth',2);
-      %%%tsurf(Fi,U(Ii,:),'FaceVertexCData',[0 1 1;0 1 1;0 1 1;1 1 0;1 1 0;1 1 0],falpha(0.0,1),'LineWidth',2,'EdgeColor','r');
-      %%tsurf(edges(Ii(Ti)),U,falpha(0.0,1),'LineWidth',2,'EdgeColor','r');
-      %%%tsurf(edges(cTi),U(Ii,:),falpha(0.0,1),'LineWidth',2,'EdgeColor','g');
-      %%tsurf(boundary_faces(T(i,:)),U,'FaceColor',blue,falpha(0.0,1),'LineWidth',1);
-      %hold off;
-      %colormap(((circshift(lipmanya(16),8,1))));
-      %caxis(max(abs(caxis))*[-1 1]);
-      %pause
-    end
+    
+    base_j_all = mod(j+(1:3)-1,4)+1;
+    [b,bj] = min(T(sub2ind(size(T),[i i i],base_j_all)),[],2);
+    bj = base_j_all(sub2ind(size(base_j_all),(1:size(base_j_all,1))',bj));
+    O2 = G(J(FMAP(sub2ind(size(FMAP),i,bj)),2),:);
+    O3 = G(J(FMAP(sub2ind(size(FMAP),i,bj)),3),:);
+    Mbj = MF(sub2ind(size(MF),i,bj));
+    O2(Mbj==0,:) = fliplr(O2(Mbj==0,:));
+    O3(Mbj==0,:) = fliplr(O3(Mbj==0,:));
+
+    % More straightforward way to get `top`?
+    top = [ ...
+      G(sub2ind(size(G),J(FMAP(sub2ind(size(FMAP),i,mod(j+1-1,4)+1)),3),M1*1+2)) ...
+      G(sub2ind(size(G),J(FMAP(sub2ind(size(FMAP),i,mod(j+2-1,4)+1)),3),M2*1+2)) ...
+      G(sub2ind(size(G),J(FMAP(sub2ind(size(FMAP),i,mod(j+3-1,4)+1)),3),M3*1+2))];
+    top(mod(j,2)==1,:) = fliplr(top(mod(j,2)==1,:));
+    TQ3 = [repmat(b,3,1) [O2;O3;top]];
 
     TG3 = [TG3;TQ3];
 
-    TG4 = [];
-    bad = 0;
+    %TG4 = [];
+    %bad = 0;
+    %Dsign = sign(D);
+    %for i = 1:size(T,1)
+    %  if ~T4(i)
+    %    continue;
+    %  end
+    %  % index of vertex on the "cap"
+    %  j = 1;
+    %  %M1i = MF(i,1);
+    %  %M2i = MF(i,2);
+    %  %M3i = MF(i,3);
+    %  %M4i = MF(i,4);
+    %  %% Are we guaranteed that T(i,j) occurs as the second vertex of one of
+    %  %% these?
+    %  %% No.
+    %  %Mi = [M1i M2i M3i M4i];
+    %  %C1i = G(J(FMAP(i,1),1),:);
+    %  %C2i = G(J(FMAP(i,2),1),:);
+    %  %C3i = G(J(FMAP(i,3),1),:);
+    %  %C4i = G(J(FMAP(i,4),1),:);
+    %  %C1i(M1i==0,:) = fliplr(C1i(M1i==0,:));
+    %  %C2i(M2i==0,:) = fliplr(C2i(M2i==0,:));
+    %  %C3i(M3i==0,:) = fliplr(C3i(M3i==0,:));
+    %  %C4i(M4i==0,:) = fliplr(C4i(M4i==0,:));
+    %  %A1i = G(J(FMAP(i,1),2),:);
+    %  %A2i = G(J(FMAP(i,2),2),:);
+    %  %A3i = G(J(FMAP(i,3),2),:);
+    %  %A4i = G(J(FMAP(i,4),2),:);
+    %  %A1i(M1i==0,:) = fliplr(A1i(M1i==0,:));
+    %  %A2i(M2i==0,:) = fliplr(A2i(M2i==0,:));
+    %  %A3i(M3i==0,:) = fliplr(A3i(M3i==0,:));
+    %  %A4i(M4i==0,:) = fliplr(A4i(M4i==0,:));
+    %  %B1i = G(J(FMAP(i,1),3),:);
+    %  %B2i = G(J(FMAP(i,2),3),:);
+    %  %B3i = G(J(FMAP(i,3),3),:);
+    %  %B4i = G(J(FMAP(i,4),3),:);
+    %  %B1i(M1i==0,:) = fliplr(B1i(M1i==0,:));
+    %  %B2i(M2i==0,:) = fliplr(B2i(M2i==0,:));
+    %  %B3i(M3i==0,:) = fliplr(B3i(M3i==0,:));
+    %  %B4i(M4i==0,:) = fliplr(B4i(M4i==0,:));
+    %  %ABCi = [A1i;A2i;A3i;A4i;B1i;B2i;B3i;B4i;C1i;C2i;C3i;C4i];
+
+    %  nj_all = find(Dsign(T(i,:))==-1);
+    %  pj_all = find(Dsign(T(i,:))== 1);
+
+
+    %  [neg,nj] = min(T(i,nj_all));
+    %  nj = nj_all(nj);
+
+    %  [neg,nj_max] = max(T(i,nj_all));
+    %  nj_max = nj_all(nj_max);
+
+    %  %[pos,pj] = min(T(i,pj_all));
+    %  [~,pj] = min(T(i,pj_all));
+    %  pj = pj_all(pj);
+
+    %  %[pos,pj_max] = max(T(i,pj_all));
+    %  %pj_max = pj_all(pj_max);
+
+    %  Qi = [
+    %  G(J(FMAP(i,nj),1),1) ...
+    %  G(J(FMAP(i,nj),1),3) ...
+    %  G(J(FMAP(i,nj_max),1),3) ...
+    %  G(J(FMAP(i,nj_max),1),1) ...
+    %  ];
+    %  if MF(i,nj) == MF(i,nj_max)
+    %    Qi = Qi(:,[1 2 4 3]);
+    %  end
+    %  %  Triangulated quad oriented for negative
+    %  FQi = [Qi(:,[1 2 3]);Qi(:,[1 3 4])];
+    %  if MF(i,nj) == 0
+    %    FQi = fliplr(FQi);
+    %  end
+
+    %  % Opposite faces
+    %  %Anj = G(J(FMAP(i,nj),2),:);
+    %  %if MF(i,nj) == 0
+    %  %  Anj = fliplr(Anj);
+    %  %end
+    %  An = G(J(FMAP(i,nj),1),:);
+    %  if MF(i,nj) == 0
+    %    An = fliplr(An);
+    %  end
+    %  Ap = G(J(FMAP(i,pj),1),:);
+    %  if MF(i,pj) == 0
+    %    Ap = fliplr(Ap);
+    %  end
+    %  Tn = [repmat(T(i,nj),3,1) [FQi;An]];
+    %  Tp = [repmat(T(i,pj),3,1) [fliplr(FQi);Ap]];
+    %  assert(all([sign(volume(U,Tn)') sign(volume(U,Tp)')]>0));
+    %  TG4 = [TG4;Tn;Tp];
+
+    %    %clf;
+    %    %tsurf(boundary_faces(T(i,:)),V,'VertexIndices',1,'CData',D,falpha(0.2,1),fphong);
+    %    %hold on;
+    %    %tsurf(unique_faces([Tn;Tp]),U,'LineWidth',2,'EdgeColor','r',falpha(0,1));
+    %    %tsurf(ABCi,U,'EdgeColor','b' ,'LineWidth',2,falpha(0,1));
+    %    %sct(U(T(i,[nj pj]),:),'filled','r','SizeData',500);
+    %    %Gi = [An;Ap];
+    %    %%tsurf(FQi,U,'VertexIndices',1);
+    %    %%tsurf(Gii,Uii,'VertexIndices',1,'FaceVertexCData',[repmat(blue,4,1);repmat(orange,4,1);repmat(0.5*orange,4,1)],falpha(1.0,1));
+    %    %%tsurf(Gi,U,'VertexIndices',1,'CData',S*D,falpha(0.2,1),fphong);
+    %    %%qvr(barycenter(U,FQi),normalizerow(normals(U,FQi)),'k','LineWidth',2);
+    %    %qvr(barycenter(U,Gi),normalizerow(normals(U,Gi)),'k','LineWidth',2);
+    %    %%tsurf(edges(T(i,:)),U,'CData',S*D,falpha(0.2,1),'LineWidth',2,fphong);
+    %    %%tsurf(boundary_faces(T(i,:)),U,'CData',S*D,falpha(0.2,1),'LineWidth',2,fphong);
+    %    %%sct(U(mid,:),'filled','k','SizeData',500);
+    %    %%sct(U(end,:),'filled','r','SizeData',500);
+    %    %hold off;
+    %    %colormap(((circshift(lipmanya(16),8,1))));
+    %    %caxis(max(abs(caxis))*[-1 1]);
+    %    %axis equal;
+    %    %view(13,35);
+    %    %pause
+    %end
+
+    i = find(T4);
     Dsign = sign(D);
-    for i = 1:size(T,1)
-      if ~T4(i)
-        continue;
-      end
-      % index of vertex on the "cap"
-      j = 1;
-      M1i = MF(i,1);
-      M2i = MF(i,2);
-      M3i = MF(i,3);
-      M4i = MF(i,4);
-      % Are we guaranteed that T(i,j) occurs as the second vertex of one of
-      % these?
-      % No.
-      Mi = [M1i M2i M3i M4i];
-      C1i = G(J(FMAP(i,1),1),:);
-      C2i = G(J(FMAP(i,2),1),:);
-      C3i = G(J(FMAP(i,3),1),:);
-      C4i = G(J(FMAP(i,4),1),:);
-      C1i(M1i==0,:) = fliplr(C1i(M1i==0,:));
-      C2i(M2i==0,:) = fliplr(C2i(M2i==0,:));
-      C3i(M3i==0,:) = fliplr(C3i(M3i==0,:));
-      C4i(M4i==0,:) = fliplr(C4i(M4i==0,:));
-      A1i = G(J(FMAP(i,1),2),:);
-      A2i = G(J(FMAP(i,2),2),:);
-      A3i = G(J(FMAP(i,3),2),:);
-      A4i = G(J(FMAP(i,4),2),:);
-      A1i(M1i==0,:) = fliplr(A1i(M1i==0,:));
-      A2i(M2i==0,:) = fliplr(A2i(M2i==0,:));
-      A3i(M3i==0,:) = fliplr(A3i(M3i==0,:));
-      A4i(M4i==0,:) = fliplr(A4i(M4i==0,:));
-      B1i = G(J(FMAP(i,1),3),:);
-      B2i = G(J(FMAP(i,2),3),:);
-      B3i = G(J(FMAP(i,3),3),:);
-      B4i = G(J(FMAP(i,4),3),:);
-      B1i(M1i==0,:) = fliplr(B1i(M1i==0,:));
-      B2i(M2i==0,:) = fliplr(B2i(M2i==0,:));
-      B3i(M3i==0,:) = fliplr(B3i(M3i==0,:));
-      B4i(M4i==0,:) = fliplr(B4i(M4i==0,:));
-      ABCi = [A1i;A2i;A3i;A4i;B1i;B2i;B3i;B4i;C1i;C2i;C3i;C4i];
-
-      nj_all = find(Dsign(T(i,:))==-1);
-      pj_all = find(Dsign(T(i,:))== 1);
-
-
-      [neg,nj] = min(T(i,nj_all));
-      nj = nj_all(nj);
-
-      [neg,nj_max] = max(T(i,nj_all));
-      nj_max = nj_all(nj_max);
-
-      [pos,pj] = min(T(i,pj_all));
-      pj = pj_all(pj);
-
-      [pos,pj_max] = max(T(i,pj_all));
-      pj_max = pj_all(pj_max);
-
-      Qi = [
-      G(J(FMAP(i,nj),1),1) ...
-      G(J(FMAP(i,nj),1),3) ...
-      G(J(FMAP(i,nj_max),1),3) ...
-      G(J(FMAP(i,nj_max),1),1) ...
+    % Kind of idiotic way to get min-index of positive and negative sidse.
+    Tneg = T(i,:);
+    Tneg(Dsign(Tneg)>=0) = nan;
+    [neg,nj] = min(Tneg,[],2);
+    [~,nj_max] = max(Tneg,[],2);
+    Tpos = T(i,:);
+    Tpos(Dsign(Tpos)<0) = nan;
+    [pos,pj] = min(Tpos,[],2);
+    Q = [ ...
+      G(J(FMAP(sub2ind(size(FMAP),i,nj)),1),1) ...
+      G(J(FMAP(sub2ind(size(FMAP),i,nj)),1),3) ...
+      G(J(FMAP(sub2ind(size(FMAP),i,nj_max)),1),3) ...
+      G(J(FMAP(sub2ind(size(FMAP),i,nj_max)),1),1) ...
       ];
-      if MF(i,nj) == MF(i,nj_max)
-        Qi = Qi(:,[1 2 4 3]);
-      end
-      %  Triangulated quad oriented for negative
-      FQi = [Qi(:,[1 2 3]);Qi(:,[1 3 4])];
-      if MF(i,nj) == 0
-        FQi = fliplr(FQi);
-      end
+    MFpj = MF(sub2ind(size(MF),i,pj));
+    MFnj = MF(sub2ind(size(MF),i,nj));
+    MFnj_max = MF(sub2ind(size(MF),i,nj_max));
+    Q(MFnj==MFnj_max,:) = Q(MFnj==MFnj_max,[1 2 4 3]);
+    FQ = [Q(:,[1 2 3]);Q(:,[1 3 4])];
+    nswap = MFnj==0;
+    FQ([nswap;nswap],:) = fliplr(FQ([nswap;nswap],:));
+    An = G(J(FMAP(sub2ind(size(FMAP),i,nj)),1),:);
+    An(nswap,:) = fliplr(An(nswap,:));
+    pswap = MFpj==0;
+    Ap = G(J(FMAP(sub2ind(size(FMAP),i,pj)),1),:);
+    Ap(pswap,:) = fliplr(Ap(pswap,:));
+    Tn = [repmat(neg,3,1) [FQ;An]];
+    Tp = [repmat(pos,3,1) [fliplr(FQ);Ap]];
 
-      % Opposite faces
-      Anj = G(J(FMAP(i,nj),2),:);
-      if MF(i,nj) == 0
-        Anj = fliplr(Anj);
-      end
-      An = G(J(FMAP(i,nj),1),:);
-      if MF(i,nj) == 0
-        An = fliplr(An);
-      end
-      Ap = G(J(FMAP(i,pj),1),:);
-      if MF(i,pj) == 0
-        Ap = fliplr(Ap);
-      end
-      Tn = [repmat(T(i,nj),3,1) [FQi;An]];
-      Tp = [repmat(T(i,pj),3,1) [fliplr(FQi);Ap]];
-      assert(all([sign(volume(U,Tn)') sign(volume(U,Tp)')]>0));
-      TG4 = [TG4;Tn;Tp];
+    %TG4( (k-1)*6 + (1:6),:) - ...
+    %[Tn( ((1:3)-1)*numel(i) + k ,:);Tp( ((1:3)-1)*numel(i) + k ,:)]
+    TG4 = [Tn;Tp];
 
-        %clf;
-        %tsurf(boundary_faces(T(i,:)),V,'VertexIndices',1,'CData',D,falpha(0.2,1),fphong);
-        %hold on;
-        %tsurf(unique_faces([Tn;Tp]),U,'LineWidth',2,'EdgeColor','r',falpha(0,1));
-        %tsurf(ABCi,U,'EdgeColor','b' ,'LineWidth',2,falpha(0,1));
-        %sct(U(T(i,[nj pj]),:),'filled','r','SizeData',500);
-        %Gi = [An;Ap];
-        %%tsurf(FQi,U,'VertexIndices',1);
-        %%tsurf(Gii,Uii,'VertexIndices',1,'FaceVertexCData',[repmat(blue,4,1);repmat(orange,4,1);repmat(0.5*orange,4,1)],falpha(1.0,1));
-        %%tsurf(Gi,U,'VertexIndices',1,'CData',S*D,falpha(0.2,1),fphong);
-        %%qvr(barycenter(U,FQi),normalizerow(normals(U,FQi)),'k','LineWidth',2);
-        %qvr(barycenter(U,Gi),normalizerow(normals(U,Gi)),'k','LineWidth',2);
-        %%tsurf(edges(T(i,:)),U,'CData',S*D,falpha(0.2,1),'LineWidth',2,fphong);
-        %%tsurf(boundary_faces(T(i,:)),U,'CData',S*D,falpha(0.2,1),'LineWidth',2,fphong);
-        %%sct(U(mid,:),'filled','k','SizeData',500);
-        %%sct(U(end,:),'filled','r','SizeData',500);
-        %hold off;
-        %colormap(((circshift(lipmanya(16),8,1))));
-        %caxis(max(abs(caxis))*[-1 1]);
-        %axis equal;
-        %view(13,35);
-        %pause
-    end
+
 
     %% Similar to above
     %i = find(T4);
@@ -419,12 +434,11 @@ function [U,G,I,S,LE,H] = remesh_level_set(V,F,D,varargin)
     TG = [TG0;TG3;TG4];
     I0 = find(T0);
     I3 = find(T3);
-    %I3 = [I3;nan
 
+    I3 = repmat(I3,4,1);
     I4 = find(T4);
-    I4 = reshape(repelem(I4,6),[],1);
-    I3 = [I3;reshape(repelem(I3,3),[],1)];
-    %I4 = repmat(I4,12,1);
+    %I4 = reshape(repelem(I4,6),[],1);
+    I4 = repmat(I4,6,1);
     I = [I0;I3;I4];
 
     %statistics(U,TG)

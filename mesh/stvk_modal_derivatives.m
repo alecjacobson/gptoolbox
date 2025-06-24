@@ -228,7 +228,7 @@ function [U,phi,vals,K,M] = stvk_modal_derivatives(V,T,nummodes,varargin)
                   %end
                   BUi = reshape(BU(:,i),9,[]);
                   BUj = reshape(BU(:,j),9,[]);
-                  BUir = repmat(reshape(BUi, [9, 1,  1,  153810]), [1 1 9 1]);
+                  BUir = repmat(reshape(BUi, [9, 1,  1,  size(BUi,2)]), [1 1 9 1]);
 
                   H0 = stvk_d3(eye(3),lambda(1),mu(1));
                   HelBUir = permute((squeeze(pagemtimes(Hel, BUir))), [1 3 2]);

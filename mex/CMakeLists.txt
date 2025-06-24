@@ -256,6 +256,7 @@ if(LIBIGL_EMBREE)
 ambient_occlusion.cpp;\
 bone_visible_embree.cpp;\
 ray_mesh_intersect.cpp;\
+ray_mesh_intersect_all.cpp;\
 reorient_facets.cpp;\
 "
     "${CORE_LIBS};igl::core;igl_restricted::matlab;igl::embree")
@@ -278,7 +279,6 @@ endif()
 
 if(LIBIGL_COPYLEFT_CGAL)
   add_definitions("-DWITH_CGAL")
-#segment_segment_intersection.cpp;\
   compile_each("\
 box_intersect.cpp;\
 form_factor.cpp;\

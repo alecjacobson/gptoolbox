@@ -1,4 +1,4 @@
-function [NN,EE,A] = spherical_subdivision(N,E,varargin)
+function [NN,EE,A,I] = spherical_subdivision(N,E,varargin)
   % SPHERICAL_SUBDIVISION  Given a "spherical edge network", subdivide the
   % curves while keeping all points on the (unit) sphere.
   %
@@ -40,6 +40,7 @@ function [NN,EE,A] = spherical_subdivision(N,E,varargin)
 
   NN = N;
   EE = E;
+  I = (1:size(E,1))';
   A = speye(size(N,1),size(N,1));
   iter = 1;
   while true
@@ -50,6 +51,7 @@ function [NN,EE,A] = spherical_subdivision(N,E,varargin)
     A(newNI,:) = 0.5*(A(EE(long,1),:) + A(EE(long,2),:));
     newEE = [EE(long,1) newNI;newNI EE(long,2)];
     EE = [EE(~long,:);newEE];
+    I = [I(~long);I(long);I(long)];
     if iter >= max_iter
       break;
     end

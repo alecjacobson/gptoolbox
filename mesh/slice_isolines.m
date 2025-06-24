@@ -23,6 +23,8 @@ function [U,G,J,BC,SU,L] = slice_isolines(V,F,SV,val,varargin)
   %   SU  #U list of interpolated scalar values at U
   %   L  #G list of indices into val of next value above this triangle
   %
+  %
+  
 
   manifold = false;
 
@@ -43,6 +45,10 @@ function [U,G,J,BC,SU,L] = slice_isolines(V,F,SV,val,varargin)
       error('Unsupported parameter: %s',varargin{v});
     end
     v=v+1;
+  end
+
+  if manifold
+    warning('Deprecated: use remesh_level_set');
   end
 
   % helper assuming val is a scalar

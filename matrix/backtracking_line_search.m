@@ -25,10 +25,11 @@ function [t,x,fx] = backtracking_line_search(f,x0,dfx0,dx,alpha,beta,max_iter)
   if nargin<7
     max_iter = 30;
   end
+  alpha_dfdx0_dx = alpha*sum(dfx0.*dx,'all');
   for iter = 1:max_iter
     x = x0+t*dx;
     fx = f(x);
-    if fx<=fx0+alpha*t*sum(dfx0.*dx,'all');
+    if fx<=fx0+t*alpha_dfdx0_dx;
       return;
     end
     t = beta*t;

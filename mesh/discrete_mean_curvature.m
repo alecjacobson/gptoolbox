@@ -1,5 +1,7 @@
 function [H] = discrete_mean_curvature(V,F)
   % DISCRETE_MEAN_CURVATURE Compute integrated mean curvature at each vertex.
+  % "Restricted Delaunay Triangulations and Normal Cycle" [Cohen-Steiner &
+  % Morvan 2003] Eq. 2.
   %
   % H = discrete_mean_curvature(V,F);
   %

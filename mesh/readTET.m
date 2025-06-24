@@ -16,7 +16,7 @@ function [V,T] = readTET( filename )
   
   fp = fopen( filename, 'r' );
   TETheader = upper(fscanf( fp, '%s\n', 1 ));
-  if TETheader(end-2:end) == 'TET'
+  if numel(TETheader)>=3 && TETheader(end-2:end) == 'TET'
     d = fscanf(fp, '%d', 2);
     nV = d(1);
     nT = d(2);

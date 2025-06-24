@@ -57,7 +57,7 @@ function HF = fill_holes(SV,SF,varargin)
     %
     % I've forgotten how the if statement below handles intersecting boundary
     % curves, but it seems to work fine...
-    e = 1e-16;
+    e = 1e-7;
     while size(unique(tV,'rows'),1) ~= size(tV,1)
       tV = tV+e*(2*rand(size(tV,1),size(tV,2))-1);
       e = e*2;

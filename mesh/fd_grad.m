@@ -38,7 +38,8 @@ function [G,GI] = fd_grad(side)
   %   axis equal;
   % 
   %
-  % See also: fd_laplacian
+  % See also: fd_laplacian 
+  % Did you mean: fd
   %
 
   % augh.... side convention below is [w h t]  not matching fd_laplacian and
