@@ -1,22 +1,29 @@
-function [Fp, Fi] = triangle_triangle_adjacency(F)
+function [Fp, Fi] = triangle_triangle_adjacency(F, varargin)
   % TRIANGLE_TRIANGLE_ADJACENCY Build a face adjacency data structure for a
   % **manifold** triangle mesh. From each face we can find where on its
   % neighboring faces it's incident.
   %
   % [Fp, Fi] = triangle_triangle_adjacency(F)
+  % [Fp, Fi] = triangle_triangle_adjacency(F, 'CornerIndexing')
+  % [Fp, Fi] = triangle_triangle_adjacency(F, 'CyclicIndexing')
+  %
+  % This function computes triangle-triangle adjacency for a manifold 
+  % triangle mesh. It returns, for each triangle and each edge, the index 
+  % of the neighboring triangle and the index of the corresponding edge on 
+  % that neighbor.
   %
   % Input:
   %   F  list of face indices, #faces by 3
+  % Optional argument (mode):
+  %   'CornerIndexing' (default) - Uses corner-based indexing convention: the j-th
+  %     neighbor corresponds to the edge opposite the j-th vertex of the triangle.
+  %   'CyclicIndexing' - Uses edge-based cyclic indexing convention: the j-th neighbor
+  %     corresponds to the j-th edge in the order (1->2, 2->3, 3->1).
   % Output:
-  %   Fp  #faces by 3, where Fp(i,j) tells the index of the neighboring triangle
-  %     to the jth edge of the ith triangle in F. -1 if the jth edge of the ith
-  %     triangle in F is a border edge. (jth edge refers to the edge opposite
-  %     the jth vertex: so triangle in a triangle (a,b,c), the 1st edge is
-  %     b-->c, the 2nd is c-->b and the 3rd is a-->b
-  %   Fi  #faces by 3, where Fi(i,j) tells the position on the neighboring
-  %     triangle to the jth edge of the ith triangle in F. -1 if the jth edge
-  %     if the ith triangle in F is a border edge. Uses the same indexing of
-  %     positions of edges on a triangle as above.
+  %   Fp  #F by 3 matrix, where Fp(i,j) is the index of the neighboring triangle
+  %       adjacent to the j-th edge of triangle i. -1 if the j-th edge is a boundary edge.
+  %   Fi  #F by 3 matrix, where Fi(i,j) is the local edge index on the neighboring
+  %       triangle corresponding to the j-th edge of triangle i. -1 if the j-th edge is a boundary edge.
   %
   % For example:
   %
@@ -29,7 +36,25 @@ function [Fp, Fi] = triangle_triangle_adjacency(F)
   % Fi =
   %     3    -1    -1
   %    -1    -1     1
-  %
+  % [Fp, Fi] = triangle_triangle_adjacency(F,'CyclicIndexing');
+  % Fp =
+  %     -1     2    -1
+  %      1    -1    -1
+  % Fi =
+  %     -1     3    -1
+  %      1    -1    -1
+
+  % Default mode
+  mode = 'CornerIndexing';
+
+  % Parse optional argument
+  if ~isempty(varargin)
+    if ischar(varargin{1}) || isstring(varargin{1})
+      mode = varargin{1};
+    else
+      error('Optional argument must be a string: ''CornerIndexing'' or ''CyclicIndexing''.');
+    end
+  end
 
   if size(F,2) == 3
 
@@ -47,9 +72,9 @@ function [Fp, Fi] = triangle_triangle_adjacency(F)
     adj = ((unadj + nonadj)==1).*Ei;
 
     % need to get mapping from sparse ordering to original order
-    [ii jj si] = find(adj);
+    [~, ~, si] = find(adj);
     % this is slightly faster than sorting the above by ii, which is the same
-    [ii jj v] = find(adj');
+    [~, ~, v] = find(adj');
     % build map from edges to their corresponding faces
     E2F = repmat(1:size(F,1),1,3)';
     % initialize adjacency map to -1
@@ -66,4 +91,11 @@ function [Fp, Fi] = triangle_triangle_adjacency(F)
     error('Not supported yet...');
   end
 
+  % Apply cyclic reordering if requested
+  if strcmpi(mode, 'CyclicIndexing')
+    Fp = [Fp(:,3), Fp(:,1), Fp(:,2)];
+    Fi = [Fi(:,3), Fi(:,1), Fi(:,2)];
+  elseif ~strcmpi(mode, 'CornerIndexing')
+    error('Unknown indexing mode. Use ''CornerIndexing'' or ''CyclicIndexing''.');
+  end
 end
