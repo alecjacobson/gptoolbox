@@ -26,7 +26,11 @@ function SHE = sharp_halfedges(V, F, angle, varargin)
 %        (dihedral angle > angle), and 0 otherwise. Indexing depends on the mode.
 %
 % Example:
-%   SHE = sharp_halfedges(V, F, pi/6, 'CyclicIndexing');
+%   SHE = sharp_halfedges(V, F, pi/2-0.0001);
+%   [EF, EI, uE, EMAP] = edge_flaps(F);
+%   % isSharpEdge - mask of undirected sharp edges in uE.
+%   isSharpEdge = zeros(size(uE,1),1);
+%   isSharpEdge(EMAP(SHE==1)) = 1;
 
   % Default mode
   mode = 'CornerIndexing';
