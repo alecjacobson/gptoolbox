@@ -95,7 +95,8 @@ function [Fp, Fi] = triangle_triangle_adjacency(F, varargin)
   if strcmpi(mode, 'CyclicIndexing')
     Fp = [Fp(:,3), Fp(:,1), Fp(:,2)];
     Fi = [Fi(:,3), Fi(:,1), Fi(:,2)];
-    Fi = mod(Fi,3)+1;
+    I = Fi ~= -1;
+    Fi(I) = mod(Fi(I),3)+1;
   elseif ~strcmpi(mode, 'CornerIndexing')
     error('Unknown indexing mode. Use ''CornerIndexing'' or ''CyclicIndexing''.');
   end
