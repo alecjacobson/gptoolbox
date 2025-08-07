@@ -5,9 +5,9 @@ function [V,F,Q] = torus(n,m,r,varargin)
   % [V,F] = torus(n,m,r,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
-  %   n  number of vertices around inner ring
-  %   m  number of vertices around outer ring
-  %   r  radius of the inner ring
+  %   n  number of vertices around inner ring {40}
+  %   m  number of vertices around outer ring {round(0.4*n)}
+  %   r  radius of the inner ring {0.4}
   %   Optional:
   %     'R'  followed by outer ring radius {1}
   % Outputs:
@@ -19,6 +19,18 @@ function [V,F,Q] = torus(n,m,r,varargin)
   %   n = 40;
   %   r = 0.4;
   %   [V,F] = torus(n,round(r*n),r);
+
+  if nargin < 1
+    n = 40;
+  end
+  if nargin < 2
+    r = 0.4;
+    m = round(r*n);
+  end
+  if nargin < 3
+    r = 0.4;
+  end
+
   R = 1;
   params_to_variables = containers.Map( ...
     {'R'},{'R'});
