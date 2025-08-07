@@ -15,6 +15,8 @@ function [C,CF] = connected_components(F)
   % Examples:
   %  trisurf(F,V(:,1),V(:,2),V(:,3), ...
   %    connected_components([F;repmat(size(V,1),1,3)]));
+  %
+  %  vol_C = accumarray(connected_components(F)',diag(massmatrix(V,F)));
 
   % build adjacency list
   A = adjacency_matrix(F);
