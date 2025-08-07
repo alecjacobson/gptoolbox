@@ -11,10 +11,19 @@ function varargout = plot_cubic(C,pe,p,varargin)
   %
   % Example:
   %   clf;hold on;arrayfun(@(c) set(plot_cubic(P(C(c,:),:)),'Color','b'),1:size(C,1));hold off;
+
+  if numel(varargin) == 1 && iscell(varargin{1}) && numel(varargin{1}) == 2
+    p_varargin = varargin{1}{2};
+    pe_varargin = varargin{1}{1};
+  else
+    p_varargin = {};
+    pe_varargin = varargin;
+  end
+
   t = linspace(0,1)';
   P = cubic_eval(C,t);
   if ~exist('p','var') || isempty(p)
-    p = plt(P,'-k','LineWidth',2);
+    p = plt(P,'-k','LineWidth',2,p_varargin{:});
   else
     set(p,'XData',P(:,1),'YData',P(:,2));
   end
@@ -22,7 +31,7 @@ function varargout = plot_cubic(C,pe,p,varargin)
   hold on;
   aiblue = hex2dec(['4D';'80';'FF'])'/255;
   if ~exist('pe','var') || isempty(pe)
-    pe = plot_edges(C,[1 2;3 4],'-o','Color',aiblue,'LineWidth',1,varargin{:});
+    pe = plot_edges(C,[1 2;3 4],'-o','Color',aiblue,'LineWidth',1,pe_varargin{:});
   else
     set(pe(1),'XData',C(1:2,1),'YData',C(1:2,2));
     set(pe(2),'XData',C(3:4,1),'YData',C(3:4,2));

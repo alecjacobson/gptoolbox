@@ -48,7 +48,6 @@ function [U,Q] = lscm(V,F,b,bc,Aeq,Beq,varargin)
     v=v+1;
   end
 
-
   if nargin<=4
     Aeq = [];
     Beq = [];

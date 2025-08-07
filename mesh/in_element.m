@@ -373,8 +373,8 @@ function [found,I,J,L] = in_element(V,F,P,varargin)
         end
         found = abs(sum(B,2)-1)<sqrt(epsilon);
         %I(sub2ind(size(I),IP,K(:,ki)')) = found;
-        I = [I;IP];
-        J = [J;K(:,ki)'];
+        I = [I IP];
+        J = [J K(:,ki)'];
 
         % DOESN'T REALLY PAY OFF TO COMPUTE THESE HERE
         %B1(sub2ind(size(I),IP,K(:,ki)')) = found.*B(:,1);

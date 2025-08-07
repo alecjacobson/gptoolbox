@@ -6,7 +6,7 @@ function [N,I,B,r] = random_points_on_mesh(V,F,n,varargin)
   %
   % Inputs:
   %   V  #V by dim list of vertex positions
-  %   F  #F by 3 list of triangle indices into V
+  %   F  #F by 2|3 list of triangle indices into V
   %   n  number of samples
   %   Optional:
   %     'Color' followed by "color of noise", one of:
@@ -54,7 +54,11 @@ function [N,I,B,r] = random_points_on_mesh(V,F,n,varargin)
   end
 
   if isempty(A)
-    A = doublearea(V,F);
+    if size(F,2) == 3
+      A = doublearea(V,F);
+    else
+      A = edge_lengths(V,F);
+    end
   end
 
   assert(size(A,1) == size(F,1));
@@ -66,13 +70,19 @@ function [N,I,B,r] = random_points_on_mesh(V,F,n,varargin)
     C = cumsum(A0);
     R = rand(n,1);
     [~,I] = histc(R,C);
-    S = rand(n,1);
-    T = rand(n,1);
-    B = [1-sqrt(T) (1-S).*sqrt(T) S.*sqrt(T)];
-    N =  ...
-      bsxfun(@times,B(:,1),V(F(I,1),:)) +  ...
-      bsxfun(@times,B(:,2),V(F(I,2),:)) +  ...
-      bsxfun(@times,B(:,3),V(F(I,3),:));
+    if size(F,2) == 3
+      S = rand(n,1);
+      T = rand(n,1);
+      B = [1-sqrt(T) (1-S).*sqrt(T) S.*sqrt(T)];
+      N =  ...
+        bsxfun(@times,B(:,1),V(F(I,1),:)) +  ...
+        bsxfun(@times,B(:,2),V(F(I,2),:)) +  ...
+        bsxfun(@times,B(:,3),V(F(I,3),:));
+    else
+      B = rand(n,1);
+      B = [B 1-B];
+      N = B(:,1).*V(F(I,1),:) + B(:,2).*V(F(I,2),:);
+    end
   case 'blue'
     % This is a "cheap hack" way of getting something like Poisson-Disk
     % sampling which approximates a blue noise sampling.

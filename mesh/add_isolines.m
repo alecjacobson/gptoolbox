@@ -29,10 +29,19 @@ function p = add_isolines(T,varargin);
     F = t.Faces;
     S = t.FaceVertexCData;
     assert(size(S,2) == 1);
-    [LS,LD,I] = isolines(V,F,S,iso);
     old_hold = ishold;
     hold on;
-    p{end+1} = plot3([LS(:,1) LD(:,1)]',[LS(:,2) LD(:,2)]',[LS(:,3) LD(:,3)]','Color','k',varargin{:});
+    if exist('isolines')==3
+      [iV,iE,I] = isolines(V,F,S,reshape(iso,[],1));
+      if isempty(iV)
+        p{end+1} = [];
+      else
+        p{end+1} = plot_edges(iV,iE,'Color','k',varargin{:});
+      end
+    else
+      [LS,LD,I] = isolines(V,F,S,iso);
+      p{end+1} = plot3([LS(:,1) LD(:,1)]',[LS(:,2) LD(:,2)]',[LS(:,3) LD(:,3)]','Color','k',varargin{:});
+    end
     if ~old_hold
       hold off;
     end

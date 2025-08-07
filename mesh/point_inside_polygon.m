@@ -15,6 +15,8 @@ function interior_point = point_inside_polygon(V)
   if exist('triangulate')==3
     % triangulate and pick farthest barycenter from polygon boundary
     E = [1:size(V,1);2:size(V,1) 1]';
+    [V,~,~,E] = remove_duplicate_vertices(V,0,'F',E);
+    E = E(E(:,1)~=E(:,2),:);
     [Vt,Ft] = triangulate(V,E);
     BC = barycenter(Vt,Ft);
     D = point_mesh_squared_distance(BC,V,E);

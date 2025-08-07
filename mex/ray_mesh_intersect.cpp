@@ -52,7 +52,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   {
     Eigen::Vector3f s = source.row(si);
     Eigen::Vector3f d = dir.row(si);
-    igl::Hit hit;
+    igl::Hit<float> hit;
     const float tnear = 1e-4f;
     if(ei.intersectRay(s,d,hit,tnear))
     {

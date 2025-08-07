@@ -45,6 +45,9 @@ function [VV,FF,SS] = sqrt3(V,F,varargin)
     m = size(FF,1);
     C = n+(1:m)';
     E = edges(FF);
+    O = outline(FF);
+    E = setdiff(sort(E,2),sort(O,2),'rows');
+
     A = adjacency_matrix(FF);
     [AI,AJ] = find(A);
     val = sum(A,1);

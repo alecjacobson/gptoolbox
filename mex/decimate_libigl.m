@@ -13,6 +13,7 @@
 %        {'naive'}  simply collapse small edges and place vertices at midpoint
 %        'qslim'  Quadric error metric
 %        'progressive-hulls'  Progressive hulls
+%     'BlockIntersections' followed by whether to block intersections {false}
 % Outputs:
 %   W  #W by 3 list of vertex positions
 %   G  #G by 3 list of triangle indices into W

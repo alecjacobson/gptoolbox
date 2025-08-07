@@ -20,15 +20,14 @@ function [V,F,Q] = torus(n,m,r,varargin)
   %   r = 0.4;
   %   [V,F] = torus(n,round(r*n),r);
 
+  if nargin < 3
+    r = 0.4;
+  end
   if nargin < 1
     n = 40;
   end
   if nargin < 2
-    r = 0.4;
     m = round(r*n);
-  end
-  if nargin < 3
-    r = 0.4;
   end
 
   R = 1;

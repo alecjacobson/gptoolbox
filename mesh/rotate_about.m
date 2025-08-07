@@ -10,6 +10,9 @@ function C = rotate_about(A,B,th)
   % Outputs
   %   C  #A by 3 list of positions
   %
+  % Warning:
+  % rotate_about(A,B,th) = A * axisangle2matrix(B,-th)
+  %
   function r = cross2(a,b)
     % Optimizes r = cross(a,b,2), that is it computes cross products per row
     % Faster than cross if I know that I'm calling it correctly

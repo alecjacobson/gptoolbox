@@ -40,8 +40,9 @@ void segment_segment_intersection(
   typedef CGAL::Point_2<Kernel>    Point_2;
   typedef CGAL::Segment_2<Kernel>  Segment_2; 
   std::vector<Segment_2> SA,SB;
-  segment_list(VA,EA,SA);
-  segment_list(VB,EB,SB);
+  igl::copyleft::cgal::segment_list(VA,EA,SA);
+  igl::copyleft::cgal::segment_list(VB,EB,SB);
+#error "unfinished: this should be a libigl function and wrapped here"
 }
 
 void mexFunction(

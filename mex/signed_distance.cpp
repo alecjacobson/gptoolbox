@@ -101,10 +101,7 @@ void parse_rhs(
     igl::NUM_SIGNED_DISTANCE_TYPE;
   static igl::AABB<Eigen::MatrixXd,3> g_tree;
   static igl::FastWindingNumberBVH g_fwn_bvh;
-  static igl::WindingNumberAABB<
-    Eigen::RowVector3d,
-    Eigen::MatrixXd,
-    Eigen::MatrixXi> g_hier;
+  static igl::WindingNumberAABB<double,int> g_hier;
   static Eigen::MatrixXd g_FN,g_VN,g_EN;
   static Eigen::MatrixXi g_E;
   static Eigen::VectorXi g_EMAP;

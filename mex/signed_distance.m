@@ -10,6 +10,8 @@
 %     'SignedDistanceType' followed by
 %       'winding_number' use winding number (continuous sign value for
 %         non-watertight)
+%       'fwn' use winding number (continuous sign value for
+%         non-watertight)
 %       {'pseudonormal'}  use pseudo-normal, binary scale (but not robust for
 %         non-watertight meshes.
 % Outputs:

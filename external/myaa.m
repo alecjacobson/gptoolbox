@@ -162,7 +162,7 @@ elseif length(varargin) == 1
       end
     else
       self.K = varargin{1};
-    self.figmode = 'figure';
+      self.figmode = 'figure';
     end
     if length(self.K) == 1
         self.K = [self.K self.K];

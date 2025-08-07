@@ -15,6 +15,11 @@ function [U,data] = fast_mass_springs(V,E,b,bc,varargin)
   %       'EdgeLengths' followed by #E list of rest edge lengths
   %       'Data' computed min_quad_with_fixed data
   %       'U0'  followed by #V by dim initial guess
+  %       'Aeq'  followed by Aeq by #V matrix of equality constraints or
+  %          #dim-long cell of
+  %          Aeq by #V matrices of equality constraints applied 
+  %      'Beq'  followed by Beq by dim matrix of equality constraints rhs or a
+  %          #dim-long cell of Beq by 1 vector of equality constraints rhs
   % Outputs:
   %   U  #V by dim list of deformed curve vertex positions
   %   data  struct output of min_quad_with_fixed

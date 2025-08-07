@@ -29,10 +29,11 @@ function [V,F,V0,F0] = text_to_mesh(str,varargin)
   siters=10;
   tol = 0.2;
   levels = 1;
+  do_extrude = true;
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Dilation','FontName','PointSize','SmoothingIters','Tol','TriangleFlags'}, ...
-    {'r','fontname','pointsize','siters','tol','triangle_flags'});
+    {'Dilation','Extrude','FontName','PointSize','SmoothingIters','Tol','TriangleFlags'}, ...
+    {'r','do_extrude','fontname','pointsize','siters','tol','triangle_flags'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -53,6 +54,11 @@ function [V,F,V0,F0] = text_to_mesh(str,varargin)
     'Tol',tol, ...
     'SmoothingIters',siters, ...
     'TriangleFlags',triangle_flags);
-  [V,F] = extrude(V0,F0,'Levels',levels);
+  if do_extrude
+    [V,F] = extrude(V0,F0,'Levels',levels);
+  else
+    V = V0;
+    F = F0;
+  end
 
 end

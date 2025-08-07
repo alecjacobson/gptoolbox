@@ -58,8 +58,12 @@ function [W,D,E] = cubic_winding_number(C,V,ispoly)
     if size(Ci,1)<3
       I = false(numel(Ji),1);
     else
-      H = convhull(Ci);
-      I = inpolygon_convex(V(Ji,:),Ci(H(1:end-1),:));
+      try
+        H = convhull(Ci);
+        I = inpolygon_convex(V(Ji,:),Ci(H(1:end-1),:));
+      catch
+        I = false(numel(Ji),1);
+      end
     end
     Wi = winding_number(Ci,[size(Ci,1) 1],V(Ji(~I),:));
     W(Ji(~I)) = W(Ji(~I)) - Wi;

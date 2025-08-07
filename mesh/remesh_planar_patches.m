@@ -18,6 +18,7 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
   %     'MinDeltaAngle' followd by minimum change in angle between neighboring
   %     facets to be considered co-planar {pi-1e-5}
   %     'Except' followed by list of faces not to remesh
+  %     'TriangleFlags' followed by string of flags to pass to triangle
   %
   % Outputs:
   %   W  #W by 3 list of output mesh positions
@@ -113,16 +114,20 @@ function [W,G,IM,C] = remesh_planar_patches(V,F,varargin)
       % DT.Constraints = E;
       % Gc = DT.ConnectivityList;
       % Triangle is way faster...
-      [Wuo,Gc] = triangle(Vuo,E,[],'Quiet','Flags',triangle_flags);
+      %[Wuo,Gc] = triangle(Vuo,E,[],'Quiet','Flags',triangle_flags);
+      [Wuo,Gc] = triangulate(Vuo,E,'Flags',triangle_flags);
+
       %tsurf(Gc,Wuo);
       %input('');
       assert(size(Gc,1) >= 1);
       assert(size(Wuo,1) >= size(Vuo,1));
+
       % easier to remove holes post hoc than pass hole positions to triangle
+      % However, we should call triangulate again with the holes removed...
       AE = adjacency_matrix(E);
       [~,CE] = conncomp(AE);
       if max(CE) > 1
-        w = winding_number(Vuo,O,barycenter(Vuo,Gc));
+        w = winding_number(Vuo,O,barycenter(Wuo,Gc));
         % should only be 1s and 0s
         Gc = Gc(abs(w)>0.1,:);
       end

@@ -104,16 +104,19 @@ function [varargout] = cubic_cubic_integrated_distance( ...
 
   c = 0.5*trace(C.'*W*C);
 
-  if isempty(Q)
-    warning("Cant compute energy on empty Q");
-    E = [];
-  else
-    % Actually compute energy
-    E = 0.5*trace(Q.'*H*Q) + trace(Q.'*F) + c;
-  end
-
   varargout{1} = H;
   varargout{2} = F;
   varargout{3} = c;
-  varargout{4} = E;
+
+  if nargout>3 
+    if isempty(Q)
+      warning("Cant compute energy on empty Q");
+      E = [];
+    else
+      % Actually compute energy
+      E = 0.5*trace(Q.'*H*Q) + trace(Q.'*F) + c;
+    end
+    varargout{4} = E;
+  end
+
 end

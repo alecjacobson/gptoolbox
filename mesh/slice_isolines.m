@@ -23,6 +23,8 @@ function [U,G,J,BC,SU,L,T] = slice_isolines(V,F,SV,val,varargin)
   %   SU  #U list of interpolated scalar values at U
   %   L  #G list of indices into val of next value above this triangle
   %
+  %
+  
 
   manifold = false;
 

@@ -68,12 +68,17 @@ function S = statistics(V,F,varargin)
 
   fast = false;
   min_area = 1e-7;
+  min_volume = 1e-7;
   min_dist = 1e-7;
   min_angle = 0.01;
 
   ii = 1;
   while ii<=numel(varargin)
     switch varargin{ii}
+    case 'MinVolume'
+      assert(ii+1<=numel(varargin));
+      ii = ii+1;
+      min_volume = varargin{ii};
     case 'MinArea'
       assert(ii+1<=numel(varargin));
       ii = ii+1;
@@ -96,125 +101,208 @@ function S = statistics(V,F,varargin)
     ii = ii + 1;
   end
 
+  % Quantities that just depend on vertices or edges
   bbd = sqrt(sum((max(V)-min(V)).^2,2));
-  
-  % To achieve this ordering (or almost this order?):
-  % Basic counts
-  S.num_faces = 0;
-  S.num_vertices = 0;
-  S.num_edges = 0;
-  % Small things
-  S.num_small_triangles = 0;
-  S.num_small_angles = 0;
-  S.num_kahan_length_violations = 0;
-  S.num_close_vertices = 0;
-  % Topology related
-  S.num_connected_components = 0;
-  S.num_handles = 0;
-  S.euler_characteristic = 0;
-  S.num_boundary_loops = 0;
-  S.num_boundary_edges = 0;
-  S.num_ears = 0;
-  S.num_nonmanifold_edges = 0;
-  S.num_conflictingly_oriented_edges = 0;
-  S.num_duplicate_vertices = 0;
-  S.num_nonmanifold_vertices = 0;
-  S.num_unreferenced_vertices = 0;
-  % Degeneracy related
-  S.num_combinatorially_duplicate_faces = 0;
-  S.num_geometrically_degenerate_faces = 0;
-  S.num_combinatorially_degenerate_faces = 0;
-  if ~fast
-    S.num_intracomponent_selfintersecting_pairs = 0;
-    S.num_selfintersecting_pairs = 0;
-  end
 
-  % easy
-  S.num_faces = size(F,1);
-  S.num_vertices = size(V,1);
-  S.num_edges = size(edges(F),1);
-  S.num_combinatorially_duplicate_faces = ...
-    S.num_faces - size(unique(sort(F,2),'rows'),1);
-  S.num_duplicate_vertices = ...
-    S.num_vertices - size(remove_duplicate_vertices(V,0),1);
+  switch size(F,2)
+  case 4
+    % Basic counts
+    S.num_tetrahedra = 0;
+    S.num_triangles = 0;
+    S.num_edges = 0;
+    S.num_vertices = 0;
+    % Small things
+    S.num_small_tetrahedra = 0;
+    S.num_close_vertices = 0;
+    % Topology related
+    S.num_boundary_faces = 0;
+    S.num_connected_components = 0;
+    S.num_connected_boundary_components = 0;
+    S.num_nonmanifold_faces = 0;
+    S.num_nonmanifold_boundary_edges = 0;
+    S.num_conflictingly_oriented_faces = 0;
+    S.num_unreferenced_vertices = 0;
+    % Degeneracy related
+    S.num_geometrically_degenerate_tetrahedra = 0;
+    S.volume = 0;
 
-  C = zeros(size(V,1),1);
-  C(1:max(F(:)),:) = connected_components(F);
-  C(C==0) = max(C)+(1:sum(C==0));
-  is_unreferenced = sparse(F,1,1,size(V,1),1)==0;
-  %S.num_unreferenced_vertices = sum(sparse(C,1,1)==1)
-  S.num_unreferenced_vertices = sum(is_unreferenced);
-  S.num_connected_components = max(C);
 
-  E = [F(:,[2 3]); F(:,[3 1]); F(:,[1 2])];
-  % Direct all edges so sortE(:,1) < sortE(:,2)
-  sortE = sort(E,2);
-  % Adjacency matrix for these "redirected" edges
-  DA = sparse(sortE(:,1),sortE(:,2),1,size(V,1),size(V,1));
-  % If edge occurs more than once it's non-manifold
-  S.num_nonmanifold_edges = nnz(DA>2);
-  % If edge only occurs once then it's a boundary
-  S.num_boundary_edges = nnz(DA==1);
-  if S.num_nonmanifold_edges == 0
-    S.num_ears = size(find_ears(F),1);
-  else
-    rmfield(S,'num_ears');
-  end
-  % Same adjacency matrix but count -1 if E(:,1)<E(:,2) for and +1 otherwise
-  OA = sparse(sortE(:,1),sortE(:,2),1-2*(E(:,1)<E(:,2)),size(V,1),size(V,1));
-  % Don't count boundary edges (where "redirected" edge only occured once).
-  OA(DA==1) = 0;
-  % non-zero count means conflictingly oriented. Note, can get +2-1=0, but this
-  % could feasibly be oriented (a meshed self-intersection).
-  S.num_conflictingly_oriented_edges = nnz(OA);
+    T = F;
+    allF = [ ...
+      T(:,[4 2 3]); ...
+      T(:,[3 1 4]); ...
+      T(:,[2 4 1]); ...
+      T(:,[1 3 2])];
 
-  isnmv = is_vertex_nonmanifold(F);
-  if numel(isnmv)<size(V,1);
-    isnmv(numel(isnmv)+1:size(V,1)) = 0;
-  end
-  S.num_nonmanifold_vertices = sum(isnmv & ~is_unreferenced);
+    sortF = sort(allF,2);
+    [F,some,FMAP] = unique(sortF,'rows');
+    % MF is #allF long list of bools whether each face is equivalent to its
+    % sorted version
+    MF = ...
+      all(allF(:,[1 2 3])==sortF,2) | ...
+      all(allF(:,[2 3 1])==sortF,2) | ...
+      all(allF(:,[3 1 2])==sortF,2);
 
-  [~,BC] = conncomp( (DA==1)+(DA==1)' );
-  S.num_boundary_loops = sum(sparse(BC,1,1)>1);
+    Fcount = accumarray(FMAP,1,[size(F,1) 1]);
+    MFcount = accumarray(FMAP,MF*2-1,[size(F,1) 1]);
 
-  S.euler_characteristic = S.num_vertices - S.num_edges + S.num_faces;
-  b = S.num_boundary_loops;
-  % http://en.wikipedia.org/wiki/Genus_(mathematics)#Orientable_surface
-  % X = 2 - 2g - b
-  % X + b - 2 = - 2g
-  % 2-b-X  = 2g
-  % g = (2-b-X)/2
-  % http://sketchesoftopology.wordpress.com/2008/02/04/genus-euler-characteristic-boundary-components/
-  S.num_handles = ...
-    (2* ...
-      (S.num_connected_components-S.num_unreferenced_vertices) - ...
-    S.num_boundary_loops - ...
-    (S.euler_characteristic-S.num_unreferenced_vertices))/2 ;
+    BF = allF(some(Fcount==1),:);
+    [~,~,~,BF] = remove_unreferenced([],BF,true);
+    [S.num_connected_boundary_components,BC] = conncomp(adjacency_matrix(BF));
 
-  dblA = doublearea(V,F);
-  S.num_geometrically_degenerate_faces = sum(dblA==0);
-  S.num_combinatorially_degenerate_faces = ...
-    sum((F(:,1)==F(:,2)) | (F(:,2)==F(:,3)) | (F(:,3)==F(:,1)));
+    allE = [allF(:,[2 3]);allF(:,[3 1]);allF(:,[1 2])];
+    sortE = sort(allE,2);
+    ME = all(allE==sortE,2);
+    [E,~,EMAP] = unique(sortE,'rows');
 
-  S.num_small_triangles = sum(dblA<2*min_area*bbd*bbd);
-  S.num_small_angles = sum(sum(internalangles(V,F)<min_angle));
-  sl = sort(edge_lengths(V,F),2,'descend');
-  S.num_kahan_length_violations = sum((sl(:,3)-(sl(:,1)-sl(:,2)))<0);
+    S.num_tetrahedra = size(T,1);
+    S.num_triangles = size(F,1);
+    S.num_edges = size(E,1);
+    S.num_vertices = size(V,1);
+    S.num_close_vertices = ...
+      S.num_vertices - size(remove_duplicate_vertices(V,min_dist*bbd),1);
+    S.num_boundary_faces = sum(Fcount==1);
+    S.num_nonmanifold_faces = sum(Fcount>2);
+    S.num_nonmanifold_boundary_edges = sum(size(nonmanifold_edges(BF),1));
+    S.num_conflictingly_oriented_faces = sum(Fcount~=1 & MFcount~=0);
 
-  S.num_close_vertices = ...
-    S.num_vertices - size(remove_duplicate_vertices(V,min_dist*bbd),1);
+    vols = volume(V,T);
+    S.volume = sum(vols);
+    min_volume = 1e-7;
+    S.num_small_tetrahedra = sum(vols<min_volume*bbd.^3);
+    %[S.vector_centroid,S.vector_volume] = centroid(V,allF);
+    %A = adjacency_matrix(T);
+    %[S.num_connected_components,C] = conncomp(A);
+    S.num_geometrically_degenerate_tetrahedra = sum(vols==0);
 
-  if ~fast
-    V3 = V;
-    V3(:,end+1:3) = 0;
-    nd = dblA>0;
-    Fnd = F(nd,:);
-    [~,~,IF] = selfintersect(V3,Fnd,'DetectOnly',true);
-    S.num_selfintersecting_pairs = size(IF,1);
-    CF = C(F(:,1));
-    CFnd = CF(nd)';
-    S.num_intracomponent_selfintersecting_pairs =  ...
-      sum(CFnd(IF(:,1))== CFnd(IF(:,2)));
+    C = zeros(size(V,1),1);
+    C(1:max(T(:)),:) = connected_components(T);
+    C(C==0) = max(C)+(1:sum(C==0));
+    is_unreferenced = sparse(T,1,1,size(V,1),1)==0;
+    %S.num_unreferenced_vertices = sum(sparse(C,1,1)==1)
+    S.num_unreferenced_vertices = sum(is_unreferenced);
+    S.num_connected_components = max(C);
+
+  case 3
+    
+    % To achieve this ordering (or almost this order?):
+    % Basic counts
+    S.num_faces = 0;
+    S.num_vertices = 0;
+    S.num_edges = 0;
+    % Small things
+    S.num_small_triangles = 0;
+    S.num_small_angles = 0;
+    S.num_kahan_length_violations = 0;
+    S.num_close_vertices = 0;
+    % Topology related
+    S.num_connected_components = 0;
+    S.num_handles = 0;
+    S.euler_characteristic = 0;
+    S.num_boundary_loops = 0;
+    S.num_boundary_edges = 0;
+    S.num_ears = 0;
+    S.num_nonmanifold_edges = 0;
+    S.num_conflictingly_oriented_edges = 0;
+    S.num_duplicate_vertices = 0;
+    S.num_nonmanifold_vertices = 0;
+    S.num_unreferenced_vertices = 0;
+    % Degeneracy related
+    S.num_combinatorially_duplicate_faces = 0;
+    S.num_geometrically_degenerate_faces = 0;
+    S.num_combinatorially_degenerate_faces = 0;
+    if ~fast
+      S.num_intracomponent_selfintersecting_pairs = 0;
+      S.num_selfintersecting_pairs = 0;
+    end
+
+    % easy
+    S.num_faces = size(F,1);
+    S.num_vertices = size(V,1);
+    S.num_edges = size(edges(F),1);
+    S.num_combinatorially_duplicate_faces = ...
+      S.num_faces - size(unique(sort(F,2),'rows'),1);
+    S.num_duplicate_vertices = ...
+      S.num_vertices - size(remove_duplicate_vertices(V,0),1);
+
+    C = zeros(size(V,1),1);
+    C(1:max(F(:)),:) = connected_components(F);
+    C(C==0) = max(C)+(1:sum(C==0));
+    is_unreferenced = sparse(F,1,1,size(V,1),1)==0;
+    %S.num_unreferenced_vertices = sum(sparse(C,1,1)==1)
+    S.num_unreferenced_vertices = sum(is_unreferenced);
+    S.num_connected_components = max(C);
+
+    E = [F(:,[2 3]); F(:,[3 1]); F(:,[1 2])];
+    % Direct all edges so sortE(:,1) < sortE(:,2)
+    sortE = sort(E,2);
+    % Adjacency matrix for these "redirected" edges
+    DA = sparse(sortE(:,1),sortE(:,2),1,size(V,1),size(V,1));
+    % If edge occurs more than once it's non-manifold
+    S.num_nonmanifold_edges = nnz(DA>2);
+    % If edge only occurs once then it's a boundary
+    S.num_boundary_edges = nnz(DA==1);
+    if S.num_nonmanifold_edges == 0
+      S.num_ears = size(find_ears(F),1);
+    else
+      rmfield(S,'num_ears');
+    end
+    % Same adjacency matrix but count -1 if E(:,1)<E(:,2) for and +1 otherwise
+    OA = sparse(sortE(:,1),sortE(:,2),1-2*(E(:,1)<E(:,2)),size(V,1),size(V,1));
+    % Don't count boundary edges (where "redirected" edge only occured once).
+    OA(DA==1) = 0;
+    % non-zero count means conflictingly oriented. Note, can get +2-1=0, but this
+    % could feasibly be oriented (a meshed self-intersection).
+    S.num_conflictingly_oriented_edges = nnz(OA);
+
+    isnmv = is_vertex_nonmanifold(F);
+    if numel(isnmv)<size(V,1);
+      isnmv(numel(isnmv)+1:size(V,1)) = 0;
+    end
+    S.num_nonmanifold_vertices = sum(isnmv & ~is_unreferenced);
+
+    [~,BC] = conncomp( (DA==1)+(DA==1)' );
+    S.num_boundary_loops = sum(sparse(BC,1,1)>1);
+
+    S.euler_characteristic = S.num_vertices - S.num_edges + S.num_faces;
+    b = S.num_boundary_loops;
+    % http://en.wikipedia.org/wiki/Genus_(mathematics)#Orientable_surface
+    % X = 2 - 2g - b
+    % X + b - 2 = - 2g
+    % 2-b-X  = 2g
+    % g = (2-b-X)/2
+    % http://sketchesoftopology.wordpress.com/2008/02/04/genus-euler-characteristic-boundary-components/
+    S.num_handles = ...
+      (2* ...
+        (S.num_connected_components-S.num_unreferenced_vertices) - ...
+      S.num_boundary_loops - ...
+      (S.euler_characteristic-S.num_unreferenced_vertices))/2 ;
+
+    dblA = doublearea(V,F);
+    S.num_geometrically_degenerate_faces = sum(dblA==0);
+    S.num_combinatorially_degenerate_faces = ...
+      sum((F(:,1)==F(:,2)) | (F(:,2)==F(:,3)) | (F(:,3)==F(:,1)));
+
+    S.num_small_triangles = sum(dblA<2*min_area*bbd*bbd);
+    S.num_small_angles = sum(sum(internalangles(V,F)<min_angle));
+    sl = sort(edge_lengths(V,F),2,'descend');
+    S.num_kahan_length_violations = sum((sl(:,3)-(sl(:,1)-sl(:,2)))<0);
+
+    S.num_close_vertices = ...
+      S.num_vertices - size(remove_duplicate_vertices(V,min_dist*bbd),1);
+
+    if ~fast
+      V3 = V;
+      V3(:,end+1:3) = 0;
+      nd = dblA>0;
+      Fnd = F(nd,:);
+      [~,~,IF] = selfintersect(V3,Fnd,'DetectOnly',true);
+      S.num_selfintersecting_pairs = size(IF,1);
+      CF = C(F(:,1));
+      CFnd = CF(nd)';
+      S.num_intracomponent_selfintersecting_pairs =  ...
+        sum(CFnd(IF(:,1))== CFnd(IF(:,2)));
+    end
   end
 
 

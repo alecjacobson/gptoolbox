@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.16.0)
 set(CMAKE_BUILD_TYPE_INIT Release)
 project(gptoolbox_mex)
+cmake_policy(SET CMP0074 NEW)
+
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # templated lambdas
@@ -57,6 +59,7 @@ set(GPTOOLBOX_MEX_EXTERNAL "${GPTOOLBOX_MEX_ROOT}/external")
 # libigl
 option(LIBIGL_COPYLEFT_CGAL       "Use CGAL"           ON)
 option(LIBIGL_EMBREE              "Use Embree"         ON)
+option(LIBIGL_PREDICATES          "Use Predicates"         ON)
 option(LIBIGL_COPYLEFT_TETGEN     "Use Tetgen"          ON)
 option(LIBIGL_RESTRICTED_TRIANGLE "Use Triangle"       ON)
 option(LIBIGL_RESTRICTED_MATLAB   "Use Matlab"         ON)
@@ -113,8 +116,8 @@ include("${Z_VCPKG_ROOT_DIR}/scripts/buildsystems/vcpkg.cmake")
 if(MATLAB_PROXY)
   FetchContent_Declare(
     Matlab
-    GIT_REPOSITORY https://github.com/alecjacobson/eltopo.git
-    GIT_TAG        7208071d257e101eece42fa60d3604f2258dd883
+    GIT_REPOSITORY https://github.com/alecjacobson/matlab.git
+    GIT_TAG        883d417a99fcb8ead89387cee243e51a92864019
   )
   FetchContent_GetProperties(Matlab)
   if(NOT Matlab_POPULATED)
@@ -137,7 +140,7 @@ if(WITH_ELTOPO)
   FetchContent_Declare(
     eltopo
     GIT_REPOSITORY https://github.com/alecjacobson/eltopo.git
-    GIT_TAG        7208071d257e101eece42fa60d3604f2258dd883
+    GIT_TAG        3cf988aae467392d1066bdde0be3f54487a0ba2c
   )
   FetchContent_GetProperties(eltopo)
   if(NOT eltopo_POPULATED)
@@ -233,6 +236,18 @@ triangulate.cpp;\
 "
     "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_restricted::triangle")
   endif()
+  compile_each("\
+refine_triangulation.cpp;\
+"
+  "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_restricted::triangle")
+endif()
+
+if(LIBIGL_PREDICATES)
+  add_definitions("-DWITH_PREDICATES")
+  compile_each("\
+orient3d.cpp;\
+"
+    "${CORE_LIBS};igl::core;igl_restricted::matlab;igl::predicates")
 endif()
 
 if(LIBIGL_EMBREE)
@@ -241,6 +256,7 @@ if(LIBIGL_EMBREE)
 ambient_occlusion.cpp;\
 bone_visible_embree.cpp;\
 ray_mesh_intersect.cpp;\
+ray_mesh_intersect_all.cpp;\
 reorient_facets.cpp;\
 "
     "${CORE_LIBS};igl::core;igl_restricted::matlab;igl::embree")
@@ -263,10 +279,8 @@ endif()
 
 if(LIBIGL_COPYLEFT_CGAL)
   add_definitions("-DWITH_CGAL")
-#segment_segment_intersection.cpp;\
   compile_each("\
 box_intersect.cpp;\
-decimate_cgal.cpp;\
 form_factor.cpp;\
 intersect_other.cpp;\
 mesh_boolean.cpp;\

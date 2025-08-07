@@ -1,4 +1,16 @@
 function [WV,WQ,WJ] = wireframe(V,Q,thickness,offset)
+  % [WV,WQ,WJ] = wireframe(V,Q,thickness,offset)
+  %
+  % Inputs:
+  %   V  #V by dim list of vertex positions
+  %   Q  #Q by ss list of element (tri or quad) indices into V
+  %   thickness  thickness of wireframe
+  %   offset  offset of wireframe (multilied against thickness)
+  % Outputs:
+  %   WV  #WV by dim list of vertex positions
+  %   WQ  #WQ by 4 list of quad indices into WV
+  %   WJ  #WQ list of indices into Q revealing original quad indices
+
   %   offset  (not exactly the same as what Blender is doing)
   ss = size(Q,2);
   switch ss
@@ -15,7 +27,7 @@ function [WV,WQ,WJ] = wireframe(V,Q,thickness,offset)
       cross(V(Q(:,4),:)-V(Q(:,3),:),V(Q(:,2),:)-V(Q(:,3),:),2); ...
       cross(V(Q(:,1),:)-V(Q(:,4),:),V(Q(:,3),:)-V(Q(:,4),:),2)];
     % Offset for each corner
-    O = thickness/4*[ ...
+    O = thickness./4.*[ ...
       (V(Q(:,2),:)-V(Q(:,1),:))+(V(Q(:,4),:)-V(Q(:,1),:)); ...
       (V(Q(:,3),:)-V(Q(:,2),:))+(V(Q(:,1),:)-V(Q(:,2),:)); ...
       (V(Q(:,4),:)-V(Q(:,3),:))+(V(Q(:,2),:)-V(Q(:,3),:)); ...
@@ -31,7 +43,7 @@ function [WV,WQ,WJ] = wireframe(V,Q,thickness,offset)
     % corner normals
     N= repmat(N,3,1);
     % corner offset
-    O = thickness/4*[ ...
+    O = thickness./4.*[ ...
       (V(Q(:,2),:)-V(Q(:,1),:))+(V(Q(:,3),:)-V(Q(:,1),:)); ...
       (V(Q(:,3),:)-V(Q(:,2),:))+(V(Q(:,1),:)-V(Q(:,2),:)); ...
       (V(Q(:,1),:)-V(Q(:,3),:))+(V(Q(:,2),:)-V(Q(:,3),:))];
@@ -50,8 +62,8 @@ function [WV,WQ,WJ] = wireframe(V,Q,thickness,offset)
     return;
   end
   WV = [ ... 
-    V+thickness/2*VN; ... +n
-    V-thickness/2*VN; ... +n
+    V+thickness./2.*VN; ... +n
+    V-thickness./2.*VN; ... +n
     V(Q,:) + O;       ... +ss*m
     ];
   I = (1:m*ss)';

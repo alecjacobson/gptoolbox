@@ -59,12 +59,13 @@ function [W,BC,DV,Q,r,B] = voxelize(V,F,side,varargin)
   with_interior = true;
   pad_count = 0;
   closed = [];
+  filter = @(W) W;
   BC = [];
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Boundary','Interior','Pad','Centers','Closed'}, ...
-    {'with_boundary','with_interior','pad_count','BC','closed'});
+    {'Boundary','Interior','Pad','Centers','Closed','Filter'}, ...
+    {'with_boundary','with_interior','pad_count','BC','closed','filter'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -246,6 +247,8 @@ function [W,BC,DV,Q,r,B] = voxelize(V,F,side,varargin)
     %axis equal
     %
     %error
+
+    W = filter(W);
   
     % Pad winding number with 0s and take differences in all 6 directions
     Wp = padarray(W,[1 1 1],0);
