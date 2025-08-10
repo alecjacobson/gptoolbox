@@ -5,9 +5,9 @@ function [V,F,Q] = torus(n,m,r,varargin)
   % [V,F] = torus(n,m,r,'ParameterName',ParameterValue, ...)
   %
   % Inputs:
-  %   n  number of vertices around inner ring
-  %   m  number of vertices around outer ring
-  %   r  radius of the inner ring
+  %   n  number of vertices around inner ring {40}
+  %   m  number of vertices around outer ring {round(0.4*n)}
+  %   r  radius of the inner ring {0.4}
   %   Optional:
   %     'R'  followed by outer ring radius {1}
   % Outputs:

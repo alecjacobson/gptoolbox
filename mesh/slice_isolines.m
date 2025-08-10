@@ -1,4 +1,4 @@
-function [U,G,J,BC,SU,L] = slice_isolines(V,F,SV,val,varargin)
+function [U,G,J,BC,SU,L,T] = slice_isolines(V,F,SV,val,varargin)
   % SLICE_ISOLINES Slice through a triangle mesh (V,F) at isolines val of a given
   % per-vertex scalar function.
   %
@@ -17,7 +17,7 @@ function [U,G,J,BC,SU,L] = slice_isolines(V,F,SV,val,varargin)
   % Outputs:
   %   U  #U by 3 list of triangle mesh vertices along slice
   %   G  #G by 3 list of triangles indices into U
-  %   J  #G list of indices into F revealing which tet this face came from
+  %   J  #G list of indices into F revealing which triangle this face came from
   %   BC  #U by #V list of barycentric coordinates (or more generally: linear
   %     interpolation coordinates) so that U = BC*V
   %   SU  #U list of interpolated scalar values at U
@@ -111,7 +111,7 @@ function [U,G,J,BC,SU,L] = slice_isolines(V,F,SV,val,varargin)
     bbd = normrow(max(V)-min(V));
     flag = [(1:size(V,1))';ones(size(U,1)-size(V,1),1)];
     [U,I,IM] = remove_duplicate_vertices([U flag],1e-14*bbd);
-    U = U(:,1:3);
+    U = U(:,1:size(V,2));
     BC = BC(I,:);
     SU = SU(I,:);
     G = IM(G);

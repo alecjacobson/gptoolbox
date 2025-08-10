@@ -1,4 +1,4 @@
-function [EF,EI,uE,EMAP] = edge_flaps(F)
+function [EF,EI,uE,EMAP,EJ] = edge_flaps(F)
   % [EF,EI,uE,EMAP] = edge_flaps(F)
   %
   % Inputs:
@@ -11,10 +11,24 @@ function [EF,EI,uE,EMAP] = edge_flaps(F)
   %   uE  #uE by 2 list of edge indices into V.
   %   EMAP #F*3 list of indices into uE, mapping each directed edge to unique
   %     unique edge in uE
+  %   EJ  #uE list of indices into #F*3
   %
+  % Example:
+  %   [EF,EI,E,~,EJ] = edge_flaps(F);
+  %   % only keep interior edges
+  %   keep = all(EF>0,2);
+  %   EF = EF(keep,:);
+  %   EI = EI(keep,:);
+  %   E =  E(keep,:);
+  %   EJ = EJ(keep,:);
+  %   % Vertex indices of opposite vertices
+  %   EK = F(sub2ind(size(F),EF,EI));
+  %   % Hinge so that H(:,[1 2 3]) and H(:,[2 1 4]) are properly oriented.
+  %   H = [E EK];
+  %   
   E = [F(:,2:3);F(:,[3 1]);,F(:,1:2)];
   sE = sort(E,2);
-  [uE,~,EMAP] = unique(sE,'rows');
+  [uE,EJ,EMAP] = unique(sE,'rows');
   I = (1:size(uE,1))';
   [B1,E1] = ismember(uE,E,'rows');
   [B2,E2] = ismember(uE,fliplr(E),'rows');
