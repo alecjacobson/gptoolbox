@@ -7,8 +7,8 @@ function [U,G,J,BC,SU,L] = slice_isolines(V,F,SV,val,varargin)
   %   'ParameterName',parameter_value, ...)
   %
   % Inputs:
-  %   V  #V by dim list of tet mesh vertices
-  %   F  #F by 3 list of tet indices into V 
+  %   V  #V by dim list of triangle mesh vertices
+  %   F  #F by 3 list of triangle indices into V 
   %   S  #V list of scalar values per vertex
   %   val  #val list of isolines values
   %   Optional:
