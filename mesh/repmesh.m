@@ -1,4 +1,4 @@
-function [VV,FF,IV,IF] = repmesh(V,F,C,S)
+function [VV,FF,IV,IF] = repmesh(V,F,C,S,R)
   % REPMESH Repeat a mesh by translating it by each vector in C
   %
   % [VV,FF] = repmesh(V,F,C)
@@ -8,6 +8,7 @@ function [VV,FF,IV,IF] = repmesh(V,F,C,S)
   %   F  #F by ss list of simplex indices into V
   %   C  #C by dim list of vectors
   %   S  #C by dim list of scalar scales 
+  %   R  #C by dim by dim list of rotations
   % Outputs:
   %   VV  #VV*#C by dim list of mesh vertex positions
   %   FF  #F*#C by ss list of simplex indices
@@ -32,9 +33,20 @@ function [VV,FF,IV,IF] = repmesh(V,F,C,S)
   if nargin < 4
     S = 1;
   end
+  if nargin < 5
+    R = [];
+  end
   FF = reshape(F'+permute((0:size(C,1)-1)*size(V,1),[1 3 2]),size(F,2),[])';
   assert(size(V,2) == size(C,2));
-  VV = reshape(V'.*permute(S,[2 3 1])+permute(C,[2 3 1]),size(V,2),size(V,1)*size(C,1))';
+  VS = V'.*permute(S,[2 3 1]);
+  if isempty(R)
+    VSR = VS;
+  else
+    R = permute(R,[2 3 1]);
+    VSR = permute(pagemtimes(VS',R),[2 1 3]);
+  end
+  VSC = VSR+permute(C,[2 3 1]);
+  VV = reshape(VSC,size(V,2),size(V,1)*size(C,1))';
   IV = reshape(repmat(1:size(C,1),size(V,1),1),[],1);
   IF = reshape(repmat(1:size(C,1),size(F,1),1),[],1);
 end
