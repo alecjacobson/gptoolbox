@@ -17,9 +17,9 @@
 % Examples:
 %   [sqrD,I,C] = point_mesh_squared_distance(P,V,F);
 %   B = barycentric_coordinates(C,V(F(I,1),:),V(F(I,2),:),V(F(I,3),:));
-%   on_face = sum(B<1e-15)==0;
-%   on_edge = sum(B<1e-15)==1;
-%   on_vertex = sum(B<1e-15)==2;
+%   on_face = sum(B<1e-15,2)==0;
+%   on_edge = sum(B<1e-15,2)==1;
+%   on_vertex = sum(B<1e-15,2)==2;
 %   N_face = normalizerows(normals(F));
 %   N_vertex = per_vertex_normals(V,F);
 %   per_edge_normals

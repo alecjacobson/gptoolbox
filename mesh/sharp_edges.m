@@ -1,4 +1,4 @@
-function [SE,II,JJ] = sharp_edges(V,F,varargin)
+function [SE,II,J] = sharp_edges(V,F,varargin)
   % SHARP_EDGES Given a mesh, compute sharp edges.
   %
   % [SE] = sharp_edges(V,F)
@@ -13,6 +13,7 @@ function [SE,II,JJ] = sharp_edges(V,F,varargin)
   %   SE  #SE by 2 list of edge indices into V 
   %   II  #II by 2 list of indices into F so that: 
   %     SE=unique(sort(F(II),2),'rows');
+  %   J   #SE by 2 list of indices into F so that SE = sort(F(J,:),2)
   %
 
   angle = pi*0.11;
@@ -44,6 +45,7 @@ function [SE,II,JJ] = sharp_edges(V,F,varargin)
   [CI,~,CV] = find(C.*A);
   II = [CI+mod(CV,3)*size(F,1) CI+mod(CV+1,3)*size(F,1)];
   E = F(II);
-  [SE,JJ] = unique(sort(E,2),'rows');
+  [SE,uJ] = unique(sort(E,2),'rows');
+  J = II(uJ,:);
 
 end

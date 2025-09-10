@@ -11,7 +11,7 @@ function B = barycentric_coordinates(P,varargin)
   %   ...
   %   Optional:
   %     'Project'  followed by whether to project P onto the hyperplane spanned
-  %     by V1,V2,... {false}
+  %     by V1,V2,... this is, also, generally faster. {false}
   % Outputs:
   %   B  #P by dim+1 list of barycentric coordinates
   %
@@ -104,9 +104,9 @@ function B = barycentric_coordinates(P,varargin)
     case 2
       V1 = varargin{1};
       V2 = varargin{2};
-      A1 = edge_lengths([P;V2],[1:n;n+[1:n]]');
-      A2 = edge_lengths([V1;P],[1:n;n+[1:n]]');
-      A = edge_lengths([V1;V2],[1:n;n+[1:n]]');
+      A1 = normrow(P -V2);%edge_lengths([P;V2],[1:n;n+[1:n]]');
+      A2 = normrow(V1- P);%edge_lengths([V1;P],[1:n;n+[1:n]]');
+      A  = normrow(V1-V2);%edge_lengths([V1;V2],[1:n;n+[1:n]]');
       if dim>1 && max(abs(sum([A1 A2],2)-A))>1e-14
         warning('Possibly negative coordinates. Not supported in dim~=1');
       end

@@ -17,7 +17,7 @@ function [W,H,J] = mesh_boolean_winding_number(V,F,U,G,operation,varargin)
   %       'Thresholds' 2-long list of winding number cut offs to use to
   %         determine inside/outside: all faces of F (after intersection) with
   %         winding number w.r.t. (U,G) less than thresholds(1) are considered
-  %         inside.
+  %         inside. {[0.5,0.5]}
   % Outputs:
   %   W  #W by 3 list of vertex positions of boolean result mesh
   %   H  #H by 3 list of triangle indices into W

@@ -18,10 +18,11 @@ function N = per_vertex_normals(V,F,varargin)
   weighting = 'area';
   U = [];
   R = [];
+  FN = [];
   % default values
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Weighting'},{'weighting'});
+    {'Weighting','FaceNormals'},{'weighting','FN'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -37,7 +38,9 @@ function N = per_vertex_normals(V,F,varargin)
   end
 
   ss = size(F,2);
-  FN = normalizerow(normals(V,F)+eps);
+  if isempty(FN)
+    FN = normalizerow(normals(V,F)+eps);
+  end
   switch weighting
   case 'uniform'
     W = ones(size(F,1),ss);
