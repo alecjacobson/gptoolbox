@@ -2,7 +2,7 @@ function [P,C,I,F,S,W,D,viewBox] = readSVG_cubics(filename,varargin)
   % READSVG_CUBICS Read in paths and shapes from a .svg file, but convert
   % everything to cubic Bezier curves.
   %
-  % [P,C,I,F,S,W,D] = readSVG_cubics(filename)
+  % [P,C,I,F,S,W,D,viewBox] = readSVG_cubics(filename)
   % 
   % Inputs:
   %   filename  path to .svg file
@@ -80,8 +80,11 @@ function [P,C,I,F,S,W,D,viewBox] = readSVG_cubics(filename,varargin)
       s = nan(1,1);
       return;
     end
-    assert(numel(match{1}{1})>=1);
-    s = str2num(match{1}{1});
+    str = match{1}{1};
+    assert(numel(str)>=1);
+    % attempt to strip of "px" units from a
+    str = regexprep(str,'px$','');
+    s = str2num(str);
   end
 
 
@@ -283,7 +286,10 @@ function [P,C,I,F,S,W,D,viewBox] = readSVG_cubics(filename,varargin)
       Si = get_color(kid,'stroke',nan(1,3));
       Fi = get_color(kid,'fill',[0 0 0]);
 
-      Wi = get_scalar(kid,'stroke-miterlimit');
+      Wi = get_scalar(kid,'stroke-width');
+      if ~all(isnan(Si)) && isnan(Wi)
+        Wi = 1;
+      end
       Di = get_not_none(kid,'display');
       Ti = get_transform(kid);
       if ~isempty(Pii)
