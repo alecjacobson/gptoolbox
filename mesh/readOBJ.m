@@ -25,6 +25,16 @@ function [V,F,UV,TF,N,NF] = readOBJ(filename,varargin)
   %   DF = (F==0).*F(:,[4 1 2 3])+(F~=0).*F;
   %   trisurf(DF,V(:,1),V(:,2),V(:,3));
   %
+  %   % Hack. polygon mesh → PI,PC
+  %   ss = 10; % must be at least as large as largest polygon in file :-(
+  %   [V,P] = readOBJ('some_polygons.obj','SimplexSize',ss);
+  %   % If you get a 'Trivially triangulating high degree facets' warning, then
+  %   % increase ss and re-read the file.
+  %   [Z,D] = min([P zeros(size(P,1),1)],[],2);
+  %   assert(all(Z==0));
+  %   PI = P';
+  %   PI = PI(PI>0);
+  %   PC = cumsum([0;D-1]);
   %
   % See also: load_mesh, readOBJfast, readOFF
 

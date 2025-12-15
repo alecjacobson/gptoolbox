@@ -1,10 +1,16 @@
 function [VV,QQ,SS,J] = catmull_clark(varargin)
   % CATMULL_CLARK Perform iterations of catmull-clark subdivision on a
   % regular, manifold quad mesh (V,Q)
+  % 
+  % [VV,QQ,SS,J] = catmull_clark(V,Q,'ParameterName',ParameterValue,...)
+  % [VV,QQ,SS,J] = catmull_clark(V,PI,PC,'ParameterName',ParameterValue,...)
   %
   % Inputs:
   %   V  #V by dim list of mesh vertex positions
   %   Q  #Q by 4 list of quad indices into V
+  %     or
+  %   PI  #P list of polygon vertex indices into V
+  %   PC  #P+1 list of polygon cumulative counts
   %   Optional:
   %     'Iterations'  followed by number of iterations to conduct {1}
   % Outputs:
@@ -47,129 +53,200 @@ function [VV,QQ,SS,J] = catmull_clark(varargin)
   SS = speye(size(V,1));
   if poly_input
     QQ = [];
-    J = [];
+    J = (1:size(PC,1)-1)';
   else
     QQ = Q;
     J = (1:size(Q,1))';
   end
 
   for i=1:iters
-    if i==1 && poly_input
-      continue;
-    end
-    % assume all are quads OR tris
-    FF = QQ;
-      
     % number of original vertices
     n = size(VV,1);
-    % number of original faces
-    nf = size(FF,1);
-
-    % extract pure quads
-    pure = false(nf,1);
-    if size(FF,2)==4
-      pure = FF(:,4)~=nan & FF(:,4)>0 & FF(:,4)~=FF(:,3);
-      QQ = FF(pure,:);
+    if poly_input
+      nf = size(PC,1)-1;
     else
-      QQ = zeros(0,4);
+      nf = size(QQ,1);
     end
-    TT = FF(~pure,1:3);
-    JQ = J(pure);
-    JT = J(~pure);
-    nq = size(QQ,1);
-    nt = size(TT,1);
-    assert(nf == (nq+nt));
-    % face barycenter
-    SF = [ ...
-      sparse(repmat(1:nq,1,4),QQ(:)',1/4*ones(1,nq*4),nq,n); ...
-      sparse(repmat(1:nt,1,3),TT(:)',1/3*ones(1,nt*3),nt,n)];
 
-    % get "quad edges" aka half-edges
-    QE = [QQ(:,1:2);QQ(:,2:3);QQ(:,3:4);QQ(:,[4 1])];
-    % get "triangle edges"
-    TE = [TT(:,1:2);TT(:,2:3);TT(:,[3 1])];
-    % all edges
-    FE = [QE;TE];
-    % get unique edge list, QE2E tells original face edges (with duplicates,
-    % EE) where to find matching unique edge (E)
-    [E,I,FE2E] = unique(sort(FE,2),'rows');
-    FEF = [repmat(1:nq,1,4) nq+repmat(1:nt,1,3)]';
-    % number of original edges
-    ne = size(E,1);
-    E2F = zeros(ne,2);
-    flip = FE(:,1)~=E(FE2E,1);
-    E2F(sub2ind(size(E2F),FE2E,flip+1)) = FEF;
-    Eout = accumarray(FE2E,1,[size(E,1) 1])==1;
-    in = find(~Eout);
-    out = find(Eout);
-    % Average of original edge points and edge-flap face barycenters
-    SE = ...
-      (sparse( ...
-        repmat(in,4,1), ...
-        [E(in,1);E(in,2);n+[E2F(in,1);E2F(in,2)]], ...
-        1/4*ones(numel(in)*4,1),ne,n+nf) + ...
-      sparse( ...
-        repmat(out,2,1), ...
-        [E(out,1);E(out,2)], ...
-        repmat(1/2,numel(out)*2,1),ne,n+nf)) ...
-      *[speye(n);SF];
+    if poly_input
+      % polygon degrees
+      deg = diff(PC);
+      % repeated face indices. One for each vertex/edge.
+      rI = repelem((1:nf)',deg);
+      % face barycenter
+      SF = sparse(rI,PI,1./deg(rI),nf,n);
+
+      % All half-edges
+      HE = [PI PI(mod((1:numel(PI))'-PC(rI),deg(rI))+1+PC(rI))];
+      [E,~,EMAP] = unique(sort(HE,2),'rows');
+      % number of original edges
+      ne = size(E,1);
+
+      ME = sparse(repmat(1:ne,2,1)',E,1/2,ne,n);
+      SE = [0.5*ME sparse(EMAP,rI,1/4,ne,nf)] * [speye(n);SF];
+      
+      % average faces onto vertices
+      V2F = sparse(PI,rI,1,n,nf);
+      vdeg = sum(V2F,2);
+      V2F = V2F ./ vdeg;
+
+      % average edges onto vertices
+      V2E = sparse(E,repmat(1:ne,2,1)',1, n, ne);
+      V2E = V2E ./ sum(V2E,2);
+
+      V2V = speye(n);
+
+      SV = ...
+        (V2F ./ vdeg)*SF + ...
+        (V2E .* (2./vdeg))*ME + ...
+        V2V .* ((vdeg-3)./vdeg);
+
+      S = [SV;SF;SE];
+      VV = S*VV;
+
+      %QQ = [ ...
+      %  QQ(:,1) n+nf+QE2E(:,1) n+(1:nq)' n+nf+QE2E(:,4); ...
+      %  QQ(:,2) n+nf+QE2E(:,2) n+(1:nq)' n+nf+QE2E(:,1); ...
+      %  QQ(:,3) n+nf+QE2E(:,3) n+(1:nq)' n+nf+QE2E(:,2); ...
+      %  QQ(:,4) n+nf+QE2E(:,4) n+(1:nq)' n+nf+QE2E(:,3); ...
+      %  ];
+      % Recreating that order will be a bit tricky with repelem
+      % but we can recreate the same unique simplices and each simplex ordered
+      % the same way (just in a different place in the list)
+      % And I guess we could sort it afterward
+      %
+      %
+      % We can think of (1:numel(PI))' as indexing into the half-edges
+      % corresponding where PI is the start vertex.
+      %
+      % Let's build D as indexing into the half-edges corresponding to where PI
+      % is the end vertex.
+      % [EMAP EMAP(HE(:,2)) PC(rI) deg(rI) rI EMAP(mod((1:numel(PI))'-PC(rI)-2+deg(rI),deg(rI))+1 + PC(rI))] 
+      D = EMAP(mod((1:numel(PI))'-PC(rI)-2+deg(rI),deg(rI))+1 + PC(rI));
+
+      % There's one quad per vertex
+      % [vertex next-half-edge face-barycenter prev-half-edge ...]
+      % vertex→PI
+      % next-half-edge→n+nf+EMAP
+      % face-barycenter→n+rI
+      QQ = [PI n+nf+EMAP n+rI n+nf+D];
+      % It'd be nice if calling catmull_clark(V,Q) produces the same as
+      % catmull_clark(V,PI,PC) if Q and (PI,PC) represent the same mesh.
+      % To do this we'd have to sort edge midpoints above and the Q rows here.
+
+      SS = S*SS;
+      J = J(rI);
+    else
+      % assume all are quads OR tris
+      FF = QQ;
+        
+      % extract pure quads
+      pure = false(nf,1);
+      if size(FF,2)==4
+        pure = FF(:,4)~=nan & FF(:,4)>0 & FF(:,4)~=FF(:,3);
+        QQ = FF(pure,:);
+      else
+        QQ = zeros(0,4);
+      end
+      TT = FF(~pure,1:3);
+      JQ = J(pure);
+      JT = J(~pure);
+      nq = size(QQ,1);
+      nt = size(TT,1);
+      assert(nf == (nq+nt));
+      % face barycenter
+      SF = [ ...
+        sparse(repmat(1:nq,1,4),QQ(:)',1/4*ones(1,nq*4),nq,n); ...
+        sparse(repmat(1:nt,1,3),TT(:)',1/3*ones(1,nt*3),nt,n)];
+
+      % get "quad edges" aka half-edges
+      QE = [QQ(:,1:2);QQ(:,2:3);QQ(:,3:4);QQ(:,[4 1])];
+      % get "triangle edges"
+      TE = [TT(:,1:2);TT(:,2:3);TT(:,[3 1])];
+      % all edges
+      FE = [QE;TE];
+      % get unique edge list, QE2E tells original face edges (with duplicates,
+      % EE) where to find matching unique edge (E)
+      [E,I,FE2E] = unique(sort(FE,2),'rows');
+      FEF = [repmat(1:nq,1,4) nq+repmat(1:nt,1,3)]';
+      % number of original edges
+      ne = size(E,1);
+      E2F = zeros(ne,2);
+      flip = FE(:,1)~=E(FE2E,1);
+      E2F(sub2ind(size(E2F),FE2E,flip+1)) = FEF;
+      Eout = accumarray(FE2E,1,[size(E,1) 1])==1;
+      in = find(~Eout);
+      out = find(Eout);
+      % Average of original edge points and edge-flap face barycenters
+      SE = ...
+        (sparse( ...
+          repmat(in,4,1), ...
+          [E(in,1);E(in,2);n+[E2F(in,1);E2F(in,2)]], ...
+          1/4*ones(numel(in)*4,1),ne,n+nf) + ...
+        sparse( ...
+          repmat(out,2,1), ...
+          [E(out,1);E(out,2)], ...
+          repmat(1/2,numel(out)*2,1),ne,n+nf)) ...
+        *[speye(n);SF];
 
 
-    V2F = [ ...
-      sparse(QQ,repmat(1:nq,4,1)',1,n,nq) ...
-      sparse(TT,repmat(1:nt,3,1)',1,n,nt)];
-    % number of faces incident on each vertex
-    val = sum(V2F,2);
-    % http://www.alecjacobson.com/weblog/?p=3235
-    pou_rows =  @(A) spdiags (1./sum (A,2), 0, size(A,1), size(A,1)) * A ;
-    % normalize to take average
-    %V2F = bsxfun(@rdivide,V2F,sum(V2F,2));
-    V2F = pou_rows(V2F);
-    % compute midpoints of original vertices
-    ME = sparse(E(:,[1 2 1 2]),E(:,[1 2 2 1]),1,n,n);
-    %ME = bsxfun(@rdivide,ME,sum(ME,2));
-    ME = pou_rows(ME);
-    % Weighting 
-    W = bsxfun(@rdivide,[(val-3) ones(n,1) 2*ones(n,1)],val);
-    Vout = false(n,1);
-    Vout(E(Eout,:)) = true;
-    in = find(~Vout);
-    out = find(Vout);
-    % 1/8-------3/4-------1/8
-    %    1/2--1/2  1/2--1/2
-    %       1/4 1/2 1/4
-    SV = ( ...
-      sparse(repmat(in,1,3),in+(0:2)*n, W(in,:),n,3*n) + ...
-      sparse(E(Eout,[1 2 1 2]),E(Eout,[1 2 2 1]),0.125,n,3*n) + ...
-      sparse(out,out,0.5,n,3*n)) ...
-      *[speye(n);V2F*SF;ME];
+      V2F = [ ...
+        sparse(QQ,repmat(1:nq,4,1)',1,n,nq) ...
+        sparse(TT,repmat(1:nt,3,1)',1,n,nt)];
+      % number of faces incident on each vertex
+      val = sum(V2F,2);
+      % http://www.alecjacobson.com/weblog/?p=3235
+      pou_rows =  @(A) spdiags (1./sum (A,2), 0, size(A,1), size(A,1)) * A ;
+      % normalize to take average
+      %V2F = bsxfun(@rdivide,V2F,sum(V2F,2));
+      V2F = pou_rows(V2F);
+      % compute midpoints of original vertices
+      ME = sparse(E(:,[1 2 1 2]),E(:,[1 2 2 1]),1,n,n);
+      %ME = bsxfun(@rdivide,ME,sum(ME,2));
+      ME = pou_rows(ME);
+      % Weighting 
+      W = bsxfun(@rdivide,[(val-3) ones(n,1) 2*ones(n,1)],val);
+      Vout = false(n,1);
+      Vout(E(Eout,:)) = true;
+      in = find(~Vout);
+      out = find(Vout);
+      % 1/8-------3/4-------1/8
+      %    1/2--1/2  1/2--1/2
+      %       1/4 1/2 1/4
+      SV = ( ...
+        sparse(repmat(in,1,3),in+(0:2)*n, W(in,:),n,3*n) + ...
+        sparse(E(Eout,[1 2 1 2]),E(Eout,[1 2 2 1]),0.125,n,3*n) + ...
+        sparse(out,out,0.5,n,3*n)) ...
+        *[speye(n);V2F*SF;ME];
 
-    S = [SV;SF;SE];
-    VV = S*VV;
+      S = [SV;SF;SE];
+      VV = S*VV;
 
-    %clf;
-    %hold on;
-    %tsurf(Q,V,'FaceAlpha',0.5);
-    %scatter3(VV(:,1),VV(:,2),VV(:,3),'LineWidth',3);
-    %hold off;
-    %error
+      %clf;
+      %hold on;
+      %tsurf(Q,V,'FaceAlpha',0.5);
+      %scatter3(VV(:,1),VV(:,2),VV(:,3),'LineWidth',3);
+      %hold off;
+      %error
 
-    SS = S*SS;
-    QE2E = reshape(FE2E(1:nq*4),size(QQ));
-    TE2E = reshape(FE2E(nq*4+(1:nt*3)),size(TT));
-    QQ = [ ...
-      QQ(:,1) n+nf+QE2E(:,1) n+(1:nq)' n+nf+QE2E(:,4); ...
-      QQ(:,2) n+nf+QE2E(:,2) n+(1:nq)' n+nf+QE2E(:,1); ...
-      QQ(:,3) n+nf+QE2E(:,3) n+(1:nq)' n+nf+QE2E(:,2); ...
-      QQ(:,4) n+nf+QE2E(:,4) n+(1:nq)' n+nf+QE2E(:,3); ...
-      ];
-    TT = [ ...
-      TT(:,1) n+nf+TE2E(:,1) n+nq+(1:nt)' n+nf+TE2E(:,3); ...
-      TT(:,2) n+nf+TE2E(:,2) n+nq+(1:nt)' n+nf+TE2E(:,1); ...
-      TT(:,3) n+nf+TE2E(:,3) n+nq+(1:nt)' n+nf+TE2E(:,2)];
-    QQ = [QQ;TT];
-    J = [JQ;JQ;JQ;JQ;JT;JT;JT];
+      SS = S*SS;
+      QE2E = reshape(FE2E(1:nq*4),size(QQ));
+      TE2E = reshape(FE2E(nq*4+(1:nt*3)),size(TT));
+      QQ = [ ...
+        QQ(:,1) n+nf+QE2E(:,1) n+(1:nq)' n+nf+QE2E(:,4); ...
+        QQ(:,2) n+nf+QE2E(:,2) n+(1:nq)' n+nf+QE2E(:,1); ...
+        QQ(:,3) n+nf+QE2E(:,3) n+(1:nq)' n+nf+QE2E(:,2); ...
+        QQ(:,4) n+nf+QE2E(:,4) n+(1:nq)' n+nf+QE2E(:,3); ...
+        ];
+      TT = [ ...
+        TT(:,1) n+nf+TE2E(:,1) n+nq+(1:nt)' n+nf+TE2E(:,3); ...
+        TT(:,2) n+nf+TE2E(:,2) n+nq+(1:nt)' n+nf+TE2E(:,1); ...
+        TT(:,3) n+nf+TE2E(:,3) n+nq+(1:nt)' n+nf+TE2E(:,2)];
+      QQ = [QQ;TT];
+      J = [JQ;JQ;JQ;JQ;JT;JT;JT];
+    end
 
+    poly_input = false;
   end
       
     
