@@ -1,6 +1,6 @@
 % RAY_MESH_INTERSECT_ALL Find all hits for each ray.
 %
-% [flag, t, lambda] = ray_mesh_intersect(src, dir, V, F);
+% [I, J, T, lambda] = ray_mesh_intersect_all(source, dir, V, F)
 %
 % Input:
 %    source #rays by 3 list of 3D vector ray origins

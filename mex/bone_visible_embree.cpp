@@ -69,8 +69,11 @@ void parse_rhs(
   // A: Yes.
   copy(Fp,Fp+m*dim,F.data());
   // http://stackoverflow.com/a/4461466/148668
-  transform(F.data(),F.data()+m*dim,F.data(),
-    bind2nd(std::plus<double>(),-1.0));
+  std::transform(
+      F.data(), F.data() + m * dim,
+      F.data(),
+      [](double x) { return x - 1.0; }
+      );
   // resize output to transpose
   s.resize(dim);
   copy(sp,sp+dim,s.data());

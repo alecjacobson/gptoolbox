@@ -65,6 +65,7 @@ option(LIBIGL_RESTRICTED_TRIANGLE "Use Triangle"       ON)
 option(LIBIGL_RESTRICTED_MATLAB   "Use Matlab"         ON)
 option(LIBIGL_XML                 "Use XML"            ON)
 option(WITH_ELTOPO                "Use El Topo"        ON)
+option(WITH_CYCODEBASE  "Use cyCodeBase"        ON)
 option(MATLAB_PROXY               "Download Matlab Proxy for compilation only" OFF)
 if( UNIX AND NOT APPLE)
   # Static boost libs are causing problems on linux
@@ -133,6 +134,19 @@ message(STATUS "Downloading and finding libigl...")
 #       find_package(LIBIGL REQUIRED)
 include(libigl)
 
+if(WITH_CYCODEBASE)
+  # fetch from https://github.com/cemyuksel/cyCodeBase/  at e36f3cffca65eb12a8a071f0443128b7de6ed75d
+  FetchContent_Declare(
+    cyCodeBase
+    GIT_REPOSITORY https://github.com/cemyuksel/cyCodeBase/
+    GIT_TAG e36f3cffca65eb12a8a071f0443128b7de6ed75d
+  )
+  FetchContent_Populate(cyCodeBase)
+  add_library(cyCodeBase_interface INTERFACE)
+  target_include_directories(cyCodeBase_interface INTERFACE ${cycodebase_SOURCE_DIR})
+  target_compile_definitions(cyCodeBase_interface INTERFACE -DCY_NO_INTRIN_H)
+  add_library(cyCodeBase::cyCodeBase ALIAS cyCodeBase_interface)
+endif()
 
 if(WITH_ELTOPO)
   # Download and find eltopo
@@ -216,6 +230,13 @@ if(WITH_ELTOPO)
     )
 endif()
 
+if(WITH_CYCODEBASE)
+  compile_each(
+    "fast_roots.cpp" 
+    "${CORE_LIBS};igl::core;igl_restricted::matlab;cyCodeBase::cyCodeBase"
+    )
+endif()
+
 if(LIBIGL_COPYLEFT_TETGEN)
   compile_each("\
 tetrahedralize.cpp;\
@@ -245,6 +266,7 @@ endif()
 if(LIBIGL_PREDICATES)
   add_definitions("-DWITH_PREDICATES")
   compile_each("\
+orient2d.cpp;\
 orient3d.cpp;\
 "
     "${CORE_LIBS};igl::core;igl_restricted::matlab;igl::predicates")

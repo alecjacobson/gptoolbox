@@ -225,7 +225,6 @@ void mexFunction(
     P.conservativeResize(P.rows(),dim);
   }
   
-
   switch(nlhs)
   {
     default:
