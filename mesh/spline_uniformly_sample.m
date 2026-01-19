@@ -1,5 +1,5 @@
-function [U,I,t] = spline_uniformly_sample(P,C,n,varargin)
-  % [U,I,t] = spline_uniformly_sample(P,C,n,varargin)
+function [U,I,t,E] = spline_uniformly_sample(P,C,n,varargin)
+  % [U,I,t,E] = spline_uniformly_sample(P,C,n,varargin)
   %
   % Inputs:
   % P  #P by dim list of vertex positions
@@ -17,6 +17,7 @@ function [U,I,t] = spline_uniformly_sample(P,C,n,varargin)
   %   U  n by dim list of uniformly sampled points
   %   I  n list of indices into C
   %   t  n list of parameters into cubic bezier curves
+  %   E  #E by 2 list of edges connecting neighboring samples
 
   stagger = [];
   f_tol = 1e-16;
@@ -72,19 +73,23 @@ function [U,I,t] = spline_uniformly_sample(P,C,n,varargin)
       end
 
       nn = max(ceil(n*l/sum(l)),2);
+      % sum(nn) not necessarily equal to n due to rounding
       U = [];
       I = [];
       t = [];
+      E = [];
       for c = 1:nk
         Jc = find(S(:,c));
         Cc = C(Jc,:);
         [Pc,~,~,Cc] = remove_unreferenced(P,Cc,true);
-        [Uc,Ic,tc] = spline_uniformly_sample(Pc,Cc,nn(c),varargin{:});
+        [Uc,Ic,tc,Ec] = spline_uniformly_sample(Pc,Cc,nn(c),varargin{:});
+        E = [E size(U,2)+Ec'];
         U = [U Uc'];
         I = [I;Jc(Ic)];
-        assert(nargout<3);
+        t = 'not supported';
       end
       U = U';
+      E = E';
       return;
     else
       error('Single component must be a chain in order');
@@ -101,10 +106,11 @@ function [U,I,t] = spline_uniformly_sample(P,C,n,varargin)
     assert(stagger,'Loops should use ''Stagger'',true');
     C(end,end) = size(P,1)+1;
     P = [P;P(1,:)];
-    [U,I,t] = spline_uniformly_sample(P,C,n+1,'Stagger',false);
+    [U,I,t,E] = spline_uniformly_sample(P,C,n+1,'Stagger',false);
     U = U(1:end-1,:);
     I = I(1:end-1);
     t = t(1:end-1);
+    E = [E(1:end-1,:);E(end,1) E(1,1)];
     return;
   end
 
@@ -136,8 +142,8 @@ function [U,I,t] = spline_uniformly_sample(P,C,n,varargin)
         ti = lt(cumlens(c)+1:cumlens(c+1));
         U = [U;cubic_eval(P(C(c,:),:),ti)];
       end
-      [V,E] = spline_to_poly(P,C,0.01);
-      tsurf(E,V);
+      [vV,vE] = spline_to_poly(P,C,0.01);
+      tsurf(vE,vV);
       hold on;
       sct(P(C(:,[1 4]),:),'r','filled');
       sct(U,'b','filled');
@@ -198,6 +204,11 @@ function [U,I,t] = spline_uniformly_sample(P,C,n,varargin)
     U = [U;cubic_eval(P(C(c,:),:),ti)];
   end
   t = lt;
+  if on_loop
+    E = [1:size(U,1);2:size(U,1) 1]';
+  else
+    E = [1:size(U,1)-1;2:size(U,1)]';
+  end
 
   function [res,J] = residuals(P,C,gt)
     if on_loop
