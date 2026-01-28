@@ -1,4 +1,8 @@
 function [B1,B2,leaf] = aabb(PB1,PB2)
+  % AABB  build an eytzinger aabb tree.
+  %
+  % [B1,B2,leaf] = aabb(PB1,PB2)
+  %
   % Inputs:
   %   PB1  #P by dim list of min corners of primitive boxes
   %   PB2  #P by dim list of max corners of primitive boxes
