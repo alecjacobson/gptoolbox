@@ -46,10 +46,10 @@ function [Z,XV] = imcurves(im,XV,varargin)
     if pos(3)*2<size(im,2)
       warning('interactive display on smaller image');
       im_fit = imresize(im,pos(3)/size(im,2));
-      Z_fit = filter(im_fit);
     else
       im_fit = im;
     end
+    Z_fit = filter(im_fit);
     subplot(1,2,1);
     ish = imshow(Z_fit);
     subplot(1,2,2);
