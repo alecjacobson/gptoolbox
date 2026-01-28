@@ -8,6 +8,11 @@ classdef SVG < handle
     S
     W
     D
+    bbd
+    min_corner
+    max_corner
+    center
+    transform
     viewBox
     draw_tol = 1
   end
@@ -22,8 +27,12 @@ classdef SVG < handle
         filename = varargin{1};
         [this.P,this.C,this.I,this.F,this.S,this.W,this.D,this.viewBox] = ...
           readSVG_cubics(filename);
-        bbd = normrow(max(this.P)-min(this.P));
-        this.draw_tol = bbd*0.001;
+        this.min_corner = min(this.P);
+        this.max_corner = max(this.P);
+        this.center = 0.5*(this.min_corner+this.max_corner);
+        this.bbd = normrow(this.max_corner - this.min_corner);
+        this.draw_tol = this.bbd*0.001;
+        this.transform = eye(3,2);
       else
         error('Not supported');
       end
@@ -69,11 +78,12 @@ classdef SVG < handle
       end
       hold on;
       for i = 1:max(this.I)
-        tsurf(this.draw_data.F{i},this.draw_data.V{i},'FaceVertexCData',this.F(i,:),'FaceColor','flat','EdgeColor','none');
+        tVi = this.draw_data.V{i}*this.transform(1:2,:) + this.transform(3,:);
+        tsurf(this.draw_data.F{i},tVi,'FaceVertexCData',this.F(i,:),'FaceColor','flat','EdgeColor','none');
         if ~isempty(this.draw_data.E{i})
           %tsurf(this.draw_data.E{i},this.draw_data.V{i},'FaceColor','none','EdgeColor',this.S(i,:),'LineWidth',this.W(i));
           % This should be precomputed.
-          plot_taper(this.draw_data.V{i},this.draw_data.E{i},this.W(i)/2,'FaceColor',this.S(i,:),'EdgeColor','none');
+          plot_taper(tVi,this.draw_data.E{i},this.W(i)/2*sqrt(det(this.transform(1:2,:))),'FaceColor',this.S(i,:),'EdgeColor','none');
         end
       end
 
