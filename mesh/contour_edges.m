@@ -40,7 +40,7 @@ function [V,E] = contour_edges(X,Y,Z,v)
   %V = V';
   %E = E';
 
-  [E,V] = isocontour(Z,v);
+  [E,V] = isocontour_off(Z,v);
   E = fliplr(E);
 
   V = V(:,[2 1]);

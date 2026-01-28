@@ -20,6 +20,10 @@ function dfdx = cs_jacobian(obj,x,epsilon)
   %   % Hessian
   %   H = fd_jacobian(@(x) cs_jacobian(obj,x),x);
   %   max(abs(H(:)-A(:)))
+  %
+  % Obsolete, use fd(...,use_complex_step=true)
+  % 
+  % See also: fd
   x = reshape(x,[],1);
   if nargin<3
     epsilon = 1e-100;

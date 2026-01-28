@@ -14,7 +14,7 @@ function [V,E,F] = stadium(n,a,r)
   %   E  #E by 2 list of edge indices into rows of V
   %   F  #F by 3 list of triangle indices into rows of V
   %
-  % See also: capsule
+  % See also: capsule_mesh
 
   if ~exist('a','var')
     a = 4;

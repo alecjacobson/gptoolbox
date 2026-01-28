@@ -1,4 +1,4 @@
-function flag = cubic_is_flat(C,tol)
+function [flag,tao] = cubic_is_flat(C,tol)
   % CUBIC_IS_FLAT "Piecewise Linear Approximation of Bézier Curves" [Fischer
   % 2000]
   %
@@ -27,5 +27,6 @@ function flag = cubic_is_flat(C,tol)
   u = max(u,v);
   % Not sure if this 16 makes sense for dim>2
   tolerance = 16*tol^2;
-  flag = sum(u,2) <= tolerance;
+  tao = sum(u,2);
+  flag = tao <= tolerance;
 end

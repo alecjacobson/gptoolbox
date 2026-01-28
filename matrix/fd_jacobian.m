@@ -16,6 +16,9 @@ function dfdx = fd_jacobian(obj,x,epsilon)
   %   H = fd_jacobian(@(x) fd_jacobian(obj,x),x);
   %   max(abs(H(:)-A(:)))
   %
+  %
+  % Obsolete, use fd
+  %
   % See also: fd
   x = reshape(x,[],1);
   if nargin<3

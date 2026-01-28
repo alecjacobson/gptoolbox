@@ -51,7 +51,14 @@ function [w,a,R] = axisanglebetween(u,v,nan_replacement)
   w(S,2) = 0;
   w(S,3) = 1;
   a(S) = 0;
+
   if nargout >2
     R = axisangle2matrix(w,a);
+    if dim == 2
+      R = R(1:2,1:2,:);
+    end
+  end
+  if dim == 2
+    w = w(:,1:2); % remove z coordinate
   end
 end

@@ -20,7 +20,7 @@ function [v,sv] = volume(V,T)
   % Minus sign so that typical tetgen mesh has positive volume
   %v = -dot((a-d),cross2(b-d,c-d),2)./6./4;
   % Not sure where that ./4 came from...
-  v = -dot((a-d),cross2(b-d,c-d),2)./6;
+  v = -sum((a-d).*cross2(b-d,c-d),2)./6;
   function r = cross2(a,b)
     % Optimizes r = cross(a,b,2), that is it computes cross products per row
     % Faster than cross if I know that I'm calling it correctly

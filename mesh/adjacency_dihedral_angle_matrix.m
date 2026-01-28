@@ -1,4 +1,4 @@
-function [A,C] = adjacency_dihedral_angle_matrix(V,F)
+function [A,C,E,EMAP] = adjacency_dihedral_angle_matrix(V,F)
   % ADJACENCY_DIHEDRAL_ANGLE_MATRIX Build a matrix A such that A(i,j) = θij the
   % dihedral angle between faces F(i,:) and F(j,:) if they're neighbors (share
   % an edge) or 0 if they're not.
@@ -37,11 +37,11 @@ function [A,C] = adjacency_dihedral_angle_matrix(V,F)
   % all edges "both" directions
   allE = [F(:,[2 3]);F(:,[3 1]);F(:,[2 1])];
   % index for each edge to unique edge
-  [E,~,IC] = unique(sort(allE,2),'rows');
+  [E,~,EMAP] = unique(sort(allE,2),'rows');
   % FE(i,j) = 1 means that face j is incident upon edge i
   % so all FE(:,j) == 1 are neighbors
   FE = sparse( ...
-    IC(:), ...
+    EMAP(:), ...
     repmat(1:size(F,1),3,1)', ...
     reshape(repmat(1:3,size(F,1),1),3*size(F,1),1), ...
     size(E,1), ...

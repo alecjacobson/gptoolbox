@@ -11,6 +11,9 @@ function [V,E] = isocontour(X,Y,Z,v)
   % Outputs:
   %   V  #V by 2 list of vertex positions
   %   E  E# by 2 list of edges as indices into rows of V
+
+  v = [min(Z(:));v(:);max(Z(:))];
+
   c = contourc(X(1,:),Y(:,1),Z,v);
   i = 1;
   V = [];
