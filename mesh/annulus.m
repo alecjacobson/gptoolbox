@@ -35,9 +35,12 @@ function [V,F,bi,bo] = annulus(s,r,varargin)
     end
     v=v+1;
   end
+  assert(r<R,'Inner radius must be smaller than outer radius');
+
   if isnan(flags)
     flags = sprintf('-q30 -a%0.17f',(2*pi*r/s)^2);
   end
+
 
   theta = linspace(0,2*pi,s+1)';theta = theta(1:end-1);
   Vr = r*[cos(theta) sin(theta)];

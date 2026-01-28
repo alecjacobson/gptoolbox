@@ -1,4 +1,4 @@
-function [P,T] = cubic_flat_eval(C,tol)
+function [P,T] = cubic_flat_eval(C,tol,cubic_is_flat_fun)
   % CUBIC_FLAT_EVAL Recursively subdivide a cubic Bezier curve until each
   % segment spans a region of the curve that is locally flat up to a given
   % tolerance (i.e., this computes an adaptive refinement).
@@ -13,13 +13,18 @@ function [P,T] = cubic_flat_eval(C,tol)
   % 
   % See also: cubic_eval, cubic_is_flat, cubic_split
   %
-  if cubic_is_flat(C,tol)
+
+  if nargin < 3
+    cubic_is_flat_fun = @cubic_is_flat;
+  end
+
+  if cubic_is_flat_fun(C,tol)
     P = C([1 4],:);
     T = [0;1];
   else
     [C1,C2] = cubic_split(C,0.5);
-    [P1,T1] = cubic_flat_eval(C1,tol);
-    [P2,T2] = cubic_flat_eval(C2,tol);
+    [P1,T1] = cubic_flat_eval(C1,tol,cubic_is_flat_fun);
+    [P2,T2] = cubic_flat_eval(C2,tol,cubic_is_flat_fun);
     P = [P1;P2(2:end,:)];
     T = [T1*0.5;0.5+0.5*T2(2:end)];
   end

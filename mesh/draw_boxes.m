@@ -34,11 +34,11 @@ function t = draw_boxes(BN,BX,varargin)
     V = [];
     for x = 0:1
       for y = 0:1
-          V = [V;BN + bsxfun(@times,BX-BN,[x y])];
+        V = [V;BN + bsxfun(@times,BX-BN,[x y])];
       end
     end
-    F = [1 2 4 3];
-    F = reshape(bsxfun(@plus,(F(:)-1)*m,1:m)',m,4);
-    t = patch('Faces',F,'Vertices',V,varargin{:});
+    E = [1 2;2 4;4 3;3 1];
+    E = reshape(bsxfun(@plus,(E(:)-1)*m,1:m)',4*m,2);
+    t = tsurf(E,V,varargin{:});
   end
 end

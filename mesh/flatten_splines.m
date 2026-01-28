@@ -98,9 +98,16 @@ function [PR,CR,IR] = flatten_splines(P,C,I,F,S,SW,D)
         IBA = IBA(DBA,:);
       end
 
+      %len = @(P,C) normrow(P(C(:,4),:)-P(C(:,1),:));
+      %lenBA = len(PBA,CBA);
+      %lenAB = len(PAB,CAB);
+      %if any(lenAB == 0) || any(lenBA == 0) || any(isnan(lenAB)) || any(isnan(lenBA))
+      %  keyboard
+      %end
 
       PBA_new = PBA(size(P,1)+1:end,:);
       CBA(CBA>size(P,1)) = (CBA(CBA>size(P,1))-size(P,1))+size(PAB,1);
+
       PR = [PAB;PBA_new];
       CR = [CAB;CBA];
       IR = [IAB;IBA];

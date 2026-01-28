@@ -2,9 +2,12 @@
 % java.util.PriorityQueue and encode/decode directly.
 classdef PriorityQueue < handle
   properties
-    jQ = java.util.PriorityQueue;
+    jQ
   end
   methods
+    function pQ = PriorityQueue()
+      pQ.jQ = java.util.PriorityQueue;
+    end
     function pQ = add(pQ,value,index)
       pQ.jQ.add(PriorityQueue.encode(value,index));
     end
@@ -13,6 +16,9 @@ classdef PriorityQueue < handle
     end
     function res = isempty(pQ)
       res = pQ.jQ.isEmpty();
+    end
+    function [value,index] = peek(pQ)
+      [value,index] = PriorityQueue.decode(pQ.jQ.peek());
     end
   end
   methods(Static)

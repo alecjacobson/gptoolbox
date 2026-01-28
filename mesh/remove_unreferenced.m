@@ -3,11 +3,12 @@ function [RV,IM,J,IMF] = remove_unreferenced(V,F,output_bound)
   % **Warning:** This implementation is O(#V) regardless of #F
   %
   % [RV,IM,J,IMF] = remove_unreferenced(V,F)
+  % [RV,IM,J,IMF] = remove_unreferenced(V,F,output_bound)
   %
   % Inputs:
   %   V  #V by dim list of "vertex positions"
   %   F  #F by anything list of indices into V (will be treated as F(:))
-  %   output_bound  whether to be O(#F) and *not* output IM
+  %   output_bound  whether to be O(#F) and *not* output IM {false}
   % Outputs:
   %  RV  #unique(F) by dim vertex positions, order such that if the jth vertex is
   %    some face in F, and the kth vertex is not then j comes before k

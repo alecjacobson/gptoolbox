@@ -1,5 +1,9 @@
 classdef SVG < handle
-  % members
+  % Class for drawing SVG files.
+  %
+  % svg = SVG(filename)
+  %   or
+  % svg = SVG() % and then you gotta set svg.P, svg.C, etc.
   properties(GetAccess=public, SetAccess=public)
     P
     C

@@ -33,9 +33,9 @@ function [T,TI,E] = polygons_to_triangles(PI,PC)
     TI = IA(TI);
     return;
   end
-  assert(all(diffPC>=3));
+  %assert(all(diffPC>=3));
 
-  I1 = repelem(PI(PC(1:end-1)+1),diffPC-2);
+  I1 = reshape(repelem(PI(PC(1:end-1)+1),diffPC-2),[],1);
   I2 = PI;
   % remove first and last entries
   I2([PC(1:end-1)+1;PC(2:end)]) = [];

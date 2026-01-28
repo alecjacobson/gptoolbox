@@ -112,7 +112,7 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   end
 
   % Homogeneous coordinates
-  if numel(plane) == 4
+  if size(plane,1) == 1 && size(plane,2) == 4
     IV = sum(bsxfun(@times,[V ones(size(V,1),1)],plane),2);
   else
     IV = plane;
@@ -143,7 +143,7 @@ function [U,G,J,BC] = slice_tets(V,T,plane,varargin)
   % Vertex position on each unique edge
   U = V(sE(:,1),:).*lambda+ V(sE(:,2),:).*(1-lambda);
   G = [G13;size(U13,1)+[fliplr(G31);size(U31,1)+[G22;]]];
-  G = uJ(G);
+  G = reshape(uJ(G),size(G));
 
   if construct_BC
     BC = sparse( ...

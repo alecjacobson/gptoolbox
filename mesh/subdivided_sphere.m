@@ -1,4 +1,4 @@
-function [V,F] = subdivided_sphere(iters,varargin)
+function [V,F,Q] = subdivided_sphere(iters,varargin)
   % SUBDIVIDED_SPHERE Generate a sphere by iteratively subdividing a
   % icosahedron in-plane and normalizing vertex locations to lie on the sphere.
   %
@@ -8,15 +8,22 @@ function [V,F] = subdivided_sphere(iters,varargin)
   %   iters  number of subdivision iterations (0 produces 12-vertex
   %     icosahedron)
   %   Optional:
-  %     'Base'  followed by base shape.
+  %     'Base'  followed by base shape, one of:
+  %       '' (default)
+  %       'icosahedron'
+  %       'octahedron'
+  %       'cube'
   %     'Radius'  followed by scalar radius (multiplied against final V) {1}
   %     'SubdivisionMethod' followed by either:
+  %       'catmull_clark'
   %       'loop'
   %       'sqrt3'
   %       {'upsample'}
   % Outputs:
   %   V  #V by 3 list of mesh vertices
   %   F  #F by 3 list of face indices into V
+  %   Q  #Q by 4 list of quad vertices (only returned if base is 'cube' and
+  %     subdivision_method is 'catmull_clark')
   % 
   % See also: upsample, loop
   % 
@@ -47,7 +54,10 @@ function [V,F] = subdivided_sphere(iters,varargin)
     [V,F] = icosahedron();
   case 'octahedron'
     [V,F] = octahedron();
-  otherwise
+  case 'cube'
+    [V,F,Q] = cube();
+    V = (V-0.5)*2;
+  case ''
     % Compute the 12 vertices
     phi = (1+sqrt(5))/2;  % Golden ratio
     V = [0   1  phi 
@@ -85,6 +95,8 @@ function [V,F] = subdivided_sphere(iters,varargin)
           4  12 3
           4  3  11
           4  11 7];
+  otherwise
+    error('unsupported base: %s',base);
   end
 
   V = normalizerow(V);
@@ -94,6 +106,9 @@ function [V,F] = subdivided_sphere(iters,varargin)
       [V,F] = upsample(V,F);
     case 'loop'
       [V,F] = loop(V,F);
+    case 'catmull_clark'
+      [V,Q] = catmull_clark(V,Q);
+      F = [Q(:,[1 2 3]);Q(:,[1 3 4])];
     case 'sqrt3'
       [V,F] = sqrt3(V,F);
     end
