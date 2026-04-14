@@ -105,7 +105,7 @@ void mexFunction(
     }
     case 2:
     {
-      prepare_lhs_double(I,plhs+1);
+      prepare_lhs_index(I,plhs+1);
       // Fall through
     }
     case 1:

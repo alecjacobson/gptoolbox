@@ -6,6 +6,8 @@ function [P,C,I,F,S,W,D,viewBox] = readSVG_cubics(filename,varargin)
   % 
   % Inputs:
   %   filename  path to .svg file
+  %   Optional inputs:
+  %     'UnsupportedAlert'  followed by 'error' (default), 'warning', or 'ignore'
   % Outputs:
   %   P  #P by 2 list of control point locations
   %   C  #C by 4 list of indices into P of cubics
@@ -65,8 +67,44 @@ function [P,C,I,F,S,W,D,viewBox] = readSVG_cubics(filename,varargin)
       end
       match = {{match}};
     end
-    if isempty(match{1}) || strcmp(match{1}{1},'none') || match{1}{1}(1) ~= '#'
+    if isempty(match{1}) || strcmp(match{1}{1},'none')
       f = nan(1,3);
+      return;
+    end
+    web_color_names = { ...
+      'red','green','blue','black','white','yellow','cyan','magenta', ...
+      'gray','grey','aqua','fuchsia','lime','maroon','navy','olive', ...
+      'purple','silver','teal' };
+
+    web_colors = [ ...
+      1 0 0;        % red
+      0 1 0;        % green
+      0 0 1;        % blue
+      0 0 0;        % black
+      1 1 1;        % white
+      1 1 0;        % yellow
+      0 1 1;        % cyan
+      1 0 1;        % magenta
+      0.5 0.5 0.5;  % gray
+      0.5 0.5 0.5;  % grey
+      0 1 1;        % aqua
+      1 0 1;        % fuchsia
+      0 1 0;        % lime
+      0.5 0 0;      % maroon
+      0 0 0.5;      % navy
+      0.5 0.5 0;    % olive
+      0.5 0 0.5;    % purple
+      0.75 0.75 0.75; % silver
+      0 0.5 0.5     % teal
+      ];
+
+    if match{1}{1}(1) ~= '#'
+      [found,found_ind] = ismember(lower(match{1}{1}),web_color_names);
+      if found
+        f = web_colors(found_ind,:);
+      else
+        f = nan(1,3);
+      end
       return;
     end
     assert(numel(match{1}{1})==4 || numel(match{1}{1})==7);

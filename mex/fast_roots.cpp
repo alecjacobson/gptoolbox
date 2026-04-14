@@ -82,7 +82,7 @@ void mexFunction(
     mexErrMsgTxt(Xmax.size()==1 || Xmax.size()==n,"Xmax size invalid");
   }
   const int deg = P.cols()-1;
-  Eigen::MatrixXd X(n,deg-1);
+  Eigen::MatrixXd X(n,deg);
   for(int i = 0;i<n;i++)
   {
     const Eigen::RowVectorXd coef = P.row(i).reverse();

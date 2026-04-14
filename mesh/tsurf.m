@@ -139,10 +139,18 @@ function [t,o] = tsurf(F,V,varargin)
   end
 
   if iscell(draw_outline)
-    assert(size(F,2) == 3);
+    switch size(F,2)
+    case 3
+      tris = F;
+    case 4
+      tris = [F(:,[1 2 3]);F(:,[1 3 4])];
+    otherwise
+      assert(false);
+    end
+
     ish = ishold;
     hold on;
-    o_copy = tsurf(outline(F),V,draw_outline{:});
+    o_copy = tsurf(outline(tris),V,draw_outline{:});
     if ~ish
       hold off;
     end

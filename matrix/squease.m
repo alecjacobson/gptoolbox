@@ -1,4 +1,7 @@
 function [out1,out2] = squease(T)
+  % Squease there and back:
+  % t = linspace(0,2,1000);
+  % u = (t<1).*squease(t) + (t>=1).*(1-squease(t-1));
   if nargout == 1
     t2 = T./4;
     t3 = t2-5./108;

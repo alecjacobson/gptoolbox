@@ -86,7 +86,8 @@ function [U,I,t,E] = spline_uniformly_sample(P,C,n,varargin)
         E = [E size(U,2)+Ec'];
         U = [U Uc'];
         I = [I;Jc(Ic)];
-        t = 'not supported';
+        %t = 'not supported';
+        t = [t;tc];
       end
       U = U';
       E = E';

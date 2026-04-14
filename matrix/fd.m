@@ -6,7 +6,8 @@ function dfdx = fd(f,x,epsilon,use_complex_step)
   % Inputs:
   %   f  function handle taking x as input and outputting a vector of size #f
   %   x  #x₁ by #x₂ by ... by #xₙ vector of inputs, where #x₁ is the first dimension
-  %   epsilon  (optional) step size for finite difference, default 1e-6
+  %   epsilon  (optional) step size for finite difference, default
+  %   1e-5*max([abs(x(:));1])
   % Outputs:
   %   dfdx  #f by #x₁ by #x₂ by ... by #xₙ matrix of derivatives
   %
@@ -20,7 +21,7 @@ function dfdx = fd(f,x,epsilon,use_complex_step)
   %
   % See also: fd_jacobian
   if nargin < 3
-    epsilon = 1e-6;
+    epsilon = 1e-5*max([abs(x(:));1]);
   end
   if nargin < 4
     use_complex_step = false;

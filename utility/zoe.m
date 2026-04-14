@@ -1,4 +1,4 @@
-function CM = zoe(varargin)
+function [CM,CM0] = zoe(varargin)
   if nargin < 1
     n = 128;
   else
@@ -15,6 +15,7 @@ function CM = zoe(varargin)
   c = hex2rgb(h);
 
 
-  CM = interp1(t,c,linspace(0,1,2*n)','linear');
+  CM0 = interp1(t,c,linspace(0,1,2*n)','linear');
+  CM = CM0;
   CM(2:2:end,:) = CM(2:2:end,:) * alpha;
 end

@@ -14,6 +14,11 @@ function N = per_vertex_normals(V,F,varargin)
   % Outputs:
   %   N  #V by 3 list of vertex normals
   %
+  % Example:
+  %   % trick to compute per-vertex quad normals as average of all
+  %   % triangulations
+  %   N = per_vertex_normals(V,[Q(:,[1 2 3]);Q(:,[1 3 4]);Q(:,[1 2 4]);Q(:,[4 2 3])];
+
 
   weighting = 'area';
   U = [];

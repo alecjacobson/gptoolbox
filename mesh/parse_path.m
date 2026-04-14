@@ -104,7 +104,7 @@ function [P,C,state] = parse_path(dstr,varargin)
       % It seems that if using single precision the eps is far less important.
       if (state.key == 'Z' || state.key == 'z') && size(state.P,2)==state.mi
         % degenerate single point, ignore
-      elseif (state.key == 'Z' || state.key == 'z') && sum((state.P(:,end)-state.P(:,state.mi)).^2)<eps
+      elseif (state.key == 'Z' || state.key == 'z') && sum((state.P(:,end)-state.P(:,state.mi)).^2)<eps('single')
         % close up naturally by identifying first and last point
         if ~isempty(state.C)
           state.C(4,end) = state.mi;

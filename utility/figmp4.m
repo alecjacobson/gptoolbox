@@ -28,6 +28,11 @@ function vobj = figmp4(name,vobj,nf)
     vobj.open;
   end
   im = getfield(getframe(gcf),'cdata');
+  % crop so that size(im,1) and size(im,2) are a multiple of 4
+  sm = 16;
+  sz = sm*floor([size(im,1) size(im,2)]/sm);
+  im = im(1:sz(1),1:sz(2),:);
+
   for f = 1:nf
     vobj.writeVideo(im);
   end

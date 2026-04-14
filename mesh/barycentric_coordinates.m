@@ -107,7 +107,8 @@ function B = barycentric_coordinates(P,varargin)
       A1 = normrow(P -V2);%edge_lengths([P;V2],[1:n;n+[1:n]]');
       A2 = normrow(V1- P);%edge_lengths([V1;P],[1:n;n+[1:n]]');
       A  = normrow(V1-V2);%edge_lengths([V1;V2],[1:n;n+[1:n]]');
-      if dim>1 && max(abs(sum([A1 A2],2)-A))>1e-14
+      if dim>1 && max(abs(sum([A1 A2],2)-A))>1e-13
+        % lost track of why this throws a warning.
         warning('Possibly negative coordinates. Not supported in dim~=1');
       end
       B = bsxfun(@rdivide,[A1 A2],A);

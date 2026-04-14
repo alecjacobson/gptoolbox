@@ -18,7 +18,7 @@ function [P,T] = cubic_flat_eval(C,tol,cubic_is_flat_fun)
     cubic_is_flat_fun = @cubic_is_flat;
   end
 
-  if cubic_is_flat_fun(C,tol)
+  if any(isnan(C),'all') || cubic_is_flat_fun(C,tol)
     P = C([1 4],:);
     T = [0;1];
   else
