@@ -27,7 +27,7 @@ function writeBDL(filename,V,F)
     fwrite(fp, nBytes, 'int64');
   end
 
-  function bundle = writeBDLMeshChunk(fp, mesh)
+  function writeBDLMeshChunk(fp, mesh)
     % write a mesh chunk to a file stream that can be processed by the external
     % viewer.
     %
@@ -52,13 +52,13 @@ function writeBDL(filename,V,F)
     end
 
     nCperCol = 0;
-    if isfield(mesh,'col') nCperCol = size(mesh.col,2); end
+    if isfield(mesh,'col'); nCperCol = size(mesh.col,2); end
 
     baseColor = [1,1,1,1];
-    if isfield(mesh,'baseColor') baseColor = mesh.baseColor; end
+    if isfield(mesh,'baseColor'); baseColor = mesh.baseColor; end
 
     nCperUV = 0;
-    if isfield(mesh,'UV') nCperUV = size(mesh.UV,2); end
+    if isfield(mesh,'UV'); nCperUV = size(mesh.UV,2); end
 
     nCperNormal = 0;
     strip = 0;
@@ -78,9 +78,9 @@ function writeBDL(filename,V,F)
     fwrite(fp, baseColor, 'float32');
 
     fwrite(fp, mesh.V', 'float32');
-    if isfield(mesh,'UV') fwrite(fp, mesh.UV', 'float32'); end
-    if isfield(mesh,'col') fwrite(fp, mesh.col', 'float32'); end
-    if isfield(mesh,'F') fwrite(fp, mesh.F'-1, 'uint32');  % faces are 1-based in matlab
+    if isfield(mesh,'UV'); fwrite(fp, mesh.UV', 'float32'); end
+    if isfield(mesh,'col'); fwrite(fp, mesh.col', 'float32'); end
+    if isfield(mesh,'F'); fwrite(fp, mesh.F'-1, 'uint32');  end% faces are 1-based in matlab
 
     chunkSize = ftell(fp) - chunkStart;
 
