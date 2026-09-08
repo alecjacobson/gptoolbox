@@ -71,14 +71,29 @@ function [V,T,F] = regular_tetrahedral_mesh(varargin)
   v8 = idx(2:end,2:end,2:end);v8=v8(:);
   switch method
   case 'five'
-    T = [ ... 
-      v5 v3 v2 v1; ...
-      v3 v2 v8 v5; ...
-      v3 v4 v8 v2; ...
-      v3 v8 v7 v5; ...
-      v2 v6 v8 v5; ...
-      ];
-    warning('each cell is fine. cell boundaries do not line up');
+    % Splitting every cube along the same main diagonal (v1-v8) leaves the
+    % face diagonals on shared cube faces inconsistent between neighboring
+    % cells (one cell's face diagonal doesn't match its neighbor's), so the
+    % mesh is not conforming there. Alternate the split diagonal in a 3D
+    % checkerboard pattern (mirror the decomposition in x for odd cells) so
+    % that every interior face is split the same way by both cells that
+    % share it.
+    V8 = [v1 v2 v3 v4 v5 v6 v7 v8];
+    Vm = V8(:,[2 1 4 3 6 5 8 7]);
+    pattern = [5 3 2 1; 3 2 8 5; 3 4 8 2; 3 8 7 5; 2 6 8 5];
+    % Mirroring (swapping v1<->v2, v3<->v4, v5<->v6, v7<->v8) reverses
+    % chirality, which would flip the sign of each tet's volume and its
+    % boundary triangles' winding. Swap the last two corners of the pattern
+    % for the mirrored tets to restore consistent (positive) orientation.
+    pattern_mirror = pattern(:,[1 2 4 3]);
+    [JJ,II,KK] = ndgrid(1:ny-1,1:nx-1,1:nz-1);
+    odd = logical(mod(II(:)+JJ(:)+KK(:),2));
+    T = zeros(5*size(V8,1),4);
+    for r = 1:5
+      Tr = V8(:,pattern(r,:));
+      Tr(odd,:) = Vm(odd,pattern_mirror(r,:));
+      T(r:5:end,:) = Tr;
+    end
     F = boundary_faces(T);
   case 'reflectionally-symmetric'
     T = [ ...
