@@ -221,6 +221,7 @@ fit_rotations_mex.cpp;\
 fit_cubic_bezier.cpp;\
 icp.cpp;\
 isolines.cpp;\
+isolines_intrinsic.cpp;\
 in_element_aabb.cpp;\
 psd_project_rows.cpp;\
 principal_curvature.cpp;\
@@ -228,6 +229,7 @@ readMSH.cpp;\
 read_triangle_mesh.cpp;\
 segment_graph.cpp;\
 signed_distance.cpp;\
+simplex_simplex_squared_distance.cpp;\
 simplify_polyhedron.cpp;\
 slim.cpp;\
 split_nonmanifold.cpp;\
@@ -255,6 +257,7 @@ endif()
 if(LIBIGL_COPYLEFT_TETGEN)
   compile_each("\
 tetrahedralize.cpp;\
+refine_tetrahedralization.cpp;\
 "
   "${CORE_LIBS};igl::core;igl_restricted::matlab;igl_copyleft::tetgen")
 endif()

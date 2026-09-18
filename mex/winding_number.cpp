@@ -49,7 +49,9 @@ void parse_rhs(
   bool & ray_parity,
   int & num_rays,
   bool & twod_rays,
-  bool & fast)
+  bool & fast,
+  int & fast_order,
+  float & fast_accuracy_scale)
 {
   using namespace std;
   using namespace igl;
@@ -124,6 +126,16 @@ void parse_rhs(
         validate_arg_double(i,nrhs,prhs,name);
         validate_arg_scalar(i,nrhs,prhs,name);
         num_rays = (int)*mxGetPr(prhs[++i]);
+      }else if(strcmp("FastOrder",name) == 0)
+      {
+        validate_arg_double(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        fast_order = (int)*mxGetPr(prhs[++i]);
+      }else if(strcmp("FastAccuracyScale",name) == 0)
+      {
+        validate_arg_double(i,nrhs,prhs,name);
+        validate_arg_scalar(i,nrhs,prhs,name);
+        fast_accuracy_scale = (float)*mxGetPr(prhs[++i]);
       }else
       {
         mexErrMsgTxt(false,
@@ -150,8 +162,10 @@ void mexFunction(
   Eigen::MatrixXi F;
   bool hierarchical, ray_cast, ray_parity, twod_rays, fast;
   int num_rays;
+  int fast_order = 2;
+  float fast_accuracy_scale = 2.0;
   parse_rhs(
-    nrhs,prhs,V,F,O, hierarchical, ray_cast, ray_parity, num_rays, twod_rays, fast);
+    nrhs,prhs,V,F,O, hierarchical, ray_cast, ray_parity, num_rays, twod_rays, fast, fast_order, fast_accuracy_scale);
   const int dim = V.cols();
 
   //// Set up openmp
@@ -213,7 +227,9 @@ void mexFunction(
   {
     if(fast && dim==3)
     {
-      igl::fast_winding_number(V,F,O,W);
+      igl::FastWindingNumberBVH fwn_bvh;
+      igl::fast_winding_number(V,F,fast_order,fwn_bvh);
+      igl::fast_winding_number(fwn_bvh,fast_accuracy_scale,O,W);
     }else if(hierarchical && dim == 3)
     {
       // Initialize hierarchy

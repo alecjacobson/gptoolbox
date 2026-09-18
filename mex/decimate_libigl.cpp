@@ -100,11 +100,11 @@ void mexFunction(
       decimate(V,F,max_m,block_intersections,W,G,J,I);
       break;
     case DECIMATE_METHOD_PROGRESSIVE_HULLS:
+      mexErrMsgTxt(!block_intersections,
+        "Blocking intersections not supported with progressive hulls");
       copyleft::progressive_hulls(V,F,max_m,W,G,J);
       break;
     case DECIMATE_METHOD_QSLIM:
-      mexErrMsgTxt(!block_intersections,
-        "Blocking intersections not supported with progressive hulls");
       qslim(V,F,max_m,block_intersections,W,G,J,I);
       break;
     default:

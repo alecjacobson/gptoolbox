@@ -1,4 +1,4 @@
-  % [sqrD,S,K] = point_spline_squared_distance(Q,P,C)
+  % [sqrD,S,K] = point_cubic_squared_distance(Q,C)
   %
   % Inputs:
   %   Q   #Q by dim list of query points
