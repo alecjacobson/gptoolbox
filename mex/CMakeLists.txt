@@ -223,6 +223,7 @@ icp.cpp;\
 isolines.cpp;\
 isolines_intrinsic.cpp;\
 in_element_aabb.cpp;\
+marching_tets.cpp;\
 psd_project_rows.cpp;\
 principal_curvature.cpp;\
 readMSH.cpp;\

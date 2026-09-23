@@ -1,19 +1,16 @@
-function Y = pagenull(X)
-  % Y = pagenull(X)
-  %
-  % Inputs:
-  %    X  m x n x p array
-  % Outputs:
-  %    Y  n x m x p array so that Y(:,:,i) = pinv(X(:,:,i))
-  %
-  [U,s,V] = pagesvd(X,'econ','vector');
+function Y = pagenull(X,tol)
+  [~,s,V] = pagesvd(X,'vector');
 
-  if nargin<2
-    tol = max(size(X(:,:,1))) * eps(pagenorm(s,inf));
+  if nargin < 2
+    tol = max(size(X,1),size(X,2)) .* eps(max(s,[],1));
   end
 
-  s(s>tol) = 1./s(s>tol);
+  r = sum(s > tol,1);
 
-  Y = pagemtimes(permute(s,[2 1 3]).*V,'none',U,'ctranspose');
+  if any(r ~= r(1))
+    error('pagenull:variableNullity', ...
+      'Pages have different null-space dimensions.');
+  end
+
+  Y = V(:,r(1)+1:end,:);
 end
-
