@@ -84,5 +84,5 @@ MATLAB.
 
 For example, recently I'm using
 
-   rm -f CMakeCache.txt &&rcmake ../ -DMatlab_ROOT_DIR=/Applications/MATLAB_R2024a.app -DMatlab_MEX_EXTENSION="mexmaca64" -DMATLAB_FIND_DEBUG=ON -DCMAKE_OSX_ARCHITECTURES=arm64
+   rm -f CMakeCache.txt && cmake ../ -DMatlab_ROOT_DIR=/Applications/MATLAB_R2024a.app -DMatlab_MEX_EXTENSION="mexmaca64" -DMATLAB_FIND_DEBUG=ON -DCMAKE_OSX_ARCHITECTURES=arm64
 
