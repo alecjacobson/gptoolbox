@@ -48,7 +48,7 @@ application:
 
 ## Installation ##
 The vast majority of this code is __straight MATLAB__ (`*.m` files). Thus, only
-installing MATLAB and adding the qptoolbox directory and its subdirectories to
+installing MATLAB and adding the gptoolbox directory and its subdirectories to
 your MATLAB path is needed for installation. Let's assume you cloned gptoolbox
 at `/Users/ajx/Repos/gptoolbox/`, then you could issue:
 
